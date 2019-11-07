@@ -1,0 +1,6 @@
+Options -Indexes
+DirectoryIndex index.php
+
+
+php_flag session.auto_start off
+php_flag output_buffering off

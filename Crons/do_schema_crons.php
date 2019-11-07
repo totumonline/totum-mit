@@ -70,12 +70,7 @@ foreach ($crnTexts as $rule) {
     \totum\common\Sql::transactionStart();
     try {
         $Cacl->execAction('code', $rule, $rule, ['params' => $Table->params], ['params' => $Table->params], $Table);
-    } /*catch (tableSaveException $e){
-        tableTypes::$tables=[];
-        Table::clearCaches();
-        Sql::$PDO=null;
-        $Cacl->execAction('kod', $rule, $rule, ['params'=>$Table->params], ['params'=>$Table->params], $Table);
-    }*/
+    }
     catch (\totum\common\errorException $exception) {
 
         \totum\common\Mail::send(Conf::adminEmail,

@@ -3,8 +3,6 @@
 
 # Расширяемый конструктор, для быстрой разработки внутренних IT продуктов
 
-[![Скачать Totum](https://totum.totum.online/fls/365_153_file.png)](https://totum.online/downloaddemo) [![DOCS](https://totum.totum.online/fls/365_155_file.png)](https://docs.totum.online)
-
 — Open source конструктор внутренних ИТ-продуктов для компаний 20-300 человек.
 
 **— Превращает бизнес-аналитиков в разработчиков!**

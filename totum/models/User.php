@@ -26,7 +26,8 @@ class User extends Model
     function checkAndSaveConnectedUsers($id, $userRow = null)
     {
         if (!is_null($userRow) || $userRow = UserV::init()->getById($id)) {
-            Sql::exec('update ' . $this->table . ' set all_connected_users=\''.json_encode(['v'=>$this->getAllConnectedUsers($id, $userRow)]).'\' where ' . $this->getWhere(['id'=>$id]));
+            Sql::exec('update ' . $this->table . ' set all_connected_users=\'' . json_encode(['v' => $this->getAllConnectedUsers($id,
+                    $userRow)]) . '\' where ' . $this->getWhere(['id' => $id]));
             if ($userRow['boss_id']) {
                 $this->checkAndSaveConnectedUsers($userRow['boss_id']);
             }
@@ -34,21 +35,36 @@ class User extends Model
 
     }
 
-    function update($params, $where, $ignore = 0, $oldRow = null): Int
+    function update($upParams, $where, $ignore = 0, $oldRow = null): Int
     {
+        $params = [];
+        foreach ($upParams as $key => $param) {
+            if ($decode = json_decode($param, true)) {
+                $params[$key] = $decode['v'];
+            } else $params[$key] = $param;
+        }
 
         if (array_key_exists('boss_id', $params)) {
             if ($params['boss_id'] && !$this->checkCanBeBoss($where['id'], $params['boss_id'])) {
                 throw new errorException('Нельзя сделать начальником того, кто есть в подчиненных');
-            }else{
-                $oldBoss=UserV::init()->getFieldById('boss_id', $where['id']);
             }
+            if (key_exists('boss_id', $oldRow)) {
+                $oldBoss = $oldRow['boss_id']['v'];
+            } else {
+                $oldBoss = UserV::init()->getFieldById('boss_id', $where['id']);
+            }
+
         }
 
 
-        $result = parent::update($params, $where, $ignore);
+        $result = parent::update($upParams, $where, $ignore);
 
         if (array_key_exists('add_users', $params)) {
+            foreach ($params['add_users'] as $addId) {
+                if (!$this->checkCanBeBoss($addId, $where['id'])) {
+                    throw new errorException('Нельзя добавить в доступы начальника');
+                }
+            }
             $this->checkAndSaveConnectedUsers($where['id']);
         }
 
@@ -56,16 +72,13 @@ class User extends Model
             if (!empty($oldBoss)){
                 $this->checkAndSaveConnectedUsers($oldBoss);
             }
-            else
-                $this->checkAndSaveConnectedUsers(json_decode($params['boss_id'], true)['v']);
+            $this->checkAndSaveConnectedUsers($params['boss_id']);
         }
         return $result;
     }
 
     protected function checkCanBeBoss($id, $bossId)
     {
-        $bossId=json_decode($bossId, true)['v'];
-
         if ($id == $bossId) ;
         elseif (Sql::get('with RECURSIVE subUsers AS
 (
@@ -77,7 +90,7 @@ class User extends Model
       SELECT users__v.id, users__v.boss_id from users__v
       join subUsers s ON s.id=users__v.boss_id
 )
-select * from subUsers WHERE ' . $this->getWhere(['id'=>$bossId]))
+select * from subUsers WHERE ' . $this->getWhere(['id' => $bossId]))
         ) ;
         else return true;
         return false;
@@ -91,7 +104,9 @@ select * from subUsers WHERE ' . $this->getWhere(['id'=>$bossId]))
         if (is_null($userRow))
             $userRow = UserV::init()->getById($id);
 
-        if ($userRow['add_users']) $connectedUsers = array_merge($connectedUsers, json_decode($userRow['add_users']));
+        if ($userRow['add_users']) {
+            $connectedUsers = array_merge($connectedUsers, json_decode($userRow['add_users'], true));
+        }
         $connectedUsers = array_merge($connectedUsers, UserV::init()->getField('id', ['boss_id' => $id], null, null));
 
         foreach ($connectedUsers as $userId) {

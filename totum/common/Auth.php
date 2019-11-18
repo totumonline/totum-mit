@@ -195,7 +195,7 @@ class Auth
 
     function getConnectedUsers()
     {
-        return json_decode($this->rowData['all_connected_users'], true)['v'];
+        return json_decode($this->rowData['all_connected_users'], true);
     }
 
     function getProjectsWhere()

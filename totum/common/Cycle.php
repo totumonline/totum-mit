@@ -83,6 +83,8 @@ class Cycle
         $modelTablesCalcsConnects = TablesCalcsConnects::init();
         $modelTablesCalcsConnects->duplicateCycleSources($tables, $oldId, $newId);
 
+        $updates=[];
+
 
         foreach ($tables as &$tId) {
             $cycleTableRow = Table::getTableRowById($tId);
@@ -91,9 +93,11 @@ class Cycle
             $cycleTableDataRow = $model->get(['cycle_id' => $oldId]);
 
             $model->insert(['updated' => $cycleTableDataRow['updated'], 'cycle_id' => $newId]);
+            $updates[$tId]=$cycleTableDataRow['updated'];
+
             /** @var calcsTable $tId */
             $tId = $Cycle->getTable($cycleTableRow);
-            $tId->setDuplicatedTbl(json_decode($cycleTableDataRow['tbl'], true), $cycleTableDataRow['updated']);
+            $tId->setDuplicatedTbl(json_decode($cycleTableDataRow['tbl'], true), null /*Важно!*/);
         }
 
 
@@ -105,7 +109,7 @@ class Cycle
 
         foreach ($tables as $table) {
             /** @var calcsTable $table */
-            if(!$table->getSavedUpdated()){
+            if(!$table->getSavedUpdated() || $updates[$table->getTableRow()['id']]===$table->getSavedUpdated()){
                 $table->saveTable(true);
             }
         }

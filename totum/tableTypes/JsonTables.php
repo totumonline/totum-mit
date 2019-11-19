@@ -254,15 +254,6 @@ abstract class JsonTables extends aTable
         $this->savedUpdated = $updated ?? $this->savedUpdated;
         $this->updated = static::getUpdatedJson();
         $this->isTableDataChanged = true;
-
-        /** @var TablesCalcsConnects $CalcsConnects */
-        $CalcsConnects = TablesCalcsConnects::init();
-
-        /*  $CalcsConnects->createNewConnect(
-              $this->tableRow['id'],
-              $this->Cycle->getId(),
-              $this->Cycle->getCyclesTableId(),
-              TablesFields::TableId);*/
     }
 
     /**

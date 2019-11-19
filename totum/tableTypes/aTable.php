@@ -318,7 +318,7 @@ abstract class aTable extends _Table
         $table['fields'] = $this->visibleFields;
 
         foreach ($this->sortedVisibleFields['filter'] as $k => $field) {
-            $_filters[$k] = $table['params'][$k]['v'] ?? null;
+            $_filters[$k] = $this->tbl['params'][$k]['v'] ?? null;
             /*Не выводить поля скрытых фильтров*/
             if (!Auth::isCreator() && !empty($field['webRoles']) && count(array_intersect($field['webRoles'],
                     Auth::$aUser->getRoles())) == 0) {
@@ -1546,6 +1546,8 @@ abstract class aTable extends _Table
 
         } else $filters = $filtersIn;
 
+
+        
         if ($filters) {
             $this->filtersFromUser = [];
             foreach ($filters as $fName => $val) {
@@ -1771,6 +1773,7 @@ abstract class aTable extends _Table
 
                 }
             }
+
             $this->calculatedFilters[$channel] = [];
             foreach ($columns as $column) {
                 $this->calculatedFilters[$channel][$column['name']] = $this->tbl['params'][$column['name']];

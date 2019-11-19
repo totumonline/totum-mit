@@ -390,9 +390,10 @@ abstract class RealTables extends aTable
     {
         $filteredColumns = [];
         foreach ($this->sortedFields['filter'] as $k => $f) {
-            $filteredColumns[$f['column']] = $k;
+            if(!empty($f['showInWeb'])){
+                $filteredColumns[$f['column']] = $k;
+            }
         }
-
         $afterSavedField = false;
 
         foreach ($this->sortedVisibleFields['column'] as $v) {

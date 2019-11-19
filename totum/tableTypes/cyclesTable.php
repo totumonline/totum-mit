@@ -123,7 +123,7 @@ class cyclesTable extends RealTables
         return parent::loadRowsByParams($params, $order);
     }
 
-    protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck)
+    protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck=false)
     {
         $addedRow = parent::addRow($channel, $addData, $fromDuplicate, $addWithId, $duplicatedId, $isCheck);
         if (!$fromDuplicate && !$isCheck) {

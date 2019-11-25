@@ -31,10 +31,8 @@ if (!\totum\common\Auth::isAuthorized()) {
                 <? } ?>
             </ul>
 
-            <ul class="nav navbar-nav navbar-right">
-                <?if (Auth::isCreator()){
-                    echo '<li class="navbar-text"><span class="btn btn-sm btn-danger" id="docs-link"><i class="fa fa-question"></i> </span></li>';
-                }?>
+            <ul class="nav navbar-nav navbar-right"><li class="navbar-text"><span class="btn btn-sm btn-<?=Auth::isCreator()?'danger':'default'?>" id="docs-link" data-type="<?=Auth::isCreator()?'dev':'user'?>"><i class="fa fa-question"></i> </span></li>
+
                 <li class="navbar-text"
                     id="UserFio"><?= htmlspecialchars(Auth::getUserVar('fio')) ?></li>
                 <li><a href="/Auth/logout/">Выход</a></li>

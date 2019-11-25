@@ -53,10 +53,12 @@ class AuthController extends interfaceController
                     ['field' => 'name', 'operator' => '=', 'value' => 'main_email']
                 ], 'field' => ['styles', 'html']],
                     'row');
-                $template["body"] = preg_replace_callback('/\{(domain|login|pass)\}/',
+
+                $template["body"] = preg_replace_callback('/\{(domain|domen|login|pass)\}/',
                     function ($match) use ($pass, $email, $login) {
                         switch ($match[1]) {
                             case 'domen':
+                            case 'domain':
                                 return Conf::getFullHostName();
                             case 'pass':
                                 return $pass;
@@ -68,7 +70,7 @@ class AuthController extends interfaceController
 
                 Mail::send($email,
                     'Учетные данные в ' . $_SERVER['HTTP_HOST'],
-                    '<html><head>' . $template["styles"] . '</head><body>' . $template["body"] . '</body></html>',
+                    '<style>' . $template["styles"] . '</style>' . $template["body"] . '',
                     null,
                     [],
                     true);

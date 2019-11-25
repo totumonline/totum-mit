@@ -43,7 +43,7 @@ if (!\totum\common\Auth::isAuthorized()) {
                 <script>
                     (function () {
                         let reUsers =<?=json_encode(\totum\models\User::init()->getFieldIndexedById('fio',
-                            ['is_del' => false, 'interface' => 'web', 'interface' => 'web', 'login->>\'v\'!=\'service\'', 'login->>\'v\'!=\'cron\'']),
+                            ['is_del' => false, 'interface' => 'web', 'on_off' => 'true', 'login->>\'v\'!=\'service\'', 'login->>\'v\'!=\'cron\'']),
                             JSON_UNESCAPED_UNICODE);?>;
                         App.reUserInterface(reUsers, <?=Auth::isCreatorNotItself() ? 'true' : 'false'?>);
                     }());

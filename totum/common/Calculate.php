@@ -2223,9 +2223,6 @@ class Calculate
                 $flags = $flags | SORT_REGULAR;
         }
 
-        $flags = $flags | SORT_DESC;
-
-
         switch ($params['key'] ?? 'value') {
             case 'key':
                 if (!empty($params['direction']) && $params['direction'] == 'desc') {
@@ -2240,9 +2237,12 @@ class Calculate
 
                 break;
             case 'item':
-                if (empty($params['item'])) throw new errorException('Параметр item не определен');
-                if (!empty($params['direction']) && $params['direction'] == 'desc') $flags = $flags | SORT_DESC;
-                array_multisort($params['list'], array_column($params['list'], $params['item']), $flags);
+                if (is_null($params['item']??null)) throw new errorException('Параметр item не определен');
+
+                if (!empty($params['direction']) && $params['direction'] == 'desc') $sort = SORT_DESC;
+                else $sort = SORT_ASC;
+                array_multisort(array_column($params['list'], $params['item']), $flags, $sort, $params['list']);
+
                 break;
             case 'value':
                 $isAssoc = (array_keys($params['list']) !== range(0,

@@ -514,6 +514,8 @@ abstract class JsonTables extends aTable
                     $this->tbl['rows'][$newRow['id']] = $newRow;
                 }
                 $duplicatedIds[$newRow['id']] = $row['id'];
+                $this->changeIds['added'][$newRow['id']] = null;
+                $this->changeIds['duplicated'][$id] = $newRow['id'];
                 $this->isTableDataChanged = true;
             } else throw new errorException('id [[' . $id . ']] в таблице не найден');
         }

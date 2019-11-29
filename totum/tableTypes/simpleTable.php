@@ -8,26 +8,18 @@
 
 namespace totum\tableTypes;
 
-use totum\common\Model;
 use totum\common\Sql;
-use totum\models\Table;
-use totum\models\TablesFields;
 
 
 class simpleTable extends RealTables
 {
-    protected static $simpeTables = [];
+    protected static $simpleTables = [];
 
     static function init($tableRow, $extraData = null, $light = false)
     {
-        if (is_object($extraData)) {
-            return static::$simpeTables[$tableRow['id']] ?? (static::$simpeTables[$tableRow['id']] = parent::init($tableRow,
-                    $extraData,
-                    $light));
-        } else return static::$simpeTables[$tableRow['id']] ?? (static::$simpeTables[$tableRow['id']] = parent::init($tableRow,
+        return static::$simpleTables[$tableRow['id']] ?? (static::$simpleTables[$tableRow['id']] = parent::init($tableRow,
                 null,
-                $light,
-                $extraData));
+                $light));
     }
 
     function createTable()
@@ -43,17 +35,5 @@ class simpleTable extends RealTables
             $this->addOrderField();
         }
 
-    }
-
-
-    protected function duplicateRow($channel, $baseRow, $replaces, $addAfter)
-    {
-        $duplicatedRow = parent::duplicateRow($channel, $baseRow, $replaces, $addAfter);
-
-        if ($this->getTableRow()['id'] === Table::$TableId) {
-
-        }
-
-        return $duplicatedRow;
     }
 }

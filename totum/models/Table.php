@@ -261,7 +261,7 @@ class Table extends Model
                         Sql::exec('DELETE FROM ' . array_flip(Model::$tablesModels)['NonProjectCalcs'] . ' WHERE tbl_name=\'' . $tableName . '\' ');
                         break;
                     default:
-                        Sql::exec('DROP TABLE ' . $tableName . ' CASCADE');
+                        Sql::exec('DROP TABLE if exists ' . $tableName . ' CASCADE');
                         break;
                 }
 

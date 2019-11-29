@@ -1547,7 +1547,6 @@ abstract class aTable extends _Table
         } else $filters = $filtersIn;
 
 
-        
         if ($filters) {
             $this->filtersFromUser = [];
             foreach ($filters as $fName => $val) {
@@ -1773,7 +1772,6 @@ abstract class aTable extends _Table
 
                 }
             }
-
             $this->calculatedFilters[$channel] = [];
             foreach ($columns as $column) {
                 $this->calculatedFilters[$channel][$column['name']] = $this->tbl['params'][$column['name']];

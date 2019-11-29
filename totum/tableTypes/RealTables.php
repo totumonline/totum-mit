@@ -10,23 +10,17 @@ namespace totum\tableTypes;
 
 
 use totum\common\aLog;
-use totum\common\Auth;
 use totum\common\Calculate;
 use totum\common\Controller;
 use totum\common\Cycle;
-use totum\common\Debug;
 use totum\common\errorException;
 use totum\common\Field;
-use totum\common\Log;
 use totum\common\Model;
 use totum\common\Sql;
 use totum\common\SqlExeption;
 use totum\fieldTypes\File;
-use totum\fieldTypes\Select;
 use totum\models\Table;
 use totum\models\TablesFields;
-use totum\moduls\Table\TableController;
-use PHPMailer\PHPMailer\PHPMailer;
 
 abstract class RealTables extends aTable
 {
@@ -394,6 +388,7 @@ abstract class RealTables extends aTable
                 $filteredColumns[$f['column']] = $k;
             }
         }
+
         $afterSavedField = false;
 
         foreach ($this->sortedVisibleFields['column'] as $v) {
@@ -1139,7 +1134,7 @@ abstract class RealTables extends aTable
         /******Расчет дублированной строки для  REAL-таблиц********/
 
         $row = $this->addRow('inner', $newRowData, true, false, $baseRow['id']);
-
+        $this->changeIds['duplicated'][$baseRow['id']]=$row['id'];
         return $row;
     }
 

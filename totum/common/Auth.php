@@ -136,8 +136,14 @@ class Auth
 
     static function xmlInterfaceAuth($userId)
     {
-        $where = ['id' => $userId, 'is_del' => false];
-        if (in_array('on_off', static::getUserFields())) $where['on_off'] = "true";
+        $where = ['id' => $userId, 'is_del' => false, 'on_off' => "true"];
+        if ($userRow = static::getUserWhere($where)) {
+            return static::$aUser = new static($userRow);
+        }
+    }
+    static function simpleAuth($userId)
+    {
+        $where = ['id' => $userId, 'is_del' => false, 'on_off' => "true"];
         if ($userRow = static::getUserWhere($where)) {
             return static::$aUser = new static($userRow);
         }

@@ -999,21 +999,21 @@ class Calculate
             case '+':
                 foreach ($params['list'] as &$l) {
                     if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l += $params['num'];
+                    $l = round($l + $params['num'], 10);
                 }
                 unset($l);
                 break;
             case '-':
                 foreach ($params['list'] as &$l) {
                     if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l -= $params['num'];
+                    $l = round($l - $params['num'], 10);
                 }
                 unset($l);
                 break;
             case '*':
                 foreach ($params['list'] as &$l) {
                     if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l *= $params['num'];
+                    $l = round($l * $params['num'], 10);
                 }
                 unset($l);
                 break;
@@ -1022,7 +1022,7 @@ class Calculate
                     throw new errorException('Деление на ноль');
                 foreach ($params['list'] as &$l) {
                     if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l /= $params['num'];
+                    $l = round($l / $params['num'], 10);
                 }
                 unset($l);
                 break;
@@ -2237,7 +2237,7 @@ class Calculate
 
                 break;
             case 'item':
-                if (is_null($params['item']??null)) throw new errorException('Параметр item не определен');
+                if (is_null($params['item'] ?? null)) throw new errorException('Параметр item не определен');
 
                 if (!empty($params['direction']) && $params['direction'] == 'desc') $sort = SORT_DESC;
                 else $sort = SORT_ASC;

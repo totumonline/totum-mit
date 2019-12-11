@@ -749,7 +749,7 @@ row: rowCreate(field: "data" = $#DATA)');
                 if (!empty($calcsTablesIDs)) {
                     foreach ($calcsTablesIDs as $tableId) {
                         if (Auth::$aUser->isTableInAccess($tableId)) {
-                            header('location: /Table/' . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $cycles[0]['id'] . '/' . $tableId);
+                            header('location: /Table/' . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $cycles[0] . '/' . $tableId);
                             die;
                         }
                     }

@@ -178,7 +178,7 @@ class TableController extends interfaceController
 
         try {
             if ($this->onlyRead && !in_array($method,
-                    ['setCommentsViewed', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+                    ['setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
 
             if (!empty($_POST['data']) && is_string($_POST['data'])) $_POST['data'] = json_decode($_POST['data'], true);
 
@@ -189,7 +189,26 @@ class TableController extends interfaceController
             $this->Table->setFilters($_POST['filters'] ?? '');
 
             switch ($method) {
+                case 'setTableFavorite':
+                    if ($_POST['status']) {
+                        $_POST['status'] = json_decode($_POST['status'], true);
+                        if (key_exists($this->Table->getTableRow()['id'],
+                                Auth::$aUser->getTreeTables()) && in_array($this->Table->getTableRow()['id'],
+                                Auth::$aUser->getFavoriteTables()) !== $_POST['status']) {
+                            $Users = tableTypes::getTableByName('users');
+                            if ($_POST['status']) {
+                                $favorite= array_merge(Auth::$aUser->getFavoriteTables(),
+                                    [$this->Table->getTableRow()['id']]);
 
+                            } else {
+                                $favorite = array_diff(Auth::$aUser->getFavoriteTables(),
+                                    [$this->Table->getTableRow()['id']]);
+                            }
+                            $Users->reCalculateFromOvers(['modify' =>[Auth::$aUser->getId() => ['favorite' =>  $favorite]]]);
+                        }
+                        $result = ['status' => $_POST['status']];
+                    }
+                    break;
                 case 'getAllTables':
                     if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
                     $tables = [];
@@ -293,7 +312,10 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
                             , 'duplicating' => (!($table['__blocked'] ?? null) && $table['duplicating'])
                             , 'editing' => (!($table['__blocked'] ?? null) && !$table['readOnly'])
                         ]
-                        , 'tableRow' => ($this->Table->getTableRow()['type'] == 'calcs' ? ['fields_sets' => $this->changeFieldsSets()] : []) + $this->Table->getTableRow() + (is_a($this->Table,
+                        , 'tableRow' => ($this->Table->getTableRow()['type'] == 'calcs' ?
+                                ['fields_sets' => $this->changeFieldsSets()] : [])
+                            + $this->Table->getTableRow() +
+                            (is_a($this->Table,
                                 \totum\tableTypes\calcsTable::class) ? ['cycle_id' => $this->Table->getCycle()->getId()] : [])
                         , 'f' => $table['f']
                         , 'withCsvButtons' => $table['withCsvButtons']

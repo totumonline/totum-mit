@@ -26,7 +26,12 @@ $forJsonObj = [
         , 'duplicating' => (!($table['__blocked'] ?? null) && $table['duplicating'])
         , 'editing' => (!($table['__blocked'] ?? null) && !$onlyRead)
     ]
-    , 'tableRow' => ($this->Table->getTableRow()['type'] == 'calcs' ? ['fields_sets' => $this->changeFieldsSets()] : []) + $this->Table->getTableRow() + (is_a($this->Table,
+    , 'tableRow' => ($this->Table->getTableRow()['type'] == 'calcs' ? ['fields_sets' => $this->changeFieldsSets()] :
+            ['__is_in_favorites' =>
+                !key_exists($this->Table->getTableRow()['id'],
+                    Auth::$aUser->getTreeTables()) ? null : in_array($this->Table->getTableRow()['id'],
+                    Auth::$aUser->getFavoriteTables())]
+        ) + $this->Table->getTableRow() + (is_a($this->Table,
             \totum\tableTypes\calcsTable::class) ? ['cycle_id' => $this->Table->getCycle()->getId()] : [])
     , 'f' => $table['f']
     , 'withCsvButtons' => $table['withCsvButtons']
@@ -76,25 +81,25 @@ if (!empty($_GET['a'])) {
 ?>
 
 <script>
-    let TableConfig =<?=json_encode($forJsonObj, JSON_UNESCAPED_UNICODE);?>;
+    let TableConfig = <?=json_encode($forJsonObj, JSON_UNESCAPED_UNICODE);?>;
     TableConfig.model = TableModel;
     <? if ($LOGS ?? null) {
 
         $jsLog = json_encode($LOGS, JSON_UNESCAPED_UNICODE | JSON_OBJECT_AS_ARRAY);
-        echo 'TableConfig.LOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '","type":"error"}];').';';
-        if($jsLog===false){
-            $FullLOGS=[["text"=>'jsonError: ' . json_last_error_msg(),"type"=>"error"]];
+        echo 'TableConfig.LOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '","type":"error"}];') . ';';
+        if ($jsLog === false) {
+            $FullLOGS = [["text" => 'jsonError: ' . json_last_error_msg(), "type" => "error"]];
         }
     }
     ?>
     <? if ($FullLOGS ?? null) {
         $jsLog = json_encode($FullLOGS, JSON_UNESCAPED_UNICODE | JSON_OBJECT_AS_ARRAY);
-        echo 'TableConfig.FullLOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '"}];').';';
+        echo 'TableConfig.FullLOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '"}];') . ';';
     }?>
 
     <? if ($FieldLOGS ?? null) {
         $jsLog = json_encode($FieldLOGS, JSON_UNESCAPED_UNICODE | JSON_OBJECT_AS_ARRAY);
-        echo 'TableConfig.FieldLOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '"}];').';';
+        echo 'TableConfig.FieldLOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '"}];') . ';';
     }?>
     $(function () {
         new App.pcTableMain($('#table'), TableConfig);

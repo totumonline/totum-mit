@@ -724,6 +724,9 @@ row: rowCreate(field: "data" = $#DATA)');
 
         $this->__addAnswerVar('topBranches', $topBranches);
         $this->__addAnswerVar('treeData', $tree);
+        if(!$this->Table){
+            $this->__addAnswerVar('html', tableTypes::getTableByName('tree')->getByParams(['field'=>'html', 'where'=>[['field'=>'id', 'operator'=>'=', 'value'=>$this->branchId]]], 'field'));
+        }
     }
 
     function doIt($action)

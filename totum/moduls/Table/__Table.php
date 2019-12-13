@@ -4,13 +4,17 @@ use totum\models\Table;
 
 if (empty($table)) {
     if (empty($error)) {
-        ?>
-        <div class="panel panel-default">
-            <div class="panel-body">
-                Выберите таблицу
+        if (!empty($html)) echo '<div style="padding:40px; font-family: \'Open Sans\', sans-serif" id="text_main_page">'.$html.'</div>';
+        else {
+            ?>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    Выберите таблицу
+                </div>
             </div>
-        </div>
-    <? }
+            <?
+        }
+    }
     return;
 } ?>
 <div id="table"></div>

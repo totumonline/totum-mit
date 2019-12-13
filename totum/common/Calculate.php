@@ -1378,16 +1378,19 @@ class Calculate
 
                             if ($nameVar === $this->varName && get_class($this) === Calculate::class) {
                                 throw new errorException('Нельзя из кода Код обращаться к текущему значению поля');
-                            } elseif (array_key_exists($nameVar, $this->row)) {
+                            } elseif (key_exists($nameVar, $this->row)) {
                                 $rowVar = $this->row[$nameVar];
-                            } elseif (array_key_exists($nameVar, $this->tbl['params'] ?? [])) {
+                            } elseif (key_exists($nameVar, $this->tbl['params'] ?? [])) {
                                 $rowVar = $this->tbl['params'][$nameVar];
-                            } else if (array_key_exists($nameVar,
-                                    $this->oldRow ?? []) && !array_key_exists($nameVar,
+                            } else if (key_exists($nameVar,
+                                    $this->oldRow ?? []) && !key_exists($nameVar,
                                     $this->row ?? [])) {
                                 $rowVar = ['v' => null];
                             } elseif (key_exists($nameVar, $this->aTable->getSortedFields()['filter'])) {
                                 $rowVar = ['v' => null];
+                            } elseif ($nameVar === 'id' && key_exists($this->varName,
+                                    $this->aTable->getFields()) && $this->aTable->getFields()[$this->varName]['category'] == 'column') {
+                                $rowVar = null;
                             } else {
                                 throw new errorException('Параметр [[' . $nameVar . ']] не найден');
                             }

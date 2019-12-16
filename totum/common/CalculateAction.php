@@ -530,7 +530,6 @@ class CalculateAction extends Calculate
 
         $tmp = tableTypes::getTable($tableRow);
         $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ['params' => $params['params'] ?? []]]);
-        $data = $tmp->getTableDataForRefresh(null);
 
         if (empty($params['width'])) {
             $width = 130;
@@ -545,9 +544,6 @@ class CalculateAction extends Calculate
             'title' => $params['title'] ?? $tableRow['title'],
             'table_id' => $tableRow['id'],
             'sess_hash' => $tmp->getTableRow()['sess_hash'],
-            'data' => array_values($data['chdata']['rows']),
-            'data_params' => $data['chdata']['params'],
-            'f' => $data['chdata']['f'],
             'width' => $width,
             'height' => $params['height'] ?? '80vh'
         ];
@@ -558,6 +554,26 @@ class CalculateAction extends Calculate
             ['header' => $params['header'] ?? true,
                 'footer' => $params['footer'] ?? true]);
 
+    }
+    protected
+    function funcUriToAnonymTable($params)
+    {
+        $params = $this->getParamsArray($params);
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
+
+        if($tableRow['type']!="tmp") throw new errorException('Только для временных таблиц');
+        $d = [];
+        if(!empty($params['data'])){
+            $d['d']= $params['data'];
+        }
+        if(!empty($params['params'])){
+            $d['p']= $params['params'];
+        }
+        $t=$tableRow['id'];
+        if ($d){
+            $t=$tableRow['id'].'?d='.urlencode(Crypt::getCrypted(json_encode($d, JSON_UNESCAPED_UNICODE), false));
+        }
+        return Conf::getAnonymHost().'/'.Conf::anonym_modul.'/'.$t;
     }
 
     protected

@@ -16,18 +16,18 @@ abstract class ConfParent
 
     static $MaxFileSizeMb = 10;
     protected static $schemas;
+    const anonym_modul="An";
 
     static function getLogPaths()
     {
-        $dir= getcwd().'/myLogs/';
-        if(!is_dir($dir)) mkdir($dir);
+        $dir = getcwd() . '/myLogs/';
+        if (!is_dir($dir)) mkdir($dir);
         return [
-            'sql' => $dir.'sql_' . static::getDb()['schema'] . '.log',
-            'error' => $dir.'error.log',
-            'calcs' => $dir.'calcs.log'
+            'sql' => $dir . 'sql_' . static::getDb()['schema'] . '.log',
+            'error' => $dir . 'error.log',
+            'calcs' => $dir . 'calcs.log'
         ];
     }
-
 
 
     static function getTmpLoadedFilesDir()
@@ -47,7 +47,7 @@ abstract class ConfParent
     }
 
     protected static $settedSchema;
-    
+
     static function setSchema($schemaName)
     {
         static::$settedSchema = $schemaName;
@@ -55,7 +55,7 @@ abstract class ConfParent
 
     static function getSchema()
     {
-        return static::$settedSchema ?? static::$schemas[$_SERVER['HTTP_HOST'] ?? ''] ?? '';
+        return static::$settedSchema ?? static::getSchemas()[$_SERVER['HTTP_HOST'] ?? ''] ?? '';
     }
 
     static function getSchemas()
@@ -72,7 +72,7 @@ abstract class ConfParent
 
     public static function getFullHostName()
     {
-        return ($_SERVER['HTTP_HOST'] ?? array_flip(static::$schemas)[static::getSchema()]);
+        return ($_SERVER['HTTP_HOST'] ?? array_flip(static::getSchemas())[static::getSchema()]);
     }
 
     /*
@@ -90,5 +90,10 @@ abstract class ConfParent
     public static function mail($to, $title, $body, $attachments = [], $from = null, $system = false)
     {
         throw new errorException('Настройки для отправки почты не заданы');
+    }
+
+    static function getAnonymHost()
+    {
+        return 'http://' . static::getFullHostName();
     }
 }

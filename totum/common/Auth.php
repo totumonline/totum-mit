@@ -10,6 +10,7 @@ class Auth
      * @var Auth
      */
     static $aUser;
+    private static $usersFields;
     protected $rowData, $tables, $treeTables = [], $roles, $roleIds, $branches, $topBranches, $connectedUsers, $isCreator = false, $oneCycleTables = [];
 
     protected function __construct($rowData)
@@ -30,13 +31,13 @@ class Auth
             if ($role['id'] == 1) {
                 $this->isCreator = true;
             }
-            $noTables = json_decode($role['tree_off'], true)??[];
+            $noTables = json_decode($role['tree_off'], true) ?? [];
 
             foreach (json_decode($role['tables']) as $table) {
                 $tables[$table] = 1;
                 if (!in_array($table, $noTables)) $this->treeTables[$table] = 1;
             }
-            foreach (json_decode($role['tables_read'], true)??[] as $table) {
+            foreach (json_decode($role['tables_read'], true) ?? [] as $table) {
                 if (empty($tables[$table]))
                     $tables[$table] = 0;
                 if (!in_array($table, $noTables)) $this->treeTables[$table] = 1;
@@ -73,14 +74,24 @@ class Auth
 
     static function getUserFields()
     {
-        return Sql::getFieldArray('select name->>\'v\' from tables_fields where category->>\'v\'=\'column\' AND table_name->>\'v\'=\'users\'');
+        return static::$usersFields ?? static::$usersFields = Sql::getFieldArray('select name->>\'v\' from tables_fields where category->>\'v\'=\'column\' AND table_name->>\'v\'=\'users\'');
+    }
+
+    static function loadAuthUserByLogin($userLogin, $UpdateActive)
+    {
+
+        $where = ['login' => $userLogin, 'is_del' => false, 'on_off' => "true"];
+        if ($userRow = static::getUserWhere($where, $UpdateActive)) {
+            static::$aUser = new static($userRow);
+        }
+
+        return static::$aUser;
     }
 
     static function loadAuthUser($userId, $UpdateActive)
     {
 
-        $where = ['id' => $userId, 'is_del' => false];
-        if (in_array('on_off', static::getUserFields())) $where['on_off'] = "true";
+        $where = ['id' => $userId, 'is_del' => false, 'on_off' => "true"];
         if ($userRow = static::getUserWhere($where, $UpdateActive)) {
             static::$aUser = new static($userRow);
         }
@@ -141,6 +152,7 @@ class Auth
             return static::$aUser = new static($userRow);
         }
     }
+
     static function simpleAuth($userId)
     {
         $where = ['id' => $userId, 'is_del' => false, 'on_off' => "true"];
@@ -209,12 +221,12 @@ class Auth
         if ($this->rowData['other_prs_access'] > 0) return [];
         return ['creator_id' => $this->getConnectedUsers()];
     }
+
     function getTables()
     {
 
         return $this->tables;
     }
-
 
 
     public function getInterface()

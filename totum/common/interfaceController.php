@@ -13,7 +13,7 @@ use totum\tableTypes\tableTypes;
 
 abstract class interfaceController extends Controller
 {
-    static $pageTemplate;
+    static $pageTemplate='page_template.php';
     static $contentTemplate = '';
     protected $answerVars = [];
     static $actionTemplate = '';
@@ -34,8 +34,7 @@ abstract class interfaceController extends Controller
         //$this->folder = preg_replace('/^app\/(.*)\/[^\/]+$/', '$1', str_replace('\\', '/', get_called_class()));
 
         $this->folder = dirname((new \ReflectionClass(get_called_class()))->getFileName());
-
-        static::$pageTemplate = AutoloadAndErrorHandlers::getTemplatesDir().'/page_template.php';
+        static::$pageTemplate = AutoloadAndErrorHandlers::getTemplatesDir().'/'.static::$pageTemplate;
 
         if (!empty($_REQUEST['ajax'])) {
             $this->isAjax = true;

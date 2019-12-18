@@ -834,7 +834,7 @@ abstract class RealTables extends aTable
 
         if ($add) {
             if (!empty($this->tableRow['with_order_field'])) {
-                $fIds = $this->getFilteredIds($channel, []);
+                $fIds = $channel != 'inner' ? $this->getFilteredIds($channel, []) : [];
                 $afterN = null;
                 if ("0" === (string)$addAfter) {
                     $afterN = 0;

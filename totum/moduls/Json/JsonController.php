@@ -53,6 +53,7 @@ namespace totum\moduls\Json;
 
 use totum\common\Auth;
 use totum\common\Calculate;
+use totum\common\CalculateAction;
 use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
@@ -83,6 +84,9 @@ class JsonController extends Controller
         11 => 'Поле должно содержать/не содержать множественный селект',
         12 => 'В секции export укажете "fields":[] - перечисление полей для вывода в экспорт',
         13 => 'Неверно оформлено where в секции rows-set-where',
+        14 => 'Без указания таблицы в пути работает только секция remotes',
+        15 => 'Remote {var} не существует или не доступен для вас',
+        16 => 'Не задан  name для remote',
     ];
     private static $translates = ['header' => 'param', 'footer' => 'footer', 'rows' => 'column'];
 
@@ -191,6 +195,7 @@ class JsonController extends Controller
 
         $jsonString = file_get_contents('php://input');
         try {
+            sql::transactionStart();
             $this->arrayIn = json_decode($jsonString, true) ?? json_decode($_POST['data'] ?? "", true);
             if (!is_array($this->arrayIn)) $this->throwError(1);
             if (!empty($this->arrayIn['withLogs'])) {
@@ -202,18 +207,12 @@ class JsonController extends Controller
                 || array_key_exists('recalculate', $this->arrayIn)
             );
 
-            $actionDone = false;
-            foreach (['import', 'recalculate', 'export'] as $action) {
+            foreach (['import', 'recalculate', 'remotes', 'export'] as $action) {
                 if (array_key_exists($action, $this->arrayIn)) {
+                    if (!$this->Table && $action != 'remotes')
+                        $this->throwError(14);
                     $this->{'json' . $action}();
-
-                    $actionDone = true;
                 }
-            }
-            //Просто пересчитать, если не было вызвано никаких аргументов
-            if (!$actionDone) {
-                $this->Table->reCalculateFromOvers(['channel' => 'xml']);
-                $this->addedIds = array_merge($this->addedIds, $this->Table->addedIds);
             }
 
             foreach (Controller::getLinks() ?? [] as $link) {
@@ -231,11 +230,12 @@ class JsonController extends Controller
                 );
                 file_get_contents($link['uri'], false, $context);
             }
+            sql::transactionCommit();
 
         } catch (errorException $e) {
             $error = $e->getCode() ? $e->getCode() : -1;
             $errorDescription = $e->getMessage();
-
+            sql::transactionRollBack();
         }
 
         $this->sendJson($error ?? 0, $errorDescription ?? '');
@@ -263,6 +263,44 @@ class JsonController extends Controller
         }
         $this->Table->reCalculateFromOvers($inVars);
         $this->addedIds = array_merge($this->addedIds, $this->Table->addedIds);
+    }
+
+    protected function jsonRemotes()
+    {
+        $selectedRemotes = [];
+        $remoteOutputs = [];
+        $RemotesTable = tableTypes::getTableByName('ttm__remotes');
+        foreach ($this->arrayIn['remotes'] ?? [] as $remote) {
+            $name = $remote['name'] ?? null;
+            if (!$name) {
+                $this->throwError(16);
+            }
+
+            if (!key_exists($name, $selectedRemotes)) {
+                $code = ($selectedRemotes[$name] = $RemotesTable->getByParams(['where' => [
+                    ['field' => 'on_off', 'operator' => '=', 'value' => true],
+                    ['field' => 'name', 'operator' => '=', 'value' => $name],
+                    ['field' => 'api_user', 'operator' => '=', 'value' => Auth::$aUser->getId()],
+                ], 'field' => 'code'],
+                    'field'));
+                if (!$code) {
+                    $this->throwError(15, ["{var}" => $name]);
+                }
+                $selectedRemotes[$name] = new CalculateAction($code);
+            }
+
+            /** @var CalculateAction array $selectedRemotes */
+            $remoteOutputs[] = $selectedRemotes[$name]->execAction('CODE',
+                [],
+                [],
+                [],
+                [],
+                $RemotesTable,
+                [
+                    'data' => $remote['data'] ?? null
+                ]);
+        }
+        $this->arrayOut['remotes'] = $remoteOutputs;
     }
 
     protected function jsonImport()
@@ -490,7 +528,9 @@ class JsonController extends Controller
     function checkTable($isRequestForWrite)
     {
         try {
-            if (preg_match('/^(\d+)\/(\d+)\/(\d+)$/', $this->inModuleUri, $match)) {
+            if ($this->inModuleUri == '')
+                return;
+            else if (preg_match('/^(\d+)\/(\d+)\/(\d+)$/', $this->inModuleUri, $match)) {
                 $cyclesTableId = $match[1];
                 $cycleId = $match[2];
                 $cycleTableId = $match[3];
@@ -531,9 +571,9 @@ class JsonController extends Controller
     }
 
     protected
-    function throwError($code)
+    function throwError($code, $datas = [])
     {
-        throw new errorException(static::$errors[$code], $code);
+        throw new errorException(str_replace(array_keys($datas), array_values($datas), static::$errors[$code]), $code);
     }
 
     protected
@@ -564,17 +604,18 @@ class JsonController extends Controller
             $this->arrayOut['error'] = $error;
             $this->arrayOut['errorDescription'] = $errorDescription;
         } else {
-            $this->arrayOut['updated'] = json_decode($this->Table->getLastUpdated(), true)['dt'];
-            if ($this->tableUpdatedOnLoad != $this->Table->getLastUpdated()) {
-                $this->arrayOut['changed'] = true;
-                if (!empty($this->addedIds)) {
-                    $this->arrayOut['added_ids'] = array_unique($this->addedIds);
-                }
-                if (!empty($this->deletedIds)) {
-                    $this->arrayOut['removed_ids'] = array_unique($this->deletedIds);
+            if ($this->Table) {
+                $this->arrayOut['updated'] = json_decode($this->Table->getLastUpdated(), true)['dt'];
+                if ($this->tableUpdatedOnLoad != $this->Table->getLastUpdated()) {
+                    $this->arrayOut['changed'] = true;
+                    if (!empty($this->addedIds)) {
+                        $this->arrayOut['added_ids'] = array_unique($this->addedIds);
+                    }
+                    if (!empty($this->deletedIds)) {
+                        $this->arrayOut['removed_ids'] = array_unique($this->deletedIds);
+                    }
                 }
             }
-
         }
 
         if (static::$FullLogs) {

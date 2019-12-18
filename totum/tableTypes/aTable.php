@@ -234,7 +234,7 @@ abstract class aTable extends _Table
             }
         }
 
-        if (is_null($ids)) {
+            if (is_null($ids ?? null)) {
             $ids = $this->getByParams(['field' => 'id'], 'list');
         }
         $this->loadRowsByIds($ids);
@@ -488,7 +488,7 @@ abstract class aTable extends _Table
             try {
 
 
-                foreach ($this->filtersFromUser as $f => $v) {
+                foreach (($this->filtersFromUser ?? []) as $f => $v) {
                     $this->tbl['params'][$f] = ['v' => $v];
                 }
 
@@ -914,7 +914,8 @@ abstract class aTable extends _Table
             $sortedFields = $this->sortedVisibleFields;
             if (!Auth::isCreator()) {
                 foreach ($this->sortedVisibleFields['filter'] as $field) {
-                    if ($field['webRoles'] && !count(array_intersect($field['webRoles'], Auth::$aUser->getRoles()))) {
+                    if (!empty($field['webRoles']) && !count(array_intersect($field['webRoles'],
+                            Auth::$aUser->getRoles()))) {
                         unset($sortedFields['filter'][$field['name']]);
                     }
                 }
@@ -1402,7 +1403,8 @@ abstract class aTable extends _Table
                             $cycle = Cycle::init($_row['id'], $SourceTable->getTableRow()['id']);
                             foreach ($cycle->getTables() as $inTableID) {
                                 $sourceInTable = $cycle->getTable(Table::getTableRowById($inTableID));
-                                $row['_tables'][$sourceInTable->getTableRow()['name']] = ['tbl' => $replaceFilesInTblWithContent($sourceInTable->getTbl(), $sourceInTable->getFields()), 'version' => $sourceInTable->getTableRow()['__version']];
+                                $row['_tables'][$sourceInTable->getTableRow()['name']] = ['tbl' => $replaceFilesInTblWithContent($sourceInTable->getTbl(),
+                                    $sourceInTable->getFields()), 'version' => $sourceInTable->getTableRow()['__version']];
                             }
                         }
                     }
@@ -1436,7 +1438,8 @@ abstract class aTable extends _Table
     {
         if ($this->onCanculating) {
 
-            static::$recalcLogPointer->addSelects($fromTable, $this);
+            if (static::$recalcLogPointer)
+                static::$recalcLogPointer->addSelects($fromTable, $this);
 
             return $this->getByParams($params,
                 $returnType);
@@ -1444,7 +1447,7 @@ abstract class aTable extends _Table
 
         $hash = $returnType . serialize($params);
         if (empty($this->cachedSelects[$hash])) {
-            static::$recalcLogPointer->addSelects($fromTable, $this);
+            if (static::$recalcLogPointer) static::$recalcLogPointer->addSelects($fromTable, $this);
             $this->cachedSelects[$hash] = $this->getByParams($params,
                 $returnType);
         }
@@ -1849,7 +1852,7 @@ abstract class aTable extends _Table
                             $newTbl), $channel == 'inner' ? 'скрипт' : null]]
                     );
                 } elseif (key_exists($Field->getName(),
-                        $modified) && ($thisRow[$Field->getName()]['v'] !== $oldVal['v'] || $thisRow[$Field->getName()]['h'] ?? null !== $oldVal['h'] ?? null)) {
+                        $modified) && ($thisRow[$Field->getName()]['v'] !== $oldVal['v'] || ($thisRow[$Field->getName()]['h'] ?? null) !== ($oldVal['h'] ?? null))) {
                     $funcName = 'modify';
                     if ($thisRow[$Field->getName()]['h'] === true && !($oldVal['h'] ?? null)) {
                         $funcName = 'pin';

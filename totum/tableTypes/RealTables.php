@@ -54,7 +54,7 @@ abstract class RealTables extends aTable
         }
         $table = [];
         $id = $editData['id'];
-        $this->checkIsUserCanModifyIds([$id=>[]], [], 'web');
+        $this->checkIsUserCanModifyIds([$id => []], [], 'web');
 
         $data = [];
         $dataSetToDefault = [];
@@ -384,7 +384,7 @@ abstract class RealTables extends aTable
     {
         $filteredColumns = [];
         foreach ($this->sortedFields['filter'] as $k => $f) {
-            if(!empty($f['showInWeb'])){
+            if (!empty($f['showInWeb'])) {
                 $filteredColumns[$f['column']] = $k;
             }
         }
@@ -860,8 +860,8 @@ abstract class RealTables extends aTable
                     if (is_null($orderMinN) || $orderMinN > $row['n']) $orderMinN = $row['n'];
 
                 }
-
-                $modifiedIds[] = $row['id']; //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
+                if (!$isCheck)
+                    $modifiedIds[] = $row['id']; //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
             }
         }
         if (!empty($this->tableRow['recalc_in_reorder'])) {
@@ -1134,7 +1134,7 @@ abstract class RealTables extends aTable
         /******Расчет дублированной строки для  REAL-таблиц********/
 
         $row = $this->addRow('inner', $newRowData, true, false, $baseRow['id']);
-        $this->changeIds['duplicated'][$baseRow['id']]=$row['id'];
+        $this->changeIds['duplicated'][$baseRow['id']] = $row['id'];
         return $row;
     }
 

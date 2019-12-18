@@ -234,7 +234,7 @@ abstract class aTable extends _Table
             }
         }
 
-            if (is_null($ids ?? null)) {
+        if (is_null($ids ?? null)) {
             $ids = $this->getByParams(['field' => 'id'], 'list');
         }
         $this->loadRowsByIds($ids);
@@ -946,7 +946,7 @@ abstract class aTable extends _Table
 
         foreach (($data['rows'] ?? []) as $i => $row) {
 
-            $newRow = ['id' => $row['id']];
+            $newRow = ['id' => ($row['id'] ?? null)];
             if (array_key_exists('n', $row)) {
                 $newRow['n'] = $row['n'];
                 if (!empty($this->getTableRow()['new_row_in_sort']) && key_exists($row['id'],
@@ -980,13 +980,13 @@ abstract class aTable extends _Table
 
                 Field::init($f, $this)->addViewValues($viewType,
                     $newRow[$f['name']],
-                    $this->tbl['rows'][$row['id']] ?? $row,
+                    $this->tbl['rows'][$row['id'] ?? ''] ?? $row,
                     $this->tbl);
 
                 if ($isWithFormat) {
                     Field::init($f, $this)->addFormat(
                         $newRow[$f['name']],
-                        $this->tbl['rows'][$row['id']] ?? $row,
+                        $this->tbl['rows'][$row['id'] ?? ''] ?? $row,
                         $this->tbl);
                 }
 
@@ -1777,7 +1777,7 @@ abstract class aTable extends _Table
             }
             $this->calculatedFilters[$channel] = [];
             foreach ($columns as $column) {
-                $this->calculatedFilters[$channel][$column['name']] = $this->tbl['params'][$column['name']];
+                $this->calculatedFilters[$channel][$column['name']] = $this->tbl['params'][$column['name']] ?? null;
             }
 
         }
@@ -1854,7 +1854,7 @@ abstract class aTable extends _Table
                 } elseif (key_exists($Field->getName(),
                         $modified) && ($thisRow[$Field->getName()]['v'] !== $oldVal['v'] || ($thisRow[$Field->getName()]['h'] ?? null) !== ($oldVal['h'] ?? null))) {
                     $funcName = 'modify';
-                    if ($thisRow[$Field->getName()]['h'] === true && !($oldVal['h'] ?? null)) {
+                    if (($thisRow[$Field->getName()]['h'] ?? null) === true && !($oldVal['h'] ?? null)) {
                         $funcName = 'pin';
                     }
 

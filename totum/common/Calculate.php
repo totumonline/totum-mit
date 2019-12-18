@@ -1051,7 +1051,9 @@ class Calculate
             $params['str']
             ,
             $matches)) {
-            $this->vars[$params['matches']] = $matches;
+            if ($params['matches'] ?? null) {
+                $this->vars[$params['matches']] = $matches;
+            }
         }
         if ($r === false) {
             throw new errorException('Ошибка регулярного выражения: [[' . $params['template'] . ']]');

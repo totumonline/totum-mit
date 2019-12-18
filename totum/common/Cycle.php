@@ -56,11 +56,9 @@ class Cycle
         Sql::transactionStart();
 
 
-
-
         $Cycle = static::init($cycleId, $cyclesTableId);
         $tables = $Cycle->getTables();
-        foreach ($tables as $tableId){
+        foreach ($tables as $tableId) {
             $tableRow = Table::getTableRowById($tableId);
             CalcsTableCycleVersion::addVersionForCycle($tableRow['name'], $cycleId);
         }
@@ -83,7 +81,7 @@ class Cycle
         $modelTablesCalcsConnects = TablesCalcsConnects::init();
         $modelTablesCalcsConnects->duplicateCycleSources($tables, $oldId, $newId);
 
-        $updates=[];
+        $updates = [];
 
 
         foreach ($tables as &$tId) {
@@ -93,7 +91,7 @@ class Cycle
             $cycleTableDataRow = $model->get(['cycle_id' => $oldId]);
 
             $model->insert(['updated' => $cycleTableDataRow['updated'], 'cycle_id' => $newId]);
-            $updates[$tId]=$cycleTableDataRow['updated'];
+            $updates[$tId] = $cycleTableDataRow['updated'];
 
             /** @var calcsTable $tId */
             $tId = $Cycle->getTable($cycleTableRow);
@@ -109,7 +107,7 @@ class Cycle
 
         foreach ($tables as $table) {
             /** @var calcsTable $table */
-            if(!$table->getSavedUpdated() || $updates[$table->getTableRow()['id']]===$table->getSavedUpdated()){
+            if (!$table->getSavedUpdated() || $updates[$table->getTableRow()['id']] === $table->getSavedUpdated()) {
                 $table->saveTable(true);
             }
         }
@@ -223,16 +221,17 @@ class Cycle
             if ($tableRow['tree_node_id'] != $this->getCyclesTableId())
                 throw new errorException('Ошибка обращения к таблице не своей циклической таблицы');
 
-            list($tableRow['__version'], $tableRow['__auto_recalc']) = CalcsTableCycleVersion::getVersionForCycle($tableRow['name'], $this->id);
+            list($tableRow['__version'], $tableRow['__auto_recalc']) = CalcsTableCycleVersion::getVersionForCycle($tableRow['name'],
+                $this->id);
         }
 
-        if (key_exists($tableRow['name'], $this->tables)){
-            if($this->tables[$tableRow['name']]->getTableRow()['__version']!==$tableRow['__version']){
+        if (key_exists($tableRow['name'], $this->tables)) {
+            if (($this->tables[$tableRow['name']]->getTableRow()['__version'] ?? null) !== ($tableRow['__version'] ?? null)) {
                 $this->tables[$tableRow['name']]->setVersion($tableRow['__version'], $tableRow['__auto_recalc']);
                 $this->tables[$tableRow['name']]->initFields();
             }
 
-        }else $this->tables[$tableRow['name']] = $model::init($tableRow,
+        } else $this->tables[$tableRow['name']] = $model::init($tableRow,
             $this,
             $light);
 
@@ -278,10 +277,11 @@ class Cycle
         return tableTypes::getTable(Table::getTableRowById($this->getCyclesTableId()));
     }
 
-    function recalculate($isAdding=false){
+    function recalculate($isAdding = false)
+    {
 
         $tables = $this->getTables();
-        $tablesUpdates=[];
+        $tablesUpdates = [];
 
         foreach ($tables as &$t) {
             $t = $this->getTable(Table::getTableRowById($t));
@@ -290,7 +290,7 @@ class Cycle
         unset($t);
 
         foreach ($tables as $t) {
-            if ($tablesUpdates[$t->getTableRow()["id"]]==$t->getLastUpdated()){
+            if ($tablesUpdates[$t->getTableRow()["id"]] == $t->getLastUpdated()) {
                 $t->updateFromSource(1, $isAdding);
             }
         }

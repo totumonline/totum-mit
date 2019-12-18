@@ -48,7 +48,7 @@ class CalculateSelect extends Calculate
             $this->error = 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]';
 
         } catch (errorException $e) {
-            $this->newLog['text'] .= 'ОШБК!';
+            $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
             $this->newLog['children'][] = ['type' => 'error', 'text' => $e->getMessage()];
             $this->error = $e->getMessage();
         }
@@ -161,7 +161,7 @@ class CalculateSelect extends Calculate
             } else {
                 $treeListPrep = 'PP/';
 
-                $v = ['v' => $rows[0][$params['parent']] ?? null, '__isForChildTree'=>true];
+                $v = ['v' => $rows[0][$params['parent']] ?? null, '__isForChildTree' => true];
                 $parentList = $ParentField->calculateSelectList($v, $rows[0], $sourceTable);
                 unset($parentList['previewdata']);
 

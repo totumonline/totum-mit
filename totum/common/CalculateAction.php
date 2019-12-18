@@ -736,6 +736,8 @@ class CalculateAction extends Calculate
             $post = $this->__getActionFields($params['post'], 'GetFromScript');
         } elseif (!empty($params['posts'])) {
             $post = $params['posts'];
+        }else{
+            $post = null;
         }
 
 

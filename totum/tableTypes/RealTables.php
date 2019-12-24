@@ -314,9 +314,25 @@ abstract class RealTables extends aTable
         }
 
 
-        if ($returnType == 'field')
-            $limit = '0,1';
-        else $limit = null;
+        switch ($returnType) {
+            case 'field':
+                $limit = '0,1';
+                break;
+            case 'rows':
+            case 'list':
+
+                $offset = ($params['offset']) ?? "";
+                if ($offset !== "" && !(ctype_digit(strval($offset)))) throw new errorException('Параметр offset должен быть целым числом');
+                $limit_ = ($params['limit']) ?? "";
+                if ($limit_ !== "" && !(ctype_digit(strval($limit_)))) throw new errorException('Параметр limit должен быть целым числом');
+                $limit = $offset . ',' . $limit_;
+                if ($limit == ',')
+                    $limit = null;
+
+                break;
+            default:
+                $limit = null;
+        }
 
 
         $fieldsString = '';

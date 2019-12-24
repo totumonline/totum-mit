@@ -11,7 +11,6 @@ namespace totum\tableTypes;
 
 use totum\common\Controller;
 use totum\common\errorException;
-use totum\common\JsonTable;
 use totum\common\Model;
 use totum\models\NonProjectCalcs;
 use totum\models\TablesCalcsConnects;

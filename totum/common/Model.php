@@ -108,10 +108,13 @@ class Model
     {
         if (!is_null($order_by)) $order_by = ' order by ' . $order_by;
         if (!is_null($limit)) {
-            $limit = explode(',', $limit);
-            $limit = ' limit ' . $limit[1];
-            if ($limit[0] > 0) {
-                $limit .= ' offset ' . $limit[0];
+            $limitArray = explode(',', $limit);
+            $limit="";
+            if($limitArray[1]!==""){
+                $limit = ' limit ' . $limitArray[1];
+            }
+            if ($limitArray[0] > 0) {
+                $limit .= ' offset ' . $limitArray[0];
             }
         }
         if (!is_null($group_by)) $group_by = ' group by ' . $group_by;

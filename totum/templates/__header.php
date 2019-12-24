@@ -2,8 +2,10 @@
 
 use \totum\common\Auth;
 use \totum\models\Tree;
+use totum\models\User;
+use totum\tableTypes\tableTypes;
 
-if (!\totum\common\Auth::isAuthorized()) {
+if (!Auth::isAuthorized()) {
     return;
 } ?>
 <nav class="totbar-default navbar-default">
@@ -13,12 +15,13 @@ if (!\totum\common\Auth::isAuthorized()) {
             <ul class="nav navbar-nav">
                 <?
 
-                if (is_null($topBranches??null) && Auth::isCreator()) {
+                if (is_null($topBranches ?? null) && Auth::isCreator()) {
                     $topBranches = Tree::init()->getBranchesForCreator(null);
                 }
 
                 $topBranches = $topBranches ?? Tree::init()->getBranchesByTables(null,
-                        array_keys(Auth::$aUser->getTreeTables()), Auth::$aUser->getRoles());
+                        array_keys(Auth::$aUser->getTreeTables()),
+                        Auth::$aUser->getRoles());
 
                 foreach ($topBranches as $branch) {
                     $href = '/Table/' . $branch['id'] . '/';
@@ -31,7 +34,14 @@ if (!\totum\common\Auth::isAuthorized()) {
                 <? } ?>
             </ul>
 
-            <ul class="nav navbar-nav navbar-right"><li class="navbar-text"><span class="btn btn-sm btn-<?=Auth::isCreator()?'danger':'default'?>" id="docs-link" data-type="<?=Auth::isCreator()?'dev':'user'?>"><i class="fa fa-question"></i> </span></li>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="navbar-text">
+                    <span class="btn btn-sm btn-<?= Auth::isCreator() ? 'danger' : 'default' ?>" id="docs-link"
+                          data-type="<?= Auth::isCreator() ? 'dev' : 'user' ?>"><i class="fa fa-question"></i> </span>
+                    <span class="btn btn-default btn-sm" style="margin-top: -3px;" id="bell-notifications"
+                          data-periodicity="<?=tableTypes::getTableByName('notifications')->getTbl()['params']['periodicity']['v'] ?? 0 ?>"><i
+                                class="fa fa-bell"></i></span>
+                </li>
 
                 <li class="navbar-text"
                     id="UserFio"><?= htmlspecialchars(Auth::getUserVar('fio')) ?></li>
@@ -42,7 +52,7 @@ if (!\totum\common\Auth::isAuthorized()) {
                 ?>
                 <script>
                     (function () {
-                        let reUsers =<?=json_encode(\totum\models\User::init()->getFieldIndexedById('fio',
+                        let reUsers = <?=json_encode(User::init()->getFieldIndexedById('fio',
                             ['is_del' => false, 'interface' => 'web', 'on_off' => 'true', 'login->>\'v\'!=\'service\'', 'login->>\'v\'!=\'cron\'']),
                             JSON_UNESCAPED_UNICODE);?>;
                         App.reUserInterface(reUsers, <?=Auth::isCreatorNotItself() ? 'true' : 'false'?>);

@@ -48,7 +48,6 @@ $forJsonObj = [
     , 'data_params' => $table['params'] ?? []
     , 'checkIsUpdated' => ($table['type'] == 'tmp' || Auth::$aUser->isOuter() || in_array($this->Table->getTableRow()['actual'],
             ['none', 'disable'])) ? 0 : 1
-    , 'checkForNotifications' => (($row = Table::getTableRowByName('notifications')) && ($tableNotifications = \totum\tableTypes\tableTypes::getTable($row))) ? $tableNotifications->getTbl()['params']['periodicity']['v'] : 0
     , 'ROLESLIST' => ($isCreatorView) ? \totum\common\Model::init('roles')->getFieldIndexedById('title',
         ['is_del' => false]) : []
     , 'isMain' => true

@@ -1330,6 +1330,14 @@ abstract class JsonTables extends aTable
             }
             return null;
         } else {
+
+
+            $offset = ($params['offset']) ?? 0;
+            if (!(ctype_digit(strval($offset)))) throw new errorException('Параметр offset должен быть целым числом');
+            $limit = ($params['limit']) ?? "";
+            if ($limit !== "" && !(ctype_digit(strval($limit)))) throw new errorException('Параметр limit должен быть целым числом');
+
+
             $list = [];
             foreach ($array as $row) {
                 if ($returnType != 'rows' && !key_exists($params['field'][0], $row)) continue;
@@ -1347,6 +1355,10 @@ abstract class JsonTables extends aTable
                     if (!Calculate::compare($w['operator'], $a, $w['val'])) continue 2;
                 }
 
+                if ($offset > 0) {
+                    $offset--;
+                    continue;
+                }
 
                 if ($returnType == 'rows') {
                     if ($params['field'] == ['__all__'])
@@ -1378,6 +1390,8 @@ abstract class JsonTables extends aTable
                     }
                     $list[$row['id']] = array_merge($row, ['_VAL' => $val]);
                 }
+
+                if ($limit !== "" && count($list) == $limit) break;
             }
 
             if (isset($fOrdering)) {

@@ -158,6 +158,8 @@ class TableController extends interfaceController
 
 
                     }
+                } else {
+                    echo json_encode(['error' => 'Потеряна авторизация'], JSON_UNESCAPED_UNICODE);
                 }
                 die;
             }
@@ -197,14 +199,14 @@ class TableController extends interfaceController
                                 Auth::$aUser->getFavoriteTables()) !== $_POST['status']) {
                             $Users = tableTypes::getTableByName('users');
                             if ($_POST['status']) {
-                                $favorite= array_merge(Auth::$aUser->getFavoriteTables(),
+                                $favorite = array_merge(Auth::$aUser->getFavoriteTables(),
                                     [$this->Table->getTableRow()['id']]);
 
                             } else {
                                 $favorite = array_diff(Auth::$aUser->getFavoriteTables(),
                                     [$this->Table->getTableRow()['id']]);
                             }
-                            $Users->reCalculateFromOvers(['modify' =>[Auth::$aUser->getId() => ['favorite' =>  $favorite]]]);
+                            $Users->reCalculateFromOvers(['modify' => [Auth::$aUser->getId() => ['favorite' => $favorite]]]);
                         }
                         $result = ['status' => $_POST['status']];
                     }
@@ -417,27 +419,6 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
                     $this->printTable();
 
 
-                    break;
-                case 'notificationUpdate':
-                    if (!empty($_POST['id'])) {
-                        if ($row = Model::init('notifications')->get(['id' => (int)$_POST['id'], 'user_id' => Auth::$aUser->getId()])) {
-                            $upd = [];
-                            switch ($_POST['type']) {
-                                case 'deactivate':
-                                    $upd = ['active' => false];
-                                    break;
-                                case 'later':
-
-                                    $date = date_create();
-                                    $date->modify('+5 minutes');
-
-                                    $upd = ['active_dt_from' => $date->format('Y-m-d H:i')];
-                                    break;
-                            }
-                            tableTypes::getTableByName('notifications')->reCalculateFromOvers(['modify' => [$row['id'] => $upd]]);
-                        }
-                    }
-                    $result = ['ok' => 1];
                     break;
                 case 'saveEditRow':
                     $result = $this->Table->modify($_POST['tableData'] ?? [],
@@ -724,8 +705,10 @@ row: rowCreate(field: "data" = $#DATA)');
 
         $this->__addAnswerVar('topBranches', $topBranches);
         $this->__addAnswerVar('treeData', $tree);
-        if(!$this->Table){
-            $this->__addAnswerVar('html', tableTypes::getTableByName('tree')->getByParams(['field'=>'html', 'where'=>[['field'=>'id', 'operator'=>'=', 'value'=>$this->branchId]]], 'field'));
+        if (!$this->Table) {
+            $this->__addAnswerVar('html',
+                tableTypes::getTableByName('tree')->getByParams(['field' => 'html', 'where' => [['field' => 'id', 'operator' => '=', 'value' => $this->branchId]]],
+                    'field'));
         }
     }
 

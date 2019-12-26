@@ -23,11 +23,9 @@
 
 ## Попробовать Totum
 
-[![Заказать демо-доступ](https://totum.totum.online/fls/365_156_file.png)](https://totum.online/downloaddemo) [![Учебный курс](https://totum.totum.online/fls/365_157_file.png)](https://docs.totum.online)
+[![Заказать демо-доступ](https://totum.totum.online/fls/365_156_file.png)](https://totum.online/downloaddemo) [![Учебный курс](https://totum.totum.online/fls/365_157_file.png)](https://docs.totum.online/uchebnyi-kurs)
 
 Если вы хотите попробовать Totum до установки на собственный сервер — [оставьте заявку.](https://totum.online/downloaddemo)
-
-Мы в течение суток создадим для вас отдельную схему на нашем сервере.
 
 
 ## Преимущества
@@ -175,8 +173,6 @@ Totum вам тоже поможет, но скорее всего с помощ
 
 Установка на собственный сервер. Требуется ionCube (типовой модуль для PHP) — шифруется часть позволяющая выпускать [коммерческие лицензии](https://totum.online/licenzirovanie). Весь остальной код **свободно модифицируемый!**
 
-![IonCube](https://totum.totum.online/fls/365_109_file.png)
-
 Обновления через ветки Github или загрузкой одного файла обновления.
 
 Полный контроль над загрузкой обновления.
@@ -238,7 +234,3 @@ Totum вам тоже поможет, но скорее всего с помощ
 [github.com/totumonline](https://github.com/totumonline) — список репозитариев.
 
 [github.com/orgs/totumonline/projects/1](https://github.com/orgs/totumonline/projects/1) — публичный проект на GitHub.
-
-[github.com/ttm-alexeypolunin](https://github.com/ttm-alexeypolunin) — Алексей Полунин (менеджмент).
-
-[github.com/poluninatm](https://github.com/poluninatm) — Татьяна Полунина (разработка).

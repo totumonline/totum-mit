@@ -31,8 +31,6 @@ abstract class interfaceController extends Controller
             Auth::webInterfaceSessionStart();
         }
 
-        //$this->folder = preg_replace('/^app\/(.*)\/[^\/]+$/', '$1', str_replace('\\', '/', get_called_class()));
-
         $this->folder = dirname((new \ReflectionClass(get_called_class()))->getFileName());
         static::$pageTemplate = AutoloadAndErrorHandlers::getTemplatesDir().'/'.static::$pageTemplate;
 
@@ -111,10 +109,6 @@ abstract class interfaceController extends Controller
 
 
             $this->doIt($inAction);
-
-            //Mail::send('tatianap.php@gmail.com', $e->getMessage(), $_SERVER['REQUEST_URI'].' $_POST: '.json_encode($_POST, JSON_UNESCAPED_UNICODE));
-
-
             return;
         }
         catch (\Exception $e){
@@ -137,7 +131,6 @@ abstract class interfaceController extends Controller
                 }
                 $data= json_encode($data, JSON_UNESCAPED_UNICODE);
             }
-            /*fwrite(fopen('test.log', 'a+'), "\n\n".substr(json_encode([$_SERVER["HTTP_HOST"],$_SERVER['REQUEST_URI'], $_SERVER['REMOTE_ADDR'], $data], JSON_UNESCAPED_UNICODE), 0, 230));*/
             if(empty($data)){
                 $data='["error":"Пустой ответ сервера"]';
             }

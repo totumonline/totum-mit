@@ -72,8 +72,8 @@ class SharedFileUsage
         $array = [];
 
         foreach (explode("\n", $data) as $row) {
-            @list($k, $v) = explode(':', $row, 2);
-            $array[$k] = $v;
+            $exp = explode(':', $row, 2);
+            $array[$exp[0]] = $exp[1] ?? null;
         }
         return $array;
     }

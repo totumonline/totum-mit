@@ -556,7 +556,7 @@ class CalculateAction extends Calculate
 
     }
     protected
-    function funcUriToAnonymTable($params)
+    function funcLinkToAnonymTable($params)
     {
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');

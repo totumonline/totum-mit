@@ -10,13 +10,13 @@
           href="/css/main.css?v=c8d68fe">
 
     <?if(\totum\common\Auth::isCreator()){?>
-        <script src="/js/functions.json?v=fa3d439"></script>
+        <script src="/js/functions.json?v=971c63b"></script>
         <? if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'], 'jsTemplates')){
            echo '<script>App.functions=App.functions.concat('.$GLOBALS['CalculateExtentions']->jsTemplates.')</script>';
         }?>
     <?}?>
 
-    <script src="/js/main.js?v=14087ba"></script>
+    <script src="/js/main.js?v=8fd937b"></script>
 
 
 

@@ -29,6 +29,8 @@
     <div class="form-group"><label>Логин</label><input type="text" name="user_login" class="form-control"  value="<?=$_POST['user_login']??"admin"?>" required></div>
     <div class="form-group"><label>Пароль</label><input type="text" name="user_pass" class="form-control"  value="<?=$_POST['user_pass']??""?>" required></div>
 
+    <h3>Админ-email для отправки нотификаций кроном</h3>
+    <div class="form-group"><label>Email</label><input type="text" name="admin_email" class="form-control"  value="<?=$_POST['admin_email']??""?>"></div>
 
     <div><input type="submit" value="Создать конфиг и залить схему" style="color: #fff; margin-top: 20px;"  class="btn btn-danger"/></div>
 </form>

@@ -1332,114 +1332,115 @@ abstract class RealTables extends aTable
             /*Поиск в полях-листах*/
             if (Field::isFieldListValues($fields[$wI['field']]['type'] ?? null,
                 $fields[$wI['field']]['multiple'] ?? false)) {
-                if (!in_array($operator, ['=', '!=', '==', '!=='])) {
-                    throw new errorException('Операторы для работы с листами только [[=]] и [[!=]]');
-                }
+                switch ($operator) {
+                    case '!==':
+                        /*Сравнение с пустой строкой и с пустым листом*/
+                        if (empty($value) && ($value === '' || is_array($value))) {
+                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NOT NULL OR " . $wI["field"] . "->>'v'!='[]')";
+                        } /*Сравнение с листом*/
+                        elseif (is_array($value)) {
+                            $where[] = "(" . $wI["field"] . "->'v' != '" . json_encode($value,
+                                    JSON_UNESCAPED_UNICODE) . "'::JSONB )";
+                        } /*Сравнение с числом или строкой*/
+                        else {
+                            if (is_bool($value)) $value = $value ? 'true' : 'false';
 
-                if ($operator == '!==') {
-                    /*Сравнение с пустой строкой и с пустым листом*/
-                    if (empty($value) && ($value === '' || is_array($value))) {
-                        $where[] = "(" . $wI["field"] . "->>'v'" . " is NOT NULL OR " . $wI["field"] . "->>'v'!='[]')";
-                    } /*Сравнение с листом*/
-                    elseif (is_array($value)) {
-                        $where[] = "(" . $wI["field"] . "->'v' != '" . json_encode($value,
-                                JSON_UNESCAPED_UNICODE) . "'::JSONB )";
-                    } /*Сравнение с числом или строкой*/
-                    else {
-                        if (is_bool($value)) $value = $value ? 'true' : 'false';
+                            $where[] = "(" . $wI["field"] . "->>'v' != " . Sql::quote((string)$value) . ")";
+                        }
 
-                        $where[] = "(" . $wI["field"] . "->>'v' != " . Sql::quote((string)$value) . ")";
-                    }
+                        break;
+                    case '==':
+                        /*Сравнение с пустой строкой и с пустым листом*/
+                        if (empty($value) && ($value === '' || is_array($value) || is_null($value))) {
+                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]')";
+                        } /*Сравнение с листом*/
+                        elseif (is_array($value)) {
+                            $where[] = "(" . $wI["field"] . "->'v' = '" . json_encode($value,
+                                    JSON_UNESCAPED_UNICODE) . "'::JSONB )";
+                        } /*Сравнение с числом или строкой*/
+                        else {
+                            if (is_bool($value)) $value = $value ? 'true' : 'false';
 
-                } elseif ($operator == '==') {
-                    /*Сравнение с пустой строкой и с пустым листом*/
-                    if (empty($value) && ($value === '' || is_array($value) || is_null($value))) {
-                        $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]')";
-                    } /*Сравнение с листом*/
-                    elseif (is_array($value)) {
-                        $where[] = "(" . $wI["field"] . "->'v' = '" . json_encode($value,
-                                JSON_UNESCAPED_UNICODE) . "'::JSONB )";
-                    } /*Сравнение с числом или строкой*/
-                    else {
-                        if (is_bool($value)) $value = $value ? 'true' : 'false';
+                            $where[] = "(" . $wI["field"] . "->>'v' = " . Sql::quote((string)$value) . ")";
+                        }
 
-                        $where[] = "(" . $wI["field"] . "->>'v' = " . Sql::quote((string)$value) . ")";
-                    }
-
-                } else {
-
-
-                    /*Сравнение с пустой строкой*/
-                    if (empty($value) && ($value === '' || is_null($value))) {
-                        $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]' OR " . $wI["field"] . "->'v' @> '[\"\"]'::jsonb OR " . $wI["field"] . "->'v' @> '[null]'::jsonb ) = " . ($operator == '!=' ? 'false' : 'true');
-                    } /*Сравнение с пустым листом*/
-                    elseif (empty($value) && $value === []) {
-
-                        $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]') = " . ($operator == '!=' ? 'false' : 'true');
+                        break;
+                    case '!=':
+                    case '=':
 
 
-                    } /*Сравнение с листом*/
-                    else if (is_array($value)) {
+                        /*Сравнение с пустой строкой*/
+                        if (empty($value) && ($value === '' || is_null($value))) {
+                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]' OR " . $wI["field"] . "->'v' @> '[\"\"]'::jsonb OR " . $wI["field"] . "->'v' @> '[null]'::jsonb ) = " . ($operator == '!=' ? 'false' : 'true');
+                        } /*Сравнение с пустым листом*/
+                        elseif (empty($value) && $value === []) {
+
+                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]') = " . ($operator == '!=' ? 'false' : 'true');
 
 
-                        if ($fields[$wI['field']]['type'] == 'listRow') {
-                            $isAssoc = (array_keys($value) !== range(0, count($value) - 1));
+                        } /*Сравнение с листом*/
+                        else if (is_array($value)) {
 
-                            $where_tmp = '';
-                            foreach ($value as $k => $v) {
-                                if ($where_tmp !== '')
-                                    $where_tmp .= ' OR ';
-                                if ($isAssoc) {
-                                    if (is_numeric((string)$v)) {
-                                        $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote("{\"$k\":$v}") . '::jsonb OR ';
+
+                            if ($fields[$wI['field']]['type'] == 'listRow') {
+                                $isAssoc = (array_keys($value) !== range(0, count($value) - 1));
+
+                                $where_tmp = '';
+                                foreach ($value as $k => $v) {
+                                    if ($where_tmp !== '')
+                                        $where_tmp .= ' OR ';
+                                    if ($isAssoc) {
+                                        if (is_numeric((string)$v)) {
+                                            $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote("{\"$k\":$v}") . '::jsonb OR ';
+                                        }
+                                        $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([$k => (string)$v],
+                                                JSON_UNESCAPED_UNICODE)) . '::jsonb';
+                                    } else {
+                                        if (is_numeric((string)$v)) {
+                                            $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote("[$v]") . '::jsonb OR ';
+                                        }
+                                        $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$v],
+                                                JSON_UNESCAPED_UNICODE)) . '::jsonb';
                                     }
-                                    $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([$k => (string)$v],
-                                            JSON_UNESCAPED_UNICODE)) . '::jsonb';
-                                } else {
-                                    if (is_numeric((string)$v)) {
-                                        $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote("[$v]") . '::jsonb OR ';
-                                    }
+
+                                }
+                                $q = '(' . $where_tmp . ') = ' . ($operator == '!=' ? 'false' : 'true');
+
+                            } else {
+                                $where_tmp = '';
+                                foreach ($value as $v) {
+                                    if ($where_tmp !== '') $where_tmp .= ' OR ';
                                     $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$v],
                                             JSON_UNESCAPED_UNICODE)) . '::jsonb';
                                 }
-
+                                $q = '(' . $where_tmp . ') = ' . ($operator == '!=' ? 'false' : 'true');
                             }
-                            $q = '(' . $where_tmp . ') = ' . ($operator == '!=' ? 'false' : 'true');
 
-                        } else {
-                            $where_tmp = '';
-                            foreach ($value as $v) {
-                                if ($where_tmp !== '') $where_tmp .= ' OR ';
-                                $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$v],
-                                        JSON_UNESCAPED_UNICODE)) . '::jsonb';
+
+                            $where[] = $q;
+
+
+                        } elseif (is_bool($value) || in_array((string)$value, ["true", "false"])) {
+                            if (is_bool($value))
+                                $value = $value ? "true" : "false";
+
+                            $where[] = "(" . $wI["field"] . "->>'v' = '" . $value . "' OR " . $wI['field'] . "->'v' @> '[\"" . $value . "\"]'::jsonb = true  OR " . $wI['field'] . "->'v' @> '[" . $value . "]'::jsonb = true) $operator true";
+
+                        } /*Сравнение с числом или строкой*/
+                        else {
+                            $q = $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$value],
+                                    JSON_UNESCAPED_UNICODE)) . '::jsonb = true';
+
+                            $q .= ' OR ' . $wI['field'] . '->>\'v\' = ' . Sql::quote((string)$value);
+
+                            if ($fields[$wI['field']]['type'] == 'listRow' && is_numeric((string)$value)) {
+                                $q .= ' OR ' . $wI['field'] . '->\'v\' @> ' . Sql::quote("[$value]") . '::jsonb = true';
                             }
-                            $q = '(' . $where_tmp . ') = ' . ($operator == '!=' ? 'false' : 'true');
+                            $where[] = "($q) $operator true";
                         }
-
-
-                        $where[] = $q;
-
-
-                    } elseif (is_bool($value) || in_array((string)$value, ["true", "false"])) {
-                        if (is_bool($value))
-                            $value = $value ? "true" : "false";
-
-                        $where[] = "(" . $wI["field"] . "->>'v' $operator '" . $value . "' OR " . $wI['field'] . "->'v' @> '[\"" . $value . "\"]'::jsonb $operator true  OR " . $wI['field'] . "->'v' @> '[" . $value . "]'::jsonb $operator true)";
-
-                    } /*Сравнение с числом или строкой*/
-                    else {
-                        $q = $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$value],
-                                JSON_UNESCAPED_UNICODE)) . '::jsonb' . $operator . 'true';
-
-                        $q .= ' OR ' . $wI['field'] . '->>\'v\' ' . $operator . Sql::quote((string)$value);
-
-                        if ($fields[$wI['field']]['type'] == 'listRow' && is_numeric((string)$value)) {
-                            $q .= ' OR ' . $wI['field'] . '->\'v\' @> ' . Sql::quote("[$value]") . '::jsonb' . $operator . 'true';
-                        }
-
-
-                        $where[] = $q;
-                    }
+                        break;
+                    default:
+                        throw new errorException('Операторы для работы с листами только [[=]]/[[==]]/[[!=]]/[[!==]]');
                 }
             } /* Поиск не в полях-листах */
             else {

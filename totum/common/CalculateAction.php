@@ -486,7 +486,7 @@ class CalculateAction extends Calculate
                 $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
                 $tmp = tableTypes::getTable($tableRow);
-                $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ['params' => $params['params'] ?? []]]);
+                $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ($params['params'] ?? [])]);
                 $data = $tmp->getTableDataForRefresh(null);
 
                 if (empty($params['width'])) {
@@ -529,7 +529,7 @@ class CalculateAction extends Calculate
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         $tmp = tableTypes::getTable($tableRow);
-        $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ['params' => $params['params'] ?? []]]);
+        $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ($params['params'] ?? [])]);
 
         if (empty($params['width'])) {
             $width = 130;

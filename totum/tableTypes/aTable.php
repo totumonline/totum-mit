@@ -277,7 +277,7 @@ abstract class aTable extends _Table
 
             $inVars = ['calculate' => aTable::CalcInterval['changed']
                 , 'channel' => 'web'
-                , 'isTableAdding' => ($this->tableRow['type'] === 'tmp' && $this->isTmpTableAdding)
+                , 'isTableAdding' => ($this->tableRow['type'] === 'tmp' && $this->isTableAdding)
             ];
             Sql::transactionStart();
             $oldTable = $this->tbl;

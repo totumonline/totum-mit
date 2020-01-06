@@ -31,7 +31,8 @@ abstract class JsonTables extends aTable
 
     protected $deletedIds = [], $modelConnects;
     protected $reordered = false;
-    protected $filteredIds;
+    protected $filteredIds,
+        $isTableAdding = false;
 
     function __construct($tableRow, Cycle $Cycle, $light = false)
     {
@@ -62,7 +63,7 @@ abstract class JsonTables extends aTable
 
 
         $this->reCalculate(['isTableAdding' => $isTableAdding]);
-
+        $this->isTableAdding = $isTableAdding;
         $this->isTblUpdated($level);
 
 
@@ -182,10 +183,7 @@ abstract class JsonTables extends aTable
 
     function isTblUpdated($level = 0, $force = false)
     {
-        /*$tbl = $this->getTblForSave();
-        $savedTbl = $this->savedTbl;*/
-
-        if ($this->isTableDataChanged) {
+        if ($this->isTableDataChanged || $this->isTableAdding) {
 
             $this->updated = static::getUpdatedJson();
 
@@ -941,7 +939,8 @@ abstract class JsonTables extends aTable
             'Экшены');
 
         //При добавлении таблицы
-        if ($loadedTbl == ['rows' => []]) {
+        if ($this->isTableAdding) {
+            $this->isTableAdding = false;
             if ($fieldsWithActionOnAdd = $this->getFieldsForAction('Add', 'param')) {
                 foreach ($fieldsWithActionOnAdd as $field) {
                     Field::init($field, $this)->action(
@@ -1148,6 +1147,7 @@ abstract class JsonTables extends aTable
     function onCreateTable()
     {
         $this->source_tables[TablesFields::TableId] = true;
+
     }
 
     protected

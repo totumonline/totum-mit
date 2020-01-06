@@ -46,6 +46,7 @@ class AnController extends interfaceController
             }
         }
     }
+
     function actionAjaxActions()
     {
         if (!$this->Table) {
@@ -490,7 +491,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $uri = preg_replace('/\?.*/', '', $this->inModuleUri);
 
-        if ($this->inModuleUri && $tableId=$uri) {
+        if ($this->inModuleUri && $tableId = $uri) {
             if (!array_key_exists($tableId, Auth::$aUser->getTables())) {
                 $this->__addAnswerVar('error', 'Доступ к таблице запрещен');
             } else {
@@ -507,17 +508,30 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $extradata = $_POST['tableData']['sess_hash'] ?? $_GET['sess_hash'] ?? null;
                         $this->Table = tableTypes::getTable($tableRow, $extradata);
                         $this->Table->setNowTable();
-                        if (!$this->isAjax && !empty($_GET['d']) && ($d = Crypt::getDeCrypted($_GET['d'],
-                                false)) && ($d = json_decode($d, true))) {
-                            $tbl = [];
-                            if (!empty($d['d'])) {
-                                $tbl["tbl"] = $d['d'];
+                        if (!$this->isAjax) {
+
+                            $add_tbl_data = [];
+                            $add_tbl_data["params"] = [];
+                            if (key_exists('h_get', $this->Table->getFields())) {
+                                $add_tbl_data["params"]['h_get'] = $_GET;
                             }
-                            if (!empty($d['p'])) {
-                                $tbl["params"] = ["params" => $d['p']];
+                            if (key_exists('h_post', $this->Table->getFields())) {
+                                $add_tbl_data["params"]['h_post'] = $_POST;
                             }
-                            if ($tbl) {
-                                $this->Table->addData($tbl);
+                            if (key_exists('h_input', $this->Table->getFields())) {
+                                $add_tbl_data["params"]['h_input'] = file_get_contents('php://input');
+                            }
+                            if (!empty($_GET['d']) && ($d = Crypt::getDeCrypted($_GET['d'],
+                                    false)) && ($d = json_decode($d, true))) {
+                                if (!empty($d['d'])) {
+                                    $add_tbl_data["tbl"] = $d['d'];
+                                }
+                                if (!empty($d['p'])) {
+                                    $add_tbl_data["params"] = $d['p'] + $add_tbl_data["params"];
+                                }
+                            }
+                            if ($add_tbl_data) {
+                                $this->Table->addData($add_tbl_data);
                             }
                         }
                     }

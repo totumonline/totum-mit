@@ -25,7 +25,7 @@ class tmpTable extends JsonTables
     /**
      * @var bool
      */
-    protected $isTmpTableAdding = false;
+
 
     protected static $tmpTables = [];
     /**
@@ -45,7 +45,7 @@ class tmpTable extends JsonTables
             } while ($this->model->getField('user_id', $this->key));
 
             $this->savedTbl = $this->tbl = $this->getNewTblForRecalculate();
-            $this->isTmpTableAdding = true;
+            $this->isTableAdding = true;
             $this->sessHashName = $hash;
             $this->updated = $this->getUpdated();
 
@@ -135,7 +135,6 @@ class tmpTable extends JsonTables
     public function saveTable()
     {
         if ($this->key) {
-            $this->isTmpTableAdding = false;
             $this->model->update(['touched' => date('Y-m-d H:i'), 'tbl' => json_encode($this->tbl,
                 JSON_UNESCAPED_UNICODE), 'updated' => $this->updated],
                 $this->key);
@@ -154,7 +153,7 @@ class tmpTable extends JsonTables
     {
         $this->reCalculate([
             'add' => $tbl['tbl'],
-            'modify' => $tbl['params'] ?? [],
+            'modify' => ['params' => $tbl['params'] ?? []],
             'channel' => 'inner',
             'isTableAdding' => true
         ]);
@@ -202,21 +201,6 @@ class tmpTable extends JsonTables
                 throw new errorException ('Время жизни таблицы истекло. Повторите запрос данных.');
             }
         }
-
-        /*if (!$this->isLoaded) {
-            if ($tbl = json_decode(file_get_contents($this->getThisFileName()) ?? null,
-                true)) {
-                if ($tbl['table_id'] == $this->tableRow['id'] && $tbl['user_id'] == Auth::$aUser->getId()) {
-
-                    $this->tbl = $tbl['tbl'];
-                    $this->updated = $tbl['updated'];
-                    $this->loadedTbl = $this->savedTbl = $this->tbl;
-                    touch($this->getThisFileName());
-                    $this->isLoaded = true;
-
-                }
-            }
-        }*/
     }
 
     public function getFilteredData($channel)

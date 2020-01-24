@@ -9,6 +9,7 @@
 namespace totum\common;
 
 
+use totum\moduls\Forms\FormsController;
 use totum\tableTypes\aTable;
 
 class CalculcateFormat extends Calculate
@@ -173,7 +174,9 @@ class CalculcateFormat extends Calculate
 
     protected function funcSetFormFieldFormat($params)
     {
-        $formats = ['hidden', 'width', 'height'];
+        if (get_class(Controller::getActiveController()) !== FormsController::class) return [];
+
+        $formats = ['hidden', 'width', 'height', 'classes'];
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition', 'section'], $formats))) {
 
             $conditionTest = true;
@@ -203,6 +206,8 @@ class CalculcateFormat extends Calculate
 
     protected function funcSetFormSectionsFormat($params)
     {
+        if (get_class(Controller::getActiveController()) !== FormsController::class) return [];
+
         $formats = ['status'];
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], $formats))) {
 

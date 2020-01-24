@@ -25,7 +25,7 @@ class AnController extends interfaceController
     function __construct($modulName, $inModuleUri)
     {
         parent::__construct($modulName, $inModuleUri);
-        Auth::loadAuthUserByLogin("anonim", false);
+        Auth::loadAuthUserByLogin("anonym", false);
     }
 
     function doIt($action)
@@ -90,7 +90,7 @@ class AnController extends interfaceController
 
                         , 'isCreatorView' => Auth::isCreator()
 //                        , 'notCorrectOrder' => ($table['notCorrectOrder'] ?? false)
-                        , 'fields' => $table['fields'] ?? []
+                        , 'fields' => $this->getFieldsForClient($table['fields'] ?? [])
                         , 'data' => []
                         , 'data_params' => []
                         , 'checkIsUpdated' => 0
@@ -293,7 +293,7 @@ class AnController extends interfaceController
         $this->Table->setFilters($_GET['f'] ?? '');
         $tableData = $this->Table->getTableDataForInterface();
 
-
+        $tableData['fields']=$this->getFieldsForClient($tableData['fields']);
         $this->__addAnswerVar('table', $tableData);
         $this->__addAnswerVar('error', $tableData['error'] ?? null);
         $this->__addAnswerVar('onlyRead', $tableData['onlyRead'] ?? $this->onlyRead);
@@ -508,7 +508,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $extradata = $_POST['tableData']['sess_hash'] ?? $_GET['sess_hash'] ?? null;
                         $this->Table = tableTypes::getTable($tableRow, $extradata);
                         $this->Table->setNowTable();
-                        if (!$this->isAjax) {
+                        if (!$this->isAjax && !$extradata) {
 
                             $add_tbl_data = [];
                             $add_tbl_data["params"] = [];

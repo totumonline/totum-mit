@@ -30,13 +30,7 @@ $forJsonObj = [
         , 'duplicating' => (!($table['__blocked'] ?? null) && $table['duplicating'])
         , 'editing' => (!($table['__blocked'] ?? null) && !$onlyRead)
     ]
-    , 'tableRow' => ($this->Table->getTableRow()['type'] == 'calcs' ? ['fields_sets' => $this->changeFieldsSets()] :
-            ['__is_in_favorites' =>
-                !key_exists($this->Table->getTableRow()['id'],
-                    Auth::$aUser->getTreeTables()) ? null : in_array($this->Table->getTableRow()['id'],
-                    Auth::$aUser->getFavoriteTables())]
-        ) + $this->Table->getTableRow() + (is_a($this->Table,
-            \totum\tableTypes\calcsTable::class) ? ['cycle_id' => $this->Table->getCycle()->getId()] : [])
+    , 'tableRow' => $this->getTableRowForClient($this->Table->getTableRow())
     , 'f' => $table['f']
     , 'withCsvButtons' => $table['withCsvButtons']
     , 'withCsvEditButtons' => $table['withCsvEditButtons']
@@ -45,9 +39,7 @@ $forJsonObj = [
     , 'fields' => $table['fields'] ?? []
     , 'data' => $table['data'] ?? []
     , 'data_params' => $table['params'] ?? []
-    , 'checkIsUpdated' => ($table['type'] == 'tmp' || Auth::$aUser->isOuter() || in_array($this->Table->getTableRow()['actual'],
-            ['none', 'disable'])) ? 0 : 1
-    , 'checkForNotifications' => (($row = Table::getTableRowByName('notifications')) && ($tableNotifications = \totum\tableTypes\tableTypes::getTable($row))) ? $tableNotifications->getTbl()['params']['periodicity']['v'] : 0
+    , 'checkIsUpdated' => 0
     , 'ROLESLIST' => []
     , 'isMain' => true
 ];

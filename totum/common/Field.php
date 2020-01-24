@@ -27,8 +27,6 @@ use totum\fieldTypes\Unic;
 use totum\models\Table;
 use totum\tableTypes\_Table;
 use totum\tableTypes\aTable;
-use totum\tableTypes\calcsTable;
-use totum\tableTypes\globcalcsTable;
 use totum\tableTypes\JsonTables;
 
 class Field
@@ -245,12 +243,7 @@ class Field
     {
         if (!empty($this->data['codeAction'])) {
 
-            if (array_key_exists($this->table->getTableRow()['name'], CalculateActionUpdates::connectedTables)) {
-
-                $CalculateCodeAction = new CalculateActionUpdates($this->data['codeAction']);
-            } else {
-                $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
-            }
+            $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
 
             try {
 

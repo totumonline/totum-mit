@@ -325,7 +325,7 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
 
                         , 'isCreatorView' => Auth::isCreator()
 //                        , 'notCorrectOrder' => ($table['notCorrectOrder'] ?? false)
-                        , 'fields' => $table['fields'] ?? []
+                        , 'fields' => $this->getFieldsForClient($table['fields'] ?? [])
                         , 'data' => []
                         , 'data_params' => []
                         , 'checkIsUpdated' => 0
@@ -771,7 +771,7 @@ row: rowCreate(field: "data" = $#DATA)');
 
         $tableData = $this->Table->getTableDataForInterface();
 
-
+        $tableData['fields']=$this->getFieldsForClient($tableData['fields']);
         $this->__addAnswerVar('table', $tableData);
         $this->__addAnswerVar('error', $tableData['error'] ?? null);
         $this->__addAnswerVar('onlyRead', $tableData['onlyRead'] ?? $this->onlyRead);

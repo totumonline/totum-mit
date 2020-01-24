@@ -8,6 +8,7 @@ namespace totum\common;
 use totum\main\AutoloadAndErrorHandlers;
 use totum\models\Table;
 use totum\models\UserV;
+use totum\tableTypes\_Table;
 use totum\tableTypes\aTable;
 use totum\tableTypes\tableTypes;
 
@@ -149,7 +150,37 @@ abstract class interfaceController extends Controller
             include static::$pageTemplate;
         }
     }
+    function getFieldsForClient($fields)
+    {
+        foreach ($fields as &$field) {
+            foreach (_Table::fieldCodeParams as $param) {
+                if (!empty($field[$param])) $field[$param] = true;
+            }
+            if (!Auth::isCreator()) {
+                foreach (_Table::fieldRolesParams as $param) {
+                    unset($field[$param]);
+                }
+                unset($field['logging']);
+                unset($field['showInXml']);
+                unset($field['copyOnDuplicate']);
+            }
+        }
+        unset($field);
+        return $fields;
+    }
 
+    function getTableRowForClient($tableRow)
+    {
+        $fields = ['title', 'updated', 'type', 'id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field', 'order_desc', 'fields_actuality','with_order_field','main_field'];
+        if (Auth::isCreator()) {
+            $fields = array_merge($fields,
+                [
+                    'name', 'sort', '__version'
+                ]);
+
+        }
+        return array_intersect_key($tableRow, array_flip($fields));
+    }
     function location($to='/Main/'){
         header('location: '.$to);
     }

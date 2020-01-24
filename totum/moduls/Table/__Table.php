@@ -35,7 +35,7 @@ $forJsonObj = [
                 !key_exists($this->Table->getTableRow()['id'],
                     Auth::$aUser->getTreeTables()) ? null : in_array($this->Table->getTableRow()['id'],
                     Auth::$aUser->getFavoriteTables())]
-        ) + $this->Table->getTableRow() + (is_a($this->Table,
+        ) + $this->getTableRowForClient($this->Table->getTableRow()) + (is_a($this->Table,
             \totum\tableTypes\calcsTable::class) ? ['cycle_id' => $this->Table->getCycle()->getId()] : [])
     , 'f' => $table['f']
     , 'withCsvButtons' => $table['withCsvButtons']

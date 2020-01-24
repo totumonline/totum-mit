@@ -27,6 +27,7 @@ use totum\common\Model;
 use totum\common\reCalcLogItem;
 use totum\common\Sql;
 use totum\config\Conf;
+use totum\fieldTypes\FieldParams;
 use totum\fieldTypes\File;
 use totum\fieldTypes\Select;
 use totum\models\CalcsTableCycleVersion;
@@ -352,6 +353,8 @@ abstract class aTable extends _Table
         return $table;
     }
 
+
+    /*Устаревшая*/
     function getDataForXml()
     {
         $table = $this->tableRow;

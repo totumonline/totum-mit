@@ -255,6 +255,14 @@ abstract class JsonTables extends aTable
     }
 
     /**
+     * @return bool
+     */
+    public function isTableAdding(): bool
+    {
+        return $this->isTableAdding;
+    }
+
+    /**
      * @param $ids
      * @return \Closure
      * @throws errorException
@@ -521,7 +529,7 @@ abstract class JsonTables extends aTable
 
         if (!empty($add)) {
 
-            $getId = function ($addRow) use ($addWithId) {
+            $getId = function ($addRow) use ($addWithId, $isCheck, $channel) {
 
                 if ($addWithId && !empty($addRow['id']) && ($id = (int)$addRow['id']) > 0) {
                     if ($this->tbl['nextId'] <= $id) {
@@ -532,6 +540,9 @@ abstract class JsonTables extends aTable
                         }
                     }
                 } else {
+                    if($isCheck && $channel=='web'){
+                        return '';
+                    }
                     $id = ++$this->tbl['nextId'];
                 }
                 return $id;

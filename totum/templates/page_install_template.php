@@ -4,19 +4,19 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=880594f">
-    <script src="/js/libs.js?v=d005f67"></script>
+    <script src="/js/libs.js?v=40c5077"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=869589e">
+          href="/css/main.css?v=72ccf98">
 
     <?if(\totum\common\Auth::isCreator()){?>
-        <script src="/js/functions.json?v=971c63b"></script>
+        <script src="/js/functions.json?v=e453c22"></script>
         <? if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'], 'jsTemplates')){
            echo '<script>App.functions=App.functions.concat('.$GLOBALS['CalculateExtentions']->jsTemplates.')</script>';
         }?>
     <?}?>
 
-    <script src="/js/main.js?v=59b2e15"></script>
+    <script src="/js/main.js?v=c4b7173"></script>
 
 
 
@@ -30,7 +30,7 @@
     <meta property="og:image" content="<?=$host?>imgs/hand.png" />
     <meta property="og:url" content="<?=$host?>" />
     <meta property="og:title" content="TOTUM — платформа для любой автоматизации в малом бизнесе" />
-    <meta property="og:description" content="TOTUM — платформа для любой автоматизации в малом бизнесе. На ней можно собирать заточенные под клиента базы данных с готовым интерфейсом и настраиваемым доступом, узкоспециальные CRM, склады, расчеты и все, что придет в голову" />
+    <meta property="og:description" content="На ней можно собирать заточенные под клиента базы данных, специальные CRM, склады, расчеты, формы, калькуляторы и любой другой учет." />
     <style>
         body{
             overflow: auto;

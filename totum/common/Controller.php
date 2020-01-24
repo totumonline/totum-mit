@@ -32,6 +32,14 @@ abstract class Controller
         static::$activeController = $this;
     }
 
+    /**
+     * @return Controller
+     */
+    public static function getActiveController(): Controller
+    {
+        return self::$activeController;
+    }
+
     abstract function doIt($action);
 
     /**

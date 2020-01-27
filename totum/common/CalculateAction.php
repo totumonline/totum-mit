@@ -24,7 +24,7 @@ class CalculateAction extends Calculate
     function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $code=$params['code']??$params['kod'];
+            $code = $params['code'] ?? $params['kod'];
 
             if (!empty($code)) {
                 $CA = new static($code);
@@ -555,25 +555,26 @@ class CalculateAction extends Calculate
                 'footer' => $params['footer'] ?? true]);
 
     }
+
     protected
     function funcLinkToAnonymTable($params)
     {
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
-        if($tableRow['type']!="tmp") throw new errorException('Только для временных таблиц');
+        if ($tableRow['type'] != "tmp") throw new errorException('Только для временных таблиц');
         $d = [];
-        if(!empty($params['data'])){
-            $d['d']= $params['data'];
+        if (!empty($params['data'])) {
+            $d['d'] = $params['data'];
         }
-        if(!empty($params['params'])){
-            $d['p']= $params['params'];
+        if (!empty($params['params'])) {
+            $d['p'] = $params['params'];
         }
-        $t=$tableRow['id'];
-        if ($d){
-            $t=$tableRow['id'].'?d='.urlencode(Crypt::getCrypted(json_encode($d, JSON_UNESCAPED_UNICODE), false));
+        $t = $tableRow['id'];
+        if ($d) {
+            $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(json_encode($d, JSON_UNESCAPED_UNICODE), false));
         }
-        return Conf::getAnonymHost().'/'.Conf::anonym_modul.'/'.$t;
+        return Conf::getAnonymHost() . '/' . Conf::anonym_modul . '/' . $t;
     }
 
     protected
@@ -605,25 +606,29 @@ class CalculateAction extends Calculate
             $params['refresh'] ?? false);
 
     }
+
     protected
     function funcNormalizeN($params)
     {
         $params = $this->getParamsArray($params);
 
-        if(!key_exists('num', $params) || !is_numeric(strval($params['num']))) throw new errorException('Параметр num обязателен и должен быть числом');
+        if (!key_exists('num',
+                $params) || !is_numeric(strval($params['num']))) throw new errorException('Параметр num обязателен и должен быть числом');
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
 
 
         /** @var RealTables $table */
-        $table=tableTypes::getTable($tableRow);
-        if (!is_a($table, RealTables::class)) throw new errorException('Нормализация проводится только для простых таблиц и таблиц циклов');
+        $table = tableTypes::getTable($tableRow);
+        if (!is_a($table,
+            RealTables::class)) throw new errorException('Нормализация проводится только для простых таблиц и таблиц циклов');
         if (!$tableRow['with_order_field']) throw new errorException('Таблица не сортируется по N');
 
-        if ($table->getNTailLength()>=(int)$params['num']){
+        if ($table->getNTailLength() >= (int)$params['num']) {
             $table->normalizeN();
         }
 
     }
+
     protected
     function funcLinkToTable($params)
     {
@@ -736,7 +741,7 @@ class CalculateAction extends Calculate
             $post = $this->__getActionFields($params['post'], 'GetFromScript');
         } elseif (!empty($params['posts'])) {
             $post = $params['posts'];
-        }else{
+        } else {
             $post = null;
         }
 
@@ -832,7 +837,7 @@ class CalculateAction extends Calculate
                 $e->addPath('[[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
                 throw $e;
             } catch (SqlExeption $e) {
-                throw new errorException($e->getMessage().' [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
+                throw new errorException($e->getMessage() . ' [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
             } catch (Exception $e) {
                 throw new errorException('Неправильное оформление кода в [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
             }
@@ -855,7 +860,7 @@ class CalculateAction extends Calculate
                     $fields = $this->__getActionFields($params['field'], 'Insert');
                 } else $fields = [];
 
-                if(!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) $table->setWithALogTrue();
 
                 $addedIds += $table->actionInsert($fields, null, $params['after'] ?? null);
 
@@ -878,7 +883,8 @@ class CalculateAction extends Calculate
         }
     }
 
-    protected function funcinsertListExtended($params){
+    protected function funcinsertListExtended($params)
+    {
         return $this->funcInsertListExt($params);
     }
 
@@ -929,7 +935,7 @@ class CalculateAction extends Calculate
             $funcSet = function ($params) use ($rowList, &$addedIds) {
                 $table = $this->__getActionTable($params, 'Insert');
 
-                if(!empty($params['log'])){
+                if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
 
@@ -950,24 +956,31 @@ class CalculateAction extends Calculate
         }
     }
 
-    protected function funcTableLog($params){
+    protected function funcTableLog($params)
+    {
         if ($params = $this->getParamsArray($params)) {
 
             $table = $this->__getActionTable($params, 'TableLog');
-            if ($table->getTableRow()['type']==='tmp') throw new errorException('Нельзя писать в лог данные временной таблицы');
-            if(empty($params['field'])) throw new errorException('Заполните поле field');
-            if (!($field=$table->getFields()[$params['field']])) throw new errorException('Поле [['.$params['field'].']] не найдено в таблице '.$table->getTableRow()['name']);
-            if ($field['category']=='column') {
-                if(!is_numeric($params['id'])) throw new errorException('Поле id должно быть числовым');
+            if ($table->getTableRow()['type'] === 'tmp') throw new errorException('Нельзя писать в лог данные временной таблицы');
+            if (empty($params['field'])) throw new errorException('Заполните поле field');
+            if (!($field = $table->getFields()[$params['field']])) throw new errorException('Поле [[' . $params['field'] . ']] не найдено в таблице ' . $table->getTableRow()['name']);
+            if ($field['category'] == 'column') {
+                if (!is_numeric($params['id'])) throw new errorException('Поле id должно быть числовым');
 
 
-                $valID=$table->getByParams(['field'=>['id', $params['field']], 'where'=>[['field'=>'id', 'operator'=>'=', 'value'=>$params['id']]]], 'row');
-                if(!$valID) throw new errorException('Строка с ид '.$params['id'].' не найдена в таблице '.$table->getTableRow()['name']);
-                $val=$valID[$params['field']];
-            }else{
-                $val=$table->getByParams(['field'=>[$params['field']]], 'field');
+                $valID = $table->getByParams(['field' => ['id', $params['field']], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $params['id']]]],
+                    'row');
+                if (!$valID) throw new errorException('Строка с ид ' . $params['id'] . ' не найдена в таблице ' . $table->getTableRow()['name']);
+                $val = $valID[$params['field']];
+            } else {
+                $val = $table->getByParams(['field' => [$params['field']]], 'field');
             }
-            aLog::innerLog($table->getTableRow()['id'], $table->getCycle()?$table->getCycle()->getId():null, $params['id']??null, $params['field'], $params['comment']??null, $val);
+            aLog::innerLog($table->getTableRow()['id'],
+                $table->getCycle() ? $table->getCycle()->getId() : null,
+                $params['id'] ?? null,
+                $params['field'],
+                $params['comment'] ?? null,
+                $val);
 
         }
     }
@@ -986,7 +999,7 @@ class CalculateAction extends Calculate
 
             $funcSet = function ($params) use ($rowList, &$addedIds) {
                 $table = $this->__getActionTable($params, 'Insert');
-                if(!empty($params['log'])){
+                if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
 
@@ -1037,7 +1050,7 @@ class CalculateAction extends Calculate
         $this->__doAction($params,
             function ($params) {
                 $table = $this->__getActionTable($params, 'Set');
-                if(!empty($params['log'])){
+                if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
                 $fields = $this->__getActionFields($params['field'], 'Set');
@@ -1054,7 +1067,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->__getActionTable($params, 'Delete');
                 $where = $params['where'] ?? [];
-                if(!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) $table->setWithALogTrue();
                 $table->actionDelete($where, 1);
             });
     }
@@ -1067,10 +1080,10 @@ class CalculateAction extends Calculate
                 $table = $this->__getActionTable($params, 'Duplicate');
                 $fields = $this->__getActionFields($params['field'], 'Duplicate');
 
-                if(!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) $table->setWithALogTrue();
 
                 $where = $params['where'] ?? [];
-                $addedIds = $table->actionDuplicate($fields, $where, 1, $params['after']??null);
+                $addedIds = $table->actionDuplicate($fields, $where, 1, $params['after'] ?? null);
                 if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
             });
 
@@ -1084,7 +1097,7 @@ class CalculateAction extends Calculate
                 $table = $this->__getActionTable($params, 'DuplicateList');
                 $fields = $this->__getActionFields($params['field'], 'DuplicateList');
 
-                if(!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) $table->setWithALogTrue();
 
                 $where = $params['where'] ?? [];
                 $addedIds = $table->actionDuplicate($fields, $where, null, $params['after']);
@@ -1099,7 +1112,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->__getActionTable($params, 'DeleteList');
                 $where = $params['where'] ?? [];
-                if(!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) $table->setWithALogTrue();
                 $table->actionDelete($where, null);
             });
     }
@@ -1113,7 +1126,7 @@ class CalculateAction extends Calculate
 
                 $where = $params['where'] ?? [];
 
-                if(!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) $table->setWithALogTrue();
 
                 $table->actionClear($params['field'], $where, 1);
             },
@@ -1126,7 +1139,7 @@ class CalculateAction extends Calculate
         $this->__doAction($params,
             function ($params) {
                 $table = $this->__getActionTable($params, 'Pin');
-                if(!empty($params['log'])){
+                if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
                 $where = $params['where'] ?? [];
@@ -1141,7 +1154,7 @@ class CalculateAction extends Calculate
         $this->__doAction($params,
             function ($params) {
                 $table = $this->__getActionTable($params, 'PinList');
-                if(!empty($params['log'])){
+                if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
                 $where = $params['where'] ?? [];
@@ -1157,12 +1170,66 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->__getActionTable($params, 'SetList');
                 $fields = $this->__getActionFields($params['field'], 'SetList');
-                if(!empty($params['log'])){
+                if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
                 $where = $params['where'] ?? [];
                 $table->actionSet($fields, $where, null);
             });
+    }
+
+    protected function __execButtonList($params)
+    {
+        $table = $this->__getActionTable($params, 'SetList');
+        $params['field'] = $params['field'][0] ?? null;
+        if (!$params['field']) throw new errorException('Поле кнопки не указано');
+        if (!key_exists($params['field'],
+            $table->getFields())) throw new errorException('Поле кнопки не указано');
+
+        $field = $table->getFields()[$params['field']];
+
+        $CA = new CalculateAction($field['codeAction']);
+        if ($field['category'] === "column") {
+            $params['field'] = ['__all__'];
+            $rows = $table->getByParams($params, 'rows');
+            foreach ($rows as $row) {
+                $row = RealTables::decodeRow($row);
+                $CA->execAction($field['name'],
+                    $row,
+                    $row,
+                    $table->getTbl(),
+                    $table->getTbl(),
+                    $table);
+            }
+
+        } else {
+            $CA->execAction($field['name'],
+                $table->getTbl()['params'],
+                $table->getTbl()['params'],
+                $table->getTbl(),
+                $table->getTbl(),
+                $table);
+        }
+    }
+
+    protected function funcExecButtonList($params)
+    {
+        $this->__doAction($params,
+            function ($params) {
+                $this->__execButtonList($params);
+            },
+            true);
+    }
+
+    protected function funcExecButton($params)
+    {
+        $this->__doAction($params,
+            function ($params) {
+                $params['limit'] = 1;
+                $this->__execButtonList($params);
+            },
+            true);
+
     }
 
     protected
@@ -1177,7 +1244,7 @@ class CalculateAction extends Calculate
                 $modify = $table->getModifyForActionSetExtended($fields, $where);
 
                 if ($modify) {
-                    if(!empty($params['log'])){
+                    if (!empty($params['log'])) {
                         $table->setWithALogTrue();
                     }
 
@@ -1197,7 +1264,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->__getActionTable($params, 'ClearList');
                 $where = $params['where'] ?? [];
-                if(!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) $table->setWithALogTrue();
                 $table->actionClear($params['field'], $where, null);
             },
             true);
@@ -1224,11 +1291,11 @@ class CalculateAction extends Calculate
             curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
         }
 
-        if ($headers){
+        if ($headers) {
             $headers = (array)$headers;
         }
         if ($cookie) {
-            $headers[]= "Cookie: " . $cookie;
+            $headers[] = "Cookie: " . $cookie;
         }
         if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, (array)$headers);
 

@@ -1189,26 +1189,33 @@ class CalculateAction extends Calculate
         $field = $table->getFields()[$params['field']];
 
         $CA = new CalculateAction($field['codeAction']);
-        if ($field['category'] === "column") {
-            $params['field'] = ['__all__'];
-            $rows = $table->getByParams($params, 'rows');
-            foreach ($rows as $row) {
-                $row = RealTables::decodeRow($row);
+        try {
+            if ($field['category'] === "column") {
+                $params['field'] = ['__all__'];
+                $rows = $table->getByParams($params, 'rows');
+                foreach ($rows as $row) {
+                    $row = RealTables::decodeRow($row);
+                    $CA->execAction($field['name'],
+                        $row,
+                        $row,
+                        $table->getTbl(),
+                        $table->getTbl(),
+                        $table);
+                }
+
+            } else {
                 $CA->execAction($field['name'],
-                    $row,
-                    $row,
+                    $table->getTbl()['params'],
+                    $table->getTbl()['params'],
                     $table->getTbl(),
                     $table->getTbl(),
                     $table);
             }
+            $this->newLogParent['children'][] = $CA->getLogVar();
 
-        } else {
-            $CA->execAction($field['name'],
-                $table->getTbl()['params'],
-                $table->getTbl()['params'],
-                $table->getTbl(),
-                $table->getTbl(),
-                $table);
+        } catch (errorException $e) {
+            $this->newLogParent['children'][] = $CA->getLogVar();
+            throw $e;
         }
     }
 

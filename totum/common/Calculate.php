@@ -3177,11 +3177,15 @@ class Calculate
     }
 
     protected
-    function addInNewLogVar($type, $name, $val)
+    function addInNewLogVar($type, $name, $val, $valIsLog=false)
     {
         if (static::$logsOn) {
             $logCode = ['type' => $type];
-            if (is_array($val)) {
+            if($valIsLog){
+                $logCode['text'] = $name ;
+                $logCode['children'][] = $val;
+            }
+            elseif (is_array($val)) {
                 $logCode['text'] = $name . ': list из ' . count($val) . ' значений';
                 $logCode['children'] = [];
                 foreach ($val as $k => $v) {

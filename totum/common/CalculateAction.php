@@ -1201,6 +1201,7 @@ class CalculateAction extends Calculate
                         $table->getTbl(),
                         $table->getTbl(),
                         $table);
+                    $this->addInNewLogVar('cogs', 'Выполнение кода действия '.$field['name'].' id:'.$row['id'], $CA->getLogVar(), true);
                 }
 
             } else {
@@ -1210,11 +1211,12 @@ class CalculateAction extends Calculate
                     $table->getTbl(),
                     $table->getTbl(),
                     $table);
+                $this->addInNewLogVar('cogs', 'Выполнение кода действия '.$field['name'], $CA->getLogVar(), true);
             }
-            $this->newLogParent['children'][] = $CA->getLogVar();
+
 
         } catch (errorException $e) {
-            $this->newLogParent['children'][] = $CA->getLogVar();
+            $this->addInNewLogVar('cogs', 'Выполнение кода действия '.$field['name'], $CA->getLogVar(), true);
             throw $e;
         }
     }

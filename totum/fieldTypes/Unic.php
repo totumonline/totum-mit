@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 
@@ -26,8 +27,7 @@ class Unic extends Field
 
             if ($id_duble = $this->table->getByParams(
                 ['field' => 'id', 'table' => $this->table->getTableRow()['name'], 'where' => $where])) {
-
-                throw new errorException('Значение должно быть уникальным [[['.$id_duble.'] - ['.$row['id'].']]]');
+                throw new criticalErrorException('Значение должно быть уникальным [[['.$id_duble.'] - ['.$row['id'].']]]');
             }
 
         }

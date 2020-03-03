@@ -38,12 +38,12 @@ class errorException extends \Exception
 
     static function tableUpdatedException(aTable $aTable)
     {
-
-
-       // Mail::send('tatianap.php@gmail.com', Conf::getSchema().'/'.$aTable->getTableRow()['name'], $_SERVER['REQUEST_URI'].' $_POST: '.json_encode($_POST, JSON_UNESCAPED_UNICODE));
-
+        // Mail::send('tatianap.php@gmail.com', Conf::getSchema().'/'.$aTable->getTableRow()['name'], $_SERVER['REQUEST_URI'].' $_POST: '.json_encode($_POST, JSON_UNESCAPED_UNICODE));
         throw new tableSaveException('Таблица [[' . $aTable->getTableRow()['title'] . ']] была изменена. Обновите таблицу для проведения изменений');
-
+    }
+    static function criticalException($error)
+    {
+        throw new criticalErrorException($error);
     }
 
     /**

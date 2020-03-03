@@ -1,1 +1,17964 @@
-App.blink=function(e,t,n){let i=t||8,a=!0,o=function(){a?e.css("background-color",n):e.css("background-color",""),a=!a,--i>0&&setTimeout(o,300)};setTimeout(o,300)},App.panelTimer=function(e,t,n){let i,a=t,o=$("<div>");o.html(a);let l=BootstrapDialog.show({type:BootstrapDialog.TYPE_DANGER,title:e,message:o,buttons:[{action:function(e){i&&clearTimeout(i),e.close()},label:"Отмена"}]}),s=function(){--a<=0?(l.close(),n()):(o.html(a),i=setTimeout(s,1e3))};s()},App.setSessionStorage=function(e,t){sessionStorage.setItem(e,JSON.stringify(t))},BootstrapDialog.BUTTON_SIZES[BootstrapDialog.SIZE_NORMAL]="btn-m",BootstrapDialog.defaultOptions.animate=!1,BootstrapDialog.defaultOptions.closeByBackdrop=!1,function(){let e=0,t=-1;App.showLInks=function(n,i){n.forEach(function(n){if(-1!==["top-iframe","iframe"].indexOf(n.target)&&window.top!=window)return void window.top.App.showLInks([n],i);let a=function(o){"use strict";if(n.postData){let t,l="_self";if("iframe"===o||"top-iframe"===o){let o="iframe"+ ++e;l=o;let s,r=BootstrapDialog.show({message:s=$('<iframe style="width: 100%; '+(n.width?"":"min-width: 500px;")+' height: 70vh; border: none" name = "'+o+'"></iframe>'),size:BootstrapDialog.SIZE_WIDE,title:n.title,draggable:!0,cssClass:"target-iframe",onhidden:function(){if(n.refresh){$("#table").data("pctable");i.refresh()}},onshown:function(e){if(n.width){let t=500;n.width>t&&(t=n.width),e.$modalDialog.width(t)}let t=s.get(0).contentWindow,i=function(){try{t.App&&t.App.setSessionStorage?t.App.setSessionStorage.call(t,"linkObject",n):setTimeout(i,200)}catch(e){}};i()},buttons:[{label:"Обновить",cssClass:"btn-m btn-default",action:function(){s.get(0).contentWindow.location.reload(),t.detach()}},{label:"Открыть",cssClass:"btn-m btn-default",action:function(e){a("self")}},{label:"Открыть в новой вкладке",cssClass:"btn-m btn-default",action:function(e){try{s.get(0).contentWindow.sessionStorage.linkObject&&(n=JSON.parse(s.get(0).contentWindow.sessionStorage.linkObject))}catch(e){}a("blank"),e.close()}},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}]});s.on("load",function(){let e=s.get(0).contentWindow;try{e.closeMe=function(){r.close()}}catch(e){}})}else"blank"===o?l="_blank":"parent"===o?l="_parent":"top"===o?l="_top":window.parent!==window&&(sessionStorage.linkObject=JSON.stringify(n));t=$("<form>",{method:"post",action:n.uri,target:l});const s=function(e,n){"boolean"==typeof n&&(n=!0===n?"true":"false"),"string"==typeof n||"number"==typeof n||null===n?t.append($("<input>",{type:"hidden",name:e,value:n})):$.each(n,function(t,n){s(e+"["+t+"]",n)})};$.each(n.postData,function(e,t){s(e,t)}),t.appendTo("body").submit(),t.detach()}else switch(o){case"top":window.top.location.href=n.uri;break;case"parent":window.parent.location.href=n.uri;break;case"blank":let e=$('<a href="'+n.uri+'" target="_blank">link</a>');e.appendTo("body"),e.get(0).click(),e.remove();break;case"iframe":case"top-iframe":let l=n.uri;if(n.elseData){let e=[];!1===n.elseData.header&&e.push("param"),!1===n.elseData.footer&&e.push("footer"),l+="#"+encodeURIComponent(JSON.stringify({wc:e}))}let s=$('<iframe src="'+l+'" style="width: 100%; height: 70vh; border: none"></iframe>'),r=BootstrapDialog.show({message:s,draggable:!0,size:BootstrapDialog.SIZE_WIDE,title:n.title,cssClass:"target-iframe",onhidden:function(){n.refresh&&i.refresh(),t--},onshown:function(e){n.width&&e.$modalDialog.width(n.width),++t&&e.$modalDialog.css("margin-top",30+20*t);let i=s.get(0).contentWindow,a=function(){try{i.App&&i.App.setSessionStorage?i.App.setSessionStorage.call(i,"linkObject",n):setTimeout(a,200)}catch(e){}};a()},buttons:[{label:"Обновить",cssClass:"btn-m btn-default",action:function(){s.get(0).contentWindow.location.reload()}},{label:"Открыть",cssClass:"btn-m btn-default",action:function(e){try{s.get(0).contentWindow.sessionStorage.linkObject&&(n=JSON.parse(s.get(0).contentWindow.sessionStorage.linkObject))}catch(e){}a("self")}},{label:"Открыть в новой вкладке",cssClass:"btn-m btn-default",action:function(e){try{s.get(0).contentWindow.sessionStorage.linkObject&&(n=JSON.parse(s.get(0).contentWindow.sessionStorage.linkObject))}catch(e){}a("blank"),e.close()}},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}]});s.on("load",function(){let e=s.get(0).contentWindow;try{e.closeMe=function(){r.close()}}catch(e){}});break;default:window.parent!=window&&(sessionStorage.linkObject=JSON.stringify(n)),window.location.href=n.uri}};a(n.target)})},App.showDatas=function(e,t){let i=[],a=this;return e.forEach(function(e){switch(e[0]){case"table":if(window.top!=window)return window.top.App.showDatas.call(a,[e]);i.push(function(e,t){let i;e.height&&(i=e.height,/^\d+$/.test(e.height)&&(i+="px"));let a="/Table/0/"+e.table_id+"?sess_hash="+e.sess_hash;/^\/Table\//.test(window.location.pathname)||(a=e.table_id+"?sess_hash="+e.sess_hash);let o=$('<iframe style="width: 100%; height: '+(i||"80vh")+'; border: none;" src="'+a+'">');$("body").append(o);let l=[];l.push({label:"В новой вкладке",cssClass:"btn-m btn-default",action:function(e){window.open(a,"_blank");e.close()}});let s=n(e.title,o,e.width,e.refresh,BootstrapDialog.TYPE_SUCCESS,t,l);o.on("load",function(){let e=o.get(0).contentWindow;e.closeMe=function(){s.close()}})}(e[1],a));break;case"text":i.push(function(e,t){n(e.title,e.text,e.width,e.refresh,null,t)}(e[1],a));break;case"print":i.push(function(e,t,n){if(App.fullScreenProcesses.showCog(),n){var i=new Blob([atob(n)],{type:"application/pdf"}),a=URL.createObjectURL(i),o=document.createElement("a");o.href=a,o.target="_blank",document.body.appendChild(o),o.click()}else{let n=$('<iframe style="width: 500px; height: 200px; position: absolute; top: -1000px; background: #fff;">').appendTo("body"),i=n[0],a=i.contentWindow?i.contentWindow:i.contentDocument.defaultView;a.document.head.innerHTML="<style>"+t+"</style>",a.document.body.innerHTML=e;let o=a.document.body,l=$.Deferred(),s=0;const r=function(){o.scrollTop=o.scrollHeight+100,++s<100&&o.scrollTop>=o.scrollHeight?setTimeout(r,50):setTimeout(function(){l.resolve()},3e3)},c=function(){++s<100&&o.scrollHeight<200?setTimeout(c,50):(s=0,r())};c(),l.then(function(){App.fullScreenProcesses.hideCog(),setTimeout(function(){a.focus(),a.print()},250),setTimeout(function(){},1e4)})}}(e[1].body,e[1].styles));break;case"notification":if(e[1].text){let n=$.notify({message:"<div>"+e[1].text+"</div>"},{offset:{x:20,y:50},type:"warning",allow_dismiss:!0,delay:0,onClose:function(){a.notificationUpdate(t,"deactivate").then(function(){n.$ele.trigger("hide.bs.modal")})}});n.$ele.find("button.close").before('<button class="timer"><i class="fa fa-clock-o"></i></button>'),n.$ele.on("click",".timer",function(){a.notificationUpdate(t,"later").then(function(){n.$ele.trigger("hide.bs.modal"),n.$ele.remove()})}),i.push({$modal:n.$ele,simpleClose:function(){n.$ele.remove()}})}else i.push(function(e){if(e.table_id){let t=$('<iframe style="width: 100%; height: 100%; border: none;" src="/html.html?rand='+Math.round(1e4*Math.random())+'">'),n=$('<div class="notificationTable"></div>').appendTo("body").append(t).css({width:e.width,height:e.height});return t.on("load",function(){let i=t.get(0).contentWindow;e.ROLESLIST=window.ROLESLIST||$("#table").data("pctable").ROLESLIST,i.data=e,i.closeMe=function(){n.trigger("hide.bs.modal"),n.remove()},t.contents().find("body").append('<div class="page_content tree-minifyed"><div id="table"></div></div><script>let table_id=window.data.table_id; App.getPcTableById(table_id, {sess_hash: window.data.sess_hash}, $("#table"), {beforeSpaceHide: true, ROLESLIST: window.data.ROLESLIST, withoutScrolls: true, data: window.data.data, f: window.data.f, data_params: window.data.data_params, withHeader: !(window.data.elseData && window.data.elseData.header===false), withFooter: !(window.data.elseData && window.data.elseData.footer===false)})<\/script>')}),{$modal:n,simpleClose:function(){n.remove()}}}}(e[1]))}}),i},App.getPcTableById=function(e,t,n,i){let a=$.Deferred();return new App.models.table("/Table/0/"+e.toString(),{},{}).getTableData(t?t.sess_hash:null).then(function(o){if(i&&(!1===i.withHeader||!1===i.withFooter)){Object.values(o.fields).forEach(function(e,t){"param"===e.category&&!1===i.withHeader?delete o.fields[e.name]:"footer"===e.category&&!1===i.withFooter&&delete o.fields[e.name]}),delete i.withHeader,delete i.withFooter}o.model=new App.models.table("/Table/0/"+e.toString(),$.extend({updated:o.updated},t||{})),$.extend(!0,o,i);let l=new App.pcTableMain(n,o);a.resolve(l)}),a.promise()},App.showPanels=function(e){if(window.top!=window)return window.top.App.showPanels.call(window.top,e);let t={},n=$.Deferred();const i=function(){let a=e.shift(),o={};a.id?o.id=a.id:a.field&&(o=a.field);const l=function(t){new EditPanel(t.tableRow.id,BootstrapDialog.TYPE_PRIMARY,o,e.length>0).then(function(t,o){if(t&&a.refresh){$("#table").data("pctable").model.refresh()}else if((t||o)&&e.length)return void i();n.resolve()})};a.uri!==window.location.pathname?t[a.uri]?l(t[a.uri]):new App.models.table(a.uri,{},{}).getTableData().then(function(e){e.model=new App.models.table(a.uri,{updated:e.updated}),t[a.uri]=new App.pcTableMain(null,e),l(t[a.uri])}):l($("#table").data("pctable"))};return i(),n};let n=function(e,n,i,a,o,l,s){return(s=s||[]).push({label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}),BootstrapDialog.show({message:n,title:e,type:o||null,draggable:!0,onhidden:function(){a&&("strong"===a?window.location.reload():l.refresh()),t--},onshown:function(e){i&&e.$modalDialog.width(i),++t&&e.$modalDialog.css("margin-top",30+20*t)},buttons:s})}}(),Object.equals=function(e,t){let n=[];return function e(t,i){if(t===i)return!0;if(t instanceof Date&&i instanceof Date)return+t==+i;if("object"!=typeof t||"object"!=typeof i||null===i||null===t)return!1;if(function(e,t){for(var i=n.length;i--;)if(!(n[i][0]!==e&&n[i][0]!==t||n[i][1]!==t&&n[i][1]!==e))return!0;return!1}(t,i))return!0;if(n.push([t,i]),Array.isArray(t)!==Array.isArray(i))return!1;if(Array.isArray(t)){if(t.length!==i.length)return!1;let n=t.length;for(;n--;)if(!e(t[n],i[n]))return!1}else{let n=Object.keys(t),a=n.length;if(Object.keys(i).length!==a)return!1;for(;a--;)if(!e(t[n[a]],i[n[a]]))return!1}return!0}(e,t)},Object.getPath=function(e,t,n){let i=e;for(let e=0;e<t.length;e++){let a=t[e];if("object"!=typeof i||!(a in i))return n;i=i[a]}return i},String.prototype.hashCode=function(){var e,t=0;if(0===this.length)return t;for(e=0;e<this.length;e++)t=(t<<5)-t+this.charCodeAt(e),t|=0;return t},App.confirmation=function(e,t,n){let i=[];return Object.keys(t).forEach(function(e){i.push({label:e,action:t[e]})}),BootstrapDialog.show({type:"edit",title:n,message:e,buttons:i,draggable:!0,onshow:function(e){e.$modalContent.css({width:"70vw",maxWidth:"800px"})},onshown:function(e){e.$modalContent.position({of:window})}})},App.copyMe=function(e){let t=document.createElement("textarea");t.value=e,document.body.appendChild(t),t.select(),document.execCommand("copy"),document.body.removeChild(t)},App.dateFormats={base:"DD.MM.YY",db:"YYYY-MM-DD",covert:function(e,t,n){return moment(e,t).format(n)},covertToDb:function(e,t){return t=t||this.base,moment(e,t).format(this.db)},covertFromDb:function(e,t){return t=t||this.base,moment(e,this.db).format(t)},isValid:function(e,t){return t=t||this.base,moment(e,t).isValid()}},App.dateTimeFormats={base:"DD.MM.YY HH:mm",db:"YYYY-MM-DD HH:mm",covert:function(e,t,n){return moment(e,t).format(n)},covertToDb:function(e,t){return t=t||this.base,moment(e,t).format(this.db)},covertFromDb:function(e,t){return t=t||this.base,moment(e,this.db).format(t)},isValid:function(e,t){return t=t||this.base,moment(e,t).isValid()}},function(){let e="fa-cog",t=$("#big_loading i"),n=0;App.fullScreenProcesses={showCog:function(){1===++n&&App.fullScreenProcesses.show("fa-cog",!0)},hideCog:function(){--n<1&&(n=0,App.fullScreenProcesses.hide())}},App.fullScreenProcesses.show=function(n,i){i=i||!1,$("body").addClass("lock"),i&&!t.is(".fa-spin")?t.addClass("fa-spin"):!i&&t.is(".fa-spin")&&t.removeClass("fa-spin"),e!=n&&(t.removeClass(e).addClass(n),e=n),$("#big_loading").show().animate({opacity:1},250)},App.fullScreenProcesses.hide=function(e){$("body").removeClass("lock"),$("#big_loading").animate({opacity:0},250,function(){$("#big_loading").hide()})}}(),App.hexToRGB=function(e,t){var n=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),a=parseInt(e.slice(5,7),16);return t?"rgba("+n+", "+i+", "+a+", "+t+")":"rgb("+n+", "+i+", "+a+")"},$.fn.extend({isAttached:function(){return 1===$(this).closest("html").length}}),App.isTopWindow=function(){let e=!1;try{e=window!=window.top||document!=top.document||self.location!=top.location}catch(t){e=!0}return!e},App.logOutput=function(e){let t=$('<div style="overflow-x: auto">'),n=[{label:"Развернуть все",cssClass:"btn-m btn-default",action:function(e){t.jstree("open_all")}},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}];"string"==typeof e&&n.splice(0,1),window.top.BootstrapDialog.show({message:t,type:BootstrapDialog.TYPE_DANGER,title:"Схема расчета",buttons:n,draggable:!0,onshown:function(n){n.$modalContent.position({of:window.top}),"string"==typeof e?t.html('<div style="color: white; ">'+e+"</div>"):t.jstree({state:{key:"leftTree"},core:{check_callback:!0,open_parents:!0,data:e,themes:{name:"default-dark"}},types:{folder:{},code:{icon:"fa fa-cog"},cogs:{icon:"fa fa-cogs"},error:{icon:"fa fa-exclamation-triangle"},list:{icon:"fa fa-code"},fixed:{icon:"fa fa-hand-rock-o"},param:{icon:"fa fa-hashtag"},execcode:{icon:"fa fa-magic"},recalcs:{icon:"fa fa-recycle"},clocks:{icon:"fa fa-clock-o"},mbs:{icon:"fa fa-database"},selects:{icon:"fa fa-navicon"},"!":{icon:"fa fa-exclamation"},table_simple:App.tableTypes.simple,table_version:App.tableTypes.version,table_calcs:App.tableTypes.calcs,table_tmp:App.tableTypes.tmp,table_globcalcs:App.tableTypes.globcalcs,table_cycles:App.tableTypes.cycles},plugins:["types","themes"]})},onshow:function(e){let t=.8*window.top.innerWidth;e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:t}),e.$modalContent.find(".modal-body").css("background-color","#333")}})},App.modal=function(e,t,n){var i=$('<div class="modal fade" id="appNotify" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title"></h4> </div> <div class="modal-body"> </div> <div class="modal-footer"> </div> </div> </div> </div>');if((o={body:i.find(".modal-body"),header:i.find(".modal-header"),title:i.find(".modal-title"),footer:i.find(".modal-footer"),block:i}).block.on("hidden.bs.modal",function(){$(this).remove()}),"object"==typeof e&&e instanceof jQuery?o.body.empty().append(e):o.body.html(e),t?o.title.html(t):o.header.hide(),n)if("object"==typeof n){var a=$("<div>"),o=o;$.each(n,function(e,t){if("close"!=t){var n="default";"object"==typeof t&&(t.class&&(n=t.class),t.func&&(t=t.func));var i=$('<button type="button" class="btn btn-'+n+'">'+e+"</button>");a.append(i),t&&"function"==typeof t&&i.on("click",function(){t(o.block)})}else a.append('<button type="button" class="btn btn-default" data-dismiss="modal">'+e+"</button>")}),o.footer.html(a.children())}else o.footer.html(n);else o.footer.hide();return o.block.modal("show").css("z-index","10000"),o.block},$.expr.pseudos.multiincludes=function(e,t,n){let i=$(e).find("a"),a=(i.data("tokens")||i.text()).toString().toUpperCase().replace("ё","е");return!n[3].toUpperCase().replace("ё","е").split(" ").some(function(e){return-1===a.indexOf(e)})},App.notify=function(e,t,n){BootstrapDialog.show({message:e,type:BootstrapDialog.TYPE_DEFAULT,title:t,buttons:[{label:"Закрыть",action:function(e){e.close()}}],onshow:function(e){t||e.$modalHeader.remove()}})},App.topNotify=function(e,t,n){t=t||"",$("#notifies").append('<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>'+t+"</strong>"+e+"</div>")},App.popNotify=function(e,t,n,i,a){let o,l="bottom",s={},r={};return e.isParams&&(s=e,e.element&&(t=e.element),e.timeout&&(n=e.timeout),e.container&&(i=e.container),e.trigger&&(a=e.trigger),e.placement&&(l=e.placement),e.class&&(o=e.class),e=e.$text),n=n||void 0,i=i||t.closest(".pcTable-scrollwrapper, .InsertPanel"),a=a||"manual",r=$.extend(r,{html:!0,content:e,trigger:a,container:i,placement:l,width:"70vw",animation:!1}),"default"==n&&(n=2e3),t.on("shown.bs.popover",function(){let e=t.data("bs.popover"),n=parseInt(e.$tip.css("left")),a=parseInt(e.$arrow.css("left"));if(n<0&&(e.$tip.css("left",0),e.$arrow.css("left",a+n+"px")),"bottom"===l){let n=t.offset().top+t.outerHeight(),a=e.$tip.offset().top,o=i.scrollTop()-i.offset().top;a-n>10&&e.$tip.css("top",n+2+o+(i.is(".InsertPanel")?$(".modal-dialog").offset().top:0))}}),t.popover(r),"manual"==a&&(t.popover("show"),o&&$("#"+t.attr("aria-describedby")).addClass(o)),t.on("remove destroy",function(){t&&t.attr("aria-describedby")&&t.popover("destroy")}),e.on&&e.on("remove destroy",function(){t.length&&t.attr("aria-describedby")&&$("#"+t.attr("aria-describedby")).length&&t.popover("destroy")}),n&&setTimeout(function(){t&&t.attr("aria-describedby")&&t.popover("destroy")},n),t.attr("aria-describedby")},App.ksort=function(e){var t=Object.keys(e).sort(),n={};for(var i in t)n[t[i]]=e[t[i]];return n},App.values=function(e){let t=[];for(let n in e)t.push(e[n]);return t},App.keys=function(e){let t=[];for(let n in e)t.push(n);return t},App.isEmpty=function(e){if(null==e)return!0;if(e.length>0)return!1;if(0===e.length)return!0;if("object"!=typeof e)return!0;for(var t in e)if(hasOwnProperty.call(e,t))return!1;return!0},App.filter=function(e,t){let n={};return Object.keys(e).forEach(function(i){t(i,e[i])&&(n[i]=e[i])}),n},App.openInIframe=function(e,t,n){n=n||"newIframe";let i=$('<iframe style="min-width: 500px; width: 100%; height: 70vh; border: none" name = "'+n+'"></iframe>');BootstrapDialog.show({message:i.attr("src",t),size:BootstrapDialog.SIZE_WIDE,title:e,buttons:[{label:"Обновить",cssClass:"btn-m btn-default",action:function(e){let a;a=$('<iframe style="min-width: 500px; width: 100%; height: 70vh; border: none" name = "'+n+'"></iframe>').attr("src",t),i.replaceWith(a),i=a}},{label:"Открыть",cssClass:"btn-m btn-default",action:function(e){$("<a>").attr("href",t).hide().appendTo("body").get(0).click(),e.close()}},{label:"Открыть в новой вкладке",cssClass:"btn-m btn-default",action:function(e){let n=$("<a>").attr("href",t).attr("target","_blank").hide().appendTo("body");n.get(0).click(),n.remove(),e.close()}},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}]})},App.aInIframe=function(e){return e=$(e),App.openInIframe(e.text(),e.attr("href")),!1},App.reUserInterface=function(e,t){let n=$("#UserFio");n.css("cursor","pointer"),t&&App.blink(n,10,"#ffe486");const i=function(){let t=$('<div class="tech-table" style="height: 220px; width: 200px;"><div class="select-btn"></div><div></div></div>'),a=$('<select data-size="6" class="open" title="Выберите пользователя" data-style="btn-sm btn-default" data-live-search="true" data-width="100%">');Object.keys(e).forEach(function(t){a.append($("<option>").text(t).data("content",e[t]))});let o=t.find(".tech-table");t.find(".select-btn").append(a),n.popover({html:!0,content:t,trigger:"manual",container:"body",placement:"auto bottom",template:'<div class="popover" role="tooltip" style=""><div class="arrow" style="left: 50%;"></div><div class="popover-content" style=" padding: 3px 5px;"></div></div>'}),a.selectpicker("render").selectpicker("toggle"),a.data("container",o),a.on("hide.bs.select",function(){return a.val()&&function(e){let t=App.models.table("/Main/",{},{}),n=$("#table").data("pctable")||{isCreatorView:!0};t.addPcTable(n),t.reUser(e)}(a.val()),$("body").off("click.FioPopover"),!1}),setTimeout(function(){a.selectpicker("render"),n.popover("show"),$("#"+n.attr("aria-describedby")).css("top","45px"),a.data("selectpicker").$searchbox.focus(),$("body").one("click.FioPopover",function(e){void 0!==e.altKey&&(n.popover("destroy"),n.one("click",i))})},50)};n.one("click",i)},App.rgb2hex=function(e){return(e=e.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i))&&4===e.length?"#"+("0"+parseInt(e[1],10).toString(16)).slice(-2)+("0"+parseInt(e[2],10).toString(16)).slice(-2)+("0"+parseInt(e[3],10).toString(16)).slice(-2):""},App.tableTypes={simple:{icon:"fa fa-table",title:"Простая"},version:{icon:"fa fa-calendar",title:"Версионная"},calcs:{icon:"fa fa-calculator",title:"Расчетная в цикле"},globcalcs:{icon:"fa fa-calculator",title:"Расчетная"},tmp:{icon:"fa fa-clock-o",title:"Временная"},cycles:{icon:"fa fa-circle-o",title:"Циклы"}},App.textWithLinks=function(e){return $("<div>").text(e).html().replace(/(https?:\/\/[^\s]+)/g,function(e){return'<a href="'+e+'" target="_blank">'+e+"</a>"})},function(){var e=0;App.getUn=function(){return e++}}(),$.fn.datetimepicker.defaults.icons.close="glyphicon glyphicon-ok",$.fn.datetimepicker.defaults.tooltips.close="Применить и закрыть",function(){window.Hlps||(window.Hlps={});var e=window.Hlps;e.selectpicker={},e.selectpicker.open=function(e){var t=$(e).data("selectpicker").$newElement.children()[0];(t=$(t)).attr("aria-expanded")&&"false"!==t.attr("aria-expanded")||t.click()},e.selectpicker.focus=function(e){var t=function(){var n=e.data("this");if(n&&e.is(".selectpicker")){var i=n.$newElement.children()[0];(i=$(i)).focus()}else{var a=0;setTimeout(function(){if(!(++a<4))return!1;t()},1+100*a)}};t()},e.selectpicker.getButton=function(e){var t=$(e).data("selectpicker").$newElement.children()[0];return t=$(t)}}(),restModel=function(e){return{url:e,create:function(){return $.ajax({url:this.url,method:"post",data:data})},get:function(e){return $.ajax({url:this.url,method:"get",data:{id:e}})},save:function(e,t){return $.ajax({url:this.url,method:"PUT",data:$.extend(t,{id:e})})}}},$(function(){if(App.isTopWindow()){let e=$("#bell-notifications");if(e.length){let t=App.models.table("/Main/");t.addPcTable({model:t}),e.on("click",function(){t.getNotificationsTable()});let n={},i={},a=e.data("periodicity")||0;if(a>0){const e=function(){switch(document.visibilityState){case"hidden":n.jqXHR&&n.jqXHR.abort&&n.jqXHR.abort(),n={};break;case"visible":t.checkForNotifications(a,Object.keys(i),n).then(function(n){if(n.notifications&&n.notifications.length){i[n.notification_id]=App.showDatas.call(t,n.notifications,n.notification_id);let e=[];i[n.notification_id].forEach(function(t){if(t){let n=$.Deferred();t.$modal.on("hide.bs.modal",function(){n.resolve()}),e.push(n)}}),$.when(...e).then(function(){delete i[n.notification_id]})}n.deactivated&&n.deactivated.forEach&&n.deactivated.forEach(function(e){i[e]&&(i[e].forEach(function(e){e.simpleClose()}),delete i[e])}),e()}).fail(function(t){t&&t.error&&document.removeEventListener("visibilitychange",e)})}};document.addEventListener("visibilitychange",e),e()}}}}),$(function(){let e=$("#docs-link");const t=function(){let n=$(this).data("type"),i=$('<div class="tech-table" id="DocsPopover" data-type="'+n+'" style="min-height: 250px"></div>');$.post("https://docs.totum.online/index_"+n+".json",function(e){e&&e.length&&e.forEach(function(e){i.append('<div style="'+(e[2]||"")+'"><i class="fa fa-external-link"></i> <a href="http://docs.totum.online'+e[1]+'" target="totum-docs">'+e[0]+"</a></div>")})}),e.popover({html:!0,content:i,trigger:"manual",container:"body",placement:"auto bottom",template:'<div class="popover" role="tooltip" style=""><div class="arrow" style="left: 50%;"></div><div class="popover-content" style=" padding: 3px 5px;"></div></div>'}),setTimeout(function(){e.popover("show"),$("#"+e.attr("aria-describedby")).css("top","45px"),$("body").one("click.DocsPopover",function(n){void 0!==n.altKey&&(e.popover("destroy"),e.one("click",t))})},50)};e.one("click",t)}),function(e,t){const n="#ee0c1f",i="#3fbf46",a="pcTableInsertRowPanel";var o=0;!function(){let n=App.functions||[],i=[];n.forEach(function(e){e.d||i.push(e.name)});let a={};n.forEach(function(e){a[e.name.toLowerCase()]=[e.t,0,e.p,e.n,e.m]});let o=["where","order","field","sfield","bfield","tfield","preview","parent","section","table","filter","fieldtitle"];CodeMirror.defaults.scrollbarStyle="overlay",CodeMirror.defineInitHook(function(n){try{if(!n.options.bigOneDialog){let i,a=t('<i class="fa fa-expand codemirror-expander" style="position: absolute;\n    right: 10px;\n    bottom: 10px;\n    z-index: 10000;\n    font-family: FontAwesome; cursor: pointer"></i>');t(n.display.wrapper).append(a),a.on("click",function(){i=t('<div class="HTMLEditor" id="bigOneCodemirror" style="height: 100%;"></div>');let a,o=n.getValue();e.top.BootstrapDialog.show({message:i,type:null,title:"Правка текстового поля",cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(e){n.setValue(a.getValue())},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:"90vw",minHeight:"90vh"}),e.$modalHeader.find("button.close").css("font-size","16px").html('<i class="fa fa-compress"></i>')},onshown:function(t){a=CodeMirror(i.get(0),{mode:n.options.mode,value:o,theme:"eclipse",lineNumbers:!0,indentWithTabs:!0,autoCloseTags:!0,bigOneDialog:t}),n.table&&(a.table=n.table);let l=Math.round(t.$modalContent.height()-t.$modalHeader.outerHeight()-40);a.getScrollerElement().style.minHeight=l+"px",i.find(".CodeMirror").css("min-heught",l),a.focus(),t.$modalContent.position({my:"center top",at:"center top+30px",of:e.top})}})})}}catch(e){n.setValue(e.message)}});function l(e){if(e.getOption("disableInput")||"totum"!==e.getOption("mode"))return CodeMirror.Pass;var t=e.listSelections(),n=[];let i=!1;for(let r=0;r<t.length;r++){if(!t[r].empty())return CodeMirror.Pass;var o=t[r].head,l=e.getTokenAt(o,!0);if(l.state.inFuncName||"function"==l.type||"error"==l.type){let c,d=l.string.toLowerCase(),f="";if(-1!==d.indexOf("/")?(c=d.substring(0,d.indexOf("/")),f=d.substring(d.indexOf("/"))):c=d.trimRight(),c=a[c]){let e="",t=0;if(f.length){e="(";let n=1,a=!0;f.split("/").forEach(function(t){if(0===t.length);else{a||(e+="; "),a=!1;let i=-1!==t.indexOf(":")&&""!==t.slice(t.indexOf(":")+1).trim();if(e+=t+(-1===t.indexOf(":")?": ":""),1===n&&!i){t.slice(0,t.indexOf(":"));n=e.length}}}),1===n?n=e.length:i=!0,t+=n,e+=")"}else if(e=c[0],/:/.test(e)){let n=e.indexOf(":"),a=e.substring(n),o=a.substring(0,a.indexOf(";")||a.indexOf(")"));t+=n,-1!==o.indexOf("'")?t+=o.indexOf("'")+1:t+=2,i=!0}else t+=e.length;n[r]={text:e,newPos:CodeMirror.Pos(o.line,o.ch-f.length+t),replace:CodeMirror.Pos(o.line,o.ch-f.length)}}else n[r]={text:"()",newPos:CodeMirror.Pos(o.line,o.ch+1),replace:CodeMirror.Pos(o.line,o.ch)};let u=n[r];if(u){e.replaceRange(u.text,u.replace,t[r].anchor,"+insert");var s=e.listSelections().slice(0);s[r]={head:u.newPos,anchor:u.newPos},e.setSelections(s),i&&CodeMirror.showHint(e,CodeMirror.hint.totumVars,{})}}}}CodeMirror.defineMode("totum",function(){return{startState:function(){return{inString:!1,isStart:!0,inFunction:!1,lineName:""}},token:function(e,n){function i(){return e.string.substring(e.start,e.pos)}function l(){"use strict";return e.skipToEnd(),"error"}n.lineNames=[];try{e.lineOracle.doc.cm.getValue().split("\n").forEach(function(e){return 0===e.trim().length||0===e.indexOf("//")?"":n.lineNames.push(e.replace(/^\s*~?\s*([a-zA-Z_0-9=]+)\s*:.*/,"$1"))})}catch(e){}if(0===e.pos||!0===n.isStart){if(e.string.match("^[\ts]*//"))return e.skipToEnd(),n.isStart=!1,"comment";let a="start";if(n.isStart=!0,/[\t\n]/.test(e.peek())&&e.next()){for(;/[\t\n]/.test(e.peek())&&e.next(););return"start-tabs"}return e.skipTo(":")?(n.lineName=i().trim(),"~"===n.lineName.substring(0,1)&&(a+=" fixed",n.lineName=n.lineName.substring(1)),/^[a-z0-9_]+\s*$/i.test(n.lineName)||"="===n.lineName||/^f[0-9]+\s*=\s*$/i.test(n.lineName)?(e.next(),t(e.lineOracle.doc.cm.getWrapperElement()).find(".cm-var-not-in").each(function(){let e=t(this).text();(e=e.replace(/\[.*/,""))!=="$"+n.lineName&&e!=="#$"+n.lineName&&e!=="$$"+n.lineName||t(this).removeClass("cm-var-not-in")}),n.lineNames.filter(function(e){return e===n.lineName}).length>1&&(a+=" dubbled"),n.isStart=!1,a):l()):l()}switch(n.isStart=!1,e.peek()){case" ":return e.next(),null;case"{":return e.next(),e.skipTo("}")?(e.next(),"inVars"):l();case'"':let t=e.peek();return e.next(),e.skipTo(t)?(e.next(),"string"):l();case"#":e.next();let i="db_name";for(;/[a-z0-9_А-Яа-я\-\[\]\$\#".]/.test(e.peek())&&e.next(););let a=e.string.substring(e.start+1,e.pos);return/[^0-9a-z._]/.test(a.replace(/\[.*/g,"").slice(1))&&(i+=" tmp-error"),""===a?l():("$"===a[0]&&(a=a.replace(/\[.*/g,"").slice(1).trim(),-1===n.lineNames.indexOf(a)&&(i+=" var-not-in")),i);case"@":e.next();let o,s=e.peek();for(;/[a-z0-9_.\[\$\#"A-Z\]]/.test(o=e.peek())&&e.next();)s+=o;return/^[a-z0-9_]{3,}\.[a-z0-9_]{2,}(\[[a-zA-Z0-9_\$\#"]+\])*$/i.test(s)?"db_name":l();case"$":if(e.next(),"#"===e.peek()){for(e.next();/[a-z0-9_\-\[\]\$\#"]/i.test(e.peek())&&e.next(););return"code-var"}{for(;/[a-zA-Z0-9_\[\]\$\#"]/i.test(e.peek())&&e.next(););let t=e.string.substring(e.start,e.pos),i="variable",a=(t=t.replace(/\[.*/g,"")).substring(1);return"$"===a[0]&&(i+=" dollar-dollar",a=a.substring(1)),-1===n.lineNames.indexOf(a)&&(i+=" var-not-in"),i}case"t":if("true"===e.string.substring(e.start,e.start+4))return e.skipTo("e"),e.next(),"boolean";break;case"f":if("false"===e.string.substring(e.start,e.start+5))return e.skipTo("e"),e.next(),"boolean"}if(n.inFuncName=!1,!n.inFunction&&/[a-zA-Z]/.test(e.peek())){if(n.inFuncName=!0,e.skipTo("(")?n.inFunction=!0:e.skipToEnd(),!/^[a-zA-Z]+[0-9]*\s*$/.test(i()))return l();let t=a[i().trim().toLowerCase()];return t?(n.func=t,e.next(),"function"):l()}if(n.inFunction){if(")"===e.peek())return e.next(),n.inFunction=!1,n.functionParam="","function";if(!n.functionParam&&/[a-z_]/.test(e.peek())){if(e.skipTo(":")){let t=e.string.substring(e.start,e.pos);if(/^[a-z_]+\s*$/.test(t)){if(n.functionParam=t,e.next(),-1===n.func[2].indexOf(t))return l();let i="functionParam";return-1!==o.indexOf(t)&&(i+=" fieldParam"),-1!==n.func[3].indexOf(t)&&(i+=" reqParam"),n.func[4]&&-1!==n.func[4].indexOf(t)&&(i+=" multiParam"),i}return l()}return e.skipTo(")")?"error fieldParam":l()}if(!n.functionParam)return l();if(";"===e.peek())return e.next(),n.functionParam="","";if("order"===n.functionParam&&/[ad]/.test(e.peek())){if("asc"===e.string.substring(e.start,e.start+3))return e.next(),e.next(),e.next(),"";if("desc"===e.string.substring(e.start,e.start+4))return e.next(),e.next(),e.next(),e.next(),""}if("'"===e.peek()){let t=e.peek();return e.next(),e.skipTo(t)?(e.next(),"string-name"):l()}}if("'"===e.peek()){let t=e.peek();return e.next(),e.skipTo(t)?(e.next(),"string"):l()}if(/\d|%/.test(e.peek())){for(e.next();/[0-9.%]/.test(e.peek())&&e.next(););return/^\d+(\.\d+)?%?$/.test(e.string.substring(e.start,e.pos))?"number":l()}return/[+-\/*!<>=]/.test(e.peek())?(e.next(),"operator"):l()}}}),CodeMirror.registerHelper("hint","totumVars",function(e,n){return function(e,n,l,r){var f=e.getCursor(),p=l(e,f);if("error"!==p.type&&"string-name"!==p.type&&/\b(?:string|comment)\b/.test(p.type))return;var h=CodeMirror.innerMode(e.getMode(),p.state);if("json"===h.mode.helperType)return;p.state=h.state,p.inString=p.string,p.state.isDb_name=!1,p.state.showAll=!0,r.inStart=!0;let m,b=function(e,t,n){void 0!==n&&null!==n&&(e.replaceRange(n.text||n,t.from,t.to),n.curPos&&e.setCursor({line:t.from.line,ch:n.curPos}),n.showHint&&CodeMirror.showHint(e,CodeMirror.hint.totumVars,{}))};if(n=n.slice(),p.state.isStart||0===f.ch){n=[],p.string=p.string.replace(/^[\t]+/,"");let i="";/^~/.test(p.string)&&(p.string.replace(/^~/,""),i="~"),t(e.getWrapperElement()).find(".cm-var-not-in").each(function(){let e=t(this).text().replace(/^(\#|\$)?\$/,"").replace(/\[.*/,"");n.push({text:i+e+": ",displayText:e})})}else if(/^'.*?'?$/.test(p.string)&&-1!==o.indexOf(p.state.functionParam))if(p.state.showAll=!0,"''"===p.string?(p.end=p.end,p.start+=1,p.string=""):/'[a-z_0-9]+'/.test(p.string)?(p.start+=1,p.string=p.string.slice(1,f.ch-p.start)):(p.string=p.string.slice(1,f.ch-p.start),p.start+=1,p.end=f.ch,"'"===e.getLine(f.line)[f.ch]&&p.end++),"table"===p.state.functionParam){let e=c();n=[],Object.keys(e).forEach(function(t){n.push({text:t+"'",textVis:t,title:e[t].t,render:d,type:"item-string-name",hint:b,tab:!0})})}else{let t,i=e.getLine(f.line),a=i.substring(0,f.ch),o=i.substring(f.ch),l=o.substring(0,o.indexOf(")"));if(a=a.substring(a.lastIndexOf("("))+l,t=a.match(/table:\s*((\$#ntn)|'([a-z_0-9]*)')/)){let i=t[2]?e.table:t[3];n=[],Object.keys(s[i].f).forEach(function(e){n.push({text:e+"'",textVis:e,title:s[i].f[e],render:d,type:"item-string-name",curPos:f.ch+e.length+1,tab:!0})}),n.push({text:"id'",textVis:"id",title:"",render:d,type:"item-string-name",curPos:f.ch+3,tab:!0})}}else if(p.end>f.ch&&(p.end=f.ch,p.string=p.string.slice(0,f.ch-p.start)),0===p.string.indexOf("@")){r.inStart=!1,n=[];let e,t=c();if(p.string=p.string.slice(1,f.ch-p.start),p.start=p.start+1,p.end=f.ch,e=p.string.match(/^([a-z_0-9]+)\./)){let i=e[1];p.start+=(i+".").length,p.string=p.string.slice((i+".").length),t[i]&&t[i]["@"].length&&t[i]["@"].forEach(function(e){n.push({text:e,title:t[i].f[e],render:d,type:"item-db_name"})})}else Object.keys(t).forEach(function(e){t[e]["@"].length&&n.push({text:e+".",textVis:e,title:t[e].t,render:d,type:"item-db_name",showHint:!0,hint:b})})}else if("$#"===p.string.slice(0,2)){n=[{text:"$#lc",title:"Пустой лист",render:d,type:"item-code-var"},{text:"$#nd",title:"дата - Y-m-d",render:d,type:"item-code-var"},{text:"$#ndt",title:"дата-время - Y-m-d H:i",render:d,type:"item-code-var"},{text:"$#ndts",title:"дата-время с секундами - Y-m-d H:i:s",render:d,type:"item-code-var"},{text:"$#nu",title:"id пользователя",render:d,type:"item-code-var"},{text:"$#nr",title:"ids ролей пользователя",render:d,type:"item-code-var"},{text:"$#nti",title:"id таблицы",render:d,type:"item-code-var"},{text:"$#ntn",title:"NAME таблицы",render:d,type:"item-code-var"},{text:"$#nth",title:"HASH врем. таблицы",render:d,type:"item-code-var"},{text:"$#nci",title:"Cycle расчетной таблицы",render:d,type:"item-code-var"},{text:"$#nf",title:"NAME поля",render:d,type:"item-code-var"},{text:"$#nl",title:"Новая строка",render:d,type:"item-code-var"},{text:"$#ids",title:"id отмеченных галочками полей",render:d,type:"item-code-var"},{text:"$#nfv",title:"Значение текущего поля (для селектов/действий/форматов)",render:d,type:"item-code-var"},{text:"$#onfv",title:"Прошлое значение текущего поля",render:d,type:"item-code-var"},{text:"$#nh",title:"Текущий хост-name",render:d,type:"item-code-var"}];const e=function(e){let t=n.slice(),i=[];return t=t.filter(function(t){if(-1===e.indexOf(t.text))return!0;i.push(t)}),t=i.concat(t)};switch(p.state.functionParam){case"table":n=e(["$#ntn"]);break;case"cycle":n=e(["$#nci"]);break;case"field":n=e(["$#nf","$#nfv"])}}else if(m=p.string.match(/^(#?\$)/))n=[],p.string=p.string.slice(m[1].length,f.ch-p.start),p.start=p.start+m[1].length,p.end=f.ch,p.state.lineNames.forEach(function(e){-1===e.indexOf("=")&&n.push(e)});else if(m=p.string.match(/^\#/))n=[],p.string=p.string.slice(1,f.ch-p.start),p.start=p.start+1,p.end=f.ch,(m=p.string.match(/^([a-z]{1,3}\.)/))&&(p.string=p.string.slice(m[1].length),p.start+=m[1].length),e.table&&s[e.table]&&(Object.keys(s[e.table].f).forEach(function(t){n.push({text:t,title:s[e.table].f[t],render:d,type:"item-db-name"})}),n.push({text:"id",title:"",render:d,type:"item-db-name"}));else if(p.state.inFuncName){if(!p.state.inFunction)if(m=p.string.match(/^([a-zA-Z]+)\//)){let e;if(p.state.showAll=!0,e=a[m[1].toLowerCase()]){let t=p.start;p.start=p.start+p.string.lastIndexOf("/")+1,p.string=p.string.slice(p.string.lastIndexOf("/")+1,f.ch-t),p.end=f.ch,n=[],e[2].forEach(function(t){let i="";-1!==e[3].indexOf(t)&&(i+=" item-reqParam"),-1!==e[4].indexOf(t)&&(i+=" item-multiParam"),-1!==o.indexOf(t)&&(i+=" item-fieldParam"),n.push({text:t+": ",textVis:t,title:"",render:d,type:i})})}}else(n=i.slice()).push("true"),n.push("false")}else p.state.func&&("error fieldParam"===p.type||/(\(|;\s*)$/.test(e.getLine(f.line).slice(0,p.start)))?(n=[],p.state.func[2].forEach(function(t){let i="",a="";")"!==e.getLine(f.line).slice(f.ch).trim()&&(a="; "),-1!==p.state.func[3].indexOf(t)&&(i+=" item-reqParam"),-1!==p.state.func[4].indexOf(t)&&(i+=" item-multiParam"),-1!==o.indexOf(t)&&(i+=" item-fieldParam"),n.push({text:t+": "+a,textVis:t,title:"",render:d,type:i,hint:b,curPos:p.start+(t+": "+a).length-a.length})})):(n=["true","false"],"order"===p.state.functionParam&&(n=n.concat(["asc","desc"])));return{list:function(e,t,n){var i=[],a=[],o=e.string.toLowerCase();n&&n.globalScope;if(!e.state.showAll&&""===o)return found;return t.forEach(function(e){let t,l="";"string"==typeof e?t=e.toLowerCase():(t=e.text.toLowerCase(),e.title&&(l=e.title.toLowerCase())),u(i,t)||u(a,t)||(0===t.lastIndexOf(o,0)?i.push(e):0===l.lastIndexOf(o,0)?i.push(e):-1!==l.indexOf(o,0)?a.push(e):n.inStart||-1===t.indexOf(o)||a.push(e))}),1===i.length&&i[0]===o?[]:1===i.length&&i[0].text===o?[]:1===a.length&&a[0]===o?[]:1===a.length&&a[0].text===o?[]:i.concat(a)}(p,n,r),from:CodeMirror.Pos(f.line,p.start),to:CodeMirror.Pos(f.line,p.end)}}(e,f,function(e,t){return e.getTokenAt(t)},n)});let s=[],r=!1;const c=function(){return 0!==s.length||r||(r=!0,t("#table").data("pctable").model.getAllTables().then(function(e){s=e.tables})),s},d=function(e,n,i){t(e).append('<span class="'+i.type+'">'+(i.textVis||i.text)+(""===i.title?"":' <span class="descr">'+i.title+"</span>")+"</span>")};let f=[];function u(e,t){return-1!==e.indexOf(t)}CodeMirror.defineOption("autoCloseFunctions",!1,function(e){if("totum"!==e.getOption("mode"))return!1;c();var n={name:"autoCloseFunctions"};n["'('"]=l,e.addKeyMap(n),e.on("keydown",function(e,t){"9"===(t.keyCode||t.which).toString()&&function(e,t,n){var i=e.getCursor();if(e.getTokenAt(i).state.inFunction){let a,o,l=e.getLine(i.line);if(n){for(";"===l[a=i.ch]&&a--;l[a]&&-1===[";","("].indexOf(l[a]);)a--;for(o=a;l[a]&&-1===[":","("].indexOf(l[a]);)a--;":"===l[a]&&" "===l[++a]&&a++,o=i.ch}else{for(a=i.ch;l[a]&&-1===[":",")"].indexOf(l[a]);)a++;for(":"===l[a]&&" "===l[++a]&&a++," "===l[a]&&a++,o=a;l[o]&&-1===[";",")"].indexOf(l[o]);)o++;t&&(a=i.ch)}return e.setSelection({line:i.line,ch:a},{line:i.line,ch:o}),!0}}(e,t.altKey,t.shiftKey)&&t.preventDefault()}),e.on("keyup",function(e,t){e.options.bigOneDialog&&t.ctrlKey&&"83"===(t.keyCode||t.which).toString()?(t.stopPropagation(),e.options.bigOneDialog.close()):t.ctrlKey&&"191"===(t.keyCode||t.which).toString()&&CodeMirror.commentMe(e),"27"===(t.keyCode||t.which).toString()?(e.state.completionActive&&e.state.completionActive.close(),t.stopPropagation()):{9:"tab",13:"enter",27:"escape",33:"pageup",34:"pagedown",35:"end",36:"home",38:"up",40:"down",57:"("}[(t.keyCode||t.which).toString()]||CodeMirror.showHint(e,CodeMirror.hint.totumVars,{})}),e.on("dblclick",function(n){var i=e.getCursor(),a=e.getTokenAt(i).state;let o,l=t(e.getWrapperElement()),s=e.getLine(i.line),r=s.substring(0,i.ch);if(/^\s*~?\s*?[a-zA-Z0-9_]+$/.test(r))o=a.lineName;else{let e=i.ch-1;if(/[a-zA-Z0-9_]/.test(s[e])){for(;--e&&e>=0&&/[a-zA-Z0-9_]/.test(s[e]););if("$"===s[e]){let t=e+1;for(e=i.ch-1;++e&&s.length>e&&/[a-zA-Z0-9_]/.test(s[e]););o=s.substring(t,e)}}}if(o){new RegExp("^s*~?s*"+o+"s*:").test(l.find(".cm-start.light").text())?(l.find(".cm-variable").removeClass("light"),l.find(".cm-start").removeClass("light")):(l.find(".cm-variable").removeClass("light").each(function(){let e=t(this);e.text()==="$"+o&&e.addClass("light")}),l.find(".cm-start").removeClass("light").each(function(){let e=t(this);e.text().trim().replace("~","").replace(":","")===o&&e.addClass("light")}))}})}),function(){"use strict";function t(e,t,n){this.cm=e,this.getHints=t,this.options=n,this.widget=this.onClose=null}function n(e){return"string"==typeof e?e:e.text}function i(t,i){this.completion=t,this.data=i;var a=this,o=t.cm,l=t.options,s=this.hints=e.top.document.createElement("ul");s.className="CodeMirror-hints",this.selectedHint=0;for(var r=i.list,c=0;c<r.length;++c){var d=s.appendChild(e.top.document.createElement("li")),f=r[c],u="CodeMirror-hint"+(c?"":" CodeMirror-hint-active");null!=f.className&&(u=f.className+" "+u),d.className=u,f.render?f.render(d,i,f):d.appendChild(e.top.document.createTextNode(f.displayText||n(f))),d.hintId=c}var p=o.cursorCoords(!1!==l.alignWithWord?i.from:null),h=p.left,m=p.bottom+3,b=!0;s.style.left=h+"px",s.style.top=m+"px";var g,_=e.innerWidth||Math.max(e.top.document.body.offsetWidth,e.top.document.documentElement.offsetWidth),v=e.innerHeight||Math.max(e.top.document.body.offsetHeight,e.top.document.documentElement.offsetHeight),w=s.getBoundingClientRect(),y=w.right-_,x=w.bottom-v;if(y>0&&(w.right-w.left>_&&(s.style.width=_-5+"px",y-=w.right-w.left-_),s.style.left=(h=p.left-y)+"px"),x>0){var k=w.bottom-w.top;w.top-(p.bottom-p.top)-k>0?(x=k+(p.bottom-p.top),b=!1):k>v&&(s.style.height=v-5+"px",x-=k-v),s.style.top=(m=p.bottom-x)+"px"}((l.container||e.top.document.body).appendChild(s),o.addKeyMap(this.keyMap=function(e,t){var n={Up:function(){t.moveFocus(-1)},Down:function(){t.moveFocus(1)},PageUp:function(){t.moveFocus(-t.menuSize())},PageDown:function(){t.moveFocus(t.menuSize())},Home:function(){t.setFocus(0)},End:function(){t.setFocus(t.length)},Enter:t.pick,Esc:t.close},i=e.customKeys?{}:n;function a(e,a){var o;o="string"!=typeof a?function(e){return a(e,t)}:n.hasOwnProperty(a)?n[a]:a,i[e]=o}if(e.customKeys)for(var o in e.customKeys)e.customKeys.hasOwnProperty(o)&&a(o,e.customKeys[o]);if(e.extraKeys)for(var o in e.extraKeys)e.extraKeys.hasOwnProperty(o)&&a(o,e.extraKeys[o]);return i}(l,{moveFocus:function(e){a.changeActive(a.selectedHint+e)},setFocus:function(e){a.changeActive(e)},menuSize:function(){return a.screenAmount()},length:r.length,close:function(){t.close()},pick:function(){a.pick()}})),!1!==l.closeOnUnfocus)&&(o.on("blur",this.onBlur=function(){g=setTimeout(function(){t.close()},100)}),o.on("focus",this.onFocus=function(){clearTimeout(g)}));var C=o.getScrollInfo();return o.on("scroll",this.onScroll=function(){var n=o.getScrollInfo(),i=o.getWrapperElement().getBoundingClientRect(),a=m+C.top-n.top,l=a-(e.pageYOffset||(e.top.document.documentElement||e.top.document.body).scrollTop);if(b||(l+=s.offsetHeight),l<=i.top||l>=i.bottom)return t.close();s.style.top=a+"px",s.style.left=h+C.left-n.left+"px"}),CodeMirror.on(s,"click",function(e){for(var t=e.target||e.srcElement;"SPAN"===t.nodeName;)t=t.parentNode;null!=t.hintId&&(a.changeActive(t.hintId),a.pick())}),CodeMirror.on(s,"mousedown",function(){setTimeout(function(){o.focus()},20)}),CodeMirror.signal(i,"select",r[0],s.firstChild),!0}CodeMirror.showHint=function(e,n,i){if(!e.somethingSelected()&&(null==n&&(n=e.getHelper(e.getCursor(),"hint")),null!=n)){e.state.completionActive&&e.state.completionActive.close();var a=e.state.completionActive=new t(e,n,i||{});if(CodeMirror.signal(e,"startCompletion",e),!a.options.async)return a.showHints(n(e,a.options));n(e,function(e){a.showHints(e)},a.options)}},CodeMirror.commentMe=function(e){var t=e.getCursor(),n=(e.getTokenAt(t).state,e.lineInfo(t.line));let i;(i=n.text.match(/^([\t\s]*)\/\//))?e.replaceRange("",{line:t.line,ch:i[1].length},{line:t.line,ch:i[0].length}):(i=n.text.match(/^[\t\s]*/),e.replaceRange("//",{line:t.line,ch:i[0].length},{line:t.line,ch:i[0].length}))},t.prototype={close:function(){this.active()&&(this.widget&&this.widget.close(),this.onClose&&this.onClose(),this.cm.state.completionActive=null,CodeMirror.signal(this.cm,"endCompletion",this.cm))},active:function(){return this.cm.state.completionActive==this},pick:function(e,t){var i=e.list[t];i.hint?i.hint(this.cm,e,i):this.cm.replaceRange(n(i),e.from,e.to),this.close();this.cm},showHints:function(e){if(!e||!e.list.length||!this.active())return this.close();this.showWidget(e)},showWidget:function(e){this.widget=new i(this,e),CodeMirror.signal(e,"shown");var t,n=null,a=this,o=this.options.closeCharacters||/[\s()\[\]{};:>,]/,l=this.cm.getCursor(),s=this.cm.getLine(l.line).length;function r(){t||(t=!0,a.close(),a.cm.off("cursorActivity",u),CodeMirror.signal(e,"close"))}function c(){return!!t||(a.widget?void 0:(r(),!0))}function d(){c()||(a.options.async?a.getHints(a.cm,f,a.options):f(a.getHints(a.cm,a.options)))}function f(e){if(!c()){if(!e||!e.list.length)return r();a.widget.close(),a.widget=new i(a,e)}}function u(){clearTimeout(n);var e=a.cm.getCursor(),t=a.cm.getLine(e.line);e.line!=l.line||t.length-e.ch!=s-l.ch||e.ch<l.ch||a.cm.somethingSelected()||e.ch&&o.test(t.charAt(e.ch-1))?a.close():n=setTimeout(d,170)}this.cm.on("cursorActivity",u),this.onClose=r}},i.prototype={close:function(){if(this.completion.widget==this){this.completion.widget=null,this.hints.parentNode.removeChild(this.hints),this.completion.cm.removeKeyMap(this.keyMap);var e=this.completion.cm;!1!==this.completion.options.closeOnUnfocus&&(e.off("blur",this.onBlur),e.off("focus",this.onFocus)),e.off("scroll",this.onScroll)}},pick:function(){this.completion.pick(this.data,this.selectedHint)},changeActive:function(e){if(e=Math.max(0,Math.min(e,this.data.list.length-1)),this.selectedHint!=e){var t=this.hints.childNodes[this.selectedHint];t.className=t.className.replace(" CodeMirror-hint-active",""),(t=this.hints.childNodes[this.selectedHint=e]).className+=" CodeMirror-hint-active",t.offsetTop<this.hints.scrollTop?this.hints.scrollTop=t.offsetTop-3:t.offsetTop+t.offsetHeight>this.hints.scrollTop+this.hints.clientHeight&&(this.hints.scrollTop=t.offsetTop+t.offsetHeight-this.hints.clientHeight+3),CodeMirror.signal(this.data,"select",this.data.list[this.selectedHint],t)}},screenAmount:function(){return Math.floor(this.hints.clientHeight/this.hints.firstChild.offsetHeight)||1}}}()}(),function(){const e=function(e){return{doc:e.doc}};CodeMirror.extendMode("css",{commentStart:"/*",commentEnd:"*/",newlineAfterToken:function(e,t){return/^[;{}]$/.test(t)}}),CodeMirror.extendMode("javascript",{commentStart:"/*",commentEnd:"*/",newlineAfterToken:function(e,t,n,i){return this.jsonMode?/^[\[,{]$/.test(t)||/^}/.test(n):(";"!=t||!i.lexical||")"!=i.lexical.type)&&(/^[;{}]$/.test(t)&&!/^;/.test(n))}}),CodeMirror.extendMode("xml",{commentStart:"\x3c!--",commentEnd:"--\x3e",newlineAfterToken:function(e,t,n){return"tag"==e&&/>$/.test(t)||/^</.test(n)}}),CodeMirror.defineExtension("commentRange",function(e,t,n){var i=this,a=CodeMirror.innerMode(i.getMode(),i.getTokenAt(t).state).mode;i.operation(function(){if(e)i.replaceRange(a.commentEnd,n),i.replaceRange(a.commentStart,t),t.line==n.line&&t.ch==n.ch&&i.setCursor(t.line,t.ch+a.commentStart.length);else{var o=i.getRange(t,n),l=o.indexOf(a.commentStart),s=o.lastIndexOf(a.commentEnd);l>-1&&s>-1&&s>l&&(o=o.substr(0,l)+o.substring(l+a.commentStart.length,s)+o.substr(s+a.commentEnd.length)),i.replaceRange(o,t,n)}})}),CodeMirror.defineExtension("autoIndentRange",function(e,t){var n=this;this.operation(function(){for(var i=e.line;i<=t.line;i++)n.indentLine(i,"smart")})}),CodeMirror.defineExtension("autoFormatRange",function(t,n){var i=this,a=i.getMode(),o=i.getRange(t,n).split("\n"),l=CodeMirror.copyState(a,i.getTokenAt(t).state),s=i.getOption("tabSize"),r="",c=0,d=0==t.ch;function f(){r+="\n",d=!0,++c}for(var u=0;u<o.length;++u){for(var p=new CodeMirror.StringStream(o[u],s,e(i));!p.eol();){var h=CodeMirror.innerMode(a,l),m=a.token(p,l),b=p.current();p.start=p.pos,d&&!/\S/.test(b)||(r+=b,d=!1),!d&&h.mode.newlineAfterToken&&h.mode.newlineAfterToken(m,b,p.string.slice(p.pos)||o[u+1]||"",h.state)&&f()}!p.pos&&a.blankLine&&a.blankLine(l),d||f()}i.operation(function(){i.replaceRange(r,t,n);for(var e=t.line+1,a=t.line+c;e<=a;++e)i.indentLine(e,"smart");i.setSelection(t,i.getCursor(!1))})}),t(function(){})}();let l={};var s={sortable:!1,width:50,icon:"fa-font",editable:!1,required:!0,insertable:!1,type:"string",getPanelVal:e=>e,getEditVal:function(e){var t,n=e.val().trim(),i=!1;(!this.required||void 0!==n&&""!==n&&null!==n||(t="Поле "+this.title+" должно быть заполнено",i=!0),this.regexp&&""!==n)&&(new RegExp(this.regexp).test(n)||(t=this.regexpErrorText||'regexp не проходит - "'+this.regexp+'"',t='Ошибка заполнения поля "'+this.title+'": '+t,i=!0));if(i)throw t;return n},getEditElement:function(e,n,i,a,o,l,s){var r=t('<input type="text" class="form-control" name="cell_edit" autocomplete="off" autocorrect="off" />');void 0!==s&&r.attr("tabindex",s);var c=this;return n=n.v,r.val(n).on("keyup",function(e){switch(e.keyCode){case 13:try{r.data("enterClicked",!0),a(t(this),e)}catch(e){r.data("enterClicked",!1),App.popNotify(e,r,"default"),c.focusElement(r)}break;case 27:o(t(this),e)}}),r.on("blur",function(e){l(r,e)}),r.select()},checkEditRegExp:function(e){if(!this.warningEditRegExp)return!0;try{let t=this.warningEditRegExp.match(/^\/(.*?)\/([a-z]*)$/);return new RegExp(t[1],t[2]).test(e)}catch(e){return!0}},getCellText:function(e){if(!0===this.url&&e){let n=this.openIn||"window";switch(n){case"window":n="_self";break;case"newWindow":n="_blank"}let i=t('<a class="uri" target="'+n+'">').attr("href",e).text(e);return"iframe"===n&&i.attr("onclick","return App.aInIframe(this);"),i}return e},getPanelText:function(e,t,n){return this.getCellText(e,t,n)},getCopyText:function(e,n){let i=this.getPanelText(e.v,null,n);if("string"==typeof i)return i;const a=function(e){if(e&&e.each&&"[object Function]"==={}.toString.call(e.each)){let n="";return e.each(function(){""!==n&&(n+="\n"),n+=t(this).text()}),n}return e};if(null===i)return"";if("object"==typeof i&&!(i instanceof jQuery)){let e=t.Deferred();return i.done(function(t){e.resolve(a(t))}).fail(function(){e.resolve("Не удалось загрузить данные")}),e}return a(i)},focusElement:function(e){e.focus()},isDataModified:function(e,t){return t+="","null"===(e+="")&&(e=""),"null"===t&&(t=""),t===(this.errorText||"ОШБК!")&&(t=""),"undefined"===t&&(t=""),e!==t},getFilterDataByValue:function(e){let t=[];return this.addDataToFilter(t,e),Object.keys(t)[0]},addDataToFilter:function(e,t){let n;e[n=null===t.v?"null".hashCode():t.v.toString().hashCode()]="string"==typeof t.v?t.v.replace(/"/g,"&quot;"):t.v},checkIsFiltered:function(e,t){let n=e.v;var i=!1;return t.forEach(function(e){if(e===(null==n?"null":n.toString()).hashCode().toString())return i=!0,!1}),i},getCellTextInPanel:function(e,t,n){return this.getCellText(e,t,n)}};l.text={width:50,icon:"fa-align-left",type:"Text",isPanelField:!0,getEditVal:function(e){return e.data("val").trim()},getCellText:function(e){if("string"!=typeof e)return"";let n=e.length;return t("<div>").text(e.substring(0,this.viewTextMaxLength)+(n>this.viewTextMaxLength?"...":"")).text()},getValue:function(e,n,i){"use strict";if(i||"string"==typeof e&&e.length<this.viewTextMaxLength){let n=t.Deferred();return setTimeout(function(){e||(e=""),n.resolve({value:e})},20),n}let a={fieldName:this.name};return n.id&&(a.rowId=n.id),this.pcTable.model.getValue(a,this.table_id)},getPanelTextWithLinks:function(e){if("text"===this.textType){let n=t("<div>");n.html(App.textWithLinks(e)),e=n}else e=t("<div>").text(e);return e},getPanelText:function(e,n,i){if("string"!=typeof e)return"";let a=this;if(e.length<=this.viewTextMaxLength)return a.getPanelTextWithLinks.call(a,e);let o=t.Deferred();return this.getValue(e,i,!1).then(function(e){o.resolve(t("<div>").append(a.getPanelTextWithLinks.call(a,e.value)))}).fail(function(){o.reject()}),o.promise()},getEditElement:function(n,i,a,o,l,s,r,c){let d,f=this,u=t("<div>"),p=t("<div>").css("min-height",200),h=t('<div class="HTMLEditor">');i=i.v||"";let m=function(){f.getValue(i,a,!c).then(function(n){let i;if(u.append(h),h.empty().appendTo(p),"json"===f.textType){i=new JSONEditor(h.get(0),{});try{""!==n.value&&i.setText(n.value)}catch(e){App.modal("Ошибка формата JSON ")}h.css("min-height",200);let a=t('<a href="#" style="padding-top: 5px; display: inline-block; padding-left: 20px;">Вручную</a>').on("click",function(){let n=t("<div>"),a=t('<textarea class="form-control" style="height: 350px;">').val(JSON.stringify(i.get(),null,2)).appendTo(n);return BootstrapDialog.show({message:n,type:null,title:"Ручное изменение json-поля",buttons:[{label:"Сохранить",cssClass:"btn-m btn-warning",action:function(e){try{i.setText(a.val()),e.close()}catch(e){App.modal("Ошибка формата JSON")}}},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}],cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(e){},onshown:function(t){t.$modalContent.position({of:e})},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:500})}}),!1});h.find(".jsoneditor-menu").append(a)}else{let e="text";switch(f.textType){case"html":e="text/html";break;case"totum":e="totum";break;case"markdown":e="text/x-markdown";break;case"xml":e="application/xml";break;case"css":e="text/css";break;case"javascript":e="text/javascript"}let o=t("<div>").appendTo(h),l={value:n.value,mode:e,minHeight:"150px",readOnly:!1,theme:"eclipse",lineNumbers:!0,indentWithTabs:!0,autoCloseTags:!0};"text"===e&&(l.lineNumbers=!1,l.lineWrapping=!0),(i=CodeMirror(o.get(0),l)).on("paste",function(e,t){setTimeout(function(){i.refresh()},1)}),f.pcTable&&"tables"===f.pcTable.tableRow.name&&(i.table=a.name.v||a.name),i.getScrollerElement().style.minHeight="350px"}h.data("editor",i)})};const b=function(e,t,n){"json"===f.textType?u.data("val",JSON.stringify(h.data("editor").get())):u.data("val",h.data("editor").getValue()),n||(o(u,{}),e.close())};d=[];let g={label:"Сохранить",cssClass:"btn-m btn-warning",action:b},_={label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){l(u,{}),e.close()}};-1!==["xml","html"].indexOf(f.textType)&&d.unshift({label:"Форматировать",action:function(){let e=h.data("editor"),t=e.lineCount(),n=e.getValue().length;e.autoFormatRange({line:0,ch:0},{line:t,ch:n})}});let v="Текст поля <b>"+this.title+", "+f.textType+"</b>",w="ctrlS.textedit";if(c){let e=!1;setTimeout(function(){let n=u.closest("td").find(".cdiv");n.length>0?(n.data("bs.popover").options.content.find(".btn").each(function(){let n=t(this),i={};i.label=n.data("name"),i.cssClass=n.attr("class").replace("btn-sm","btn-m"),i.icon=n.find("i").attr("class"),i.save=n.data("save"),i.click=n.data("click"),i.action=function(t){i.save&&b(t,0,!0),i.click({}),e=!0,t.close()},d.push(i)}),n.popover("destroy")):(d.push(g),d.push(_)),BootstrapDialog.show({message:p,type:null,title:v,buttons:d,cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(n){t("body").off(w),e||s(u,{})},onshown:function(e){e.$modalContent.position({of:t("body"),my:"top+50px",at:"top"}),m()},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:900}),t("body").on(w,function(t){b(e)})}})},1),u.text("Редактирование в форме").addClass("edit-in-form")}else{u.on("focus click","button",function(){let e=d.splice();e.push(g),e.push(_);var n=t(this).closest("div");BootstrapDialog.show({message:p,type:null,cssClass:"fieldparams-edit-panel",title:v,buttons:e,draggable:!0,onhide:function(e){t("body").off(w),l(n,e)},onshown:function(e){e.$modalHeader.css("cursor","pointer"),m(),e.$modalContent.css({width:900}),t("body").on(w,function(t){b(e)})}})});let e=t('<button class="btn btn-default btn-sm text-edit-button">').text("Редактировать текст");r&&e.attr("tabindex",r),u.append(e),setTimeout(function(){if(0!==u.closest(".InsertPanel").length&&""!=i){let e=t("<div/>").text(f.getCellText(i,u,a));e.css("padding-bottom","5px"),u.prepend(e)}},10)}return u.data("val",i)},getCellTextInPanel:function(e,n,i){return t("<div>").append(this.getCellText(e,n,i)).css("white-space","pre-wrap")}},l.checkbox={icon:"fa-check-square",getEditVal:function(e){return!!e.is(":checked")},getCellText:function(e){return!0===e?"✓":!1===e?"-":""},getEditElement:function(e,n,i,a,o,l,s){var r=t('<input type="checkbox" name="cell_edit"/>');s&&r.attr("tabindex",s),r.on("keyup",function(e){13==e.keyCode&&setTimeout(function(){a(r,e)},20)});return!0===n.v&&r.prop("checked",!0),r.on("click",function(e){a(r,e)}),r}},l.string={},l.number={icon:"fa-hashtag",getEditVal:function(e){let t=e.val().trim();if(this.required&&(void 0===t||""===t||null===t))throw"Поле "+this.title+" должно быть заполнено";if(this.regexp&&!new RegExp(this.regexp).test(t))throw'Ошибка заполнения поля "'+this.title+'"';if(""===t)return"";let n=t.replace(/[^\-()\d/*+.,%:\/]/g,"");if(!/^(\+|\*|\%|\/|\:)?(\-?[\d]+((\.|\,)[\d]+)?)%?$/.test(n))throw"Здесь должно быть число";return t=t.replace(/,/,".")},getCopyText:function(e,t,n){return null===e||void 0===e||""===e||null===e.v?"":e.v.toString().replace(/\./g,",")},getCellText:function(e,t,n){if(null===e||void 0===e||""===e)return"";if(this.currency){let t={};return this.dectimalPlaces&&(t.minimumFractionDigits=this.dectimalPlaces),parseFloat(e).toLocaleString("ru-RU",t)}return e}},l.date={icon:"fa-calendar-o",getEditVal:function(e){if(this.required&&""==e.val().trim())throw"Поле должно быть заполнено";if(!e.val().trim())return"";let t=e.data("calendar").data("DateTimePicker").date();return this.getDbString(t)},getEditElement:function(e,n,i,a,o,l,s){var r=t('<input type="text" name="cell_edit" class="form-control" autocomplete="off" autocorrect="off" />');s&&r.attr("tabindex",s);var c=this;let d=this.getFormat();r.data("AppUin",App.getUn()),n=n.v,r.val(this.getViewString(n));let f,u=t("<div>");this.dateTime&&(f="date-popover");var p=t("<div></div>").appendTo(u);let h,m,b;p.on("dp.change",function(e){if(null!==e.oldDate||!c.dateTime||r.val()&&""!==r.val())r.val(e.date.format(d));else{let t=e.date,n=moment();t.format("HH:mm")===n.format("HH:mm")&&(t=t.hours(0).minutes(0)),r.val(t.format(d)),g()}}),r.on("keyup",function(e){h&&clearTimeout(h),13===e.keyCode?(g(),a(t(this),e)):27===e.keyCode?o(t(this),e):e.keyCode>=48&&(h=setTimeout(function(){g()},2e3))});const g=function(){"use strict";let e=r.val();e=e?moment(e,d):"";try{p.data("DateTimePicker").date(e)}catch(e){}};if(setTimeout(function(){let e=r.closest("td").find(".cdiv");e.length>0?(u.append(e.data("bs.popover").options.content),e.popover("destroy"),b=t("#"+App.popNotify({$text:u,element:e,container:c.pcTable._container,isParams:!0,placement:"bottom",class:f})),r.on("focus click",function(){b.show()})):r.on("focus click",function(){b||(m=App.popNotify(u,r),b=t("#"+m)),p.data("DateTimePicker").show(),b.show(),g()})},20),r.on("blur",function(e){setTimeout(function(){b&&b.is(":visible")&&(b.hide(),g(),l(r,e))},200)}),p.datetimepicker({inline:!0,format:d,useCurrent:!1,showClose:!1,locale:"ru",sideBySide:!0,collapse:!1}),n)try{p.data("DateTimePicker").date(c.getMoment(n))}catch(e){}else r.val("");return r.data("calendar",p),r},getCellText:function(e){return e&&null!==e?this.getViewString(e):""},getViewString:function(e){return e?this.dateTime?App.dateTimeFormats.covertFromDb(e,this.getFormat()):App.dateFormats.covertFromDb(e,this.getFormat()):""},getDbString:function(e){return e?this.dateTime?App.dateTimeFormats.covertToDb(e,this.getFormat()):App.dateFormats.covertToDb(e,this.getFormat()):""},getMoment:function(e){return this.dateTime?moment(e,App.dateTimeFormats.db):moment(e,App.dateFormats.db)},addDataToFilter:function(e,t){let n;n=null===t.v?"null".hashCode():t.v.toString().hashCode();let i=this.dateTime?App.dateTimeFormats:App.dateFormats;e[n]="string"==typeof t.v?i.covertFromDb(t.v):t.v},getFormat:function(){let e=this.dateFormat;e||(e=this.dateTime?"d.m.y H:i":"d.m.y");let t={d:"DD",D:"ddd",j:"M",z:"DDD",W:"W",m:"MM",M:"MMM",n:"M",y:"YY",Y:"YYYY",H:"HH",i:"mm",s:"ss"},n="";for(let i=0;i<e.length;i++){let a=e[i];n+=t[a]||a}return n}},l.unic={icon:"fa-fire"},l.file={icon:"fa-file-image-o",getSize:function(e){return e>102400?" "+(Math.round(e/1048576*10)/10).toLocaleString()+"Mb":" "+Math.round(e/1024).toLocaleString()+"Kb"},getCellText:function(e){if(!e||null===e||0==e.length)return"";let n=t('<span style=""></span>');const i=function(i){let a;a=-1!==["png","jpg"].indexOf(i.ext)?'<img src="/fls/'+i.file+'_thumb.jpg" style="max-height: 24px; padding-right: 3px;"/>':'<img src="/imgs/file_ico.png" style="max-height: 24px; padding-right: 3px;"/>';let o=t('<a href="/fls/'+i.file+'" download="'+t("<div>").text(i.name).html()+'" style="padding-right: 5px">'+a+"</a>");o.append(e[0].name),n.append(o)};return e.length&&e.forEach&&e.forEach(i),n},getCopyText:function(t,n){if(!(t=t.v)||null===t||0==t.length)return"";let i=this,a="";return t.forEach(function(t){""!==a&&(a+="\n"),a+=t.name+" "+e.location.protocol+"//"+e.location.host+"/fls/"+t.file+" "+i.getSize(t.size)}),a},getPanelText:function(n){if(!n||null===n||0==n.length)return"";let i=t("<div>"),a=this,o="",l=Math.random();return n.forEach(function(n){let s="",r="";-1!==["jpg","png"].indexOf(n.ext)&&(s='<img src="/fls/'+n.file+"_thumb.jpg?rand="+l+'"/>',r="with-img"),t("<div>").addClass(r).appendTo(i).append(t(s+'<br/><a href="/fls/'+n.file+'" download="'+t("<div>").text(n.name).html()+'">').text(n.name)).append(a.getSize(n.size)),""!==o&&(o+="\n"),o+=e.location.protocol+"//"+e.location.host+"/fls/"+n.file}),i.data("text",o)},getEditVal:function(e){if(this.required&&""==e.data("val"))throw"Поле должно быть заполнено";return e.data("val")},getEditElement:function(e,n,i,a,o,l,s,r){let c,d,f=this,u=t("<div>"),p=t("<div>").css("min-height",200),h=n.v||[],m=!1;const b=function(e){let n=t('<div class="filePart"><div><span class="name"></span><span class="size"></span><button class="btn btn-danger btn-xs remove"><i class="fa fa-remove"></i></button></div></div>'),a={name:e.name,type:e.type,tmpfile:e.tmpfile,size:e.size,file:e.file,ext:e.ext},o=new RegExp("^"+f.pcTable.tableRow.id+"_"+(i.id?i.id:""));if(e.file&&!o.test(e.file)&&n.find(".remove").remove(),n.data("file",a),n.find(".name").text(e.name),n.find(".size").text(f.getSize(e.size)),e.file){let i=t("<a>").attr("href","/fls/"+e.file).attr("download",e.name);n.find(".name").wrap(i),-1!==["jpg","png"].indexOf(e.ext)&&(t("<img>").attr("src","/fls/"+e.file+"_thumb.jpg?rand="+Math.random()).insertBefore(n.find(".name")),n.addClass("with-img"))}else n.append('<div class="progressbar">&nbsp;</div>');if(e.tmpfile){n.addClass("addFile"),n.find(".progressbar").text("Требуется сохранение элемента для привязки файла")}return n},g=function(e){d.$modalFooter.find("button:first").prop("disabled",e)},_=function(e){let n=[];e.$modalContent.find(".filePart").each(function(){let e=t(this).data("file");e&&n.push(e)}),u.data("val",n),h=n,m=!0,a(u,{}),e.close()};c=[{label:"Сохранить",cssClass:"btn-m btn-warning",action:_},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}];let v="Форма файлов <b>"+this.title+"</b>",w=function(e){d=BootstrapDialog.show({message:p,type:null,cssClass:"fieldparams-edit-panel",title:v,buttons:c,draggable:!0,onhide:function(n){t("body").off("ctrlS.textdialog"),m||o(e,n)},onshown:function(e){e.$modalContent.position({of:t("body"),my:"top+50px",at:"top"})},onshown:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:600}),function(){p.empty();let e=t("<div>").appendTo(p),n=t('<button class="btn btn-default btn-sm">Добавить файл'+(f.multiple?"ы":"")+"</button>");e.append(n),n.wrap('<div class="addFilesButton">');const i=function(){f.multiple||(p.find(".filePart").length>0?n.prop("disabled",!0):n.prop("disabled",!1))};h.forEach(function(e){let t=b(e).appendTo(p);t.on("click",".remove",function(){t.remove(),i()})}),i(),n.on("click",function(){let e=t('<input type="file" name = "file" '+(f.multiple?"multiple":"")+' accept="'+f.accept+'" style="display: block; position: absolute; top: -3000px"/>');t("body").append(e),e.click(),e.on("change",function(){if(this.files){let e=[];g(!0);for(let n=0,a=this.files.length;n<a;n++){let a=this.files[n],o=b(a).addClass("addFile").appendTo(p);i();let l=o.find(".progressbar");if(a.size>10485760){l.text("Ошибка - файл больше 10 Mb").css({"box-shadow":"none","background-color":"#ffe486"}),o.on("click",".remove",function(){o.remove(),i()});continue}let s=new XMLHttpRequest,r=t.Deferred();o.on("click",".remove",function(){o.remove(),s.abort(),r.resolve(),i()}),s.upload.onprogress=function(e){l.css("box-shadow","inset "+Math.round(parseInt(l.width())*e.loaded/e.total).toString()+"px 0px 0 0 #85FF82"),e.loaded===e.total&&l.text("Проверка файла сервером")},s.onload=s.onerror=function(e){if(r.resolve(),200===this.status)try{let e=JSON.parse(this.responseText);if(e.fname)return l.text("Готово"),void(o.data("file").tmpfile=e.fname)}catch(e){}o.data("file",null),l.text("Ошибка").css({"box-shadow":"none","background-color":"#ffe486"})},s.open("POST","/Table/",!0);let c=new FormData;c.append("file",a),c.append("method","tmpFileUpload"),s.send(c),e.push(r.promise())}t.when(...e).then(function(){g(!1)})}})})}(),t("body").on("ctrlS.textdialog",function(t){_(e)})}})};if(r)w(u),u.text("Редактирование в форме").addClass("edit-in-form");else{u.on("focus click","button",function(){w(t(this).closest("div"))});let e=t('<button class="btn btn-default btn-sm text-edit-button">').text("Редактировать поле");s&&e.attr("tabindex",s),u.append(e)}return u.data("val",h)},isDataModified:function(e,t){return(-1===[null,""].indexOf(e)||-1===[null,""].indexOf(t))&&(-1!==[null,""].indexOf(e)||-1!==[null,""].indexOf(t)||!Object.equals(t,e))}},l.n=t.extend({},l.default,{name:"n",width:52,title:"Порядок",category:"column",hidden:!0,showInWeb:!0,getCellText:function(e,n,i){let a=i.f||{};return n.addClass("n"),!i.id||a.block||a.blockOrder||i.__inserted?"":t('<span class="btns"><button class="btn btn-xxs btn-default"><i class="fa fa-angle-up"></i></button> <button class="btn btn-xxs btn-default"><i class="fa fa-angle-down"></i></button></span>')}}),l.listRow=t.extend({},l.default,{icon:"fa-code",isPanelField:!0,getPanelTextAsTable:function(e){if("object"==typeof e&&null!==e&&e.settings&&e.data&&e.settings.columns&&e.settings.columns.length){const n=t('<table class="json-table">');let i=e.settings,a=i.columns;try{if(i.headRow){const e=t("<tr>").appendTo(n);"boolean"==typeof i.headRow?a.forEach(function(n){t("<td>").text(n).appendTo(e).addClass("head")}):a.forEach(function(n){t("<td>").text(i.headRow[n]).appendTo(e).addClass("head")})}return e.data.forEach(function(e){const o=t("<tr>").appendTo(n);a.forEach(function(n){let i=e[n];"string"==typeof i&&""!==i||(i=JSON.stringify(i));t("<td>").text(i).appendTo(o)}),i.headColumn&&o.find("td:first").addClass("head")}),n}catch(e){console.log(e)}}},getPanelText:function(e,n,i){let a=t.Deferred(),o=this;const l=function(e){let n=o.getPanelTextAsTable.call(o,e);if(n)return n.copyText=JSON.stringify(e),void a.resolve(n);a.resolve(t("<div>").text(JSON.stringify(e,null,2)))};return"string"!=typeof e?l(e):this.getValue(e,i,!1).then(function(e){l(e.value)}).fail(function(){a.reject()}),a.promise()},getValue:function(e,n,i){"use strict";let a=t.Deferred();if(i||"filter"===this.category||"object"==typeof e||!e)return a.resolve({value:e}),a;{let e={fieldName:this.name};n.id&&(e.rowId=n.id),this.pcTable.model.getValue(e,this.table_id).then(function(e){a.resolve(e)})}return a},getEditElement:function(n,i,a,o,l,s,r,c){let d,f=this,u=t("<div>"),p=t("<div>").css("min-height",200),h=t('<div class="HTMLEditor">');i=i.v||"";let m=function(){f.getValue(i,a,!c).then(function(n){let i;u.append(h),h.empty().appendTo(p),i=new JSONEditor(h.get(0),{});try{""!==n.value&&i.setText(JSON.stringify(n.value))}catch(e){App.modal("Ошибка формата JSON ")}h.css("min-height",200);let a=t('<a href="#" style="padding-top: 5px; display: inline-block; padding-left: 20px;">Вручную</a>').on("click",function(){let n=t("<div>"),a=t('<textarea class="form-control" style="height: 350px;">').val(JSON.stringify(i.get(),null,2)).appendTo(n);return BootstrapDialog.show({message:n,type:null,title:"Ручное изменение json-поля",buttons:[{label:"Сохранить",cssClass:"btn-m btn-warning",action:function(e){try{i.setText(a.val()),e.close()}catch(e){App.modal("Ошибка формата JSON")}}},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}],cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(e){},onshown:function(t){t.$modalContent.position({of:e})},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:500})}}),!1});h.find(".jsoneditor-menu").append(a),h.data("editor",i)})};const b=function(e,t,n){u.data("val",h.data("editor").get()),n||(o(u,{}),e.close())};d=[];let g={label:"Сохранить",cssClass:"btn-m btn-warning",action:b},_={label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){l(u,{}),e.close()}},v="Текст поля <b>"+this.title+"</b>",w="ctrlS.textedit";if(c){let e=!1;setTimeout(function(){let n=u.closest("td").find(".cdiv");n.length>0?(n.data("bs.popover").options.content.find(".btn").each(function(){let n=t(this),i={};i.label=n.data("name"),i.cssClass=n.attr("class").replace("btn-sm","btn-m"),i.icon=n.find("i").attr("class"),i.save=n.data("save"),i.click=n.data("click"),i.action=function(t){i.save&&b(t,0,!0),i.click({}),e=!0,t.close()},d.push(i)}),n.popover("destroy")):(d.push(g),d.push(_)),BootstrapDialog.show({message:p,type:null,title:v,buttons:d,cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(n){t("body").off(w),e||s(u,{})},onshown:function(e){e.$modalContent.position({of:t("body"),my:"top+50px",at:"top"}),m()},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:900}),t("body").on(w,function(t){b(e)})}})},1),u.text("Редактирование в форме").addClass("edit-in-form")}else{u.on("focus click","button",function(){let e=d.splice();e.push(g),e.push(_);var n=t(this).closest("div");BootstrapDialog.show({message:p,type:null,cssClass:"fieldparams-edit-panel",title:v,buttons:e,draggable:!0,onhide:function(e){t("body").off(w),l(n,e)},onshown:function(e){e.$modalHeader.css("cursor","pointer"),m(),e.$modalContent.css({width:900}),t("body").on(w,function(t){b(e)})}})});let e=t('<button class="btn btn-default btn-sm text-edit-button">').text("Редактировать список/json");r&&e.attr("tabindex",r),u.append(e)}return u.data("val",i)},isDataModified:function(e,t){return""===e&&(e=null),""===t&&(t=null),t!==e&&!Object.equals(e,t)},getEditVal:function(e){return e.data("val")},getCellText:function(e){return"string"!=typeof e?JSON.stringify(e):e}}),l.password={icon:"fa-lock",getEditVal:function(e){var t=e.val().trim(),n=!1;if(void 0!==t&&""!==t&&null!==t||(notify="Поле "+this.title+" должно быть заполнено",n=!0),n)throw notify;return t},getCellText:function(e){return"**PASSWORD**"},getEditElement:function(e,n,i,a,o,l,s){var r=t('<input type="password" name="cell_edit" class="form-control" autocomplete="off" autocorrect="off" placeholder="'+(n?"Поменять пароль":"Новый пароль")+'"/>');r.on("save-me",function(e){a(t(this),e)}),s&&r.attr("tabindex",s);var c=this;n=n.v,r.on("keyup",function(e){switch(e.keyCode){case 13:try{r.data("enterClicked",!0),a(t(this),e)}catch(e){r.data("enterClicked",!1),App.popNotify(e,r,"default"),c.focusElement(r)}break;case 27:o(t(this),e)}});return r.one("blur",function(e){setTimeout(function(){!function(e){l(r,e)}(e)},50)}),r.select()}},l.select={icon:"fa-th-list",getEditVal:function(e){if(e.data("input")){var t=e.data("input").selectpicker("val");return null===t&&this.multiple&&(t=[]),t}},loadPreviewPanel(n,i,a,o){let l=t.Deferred();return n.html('<div class="center"><i class="fa fa-spinner fa-spin"></i></div>'),this.pcTable.model.loadPreviewHtml(i,a,o).then(function(i){if(n){let a=t("<div>");i.previews.forEach(function(n){let i=t('<div class="preview">');switch(n[2]){case"file":e.imgRand=e.imgRand||Math.random(),Array.isArray(n[1])&&n[1].forEach(function(n){-1!==["jpg","png"].indexOf(n.ext)&&i.append(t('<a href="/fls/'+n.file+'" target="_blank">').html('<img src="/fls/'+n.file+"_thumb.jpg?rand="+e.imgRand+'"/><br/>')),i.append(t('<a href="/fls/'+n.file+'" target="_blank">').text(n.name+" "+Math.round(n.size/1024).toLocaleString("ru-RU")+" Kb"))});break;case"html":i.text(n[0]);break;case"text":i.text(App.textWithLinks(n[0]));break;case"currency":case"number":if("currency"===n[2])try{i.text(parseFloat(n[1]).toLocaleString("ru-RU"))}catch(e){i.text(n[1])}else i.text(n[1]);n[3].unitType&&i.append(" "+n[3].unitType);break;case"url":i=t("<div>").append(t('<a target="_blank">').text(n[1]).attr("href",n[1]));break;default:i=t("<div>").text(n[1])}a.append(t('<div class="title">').text(n[0])),a.append(i)}),n.empty().append(a)}l.resolve()}).fail(function(){l.reject()}),l},previewPanel:function(e,n){let i=t('<div id="selectPanel" class="text preview" style="white-space: pre-wrap; height: 200px;">'),a={};a="column"===this.category?e.data("id")?this.pcTable._getItemById(e.data("id")):this.pcTable._insertItem:this.pcTable.data_params,n.popover({html:!0,content:i,trigger:"manual",container:"body",placement:"auto right",animation:!1}).popover("show");let o=t("#"+n.attr("aria-describedby")).css("z-index",1e4);const l=function(){n.attr("aria-describedby")&&o.length&&(n.off(".preview"),o.off(".preview"),o.remove())};n.on("mouseout.preview",function(){setTimeout(function(){o&&!o.is(":hover")&&l()},300)}),o.on("mouseout.preview",function(){o.is(":hover")||!n||n.is(":hover")||l()}),n.one("remove destroy",function(){n.attr("aria-describedby")&&n.popover("destroy")}),this.loadPreviewPanel(i,e.data("field"),a,e.data("val")).then(function(){const e=function(){n&&!n.height()?l():setTimeout(e,500)};e()})},getEditElement:function(e,n,i,a,o,l,s){"use strict";n||(n={});let r,c,d,f=this,u=n.v||null;if(f.multiple&&"string"==typeof u)try{u=JSON.parse(u)}catch(e){u=[]}if(e&&e.data("input"))(r=(c=e).data("input")).data("is-rendered",!0),d=r.data("LISTs");else{const e=function(){let e="-----";return"filter"===f.category?(e="Пустое",f.selectFilterWithEmptyText&&(e=f.selectFilterWithEmptyText)):f.withEmptyVal&&""!==f.withEmptyVal.trim()&&(e=f.withEmptyVal),e};r=t('<select class="form-control" '+(1==this.multiple?"multiple ":"")+' data-size="auto" style="display: none;" name="cell_insert" data-style="btn-sm btn-default" data-width="css-width" data-live-search="true" data-title="'+e()+'">').width(this.width),c=r.wrap("<div>").parent().append('<div class="text-center mark-loading"></div>'),s&&r.attr("tabindex",s),r.data("AppUin",App.getUn()),c.data("input",r),d={isListForLoad:!0,innerList:[],innerIndexed:[],isSliced:!0,isPreview:!1},f.list&&(d=f.list),r.data("LISTs",d)}let p=function(e){let n=t.Deferred(),a={};return Object.keys(i).forEach(function(e){/^\$/.test(e)||("id"===e?a[e]=i[e]:null!==i[e]&&"object"==typeof i[e]&&-1!==Object.keys(i[e]).indexOf("v")?a[e]=i[e].v:a[e]=i[e])}),c.isAttached()&&c.append('<i class="fa fa-cog fa-spin fa-3x loading" style="position: absolute; z-index: 1    right: 1px;    top: 1px;    font-size: 8px;"/>'),f.pcTable.model.getEditSelect(a,f.name,e,null).then(function(t){c.find(".loading").remove(),d.innerList=t.list?t.list:[],d.innerIndexed=t.indexed?t.indexed:{},d.isSliced=t.sliced,d.isPreview=t.previewdata,f.codeSelectIndividual||null!==e&&""!==e&&void 0!==e||d.isSliced||(f.list=d,d.isListForLoad=!1),n.resolve()},function(){n.reject()}),n.promise()};setTimeout(function(){c.length&&c.isAttached()&&c.find(".mark-loading").length&&c.find(".mark-loading").html('<i class="fa fa-spinner"/>')},200);const h=function(e,n){let a={"Выбранное":t('<optgroup label="Выбранное">'),"":t('<optgroup label="">')},o=a["Выбранное"];const l=function(e,n,a,o){o=o?t('<small class="text-muted">').text(o):"";let l=t("<option>").text(e),s=t("<div>").text(null===n||""===n?"["+e+"]":n);if(o&&s.append(o),s=s.html(),a)l.attr("data-content",'<span class="text" style="text-decoration: line-through">'+s+"</span>");else{let n=t('<span class="text" >'+s+"</span>");d.isPreview&&(n.addClass("select-with-preview"),n.attr("data-id",i.id),n.attr("data-field",f.name),n.attr("data-val",e)),l.data("content",n.get(0).outerHTML)}return l};let s=function(){return!0};if(n&&""!==n){let e=n.toLowerCase().replace("ё","е").split(" ");s=function(t){let n=null!==t?t.toString().toLowerCase().replace("ё","е"):"";return!e.some(function(e){return-1===n.indexOf(e)})}}let c,u={};if(e||"filter"===f.category){const t=function(e){null===e&&(e="");let t,n=d.innerIndexed[e];return t=n?l(e,n[0],!1,n[1]):l(e,e,!0,null),o.append(t),u[e]=1,!!n&&(s(n[0])||t.addClass("hidden"),!0)};f.multiple?Array.isArray(e)?(e.forEach(t),c=Object.keys(u)):void 0!==e&&(t(e),c=[e]):(t(e),c=e)}if("onlyVals"!==n){f.multiple||f.withEmptyVal&&""!==f.withEmptyVal.trim()&&"filter"!==f.category&&a[""].append(t("<option>").data("content",f.withEmptyVal).text(""));for(let e in d.innerList){let n=d.innerList[e];if(1===u[n])continue;let i=d.innerIndexed[n];if(!d.isSliced&&!s(i[0]))continue;let o=l(n,i[0]),r=i[1]?i[1]:"";a[r]||(a[r]=t('<optgroup label="'+r+'">')),a[r].append(o)}}if(r.empty(),Object.keys(a).forEach(function(e){r.append(a[e])}),!0===d.isSliced){let e=l(0,"Данные не полны. Воспользуйтесь поиском!");e.prop("disabled",!0),e.css("text-align","center"),r.append(e)}return r.selectpicker("refresh"),r.selectpicker("val",c),c};let m=0;const b=function(){i[f.name]&&i[f.name].replaceViewValue&&d.innerIndexed[i[f.name].v]&&(i[f.name].replaceViewValue(d.innerIndexed[i[f.name].v]),delete i[f.name].replaceViewValue);let e=r.closest("body");if(e&&e.length){c.find(".mark-loading").remove();let e=0===r.closest(".modal-body").length?f.pcTable._container:r.closest(".modal-body");if(r.data("container",e),h(u),!r.data("is-rendered")){let e;r.data("selectpicker").$searchbox.off().on("click.dropdown.data-api focus.dropdown.data-api touchend.dropdown.data-api",function(e){e.stopPropagation()});let n="";r.data("selectpicker").$searchbox.on("keyup",function(i){if("Escape"===i.key)return r.data("selectpicker").$button.click(),!0;let a=t(this).val();n!==a&&(n=a,e&&clearTimeout(e),e=setTimeout(function(){d.isListForLoad||d.isSliced?p.call(f,a).then(function(){h.call(f,u,a)}):h.call(f,u,a)},750))});let i=t(f).closest("td, .cell");if(0===r.closest(".InsertRow, .InsertPanel").length){let e=r.data("container");r.on("remove",function(){e.off("click.selectContainer."+r.data("AppUin")),e.off("keydown.selectContainer."+r.data("AppUin"))}),e.on("click.selectContainer."+r.data("AppUin"),function(e){let n=t(e.target);n.closest("td").is(".editing")||n.closest(".bootstrap-select").length||l(c,e)}),e.on("keydown.selectContainer."+r.data("AppUin"),function(e){if(27===e.keyCode)return r.data("keyPressed","Esc"),o(c,e),!1;if(13===e.keyCode&&r.data("enterPressed",!0),9!==e.keyCode&&16!==e.keyCode&&i.data("edited"),e.altKey||e.shiftKey){let t=e.altKey?"altKey":!!e.shiftKey&&"shiftKey";r.data("keyPressed",t)}}).on("keyup",function(e){r.removeData("keyPressed"),r.removeData("enterPressed")}),f.focusElement(c)}r.on("hidden.bs.select",function(){let e=r.data("changed"),t={},n=r.data("keyPressed");n&&(t[n]=!0),f.multiple?e&&0===r.closest("td.edt").length&&a(c,t):setTimeout(function(){a(c,t)},200),r.data("changed",!1)}),r.on("show.bs.select",function(){h(u)}),r.on("shown.bs.select",function(){let e=r.data("selectpicker");e.$bsContainer.addClass("pcTable-selectpicker"),d.isPreview&&e.$bsContainer.addClass("select-with-preview"),e.$menuInner.height()<100&&e.$menuInner.find("li").length>6&&e.$menuInner.height(300),e.cropped||(e.cropped=!0,r.data("container").is(".pcTable-container")&&e.$menuInner.height(e.$menuInner.height()-4))}),r.on("changed.bs.select",function(){r.data("changed",!0);let e=[];if(u&&u.forEach&&u.forEach(function(t){e.push(t)}),u=r.val(),"filter"===f.category&&f.multiple){let t=u.length;if(e.length>u.length)0===u.length&&u.push("*NONE*");else{let t;u.some(function(n){if(-1===e.indexOf(n))return t=n,!0}),-1!==["*NONE*","*ALL*"].indexOf(t)?u=[t]:["*NONE*","*ALL*"].some(function(e){let t;if(-1!==(t=u.indexOf(e)))return u.splice(t,1),!0})}u.length!==t&&r.selectpicker("val",u)}}),r.on("remove",function(){r.data("selectpicker").$bsContainer.remove(),r.data("container").off("keydown.selectContainer."+r.data("AppUin")).off("click.selectContainer."+r.data("AppUin"))})}}else m<50&&(setTimeout(function(){b(r,u)},10*m+1),m++)};return d.isListForLoad?p().then(function(){b.call(f)}):b(),c},getPanelText:function(e,n,i){let a=this,o=t("<div>"),l=i[a.name].v_;if(!a.multiple&&i[a.name].v_&&(l=[i[a.name].v_]),l)t.each(l,function(e,n){"use strict";let i=t("<div>").text(n[0]);n[1]?i.addClass("deleted_value"):1!==l.length&&i.add("select-item"),o.append(i)});else{if(null===e||""===e)return a.withEmptyVal?a.withEmptyVal:"";let n=e;if(a.multiple||(n=[n]),n||(n=[]),a.list){let e=[];for(let t=0;t<n.length;t++)e[t]=n[t].toString();for(let n=0;n<a.list.length;n++){let i=a.list[n];if(-1!==e.indexOf(i[2].toString())){let n=t("<span>").text(i[0]);i[1]?n.addClass("deleted_value"):1!==e.length&&n.add("select-item"),o.append(n)}}}}return o.children()},getCellText:function(e,n,i){let a=this,o=t("<div>"),l=i[a.name].v_;if(!a.multiple&&i[a.name].v_&&(l=[i[a.name].v_]),l)a.multiple&&l.length>1&&0==a.multySelectView?o.append('<span class="select-item">'+l.length+" элементов<span>"):0===l.length?o.append('<span class="select-item">'+this.getElementString(null)+"</span>"):t.each(l,function(n,i){"use strict";let s=t("<span>"),r=null;e&&(r="object"==typeof e?e[n]:e),s.text(a.getElementString(r,i)),i[1]?s.addClass("deleted_value"):1!==l.length&&s.add("select-item"),o.append(s)});else{if(null===e||""===e)return a.withEmptyVal?a.withEmptyVal:"";let n=e;if(a.multiple||(n=[n]),n||(n=[]),a.list){let e=[];for(let t=0;t<n.length;t++)e[t]=n[t].toString();for(let n=0;n<a.list.length;n++){let i=a.list[n];if(-1!==e.indexOf(i[2].toString())){let n=t("<span>").text(a.getElementString(i[2],i));i[1]?n.addClass("deleted_value"):1!==e.length&&n.add("select-item"),o.append(n)}}}}return o.children()},focusElement:function(e){let t=e.find("button"),n=this;0==t.length?setTimeout(function(){n.focusElement(e)},50):t.focus()},isDataModified:function(e,t){return(-1===[null,""].indexOf(e)||-1===[null,""].indexOf(t))&&(-1!==[null,""].indexOf(e)||-1!==[null,""].indexOf(t)||!Object.equals(t,e))},checkIsFiltered:function(e,t){let n,i;return this.multiple?(n=[],e&&e.v_&&e.v_.length&&e.v_.forEach(function(e){n.push(e[0].hashCode().toString())}),i=function(e){if(-1!==n.indexOf(e))return!0}):(n=(n=null===e.v_[0]?"null":e.v_[0].toString()).hashCode().toString(),i=function(e){if(e===n)return!0}),t.some(i)},checkEditRegExp:function(e){if(!this.warningEditRegExp)return!0;try{return this.multiple&&Array.isArray(e)?e.some(t=>new RegExp(this.warningEditRegExp).test(e)):new RegExp(this.warningEditRegExp).test(e)}catch(e){return!0}},addDataToFilter:function(e,t){const n=function(t){let n,i=t[0];null===i?n="null".hashCode():(n=i.toString().hashCode(),i=i.replace(/"/g,"&quot;")),e[n]=i};this.multiple?t&&t.v_.length&&t.v_.forEach(function(e){n(e)}):n(t.v_)},getElementString:function(e,t){"use strict";return null!==e&&void 0!==e||t&&t[0]?null===t[0]||""===t[0]?"["+(this.withEmptyVal||"")+"]":t[0]:this.withEmptyVal||""}},l.tree={icon:"fa-tree",FullView:!1,getEditVal:function(e){return e.data("val")},getEditElement:function(e,n,i,a,o,l,s,r){let c,d,f=this,u=e||t("<div>"),p=u.data("dialog")||t("<div>").css("min-height",200);u.data("dialog",p),n=n.v||"";let h=function(e){f.treePanel.call(f,p,i,n,a,o)};const m=function(e,t,n){let i=[];p.data("jstree").jstree("get_selected",!0).forEach(function(e){i.push(e.id)}),f.multiple||(i=i[0]||""),u.data("val",i),n||(a(u,{}),e.close())};c=[];let b={label:"Сохранить",cssClass:"btn-m btn-warning",action:m},g={label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){o(u,{}),e.close()}},_="<b>"+this.title+"</b>",v="ctrlS.commentdialog";const w=function(e){e.$modalHeader.css("cursor","pointer"),0===e.$modalBody.find("textarea").length&&h(),e.$modalContent.css({width:.8*t("body").width()>800?800:.8*t("body").width()}),t("body").on(v,function(t){m(e,0,!1)})};if(r){let e=!1;setTimeout(function(){let n=u.closest("td").find(".cdiv");n.length>0?(n.data("bs.popover").options.content.find(".btn").each(function(){d=t(this);let n={};n.label=d.data("name"),n.cssClass=d.attr("class").replace("btn-sm","btn-m"),n.icon=d.find("i").attr("class"),n.save=d.data("save"),n.click=d.data("click"),n.action=function(t){n.save&&m(t,0,!0),n.click({}),e=!0,t.close()},c.push(n)}),n.popover("destroy")):(c.push(b),c.push(g)),BootstrapDialog.show({message:p,type:null,title:_,buttons:c,cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(n){t("body").off(v),e||l(u,{})},onshown:function(e){e.$modalContent.position({of:t("body"),my:"top+50px",at:"top"})},onshow:w})},1),u.text("Редактирование в форме").addClass("edit-in-form")}else{let e=!1;u.off().on("focus click","button",function(){if(e)return!1;e=!0;let n=c.slice(0);n.push(b),n.push(g);var i=t(this).closest("div");BootstrapDialog.show({message:p,type:null,cssClass:"fieldparams-edit-panel",title:_,buttons:n,draggable:!0,size:BootstrapDialog.SIZE_WIDE,onhide:function(n){e=!1,t("body").off(v),o(i,n)},onshow:w})}),0===u.find("button").length&&(d=t('<button class="btn btn-default btn-sm text-edit-button">').text("Редактирование в форме"),s&&d.attr("tabindex",s),u.append(d))}return u.data("val",n)},treePanel:function(e,n,i,a,o,l){let s=this,r=["themes","json_data","search"];s.multiple&&r.push("checkbox");let c=t('<div class="tree-search"><input class="form-control" type="text"></div>'),d=c.find("input");setTimeout(function(){d.focus()},200);let f=t("<div></div>"),u=0,p=!1,h="";d.keyup(function(){p&&clearTimeout(p),p=setTimeout(function(){if(f.closest("body").length){let e=d.val();h!==e&&(h=e,f.jstree(!0).search(e,0===u))}},750)}),e.append(c).append(f),e.data("jstree",f),!this.multiple&&this.withEmptyVal&&f.on("click",'li.jstree-node[aria-selected="true"]',function(e){return f.jstree(!0).deselect_node(t(this)),!1}),f.on("init.jstree",function(e,t){t.instance.settings.checkbox.cascade=""}).jstree({search:{show_only_matches:!0,case_insensitive:!0,show_only_matches_children:!0,search_callback:function(e,t){if(!t)return!1;let n=e.toLowerCase().replace("ё","е").split(" "),i=t.text.toLowerCase().replace("ё","е");return!n.some(function(e){return-1===i.indexOf(e)})},ajax:function(e,t){var i=this;s.getEditSelect(n,e,null).then(function(e){t.call(i,e[0])})}},massload:function(e,t){var i=this;u-=1,s.getEditSelect(n,"",e).then(function(e){Object.values(e[0]).forEach(function(e){e.forEach(function(e){!0===e.children&&(u+=1)})}),t.call(i,e[0])})},core:{check_callback:!0,open_parents:!0,data:function(e,t){var i=this;u-=1,s.getEditSelect(n,"","#"==e.id?null:e.id).then(function(e){e[0].forEach(function(e){!0===e.children&&(u+=1)}),t.call(i,e[0])})},themes:{icons:!1,name:"default"}},checkbox:{},plugins:r}),s.multiple&&"filter"===s.category&&f.on("select_node.jstree",function(e,t){-1!==["*ALL*","*NONE*"].indexOf(t.node.id)?t.selected.length>1&&t.selected.forEach(function(e){e!==t.node.id&&t.instance.deselect_node(f.jstree(!0).get_node(e))}):["*ALL*","*NONE*"].forEach(function(e){-1!==t.selected.indexOf(e)&&t.instance.deselect_node(f.jstree(!0).get_node(e))})})},getEditSelect:function(e,n,i){let a=this,o=t.Deferred(),l={};return Object.keys(e).forEach(function(t){/^\$/.test(t)||("id"===t||null===e[t]||"object"!=typeof e[t]||-1===Object.keys(e[t]).indexOf("v")?l[t]=e[t]:l[t]=e[t].v)}),this.pcTable.model.getEditSelect(l,this.name,n,i,!0).then(function(e){let t=[e.list,e.indexed];a.codeSelectIndividual||(a.list=t),o.resolve(t)}),o},getPanelText:function(e,t,n){this.FullView=!0;let i=this.getCellText(e,t,n);return delete this.FullView,i},getCellText:function(e,n,i){let a=this,o=i[a.name].v_;if(e){if(a.multiple){if(Array.isArray(e)){if(0===e.length)return a.getElementSpan(null);if(1===e.length)return a.getElementSpan(e[0],o[0]);if("0"!==a.multySelectView||a.FullView){let n=t('<span class="select-item">');return e.forEach((e,t)=>n.append(a.getElementSpan(e,o[t]))),n}return t('<span class="select-item">'+e.length+" эл.<span>")}return a.getElementSpan(e,[e,0])}return a.getElementSpan(e,o)}return a.getElementString(null)},checkIsFiltered:function(e,t){let n,i;return this.multiple?(n=[],e&&e.v_&&e.v_.length&&e.v_.forEach(function(e){n.push(e[0].hashCode().toString())}),i=function(e){if(-1!==n.indexOf(e))return!0}):(n=(n=null===e.v_[0]?"null":e.v_[0].toString()).hashCode().toString(),i=function(e){if(e===n)return!0}),t.some(i)},addDataToFilter:function(e,t){const n=function(t){let n;n=null===t[0]?"null".hashCode():t[0].toString().hashCode(),e[n]=t[0].replace(/"/g,"&quot;")};this.multiple?t&&t.v_.length&&t.v_.forEach(function(e){n(e)}):n(t.v_)},getElementSpan:function(e,n){let i=t("<span>");return null!==e&&(i.text(this.getElementString(e,n)),1===n[1]&&i.addClass("deleted_value")),i},getElementString:function(e,t){"use strict";return null!==e&&void 0!==e||t&&t[0]?null===t[0]||""===t[0]?"["+(this.withEmptyVal||"")+"]":this.FullView&&t[2]||t[0]:this.withEmptyVal||""}},l.json={__addInput:function(e,n,i){var a=(n=n||{}).type||typeof i[e],o=12;"checkbox"==a&&(o=3),n.width&&(o=n.width);var l,s=t('<div class="field form-group">').attr("data-name",e).addClass("col-sm-"+o);switch(a){case"string":l=t("<input>").val(i[e]?i[e]:n.default?n.default:"");break;case"json":l=t('<div class="JSONEditor">').height(300);var r=new JSONEditor(l.get(0),{}),c=t('<a href="#">editText</a>').on("click",function(){var e=t("<div>"),n=t('<textarea class="form-control" style="height: 250px;">').val(JSON.stringify(r.get(),null,2)).appendTo(e);return e.dialog({title:"Содержимое JSON-поля",width:500,height:600,buttons:{"Сохранить":function(){r.setText(n.val()),e.dialog("close")},"Закрыть":function(){e.dialog("close")}}}),!1});l.find(".jsoneditor-menu").append(c),l.data("editor",r),r.set(i[e]?i[e]:n.default?JSON.parse(n.default):{});break;case"html":l=t('<div class="HTMLEditor">').height(300);var d=t("<div>").appendTo(l);r=CodeMirror(d.get(0),{value:i[e]?i[e]:n.default?n.default:"",mode:"text/html",height:"250px",readOnly:!1,theme:"eclipse",lineNumbers:!0,gutter:!0,indentWithTabs:!0,autoCloseTags:!0});setTimeout(function(){r.refresh()},20),l.data("editor",r);break;case"integer":l=t("<input>").val(i[e]?i[e]:n.default?n.default:"").attr("type","number"),void 0!==n.min&&l.attr("min",n.min),void 0!==n.max&&l.attr("max",n.max),void 0!==n.step&&l.attr("step",n.step);break;case"checkbox":l=t("<input>").attr("type","checkbox"),i[e]?l.prop("checked",!0):void 0===i[e]&&l.prop("checked",!0);break;case"select":l=t("<select>"),n.values&&t.each(n.values,function(e,n){l.append(t("<option>").attr("value",e).text(n))}),i[e]?l.val(i[e]):void 0===i[e]&&n.default&&l.val(n.default)}"checkbox"==a?(s.prepend(t("<label>").text(n.title?n.title:e).addClass("form-check-label")),l&&(l.data("type",a),s.find("label").prepend(l))):(s.prepend(t("<label>").text(n.title?n.title:e)),l&&l.data("type",a).addClass("form-control"),s.append(l)),s.data("type",a);var f=t(" <span>*</span>");return n.required?f.addClass("text-danger"):(f.text(""),f.addClass("glyphicon glyphicon-remove remove"),f.on("click",function(){var e=t(this).closest(".field");e.data("name");e.remove()})),s.find("label").after(f),s},getEditElement:function(e,n,i,a,o,l){var s,r=this,c=t("<div>"),d=t("<div>").css("min-height",200),f=t('<div class="jsonForm row">').appendTo(d);c.data("form",f),c.data("field",this);var u=this.jsonFields,p=n||{};"string"==typeof p&&(p=JSON.parse(p));var h=function(e){var t=r.__addInput(e,u[e],p);f.append(t)},m=t.extend({},p),b=0,g={"":[]};if(t.each(u,function(e,t){if(1==t.required||1==t.showInForm)h(e),void 0!==m[e]&&delete m[e];else if(void 0===m[e]){var n="";t.fGroup&&(n=t.fGroup,g[t.fGroup]||(g[t.fGroup]=[])),g[n].push(e),b++}}),t.each(m,function(e,t){h(e)}),b){var _=t('<div class="row elseFields">');element=t('<select class="selectpicker form-control dropup" data-size="5" data-title="--Выбрать поле--">'),1==App.keys(g).length?t.each(g[App.keys(g)[0]],function(e,n){element.append(t("<option>").attr("value",n).text(u[n].title?u[n].title:n))}):t.each(g,function(e,n){e=t('<optgroup label="'+e+'">');t.each(n,function(n,i){e.append(t("<option>").attr("value",i).text(u[i].title?u[i].title:i))}),element.append(e)}),_.prepend(t("<label>").text("Добавить поле")),element.addClass("form-control"),_.append(element),element.selectpicker("render"),element.on("change",function(){var e=t(this).val();element.find('option[value="'+e+'"]').remove(),h(e)}),d.append(_.wrap('<div style="padding:10px">').parent())}return s={"Сохранить":function(){var e={},n=f.find(".fullJSONEditor");1==n.length?e=n.data("editor").get():f.find("input, select, textarea, .JSONEditor, .HTMLEditor").not(".JSONEditor *").not(".HTMLEditor *").each(function(){var n=t(this),i=n.closest(".field").data("name");switch(n.closest(".field").data("type")){case"array":try{if(e[i]=n.data("editor").get(),!t.isArray(e[i]))throw"Ошибка структуры поля"}catch(e){throw App.notify("Ошибка структуры поля "+i),"Ошибка структуры поля"}break;case"object":case"json":try{if(e[i]=n.data("editor").get(),"object"!=typeof e[i])throw"Ошибка структуры поля"}catch(e){throw App.notify("Ошибка структуры поля "+i),"Ошибка структуры поля"}break;case"html":e[i]=n.data("editor").getValue();break;case"checkbox":case"boolean":e[i]=!!n.is(":checked");break;case"integer":e[i]=parseInt(n.val());break;default:e[i]=n.val()}}),c.data("val",JSON.stringify(e)),a(c,event),d.remove()},"Закрыть":function(){d.dialog("close")},"Редактор":function(){var e=f.height(),n=t('<div class="fullJSONEditor">').height(e+100),i=new JSONEditor(n.get(0),{});i.set(p);var a=t('<a href="#">editText</a>').on("click",function(){var n=t("<div>"),a=t('<textarea class="form-control" style="height: 250px;">').val(JSON.stringify(i.get(),null,2)).appendTo(n);return n.dialog({title:"Содержимое JSON-поля",width:500,height:e+100,buttons:{"Сохранить":function(){i.setText(a.val()),n.dialog("close")},"Закрыть":function(){n.dialog("close")}}}),!1});f.empty().append(n),f.next().empty(),n.data("editor",i),n.find(".jsoneditor-menu").append(a)}},i.id?(d.dialog({title:(i&&i.id?i.id:"")+" "+this.title,width:700,modal:!0,close:function(e){o(c,e),d.remove()},buttons:s}),c.text("Редактирование в форме").addClass("edit-in-form")):(c.on("focus click","button",function(){var e=t(this).closest("div");d.dialog({title:r.title||r.name,width:700,modal:!0,close:function(t){o(e,t),d.remove()},buttons:s})}),c.append(t('<button class="btn btn-default">').text(n||"Редактирование"))),c.data("val",n)},getEditVal:function(e){return e.data("val")},getCellText:function(e){return JSON.stringify(e)},focusElement:function(e){var t=e.find("button"),n=this;0===t.length?setTimeout(function(){n.focusElement(e)},50):t.focus()}},l.fieldParams=t.extend({},l.json,{icon:"fa-code",isPanelField:!0,isDataModified:function(e,t){return!Object.equals(t,e)},getEditElement:function(n,i,a,o,l,s,r,c){let d,f=this,u=t("<div>"),p=t("<div>").css("min-height",200),h=t('<div class="jsonForm">').appendTo(p);u.data("form",h),u.data("field",this);let m=function(e){let n=f.jsonFields;f.getValue(e,a,!c).then(function(e){let i=e.value;"string"==typeof i&&(i=JSON.parse(i));let o=t.extend({},i),l=function(e,t,i){let l=n.fieldSettings[e];if(!l)return!1;if(l.categories&&-1===l.categories.indexOf(a.category.v))return!1;let s={};if(void 0===o[e]||void 0===o[e].isOn?(s.isOn=void 0!==o[e],s.Val=o[e],void 0===s.Val&&(s.Val=l.default),l.parent||"checkbox"!==l.type||!0!==s.Val||(s.isOn=!0),o[e]=s):s=o[e],"codeSelect"===e){let e="=: selectRowListForTree(table: ''; field: ''; order: '' asc; where:  '' = ; parent: ''; disabled:)";"tree"===h.find('div[data-name="type"] select').val()?s.Val===l.default&&(s.Val=e):s.Val===e&&(s.Val=l.default)}let r=!1,c=(n.fieldSettings[l.parent],o[l.parent]);l.parent&&-1!==t.indexOf(l.parent)&&(c&&!0===c.isOnCheck||(r=!0)),s.changed=function(){"use strict";!0===this.isOnCheck?h.find('[data-parent="'+e.toLowerCase()+'"]').show():h.find('[data-parent="'+e.toLowerCase()+'"]').hide().find('input[type="checkbox"]').prop("checked",!1).trigger("change")};let d=f.__addInput.call(f,e,l,s,a);h.append(d),l.parent&&(d.attr("data-parent",l.parent.toLowerCase()),r&&d.hide());let u=i[e]();return d.css("padding-left",19*u),d},s="string";o.type&&(s=o.type.Val||o.type);let r=function(){p.find(".codeEditor, .HTMLEditor").each(function(){t(this).data("editor")&&t(this).data("editor").refresh()})};!function e(i){let s;h.empty(),"2"===a.table_id.v&&("data_src"===a.name.v||"data"===a.name.v)||a.table_name&&"tables_vidgets"===a.table_name.v&&("data_src"===a.name.v||"data"===a.name.v)?(s="data"===a.name.v?["width","showInWeb"]:["width","jsonFields","showInWeb","editable","insertable","required","logging","default","copyOnDuplicate"],i="fieldParams"):s=n.fieldListParams[i];let c={type:function(){return 0}};s.forEach(function(e){let t=n.fieldSettings[e];t.parent&&-1!==s.indexOf(t.parent)?c[e]=function(){return c[t.parent]()+1}:c[e]=function(){return 0}}),o.type={isOn:!0,Val:i},l("type",s,c).find("select").on("change",function(){e(t(this).val())}),s.forEach(function(e){l(e,s,c)}),r()}(s)})};const b=function(e){var n={},i=h.find(".fullJSONEditor");1===i.length?n=i.data("editor").get():h.find("input, select, textarea, .JSONEditor, .HTMLEditor, .codeEditor").not(".JSONEditor *").not(".HTMLEditor *").not(".codeEditor *").not('input[data-type="switcher"]').each(function(){var e=t(this);let i,a=e.closest(".field");var o=a.data("name");switch(e.closest(".field").data("type")){case"code":i=e.data("editor").getValue();break;case"json":try{if("object"!=typeof(i=e.data("editor").get()))throw"Ошибка структуры поля"}catch(e){throw App.notify("Ошибка структуры поля "+o),"Ошибка структуры поля"}break;case"html":i=e.data("editor").getValue();break;case"checkbox":i=!!e.is(":checked");break;case"integer":i=parseInt(e.val());break;default:i=e.val()}let l;isOnCheckbox=a.find('input[data-type="switcher"]'),l=0===isOnCheckbox.length?e.is(":visible"):isOnCheckbox.is(":checked"),n[o]={isOn:l,Val:i}}),u.data("val",n),o(u,event),e.close()};d=[{label:"Сохранить",cssClass:"btn-m btn-warning",action:b},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}];let g="ctrlS.FieldParams";if(c)e.top.BootstrapDialog.show({message:p,type:BootstrapDialog.TYPE_DANGER,title:"Параметры поля <b>"+a.title.v+"</b>",buttons:d,cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(e){l(u,e),t("body").off(g)},onshown:function(e){m(i.v),e.$modalContent.position({of:t("body"),my:"top+50px",at:"top"})},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalDialog.width(1e3),t("body").on(g,function(t){b(e)})}}),u.text("Редактирование в форме").addClass("edit-in-form");else{let n=!1;u.on("focus click","button",function(){if(!n){n=!0;var o=t(this).closest("div");e.top.BootstrapDialog.show({message:p,type:BootstrapDialog.TYPE_DANGER,cssClass:"fieldparams-edit-panel",title:"Параметры поля <b>"+a.title.v+"</b>",buttons:d,draggable:!0,size:BootstrapDialog.SIZE_WIDE,onhide:function(e){l(o,e),t("body").off(g),n=!1},onshown:function(e){e.$modalDialog.width(1e3),e.$modalHeader.css("cursor","pointer"),m(i.v),t("body").on(g,function(t){b(e)})}})}});let o=t('<button class="btn btn-danger btn-sm text-edit-button">').text("Редактировать параметры");r&&o.attr("tabindex",r),u.append(o)}return u.data("val",i)},__addInput:function(n,i,a,o){var s=(i=i||{}).type;let r,c;r=a.Val,c=a.isOn;var d,f=t('<div class="field form-group">').attr("data-name",n);switch(s){case"code":d=t('<div class="codeEditor">');var u=t("<div>").appendTo(d);(p=CodeMirror(u.get(0),{value:r||(i.default?i.default:""),mode:"totum",height:"150px",readOnly:!1,theme:"eclipse",lineNumbers:!0,gutter:!1,indentWithTabs:!0})).getScrollerElement().style.minHeight="150px",d.data("editor",p),p.table=o.table_name&&o.table_name.v?o.table_name.v:null;break;case"string":d=t("<input>").val(void 0!==r?r:i.default?i.default:"");break;case"json":d=t('<div class="JSONEditor">').height(300);var p=new JSONEditor(d.get(0),{}),h=t('<a href="#" style="padding-top: 5px; display: inline-block; padding-left: 20px;">Вручную</a>').on("click",function(){var n=t("<div>"),i=t('<textarea class="form-control" style="height: 250px;">').val(JSON.stringify(p.get(),null,2)).appendTo(n);return BootstrapDialog.show({message:n,type:null,title:"Ручное изменение json-поля",buttons:[{label:"Сохранить",cssClass:"btn-m btn-warning",action:function(e){try{p.setText(i.val()),e.close()}catch(e){App.modal("Ошибка формата JSON")}}},{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}],cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(e){},onshown:function(t){t.$modalContent.position({of:e})},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:500})}}),!1});d.find(".jsoneditor-menu").append(h),d.data("editor",p);let a="string"==typeof r?JSON.parse(r):r;p.set(a);break;case"html":d=t('<div class="HTMLEditor">');u=t("<div>").appendTo(d);(p=CodeMirror(u.get(0),{value:r||(i.default?i.default:""),mode:"text/html",height:"150px",readOnly:!1,theme:"eclipse",lineNumbers:!0,indentWithTabs:!0,autoCloseTags:!0})).getScrollerElement().style.minHeight="150px",d.data("editor",p);break;case"integer":d=t("<input>").val(void 0!==r?r:i.default?i.default:"").attr("type","number"),void 0!==i.min&&d.attr("min",i.min),void 0!==i.max&&d.attr("max",i.max),void 0!==i.step&&d.attr("step",i.step);break;case"checkbox":d=t("<input>").attr("type","checkbox").data("type",s),r&&d.prop("checked",!0);break;case"select":if(d=t("<select>"),i.values){let e,a=i.valIcons||{};i.valuesOrder&&(e=i.valuesOrder.slice(0)),"type"===n&&(o.table_name&&o.name&&"tables_fields"===o.table_name.v&&"data_src"===o.name.v&&(e=["fieldParams"]),t.each(e,function(e,t){l[t]&&(a[t]="fa "+l[t].icon)}));const s=function(e,n){let i=t("<option>").attr("value",e).text(n);a[e]&&i.data("icon",a[e]),d.append(i)};e?e.forEach(function(e){s(e,i.values[e])}):t.each(i.values,s)}i.multiple&&(d.attr("multiple","multiple"),d.attr("size","2")),setTimeout(function(){d.selectpicker()},20),r?d.val(r):void 0===r&&i.default&&d.val(i.default)}let m;return a.isOnCheck=!0,"checkbox"===s?(f.prepend(t('<label class="field-param-lable">').text(i.title?i.title:n).addClass("form-check-label").prepend(d).append('<a href="http://docs.totum.online/polya#fields-settings-'+n+'" target="_blank"><i class="fa fa-question-circle-o"></i></a>')),f.addClass("checkbox"),m=d,d.is(":checked")||(a.isOnCheck=!1,f.addClass("disabled"))):(f.prepend(t('<label class="field-param-lable">').text(i.title?i.title:n).append('<a href="http://docs.totum.online/polya#fields-settings-'+n+'" target="_blank"><i class="fa fa-question-circle-o"></i></a>')),d&&(d.data("type",s),d.data("editor")||d.addClass("form-control"),f.append(d)),!0!==i.required&&(m=t('<input type="checkbox" data-type="switcher"/>'),c?(a.isOnCheck=!0,m.prop("checked",!0)):(a.isOnCheck=!1,f.addClass("disabled")),f.find("label").prepend(m),f.addClass("checkbox"))),m&&m.on("change",function(){t(this).is(":checked")?!0!==a.isOnCheck&&(a.isOnCheck=!0,f.removeClass("disabled"),a.changed()):!1!==a.isOnCheck&&(a.isOnCheck=!1,f.addClass("disabled"),a.changed())}),f.data("type",s),f},getValue:function(e,n,i){"use strict";if(i){let n=t.Deferred();return n.resolve({value:e||{}}),n}let a={fieldName:this.name};return n.id&&(a.rowId=n.id),this.pcTable.model.getValue(a,this.table_id)},getPanelText:function(e){return JSON.stringify(e,null,2)},getCellText:function(e){return"Настройки поля"}}),l.button={icon:"fa-hand-pointer-o",getCellText:function(e,n,i){let a=this,o={};if("column"===this.category?i.id?o=t.extend({},a.pcTable.f||{},i.f||{},i[a.name].f||{}):o.block=!0:o=t.extend({},a.pcTable.f||{},i[a.name].f||{}),o.block||!this.pcTable.control.editing&&!this.pressableOnOnlyRead){let e=t('<button class="btn btn-default btn-xxs button-field" tabindex="-1" disabled>').text(this.buttonText||"Кнопочка");if(o.text&&e.text(o.text),o.comment){let n;n=t('<i class="cell-icon fa fa-info"></i>'),e.prepend(n),n.attr("title",o.comment)}else o.icon&&e.prepend('<i class="cell-icon fa fa-'+o.icon+'"></i>');return e.wrap('<span class="cell-value">').parent()}n&&n.addClass("cell-button");let l=t('<button class="btn btn-default btn-xxs button-field" tabindex="-1">').text(this.buttonText||"Кнопочка");if(o.text&&l.text(o.text),o.comment){let e;e=t('<i class="cell-icon fa fa-info"></i>'),l.prepend(e),e.attr("title",o.comment)}else o.icon&&l.prepend('<i class="cell-icon fa fa-'+o.icon+'"></i>');return l},btnOK:function(e){let t=e.find("button"),n=this;t.text("Выполнено"),e.data("clicked",!0),setTimeout(function(){e.removeData("clicked");let i=n.pcTable._getItemBytd.call(n.pcTable,e);t.replaceWith(n.getCellText.call(n,i[n.name],e,i))},2e3)}},l.link={icon:"fa-link"},l.comments={icon:"far fa-comments-o",getEditVal:function(e){return e.data("val")},getCellText:function(e){if(0===e.n||!e.n)return"";let n=this,i=t("<span>"),a=t('<span class="comments">').text(e.c[0]+" "+e.c[1]+": "+e.c[2]).appendTo(i);return e.notViewed&&(a.addClass("notViewed"),n.decorationColor&&a.css("border-bottom-color",n.decorationColor)),i},getValue:function(e,n,i){"use strict";let a=this,o=t.Deferred();if(i)e||(e=[]),o.resolve({value:e});else if(0===e.n||1===e.n&&!e.cuted&&!e.notViewed)e||(e=[]),o.resolve({value:[e.c]});else{let e={fieldName:this.name};n.id&&(e.rowId=n.id),o=this.pcTable.model.getValue(e,this.table_id)}return o.then(function(e){if(n[a.name].v.notViewed||n[a.name].notViewed){let e=t.Deferred();e.then(function(){let e;delete n[a.name].v.notViewed,delete n[a.name].notViewed,n.id?e=a.pcTable._getTdByFieldName(a.name,a.pcTable.data[n.id].$tr):(e=a.pcTable._paramsBlock.find('td[data-field="'+a.name+'"]')).length||(e=a.pcTable._footersBlock.find('td[data-field="'+a.name+'"]')),e&&e.length&&(e.find(".notViewed-num").remove(),e.find(".notViewed").removeClass("notViewed"))}),n[a.name].notViewed?a.pcTable.model.setCommentsViewed(n[a.name].v.length,a.name,n.id).then(function(){e.resolve()}):e.resolve()}}),o},getPanelText:function(e,n,i){let a=this,o=t.Deferred();return this.getValue(e,i,!1).then(function(e){let n=t('<div class="comments">');t.each(e.value,function(e,t){n.append(a.getCommentLine(t))}),o.resolve(n)}).fail(function(){o.reject()}),o.promise()},getCommentLine:function(e){let n=t('<div class="comments-line">');return n.append(t('<span class="com_dt">').text(e[0])),n.append(" "),n.append(t('<span class="com_author">').text(e[1])),n.append(" "),n.append(t('<span class="com_text">').html(App.textWithLinks(e[2]))),n},getPanelVal(e,t){if(t)return this.getEditVal(t)},getEditElement:function(e,n,i,a,o,l,s,r){let c,d=this,f=e||t("<div>"),u=f.data("dialog")||t("<div>").css("min-height",200);f.data("dialog",u),n=n.v||"";let p=function(e){d.getValue.call(d,n,i,!r).then(function(e){let n=t('<textarea type="text" style="height:90px;resize: vertical" class="form-control"/>');t.each(e.value,function(e,t){u.append(d.getCommentLine(t))}),u.append(t('<div class="comments-input">').append(n)),u.data("input",n),n.focus()})};const h=function(e,t,n){f.data("val",u.find("textarea").val().trim()),n||(a(f,{}),e.close())};c=[];let m={label:"Сохранить",cssClass:"btn-m btn-warning",action:h},b={label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){o(f,{}),e.close()}},g="Комментарии поля <b>"+this.title+"</b>",_="ctrlS.commentdialog";if(r){let e=!1;setTimeout(function(){let n=f.closest("td").find(".cdiv");n.length>0?(n.data("bs.popover").options.content.find(".btn").each(function(){let n=t(this),i={};i.label=n.data("name"),i.cssClass=n.attr("class").replace("btn-sm","btn-m"),i.icon=n.find("i").attr("class"),i.save=n.data("save"),i.click=n.data("click"),i.action=function(t){i.save&&h(t,0,!0),i.click({}),e=!0,t.close()},c.push(i)}),n.popover("destroy")):(c.push(m),c.push(b)),BootstrapDialog.show({message:u,type:null,title:g,buttons:c,cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(n){t("body").off(_),e||l(f,{})},onshown:function(e){e.$modalContent.position({of:t("body"),my:"top+50px",at:"top"}),p()},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:900}),t("body").on(_,function(t){h(e,0,!1)})}})},1),f.text("Редактирование в форме").addClass("edit-in-form")}else{let e=!1;if(f.off().on("focus click","button",function(){if(e)return!1;e=!0;let n=c.slice(0);n.push(m),n.push(b);var i=t(this).closest("div");BootstrapDialog.show({message:u,type:null,cssClass:"fieldparams-edit-panel",title:g,buttons:n,draggable:!0,size:BootstrapDialog.SIZE_WIDE,onhide:function(n){e=!1,t("body").off(_),o(i,n)},onshown:function(e){e.$modalHeader.css("cursor","pointer"),0===e.$modalBody.find("textarea").length&&p(),e.$modalContent.css({width:900}),t("body").on(_,function(t){h(e,0,!1)})}})}),0===f.find("button").length){let e=t('<button class="btn btn-default btn-sm text-edit-button">').text("Добавить комментарий");s&&e.attr("tabindex",s),f.append(e)}}return f.data("val",n)}},t.each(l,function(e,n){l[e]=t.extend({},s,n)}),App.pcTableMain=function(e,n){if(n=t.extend({},{tableRow:{},nSorted:!0,isCreatorView:!1,withCsvButtons:!1,withCsvEditButtons:!1,noDataRowClass:"pcTable-noDataRow",contanerClass:"pcTable-container",tableClass:"pcTable-table",width:null,checkIsUpdated:0,_containerId:"",scrollWrapper:null,tableWidth:0,control:{adding:!1,sorting:!1,deleting:!1,duplicating:!1},dataSorted:[],data:[],data_params:null,dataSortedVisible:[],mainFieldName:"id",insertRow:null,_container:null,_content:null,extraClastersBottom:null,extraClastersTop:null,dataSortedClasters:{t:[],m:[],b:[]},ScrollClasterized:null,_innerContainer:null,_header:null,_table:null,LogButton:null,model:null,fields:{},hidedFields:[],fieldCategories:{column:[],params:[],footer:[]},sorted:{field:"",direction:"asc"},_sorting:{},_filterable:!1,filtersClearButton:null,_indexes:{fieldByName:{}},beforeSpaceHide:!0},n),t.extend(this,n,!0),this.hidden_fields=this.hidden_fields||{},0===this.hidden_fields.length&&(this.hidden_fields={}),App.isTopWindow()&&(this.beforeSpaceHide=!1),e){this.refreshArraysFieldCategories(!0);let i=t(e);i.data("pctable",this),this._container=i,this._containerId=this._container.attr("id"),this._containerId||(this._containerId="pcTable"+o++,this._container.attr("id",this._containerId)),this._init(),this.render(n.addVars)}else this.initForPanel(n);return this.model.addPcTable(this),this};let r=0;e.EditPanel=function(n,i,a,o){if(e.top!==e)return e.top.EditPanel.call(e.top,n,i,a,o);let l=t.extend(!0,{},a),s=this;s.pcTable=n,s.panelId="panel"+r++;let c=t.Deferred();this.$panel=t('<div class="InsertPanel">'),this.isNewPanel=!0,this.blockedFields={},this.bootstrapPanel=null;let d,f=l.id?"checkEditRow":"checkInsertRow",u=l.id?"saveEditRow":"add";return this.panelType=l.id?"edit":"insert",this.editItem=l||{},t("body").trigger("pctable-opened",{type:"panel"}),s.resolved=!1,this.checkRow=function(e,t){s.pcTable.model[f](this.getDataForPost(),e).then(function(e){s.editRow.call(s,e)})},this.saveRow=function(n,i){s.pcTable.model[u](this.getDataForPost()).then(function(n){c.resolve(n),s.resolved=!0,t(e.top.document.body).trigger("pctable-closed",{type:"panel",json:n,method:s.panelType,tableId:s.pcTable.tableRow.id}),s.bootstrapPanel.close()}).fail(function(){if(i.length&&i.isAttached())n.$modal.find(".btn-save").prop("disabled",!1)})},this.editRow=function(e){"use strict";let n=!1;if(s.pcTable.f=e.f||{},s.editItem.f=e.row.f||{},s.pcTable.fieldCategories.column.forEach(function(i,a){if("n"===i.name)return;let o=s.$panel.find('div.cell[data-field-name="'+i.name+'"]'),l=s.editItem[i.name];s.editItem[i.name]=e.row[i.name],s.isEditable(i)&&(n=!0);let r=t.extend({},s.pcTable.f||{},s.editItem.f||{},s.editItem[i.name].f||{});if(o.length)o.data("input")&&!r.block?(!l||i.isDataModified(s.editItem[i.name].v,l.v)||i.codeSelectIndividual)&&s.createCell.call(s,o,i,a,r):s.createCell.call(s,o,i,a,r);else{s.$panel.append(o=s.createCell.call(s,o,i,a,r));let e=o.wrap('<div class="cell-wrapper" style="position: relative">').parent().width(390),n=t('<label style="margin-right: -25px">').text(i.title||i.name).prependTo(e);i.unitType&&n.text(n.text()+", "+i.unitType),i.linkToSelectTable&&e.append(' <a href="'+i.linkToSelectTable.link+'" class="color-primary-primary" style="font-size: 12px" target="_blank">'+i.linkToSelectTable.title+"</a> ")}if(r.hideinpanel?o.parent().css("display","none"):o.parent().css("display",""),o.attr("data-field-name",i.name),"edit"===s.panelType&&-1!==Object.keys(s.editItem[i.name]).indexOf("c")){let e=o.find("button.handled");e.length||(e=t('<button class="btn btn-sm pull-right btn-default handled" style="position: absolute; right: 0px;" tabindex="'+(2*a+2)+'"></button>'),o.prepend(e).css("padding-right",35).css("position","relative"),s.isEditable(i)?(e.on("click",function(){!0===s.editItem[i.name].h?s.editItem[i.name].h=!1:s.editItem[i.name].h=!0,s.checkRow.call(s)}),e.prop("disabled",!1)):(e.prop("disabled","disabled"),s.editItem[i.name].h||e.remove())),e.removeClass("btn-warning").addClass("btn-default"),e.html('<i class="fa fa-hand-grab-o"/>'),s.editItem[i.name].h&&(e.addClass("btn-warning").removeClass("btn-default"),s.editItem[i.name].c!==s.editItem[i.name].v&&e.html('<i class="fa fa-hand-paper-o"/>'))}},s),s.isNewPanel){let t="";if("edit"===this.panelType){let i;if(s.pcTable.tableRow.main_field&&s.pcTable.fields[s.pcTable.tableRow.main_field]){let t=s.pcTable.tableRow.main_field;(i=s.editItem[t]||e.row[t])&&(i=i.v),i=' "'+i+'"'}i=i?"id "+(s.editItem.id||e.row.id)+" "+i:"id "+(s.editItem.id||e.row.id),t=!s.pcTable.control.editing||e.row.f.block&&!n?"Просмотр <b> "+i+"</b> таблицы <b>"+s.pcTable.tableRow.title+"</b>":"Редактирование <b> "+i+"</b> таблицы <b>"+s.pcTable.tableRow.title+"</b>"}else t="Добавление строки в таблицу <b>"+s.pcTable.tableRow.title+"</b>";s.cleateBootstrapPanel.call(s,t,i,"insert"===s.type||n),s.isNewPanel=!1}},this.cleateBootstrapPanel=function(n,i,a){let l=this,r=[];a&&r.push({action:function(e,t){"use strict";let n=e.$modal.find(".btn-save").prop("disabled","disabled");setTimeout(function(){s.pcTable.model.doAfterProcesses(function(){l.saveRow.call(l,e,n)})},250)},cssClass:"btn-warning btn-save",label:"Cохранить"}),o&&r.push({action:function(e){e.close()},label:"Закрыть"}),r.push({action:function(e){c.resolve(void 0,!0),s.resolved=!0,e.close()},label:"Закрыть"+(!0===o?" →":"")}),l.bootstrapPanel=BootstrapDialog.show({type:i||null,size:BootstrapDialog.SIZE_WIDE,message:l.$panel,cssClass:"edit-row-panel",title:n,buttons:r,draggable:!0,onhidden:function(){c.resolve(),s.resolved||t(e.top.document.body).trigger("pctable-closed",{type:"panel"}),t(e.top.document.body).off("."+s.panelId)},onshown:function(e){"use strict";e.indexedButtons[Object.keys(e.indexedButtons)[0]].attr("tabindex",500),2===Object.keys(e.indexedButtons).length&&e.indexedButtons[Object.keys(e.indexedButtons)[1]].attr("tabindex",501)}})},this.createCell=function(n,i,a,o){let l=s.editItem||{};if(l[i.name]=l[i.name]||{},0===n.length&&(n=t("<div data-name='"+i.name+"' class='cell'>"),i.code&&n.addClass("with-code")),!this.isEditable(i)){s.blockedFields[i.name]=!0;let e=t('<span class="'+("button"!==i.type?"form-control no-borders":"link")+'">').append(i.getCellTextInPanel.call(i,s.editItem[i.name].v,n,s.editItem,s.pcTable));return i.unitType&&e.append(" "+i.unitType),"button"===i.type&&s.pcTable&&n.on("click",function(){s.pcTable._buttonClick.call(s.pcTable,n,i,l)}),n.html(e).data("input",null),n}s.blockedFields[i.name]=!1;let r=function(e){let t;try{t=i.getEditVal(e)}catch(t){return App.popNotify(t,e,"default"),null}return t},c=!1,d=n.find("input,button").is(":focus"),f=function(e,t,o){c=!0;let l=r(e);null===l?s.FocusIt.call(s,a):(o||s.FocusIt.call(s,a+1),i.isDataModified(l,s.editItem[i.name].v)&&(s.editItem[i.name].v=l,i.code&&!i.codeOnlyInAdd&&(s.editItem[i.name].h=!0),!0===i.isPanelField&&s.createCell.call(s,n,i,50+a),s.checkRow.call(s,i.name))),c=!1},u=function(e,t){return setTimeout(function(){e&&e.length&&e.isAttached()&&(c?c=!1:f(e,0,!0))},40),!1},p=function(e,t){c=!0;let n=r(e);i.isDataModified(n,s.editItem[i.name].v)&&s.checkRow.call(s)},h=i.getEditElement(n.data("input"),s.editItem[i.name],s.editItem,f,p,u,50+a);if(h.isAttached()||n.html(h),n.data("input",h),d&&i.focusElement(h),"select"===i.type&&i.changeSelectTable){let a=function(){let a={};t.each(s.editItem,function(e,t){"$"!==e.substring(0,1)&&(a[e]=t)});let o=t(this).is(".source-add");o&&(a[i.name]=null);let l=0;t(e.top.document.body).on("pctable-opened.select-"+s.panelId,function(){l++}).on("pctable-closed.select-"+s.panelId,function(e,a){l--;let r=a&&"insert"===a.method&&a.json&&a.json.chdata&&a.json.chdata.rows;setTimeout(function(){if(0===l||r){let e=h;delete i.list,e.data("input").data("LISTs")&&(e.data("input").data("LISTs").isListForLoad=!0),r&&(i.multiple?s.editItem[i.name].v.push(Object.keys(a.json.chdata.rows)[0]):s.editItem[i.name].v=Object.keys(a.json.chdata.rows)[0]),e.replaceWith(h=i.getEditElement(null,s.editItem[i.name],s.editItem,f,p,u)),n.data("input",h),s.checkRow.call(s,i.name),!o&&s.pcTable.isMain&&s.pcTable.model.refresh(function(e){s.pcTable.table_modify.call(s.pcTable,e)}),t("body").off(".select-"+s.panelId)}},100)}),s.pcTable.model.selectSourceTableAction(i.name,a)},o=t('<div class="selectBtns">');n.prepend(o);let l=t('<button class="btn btn-default-primary btn-sm"><i class="fa fa-edit"></i></button>');if(o.prepend(l),l.on("click",a),2===i.changeSelectTable){n.addClass("with-source-add-button");let e=t('<button class="btn btn-default-primary btn-sm source-add"><i class="fa fa-plus"></i></button>');o.append(e),e.on("click",a)}else n.addClass("with-source-edit-button")}return n},this.getDataForPost=function(){let e={};return s.editItem.id&&(e.id=s.editItem.id),s.pcTable.fieldCategories.column.forEach(function(t){if("n"!==t.name)if(s.editItem[t.name]&&s.isEditable(t)){e[t.name]={};"edit"===s.panelType?(e[t.name].v=s.editItem[t.name].v,t.code&&!t.codeOnlyInAdd&&(e[t.name].h=s.editItem[t.name].h||!1),e[t.name].v=t.getPanelVal.call(t,e[t.name].v,s.$panel.find('div.cell[data-field-name="'+t.name+'"]').data("input"))):(e[t.name]=s.editItem[t.name].v,e[t.name]=t.getPanelVal.call(t,e[t.name],s.$panel.find('div.cell[data-field-name="'+t.name+'"]').data("input")))}else a[t.name]&&"insert"===s.panelType&&(e[t.name]=a[t.name].v)}),e},this.isEditable=function(e){if(!s.pcTable.control.editing)return!1;return!0!==t.extend({},s.pcTable.f||{},s.editItem.f||{},s.editItem[e.name].f||{}).block&&("insert"===this.panelType?e.insertable:e.editable)},this.FocusIt=function(e){d&&clearTimeout(d),d=setTimeout(function(){let t=!0;if(!s.$panel||!s.$panel.length)return!1;if(s.pcTable.fieldCategories.column.forEach(function(n,i){if("n"!==n.name&&e===i){if(!s.isEditable(n))return void++e;{let e=s.$panel.find('.cell[data-name="'+n.name+'"]').data("input");e&&n.focusElement(e)}return t=!1,!1}}),t){s.bootstrapPanel.indexedButtons[Object.keys(s.bootstrapPanel.indexedButtons)[0]].focus()}},50)},"object"!=typeof s.pcTable?App.getPcTableById(s.pcTable).then(function(e){s.pcTable=e,s.checkRow.call(s,null,!0)}):s.pcTable[0]?App.getPcTableById(s.pcTable[0],{sess_hash:s.pcTable[1]}).then(function(e){e.model.setDataRows(s.pcTable[2]),s.pcTable=e,s.checkRow.call(s,null,!0)}):s.checkRow.call(s,null,!0),c.promise()},t.extend(App.pcTableMain.prototype,{addScrollsRules:function(){let e=this;this._innerContainer.append(this._table).on("scroll",function(){"use strict";e._removeEditCell()}),e.withoutScrolls||t(function(){e._container.niceScroll({cursorwidth:7,mousescrollstep:90,mousescroll:190,autohidemode:!1,enablekeyboard:!1,cursoropacitymin:1,railoffset:{left:-3}})})},Scroll:function(){let n=this,i={};n._content.offset().top;i.table=void 0;let a=!1,o=0,l=function(){let e=s();a!=(a=i.getClusterNum(e))&&i.insertToDOM(a);let o=t("table.pcTable-table");o.find("thead").height()+o.offset().top-t("#table").offset().top<=0?i.table?i.table.css({top:parseInt(t("#table").offset().top)-parseInt(t(".innerContainer").offset().top)}):function(){if(!i.table){i.table=t("<table>").appendTo(n._innerContainer),i.table.width(n.tableWidth),i.table.append(t("table.pcTable-table thead").clone(!0)).attr("class",t("table.pcTable-table").attr("class")),i.table.find("th:not(.id) div, th:not(.id) .btn").remove(),i.table.find('th.id .pcTable-filters button[data-action="checkbox"]').remove(),i.table.find("th").removeClass("with-filter");let e=t('<div class="btn btn-default btn-xxs "><i class="fa fa-arrow-up"></i></div>').on("click",function(){n._container.scrollTop(n._filtersBlock.offset().top-n.scrollWrapper.offset().top)});if(i.table.find("th.id .pcTable-filters:first").append(e),i.table.find("th.n").length){let e=n._innerContainer.find("th.n").find("i.fa-save").parent().clone(!0);i.table.find("th.n").append(t('<div class="pcTable-filters">').append(e))}}i.table.css({position:"absolute",top:parseInt(t("#table").offset().top)-parseInt(t(".innerContainer").offset().top)})}():i.table&&(i.table.remove(),i.table=void 0,n._content.off("scroll"))},s=function(){try{return n._content.offset().top}catch(e){return 0}};n._container.on("scroll",function(){clearTimeout(o),o=setTimeout(function(){l.call(n)},50)});let r={top_offset:0,bottom_offset:0,rows:t()};return t.extend(i,{rows_in_block:4,item_height:35,getClusterNum:function(e){let t;return t=e>=0?0:Math.floor(-e/this.block_height),Math.max(t,0)},reloadScrollHead:function(){i.table&&(i.table.remove(),i.table=void 0),l.call(n)},generate:function(e){let t=n.dataSortedVisible,i=t.length;if(i<this.rows_in_block)return{top_offset:0,bottom_offset:0,rows:t};let a=Math.max(this.rows_in_block*e,0),o=a+this.rows_in_cluster+3*this.rows_in_block,l=Math.max(a*this.item_height,0),s=Math.max((i-o)*this.item_height,0),r=[];for(let e=a;e<o;e++)t[e]&&r.push(t[e]);return{top_offset:l,conteinerHeight:n._content.height(),i_start:a,bottom_offset:s,cluster_num:e,rows:r}},getRowsHeight:function(){0!==n.dataSortedVisible.length&&(this.block_height=this.item_height*this.rows_in_block,this.rows_in_cluster=Math.floor((e.innerHeight-n._container.offset().top)/this.item_height))},insertToDOM:function(e,t,i){this.rows_in_cluster||this.getRowsHeight(),e||(e=this.getClusterNum(s()));let a=this.generate(e),o=a.rows.join(",");(i||this.checkChanges("data",o,r))&&this.setHtml(a.rows,a.top_offset,a.bottom_offset,i),t&&n._container.getNiceScroll().resize()},setHtml:function(e,i,a,o){n._content.find(".editing").each(function(e){n._removeEditing.call(n,e)});let l=n._content.empty().get(0);if(i&&l.appendChild(t('<tr style="height: '+i+'px;" class="loading-row"><td colspan="'+(n.fieldCategories.column.length+1)+'"></td></tr>').get(0)),0===n.dataSorted.length)l.appendChild(n._createNoDataRow().get(0));else if(0===n.dataSortedVisible.length)l.appendChild(n._createNoDataRow("По условиям фильтрации не выбрана ни одна строка").get(0));else for(let t in e){let i=e[t],a=n.data[i];a.$tr&&!o||n._createRow.call(n,a),a.$tr.data("item",a),l.appendChild(a.$tr.get(0))}a&&l.appendChild(t('<tr style="height: '+a+'px;" class="loading-row"><td colspan="'+(n.fieldCategories.column.length+1)+'"></td></tr>').get(0))},checkChanges:function(e,t,n){let i=t!=n[e];return n[e]=t,i}}),i}}),t.extend(App.pcTableMain.prototype,{sort:function(e,t){let n=this,i=e.name,a="number"===e.type,o=n.data;(n.nSorted="n"===e.name)||this._table.addClass("no-correct-n-filtered"),a?n.dataSorted=n.dataSorted.sort(function(e,n){let a,l,s=o[e][i].v,r=o[n][i].v,c=0;if(null===s)c=null===r?0:-t;else if(null===r)c=t;else{try{a=Big(s)}catch(e){a=Big(0)}try{l=Big(r)}catch(e){l=Big(0)}c=a.gt(l)?t:a.eq(l)?0:-t}return c}):"select"===e.type?n.dataSorted=n.dataSorted.sort(function(n,a){let l,s;const r=function(t){let n;return o[t][i].v_?e.multiple?(n="",o[t][i].v_.forEach(function(e){n+=e[0]})):n=o[t][i].v_[0]:n=o[t][i].v,n};return(l=r(n))===(s=r(a))?0:l>s?t:-t}):n.dataSorted=n.dataSorted.sort(function(e,n){let a,l;return(a=o[e][i].v||"")>(l=o[n][i].v||"")?t:a==l?0:-t}),this.dataSortedVisible=[],n.dataSorted.every(function(e){return n.data[e].$visible&&n.dataSortedVisible.push(e),!0}),n._refreshContentTable()}}),App.pcTableMain.prototype.isSelected=function(e,t){return!(!this.selectedCells||!this.selectedCells.ids[e]||-1===this.selectedCells.ids[e].indexOf(t))},App.pcTableMain.prototype._addSelectable=function(){var n=this;n.selectedCells={fieldName:null,ids:{},notRowCell:null,selectPanel:null,lastSelected:null,notRowCellEmpty:function(){if(this.notRowCell){this.notRowCell.removeClass("selected");let e=this.notRowCell.closest(".DataRow");1===e.length&&e.removeClass("selected"),this.notRowCell=null}},empty:function(){this.notRowCellEmpty();let e=this;Object.keys(this.ids).forEach(function(t){e.ids[t].forEach(function(e){let t=n._getItemById(e);t&&t.$tr&&(t.$tr.find(".selected").removeClass("selected"),t.$tr.removeClass("selected"))})}),this.ids={},this.lastSelected=null},getEditedData:function(e,t){let i={},a=!1;return Object.keys(n.selectedCells.ids).length>1&&(a=!0),Object.keys(n.selectedCells.ids).forEach(function(o){n.selectedCells.ids[o].forEach(function(l){let s=n.data[l],r=s[o].f?s[o].f.block:void 0;s.f.block&&!1!==r||r||!n.fields[o].editable||!n.fields[o].editGroup||a&&!n.fields[o].editGroupMultiColumns||(i[l]||(i[l]={}),i[l][o]=t?s[o].v:e)})}),i},remove:function(e,t){let i=this;if(!this.ids[t])return;let a={};this.ids[t].some(function(n,o){if(n==e)return i.ids[t].splice(o,1),0===i.ids[t].length&&delete i.ids[t],a[e]=!0,!0}),Object.keys(a).forEach(function(e){let t=!1;Object.keys(i.ids).some(function(n){if(-1!==i.ids[n].indexOf(parseInt(e)))return t=!0,!0}),t||n.data[e].$tr&&n.data[e].$tr.removeClass("selected")})},add:function(e,t){this.ids[t]||(this.ids[t]=[]),this.ids[t].push(e),n.data[e].$tr&&n.data[e].$tr.addClass("selected")},selectPanelDestroy:function(){let e=this;e.selectPanel&&(e.selectPanel.attr("aria-describedby")&&e.selectPanel.popover("destroy"),e.selectPanel=null),t("body").off(".selectPanelDestroy")},checkIfShowPanel:function(i){"use strict";let a=this;if(this.selectPanelDestroy(),i){let o,l=n._getFieldBytd(i),s=t('<div id="selectPanel" class="text">'),r=200,c=t('<div class="column-name"></div>').text(l.title);l.unitType&&c.append(", "+l.unitType),s.append(c),"text"===l.type&&c.append(", "+l.textType),s.append(c),o="column"===l.category?n._getItemBytd(i):n.data_params;let d="";if("column"===l.category){if(d="["+o.id+"]",n.tableRow.main_field){let e=n.mainFieldName;void 0!==o[e].v_?"array"==typeof o[e].v_?o[e].v_.forEach(function(i,a){let l=t("<span>").text(n.fields[e].getElementString(o[e].v?o[e].v[a]:null,i));i[1]&&l.addClass("deleted_value"),d+=" "+l.html()}):d+=" "+n.fields[e].getElementString(o[e].v,o[e].v_):d+=" "+o[e].v}let e=t('<div class="row-name"></div>').text(d);s.append(e)}let f=o[l.name],u=t("<div>"),p=t('<div class="field-value"><div class="copytext"></div></div>').css("white-space","pre-wrap").height(r);u.append(p).appendTo(s),l.unitType&&null!==f.v&&p.attr("data-unit",l.unitType);let h,m=p.find(".copytext");f.f&&f.f.text&&u.append(t("<div>").text(f.f.text));let b=t('<div class="buttons"></div>');i.is(".edt")&&t('<button class="btn btn-sm btn-default"><i class="fa fa-pencil-square-o"></i></button>').on("click",function(){return i.dblclick(),!1}).appendTo(b),(h=t('<button class="btn btn-sm btn-default copy_me" disabled data-copied-text="Скопировано" title="Копировать "><i class="fa fa-copy"></i></button>')).on("click",function(){m.data("text")?App.copyMe(m.data("text")):App.copyMe(m.text());let e=t(this);return e.width(e.width()),e.button("copied"),setTimeout(function(){e.button("reset")},1e3),e.blur(),!1}),b.append(h),"tmp"!==n.tableRow.type&&l.logButton&&t('<button class="btn btn-sm btn-default" title="Лог ручных изменений по полю">Лог</button>').on("click",function(){let e;n.mainFieldName&&o.id&&(e=o[n.mainFieldName].v),n.model.getFieldLog(l.name,o.id,e);let i=t(this).addClass("disabled");return setTimeout(function(){i.removeClass("disabled")},1e3),!1}).appendTo(b),"column"===l.category&&l.filterable&&(n.isValInFilters.call(n,l.name,f)?t('<button class="btn btn-sm btn-warning" title="Удалить из фильтра"><i class="fa fa-filter"></i></button>').on("click",function(){return a.selectPanelDestroy(),n.removeValueFromFilters.call(n,l.name,f),!1}).appendTo(b):t('<button class="btn btn-sm btn-default" title="Добавить в фильтр"><i class="fa fa-filter"></i></button>').on("click",function(){return a.selectPanelDestroy(),n.addValueToFilters.call(n,l.name,f),n._container.scrollTop(n._filtersBlock.offset().top-n.scrollWrapper.offset().top),n.ScrollClasterized.insertToDOM.call(n.ScrollClasterized,0),!1}).appendTo(b));{let n=t('<button class="btn btn-sm btn-default"><i class="fa fa-expand" style="padding-top: 3px;" aria-hidden="true"></i></button>');n.on("click",function(){e.top.BootstrapDialog.show({message:u,type:null,title:c.text()+(d?" / "+d:""),cssClass:"fieldparams-edit-panel",draggable:!0,onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:"90vw",minHeight:"90vh"}),a.selectPanelDestroy()},onshown:function(t){t.$modalContent.position({my:"center top",at:"center top+30px",of:e.top})}})}),b.append(n)}t('<button class="btn btn-sm btn-default" title="Закрыть панель"><i class="fa fa-times"></i></button>').on("click",function(){return a.selectPanelDestroy(),!1}).appendTo(b);const g=function(e){m.text(e),h.prop("disabled",!1)},_=function(e,t){m.html(e),e.data("text")?m.data("text",e.data("text")):m.data("text",t),h.prop("disabled",!1)};let v=l.getPanelText(f.v,s,o);n.isCreatorView&&-1!==["select","tree","date"].indexOf(l.type)&&p.after(t('<div class="creator-select-val">'+JSON.stringify(f.v)+"</div>"));const w=function(e){if("object"==typeof e&&null!==e)if(e instanceof jQuery){let n="";e.copyText?_(e,e.copyText):(e.each(function(){""!==n&&(n+="\n"),n+=t(this).text()}),""===n&&(n=e.text()),_(e,n))}else e.then?e.then(w):g(JSON.stringify(e));else g(e)};if(w(v),n.isCreatorView){let e;n.LOGS&&(e=n.LOGS,o&&o.id&&(e=n.LOGS[o.id]),e&&(e=e[l.name]));let i=t('<div style="padding-top: 10px">');if(e&&e.c){let n=t('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> c</i></button>');n.on("click",function(){App.logOutput(e.c)}),i.append(n)}if(e&&e.s){let n=t('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> s</i></button>');n.on("click",function(){App.logOutput(e.s)}),i.append(n)}if(e&&e.a){let n=t('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> a</i></button>');n.on("click",function(){App.logOutput(e.a)}),i.append(n)}if(e&&e.f){let n=t('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> f</i></button>');n.on("click",function(){App.logOutput(e.f)}),i.append(n)}i.children().length&&b.append(i)}this.selectPanel=i.find("span:first"),s.append(b),f.e&&s.append(t('<div style="padding-top: 5px;">').html(t("<span>").text(f.e).text().replace(/\[\[(.*?)\]\]/g,"<b>$1</b>")));let y="right",x=this.selectPanel.offset().left,k=n._container.offset().left;n._container.width()-(x-k)-this.selectPanel.width()<(s.is(".text")?340:240)&&(y="left");let C={isParams:!0,$text:s,element:this.selectPanel,container:n._container,placement:y,trigger:"manual"};if(App.popNotify(C),"select"===l.type){let e=t('<div class="previews">').appendTo(s.find(".field-value"));l.loadPreviewPanel(e,l.name,o,f.v)}t("body").on("click.selectPanelDestroy",function(e){0===t(e.target).closest("#selectPanel").length&&a.selectPanelDestroy()}).on("keyup.selectPanelDestroy",function(e){27==e.which&&a.selectPanelDestroy()})}return!1},copySepected:function(e,n){let i=this,a="",o=[],l=[],s={},r=[];Object.keys(i.selectedCells.ids).forEach(function(e){let t=i.selectedCells.ids[e];o=o.concat(t),l.push(e),t.forEach(function(t){s[t]||(s[t]={});let n=i.fields[e].getCopyText.call(i.fields[e],i.data[t][e],i.data[t]);"object"==typeof n?(r.push(n),n.done(function(n){s[t][e]=n})):s[t][e]=n})}),o=Array.from(new Set(o)),o=i.dataSortedVisible.filter(e=>-1!==o.indexOf(e)),l=Array.from(new Set(l));let c=[];i.fieldCategories.visibleColumns.forEach(function(e){-1!==l.indexOf(e.name)&&c.push(e.name)}),l=c;e&&(a+="id",l.forEach(function(e){a+="\t",a+=i.fields[e].title}));let d=n;t.when(...r).done(function(){o.forEach(function(t){""!==a&&(a+="\n");let n=!0;e&&(a+=t,n=!1),l.forEach(function(e){!0===n?n=!1:a+="\t";let i=s[t][e];void 0===i&&(i=""),"string"==typeof i&&i.replace(/\t/g,"").match(/[\s"]/)&&(i='"'+i.replace(/"/g,'""')+'"'),a+=i})}),console.log(a),App.copyMe(a),setTimeout(d,400)})},click:function(e,i){let a=n._table;if(e.closest("table").is(".pcTable-filtersTable"))return!1;if(!0===a.data("moved"))return a.data("moved",!1),!1;(function(){if(e.is(".val")){if(this.notRowCell&&-1!==this.notRowCell.index(e))n.selectedCells.empty();else{n.selectedCells.empty(),this.notRowCell=e,this.notRowCell.addClass("selected");let t=this.notRowCell.closest(".DataRow");1===t.length&&t.addClass("selected")}return void t("table.pcTable-table").removeClass("selected-multi").removeClass("selected-column")}this.notRowCellEmpty();let a=e.closest("tr"),o=n._getItemByTr(a),l=n._fieldByTd(e,a),s=l.name;if(i.altKey)e.is(".selected")?(n.selectedCells.remove(o.id,s),e.removeClass("selected")):(n.selectedCells.add(o.id,s),e.addClass("selected"),this.lastSelected=[s,o.id]);else if(i.shiftKey&&Object.keys(n.selectedCells.ids).length){let e=this,t=[],i="before";n.dataSortedVisible.some(function(n){if("before"===i){if((n===o.id||n===e.lastSelected[1])&&(i="doIt",t.push(n),o.id===e.lastSelected[1]))return!0}else if("doIt"===i&&(t.push(n),n===o.id||n===e.lastSelected[1]))return!0}),i="before";let a=function(i){t.forEach(function(t){let a=n.data[t];n.isSelected(i.name,t)||(e.add(t,i.name),a.$tr&&n._getTdByFieldName(i.name,a.$tr).addClass("selected"))})};n.fieldCategories.column.some(function(t){if(t.showMeWidth>0)if("before"===i){if((t.name===s||t.name===e.lastSelected[0])&&(i="doIt",a(t),s===e.lastSelected[0]))return!0}else if("doIt"===i&&(a(t),t.name===s||t.name===e.lastSelected[0]))return!0}),this.lastSelected=[s,o.id]}else{let t=n.isSelected(l.name,o.id);n.selectedCells.empty(),t||(n.selectedCells.add(o.id,s),e.addClass("selected"),this.lastSelected=[s,o.id])}let r=Object.keys(n.selectedCells.ids);r.length>1?t("table.pcTable-table").addClass("selected-multi"):1===r.length&&Object.values(n.selectedCells.ids)[0].length>1?t("table.pcTable-table").removeClass("selected-multi").addClass("selected-column"):t("table.pcTable-table").removeClass("selected-multi").removeClass("selected-column")}).call(this)}},this._container.on("contextmenu",".DataRow td:not(.editing,.n,.id), td.val:not(.editing)",function(){let e=t(this);return n.selectedCells.selectPanel&&n.selectedCells.selectPanel.closest("td")[0]==e[0]?n.selectedCells.selectPanelDestroy():(n.selectedCells.selectPanelDestroy(),n.selectedCells.empty(),n.selectedCells.checkIfShowPanel(e),n.selectedCells.click(e,{})),!1}),this._container.on("click",".DataRow td:not(.editing,.id,.n), td.val:not(.editing)",function(e){let i=t(this);if(i.is(".cell-button")){let e=n._getFieldBytd(i);return n._buttonClick.call(n,i,e),!1}i.data("clicked")?i.removeData("clicked"):(i.data("clicked",1),setTimeout(function(){i.data("clicked")&&(i.removeData("clicked"),n.selectedCells.click(i,e))},200))}),this._container.on("click","th.id .for-selected button",function(){let e=t(this),i=e.html();e.text("Скопировано"),n.selectedCells.copySepected.call(n,e.data("names"),function(){e.html(i)})})},App.pcTableMain.prototype.filters={},App.pcTableMain.prototype.__getFilterButton=function(e){var n="btn-default";(this.filters[e]&&this.filters[e].length||this.filters[e+"/h"])&&(n="btn-warning");var i=t('<button class="btn btn-xxs btn-filter"><span class="fa fa-filter"></span></button>').addClass(n);return t('<span class="filter-in-head">').append(i)},App.pcTableMain.prototype.filtersEmpty=function(){this.filters={},this._refreshHead(),this.__applyFilters()},App.pcTableMain.prototype.sessionStorageFilters={url:location.protocol+"//"+location.host+location.pathname,setFilters:function(e){var t={};e=e||{};try{t=JSON.parse(sessionStorage.getItem("pcTableFilters"))||{}}catch(e){}t[this.url]=e,sessionStorage.setItem("pcTableFilters",JSON.stringify(t))},getFilters:function(){var e={};try{e=(e=JSON.parse(sessionStorage.getItem("pcTableFilters")))[this.url]||{}}catch(e){}return e}};let c=!0;App.pcTableMain.prototype.__applyFilters=function(){let e=this;App.fullScreenProcesses.show(),this.filtersClearButton&&("tmp"!==e.tableRow.type&&this.sessionStorageFilters.setFilters(this.filters),this.selectedCells.empty(),Object.equals(this.filters,{})?this.filtersClearButton.addClass("btn-default").removeClass("btn-warning").attr("disabled",!0):(this.filtersClearButton.removeClass("btn-default").addClass("btn-warning").removeAttr("disabled"),c&&(App.blink(e.filtersClearButton,8,"#fff"),c=!1)));let t=this.dataSortedVisible;this.dataSortedVisible=[];for(let e=0;e<this.dataSorted.length;e++){let t=this.dataSorted[e],n=this.data[t];this.__applyFiltersToItem(n),n.$visible&&this.dataSortedVisible.push(t)}this._headCellIdButtonsState(),JSON.stringify(t)!==JSON.stringify(this.dataSortedVisible)&&this._refreshContentTable(!1,!0),App.fullScreenProcesses.hide()},App.pcTableMain.prototype.__applyFiltersToItem=function(e,t){let n=this,i=!0;for(let t in n.filters){let a=n.filters[t];if("id"===t)-1===a.indexOf(e.id.toString())&&(i=!1);else{let o=t.toString().split("/");switch(t=o[0],o[1]||"v"){case"v":n._getFieldbyName(t).checkIsFiltered(e[t],a)||(i=!1);break;case"h":switch(a){case"h":!0!==e[t].h&&(i=!1);break;case"n":!0===e[t].h&&(i=!1);break;case"hf":(!0!==e[t].h||e[t].hasOwnProperty("c"))&&(i=!1);break;case"hc":!0===e[t].h&&e[t].hasOwnProperty("c")||(i=!1)}}}if(!i)break}(e.$visible=i)||this.row_actions_uncheck(e)},App.pcTableMain.prototype.addValueToFilters=function(e,t){this.filters[e]||(this.filters[e]=[]);let n=this.fields[e];this.filters[e].push(n.getFilterDataByValue.call(n,t)),n.$th.find(".btn-filter").parent().replaceWith(this.__getFilterButton.call(this,e)),this.__applyFilters.call(this)},App.pcTableMain.prototype.isValInFilters=function(e,t){this.filters[e]||(this.filters[e]=[]);let n=this.fields[e],i=n.getFilterDataByValue.call(n,t);return-1!==this.filters[e].indexOf(i)},App.pcTableMain.prototype.removeValueFromFilters=function(e,t){this.filters[e]||(this.filters[e]=[]);let n,i=this.fields[e],a=i.getFilterDataByValue.call(i,t);for(;-1!==(n=this.filters[e].indexOf(a));)this.filters[e].splice(n,1);0===this.filters[e].length&&delete this.filters[e],i.$th.find(".btn-filter").parent().replaceWith(this.__getFilterButton.call(this,e)),this.__applyFilters.call(this)},App.pcTableMain.prototype.__addFilterable=function(){var e=this,n={};"tmp"!=e.tableRow.type&&(n=e.sessionStorageFilters.getFilters()),e.filters=n||{},this._header.on("click",".pcTable-filters > span button.btn-filter:not(#checkS)",function(n){let i=t(this);if(i.attr("aria-describedby"))return!0;let a=i.closest("th"),o=a.is(".id")?"id":a.data("field"),l=t('<div class="filter-div-button">'),s=t('<select class="selectpicker" data-size="6" multiple title="Выберите значения" data-style="btn-sm btn-default" data-width="css-width" data-live-search="true" data-selected-text-format="count">').appendTo(l);const r=function(){try{i.popover("destroy")}catch(e){}};let c,d=!1;const f=function(n){if(c&&clearTimeout(c),!d){if("filterRemove"===n)return d=!0,r(),delete e.filters[o],i.removeClass("btn-warning").addClass("btn-default"),void e.__applyFilters.call(e);if("setInvertFilters"===n){let e=Object.values(s.selectpicker("val")),n=[];t.each(s.data("options"),function(t,i){-1===e.indexOf(i)&&n.push(i)}),s.selectpicker("val",n)}c=setTimeout(function(){r(),JSON.stringify(e.filters[o]||[])!==JSON.stringify(s.selectpicker("val"))&&(e.filters[o]=s.selectpicker("val"),0===e.filters[o].length&&delete e.filters[o],"id"!==o||i.closest(".pcTable-table").is(".pcTable-table:first")||e._header.find("th.id .btn-filter").parent().replaceWith(e.__getFilterButton.call(e,o)),i.parent().replaceWith(e.__getFilterButton.call(e,o)),e.__applyFilters.call(e))},10)}};l=t('<div class="pcTable-filter-select" style="height: 220px;">').append(l),s.data("container",l);var u={};t.each(e.data,function(t,n){"id"===o?u[t.toString()]=t.toString():e.fields[o].addDataToFilter(u,n[o])});var p={};t.each(u,function(e,t){p[t]=e}),p=App.ksort(p);let h={},m=e.filters[o]?[...e.filters[o]]:[];const b=function(e){h={"Выбранное":t('<optgroup label="Выбранное">'),"":t('<optgroup label="">')};let n=function(){return!0};if(e&&""!==e){let t=e.toLowerCase().replace("ё","е").split(" ");n=function(e){let n=null!==e?e.toString().toLowerCase().replace("ё","е"):"";return!t.some(function(e){return-1===n.indexOf(e)})}}let i=!1,a=0,o=0;t.each(p,function(e,t){if("null"===e&&(e="null "),-1!==m.indexOf(t.toString())){let i=n(e);h["Выбранное"].append('<option data-content="'+e+'" '+(i?"":'style="display: none"')+">"+t+"</option>"),o+=i?1:0}else{if(!n(e))return!0;a>=100?i=!0:(h[""].append('<option data-content="'+e+' ">'+t+"</option>"),a++)}}),s.empty(),o||h["Выбранное"].attr("label",""),s.append(h["Выбранное"]),s.append(h[""]),i&&s.append('<option data-content="Данные не полны. Пользуйтесь поиском" disabled = disabled style="text-align: center; cursor: pointer">0</option>'),s.data("options",p),s.selectpicker("val",m),s.selectpicker("refresh")};s.on("change.bs.select",function(){m=s.val()}),b();let g=i.popover({html:!0,content:l,trigger:"manual",container:e._container,placement:"auto bottom",template:'<div class="popover" role="tooltip" style=""><div class="arrow" style="left: 50%;"></div><div class="popover-content" style=" padding: 3px 5px;"></div></div>'});s.selectpicker("render").selectpicker("toggle");let _=t('<div class="buttons" style="position: absolute; bottom: -4px; width: 100%; text-align: center">');if(t('<span class="btn btn-default btn-xxs button-ok" style="margin-right: 4px; margin-top: 3px;">Прим.</span></span>').appendTo(_).on("click",function(){f("setSelectedFilters")}),t('<span class="btn btn-default btn-xxs button-ok" style="margin-right: 4px; margin-top: 3px;">Инверт.</span></span>').appendTo(_).on("click",function(){f("setInvertFilters")}),t('<span class="btn btn-default btn-xxs button-ok" style="margin-right: 4px; margin-top: 3px">Отмен.</span>').appendTo(_).on("click",function(){f("filterRemove")}),e.fields[o]&&e.fields[o].code&&!e.fields[o].codeOnlyInAdd){let n=t('<select data-title="Все" data-style="btn btn-xxs '+(e.filters[o+"/h"]?"btn-warning":"btn-default")+' "><option value="">Все</option><option value="n">Без руки</option><option value="h">С рукой все</option><option value="hf">С рукой как в расчете</option><option value="hc">С рукой отличающиеся</option></select>').appendTo(_).on("change",function(){return e.filters[o+"/h"]=n.selectpicker("val"),""===e.filters[o+"/h"]&&delete e.filters[o+"/h"],r(),i.parent().replaceWith(e.__getFilterButton.call(e,o)),e.__applyFilters.call(e),!1}).wrap('<span id="filterHand">');setTimeout(function(){n.selectpicker("render").selectpicker("val",e.filters[o+"/h"]||"")},100)}_.appendTo(l),s.on("hidden.bs.select",function(){f("setSelectedFilters")}),e.filters[o]&&s.selectpicker("val",e.filters[o]),setTimeout(function(){if(g&&g.length){let n;g.popover("show"),l.on("mouseenter","li",function(){let e=t(this);e.attr("title")||e.attr("title",e.text())}),"id"===o&&t("#"+i.attr("aria-describedby")).position({my:"left top",at:"left-3px bottom+10px",of:i}).find(".arrow").css("left","12px"),s.data("selectpicker")._searchStyle=function(){return"multiincludes"},s.data("selectpicker").$searchbox.focus(),s.data("selectpicker").$searchbox.off().on("click.dropdown.data-api focus.dropdown.data-api touchend.dropdown.data-api",function(e){e.stopPropagation()});let a="";s.data("selectpicker").$searchbox.on("keyup",function(e){if("Escape"===e.key)return s.data("selectpicker").$button.click(),!0;let i=t(this).val();a!==i&&(a=i,n&&clearTimeout(n),n=setTimeout(function(){b(a)},750))}),e._container.one("click.filter filterPressed.filter",function(n){0!==t(n.target).closest("#filterHand").length||"filterPressed"!==n.type&&void 0===n.altKey||!t("#"+i.attr("aria-describedby")).is(":visible")||(e._container.off(".filter"),f("setSelectedFilters"))}),e._innerContainer.one("scroll.filter",function(n){t("#"+i.attr("aria-describedby")).is(":visible")&&(e._container.off(".filter"),f("setSelectedFilters"))})}},50),e._container.trigger("filterPressed")})},t.extend(App.pcTableMain.prototype,{_addEditable:function(){var e=this;this._container.on("dblclick","td.val:not(.editing), td.edt:not(.editing), .dataRows td:not(.editing,.id,.n)",function(n){let i=t(this),a=i.closest("tr");if(a.length&&a.is(".InsertRow"))return!1;if(i.is(".footer-name, .id, .footer-empty"))return!1;if(i.is(".edt"))e._createEditCell.call(e,i,!0);else{let e=i.html();i.html("Заблокировано"),setTimeout(function(){i.html(e)},500)}}).on("click",".editCellsBlock .btn, td.edt .ttm-edit",function(e){if(t(this).is(".ttm-edit"))return t(this).closest("td").trigger("dblclick"),!1;t(this).data("click")(e)})},goToEditNextCell:function(e){return next},_buttonClick:function(n,i,a){if(n.data("clicked"))return!1;const o=function(){"use strict";let o,s={},r=n.parent();n.data("clicked",!0),"column"===i.category?(a=a||l._getItemBytd(n),o=a.id,s.item=o,s.fieldName=i.name):(s.item="params",s.fieldName=i.name),s.checked_ids=l.row_actions_get_checkedIds(),n.find("button").hide();let c=t('<div class="text-center"><i class="fa fa-spinner"/></div>');n.append(c),l._saving=!0,l.model.click(s).then(function(t){if(l.table_modify.call(l,t),n.length&&n.isAttached())c.remove(),n.find("button").show();else if("column"===i.category){let e=l._getItemById(o).$tr;n=l._getTdByFieldName(i.name,e)}else n=r.find('[data-field="'+i.name+'"]');i.uncheckAfterClick&&l.row_actions_uncheck_all(),i.closeIframeAfterClick&&e.closeMe&&e.closeMe(),i.btnOK.call(i,n)}).fail(function(){n.length&&n.isAttached()&&(c.remove(),n.find("button").show(),n.removeData("clicked"))}).always(function(){l._saving=!1})};let l=this;if(i.warningEditPanel){let e={"Ок":function(e){e.close(),o()},"Отмена":function(e){e.close()}};App.confirmation(i.warningEditText||"Точно изменить?",e,"Подтверждение")}else o()},_saveEdited:function(e,n,i){let a=this;!0!==a._saving&&(a._saving=!0,this.model.save(n).then(function(t){a.table_modify.call(a,t,void 0,e),e.closest("table").length&&e.is("tr.DataRow")&&a.refreshRow(e),i&&i()}).always(function(){a._saving=!1,e.is("tr.DataRow")&&1===e.closest("table").length&&e.find(".editing").length?e.each(function(){a.refreshRow(t(this))}):e.is("td")&&e.find(".fa-spinner").length&&e.closest("table").length>0&&e.each(function(){let e=t(this),n=a._getItemBytd(e),i=a._getFieldBytd(e),o=a._createCell(n,i);"button"===i.type&&i.btnOK.call(i,o),e.replaceWith(o)})}))},_editFocusIndex:0,_editItem:null,_editPanel:null,_row_edit:function(e){let t=this;if(0===e.length)return!1;let n=e.shift();new EditPanel(t,BootstrapDialog.TYPE_PRIMARY,{id:n},e.length>0).then(function(n,i){(n||i)&&(n&&t.table_modify.call(t,n),t._row_edit.call(t,e))})},_currentEditCellIndex:0,_removeEditing:function(e){e||(e=this._content.find("td.editing"));var t=this._createCell(this._getItemBytd(e),this._getFieldBytd(e));let n;return(n=e.attr("rowspan"))&&t.attr("rowspan",n),(n=e.data("field"))&&t.data("field",n),e.is(".val")&&t.addClass("val"),e.replaceWith(t),t},_saveEditCell:function(){this._editCell&&this._editCell.isAttached()&&this._editCell.is(".editCell")&&this._editCell.data("SaveMe")&&this._editCell.data("SaveMe")()},_removeEditCell:function(){this._editCell&&this._editCell.isAttached()&&this._editCell.is(".editCell")&&this._removeEditing(this._editCell),this._editCell=null},_setEditCell:function(e){this._saveEditCell(),this._editCell=e,e.addClass("editCell")},_setTdSaving:function(e){e.html('<div class="text-center"><i class="fa fa-spinner"/></div>')},_createEditCell:function(i,a,o){let l=this,s=this._getFieldBytd(i);this._setEditCell(i),i.height(i.height());let r=i.closest("tr"),c=l._getColumnIndexByTd(i,r),d=function(e){if(!e)return!1;let t;switch(e){case"right":for(t=l._getTdByColumnIndex.call(l,r,++c);t.length;){if(!0===l._getFieldBytd.call(l,t).editable){t.trigger("dblclick");break}t=t.next("td")}break;case"down":for(t=r.next("tr");t.length&&t.is(".Blocked");)t=t.next("tr");l._getTdByColumnIndex.call(l,t,c).trigger("dblclick")}};if(!s.editable)return!1;let f=(o=o||this._getItemBytd(i)).id,u=t('<div class="editCellsBlock">');i.addClass("editing");let p,h,m=o[s.name],b=!1,g=function(e,t,i){let a=i||e.closest("td"),o=t||{};if(!a.length||!a.closest("tr").length)return!1;var s=l._removeEditing.call(l,a);l._colorizeElement(s,n),d(o.altKey?"right":!!o.shiftKey&&"down")},_=function(e){l._removeEditing.call(l,i),d(e)};l.isSelected(s.name,o.id)?Object.keys(l.selectedCells.ids).length>1?(h=!0,p=!0):l.selectedCells.ids[s.name].length>1&&(p=!0):l.selectedCells.empty();let v=function(e,t,n){if(!n&&s.warningEditPanel&&s.checkEditRegExp.call(s,e))return void App.confirmation(s.warningEditText||"Точно изменить?",{"ОК":function(n){v(e,t,!0),n.close()},"Отменить":function(e){_(),e.close()}},"Предупреждение при изменении");i.html('<div class="text-center"><i class="fa fa-spinner"/></div>');let a={};a[s.name]=e;let r={};o.id?r[o.id]=a:r.params=a,l._saveEdited.call(l,i,r,function(){d(t.altKey?"right":!!t.shiftKey&&"down")})},w=function(e,t){setTimeout(function(){if(b)return b=!1,!1;y(e,t)},150)},y=function(e,n,i){if(b=!0,!(i=i||!1)&&p)return!1;let a,o=e.closest("td");try{a=s.getEditVal(x)}catch(e){return t("#"+App.popNotify(e,o,"default")).css("z-index",1e3),void(b=!1)}let r=l._getItemBytd(o),c=n.altKey?"right":!!n.shiftKey&&"down";s.isDataModified(a,r[s.name].v)?v(a,n):_(c)};var x=s.getEditElement(void 0,m,o,y,g,w,null,a);i.html(x),i.data("SaveMe",function(e){y(x,e=e||{})}),i.data("input",x);var k=t('<div class="cdiv">').css({height:0,width:"100%",position:"absolute",bottom:"0px"});i.append(k);var C=t('<button class="btn btn-sm btn-default" data-save="true" data-name="Сохранить"><i class="fa fa-save"/></button>').data("click",function(e){b=!0,y(x,e,!0)});u.append(C);C=t('<button class="btn btn-sm btn-default" data-name="Закрыть"><i class="fa fa-undo"/></button>').data("click",function(e){b=!0;let t=e.altKey?"right":!!e.shiftKey&&"down";_(t)});if(u.append(C),p&&(h?s.editGroupMultiColumns:s.editGroup)){let e=function(){let e;b=!0;try{e=s.getEditVal(x)}catch(e){return void App.popNotify(e,i,"default")}let t=l._container.find("td.selected");l._setTdSaving(t);let n=l.selectedCells.getEditedData(e);l._saveEdited.call(l,t,n,!1)};(C=t('<button class="btn btn-sm btn-warning" data-save="true" data-name="Применить к выделенным"><i class="fa fa-database" title="Применить к выделенным"/></button>')).data("click",function(){s.warningEditPanel?App.confirmation(s.warningEditText,{"ОК":function(t){e(),t.close()},"Отменить":function(e){_(),e.close()}},"Предупреждение при изменении"):e()}),u.append(C),s.code&&!s.codeOnlyInAdd&&((C=t('<button class="btn btn-sm btn-warning" data-name="Фиксировать выделенные"><i class="fa fa-hand-rock-o" title="Фиксировать"/></button>')).data("click",function(){b=!0;let e=l._container.find("td.selected");l._setTdSaving(e);let t=l.selectedCells.getEditedData(null,!0);l._saveEdited.call(l,e.closest("tr"),t,!1)}),u.append(C),(C=t('<button class="btn btn-sm btn-danger" data-name="Сбросить ручные"><i class="fa fa-eraser" title="Сбросить ручные"/></button>')).data("click",function(){b=!0;let e=l._container.find("td.selected");l._setTdSaving(e);let t=l.selectedCells.getEditedData("NULL");t.setValuesToDefaults=!0,l._saveEdited.call(l,e.closest("tr"),t,!1)}),u.append(C))}else o[s.name]&&1==o[s.name].h?((C=t('<button class="btn btn-sm btn-danger" data-name="Сбросить ручное"><i class="fa fa-eraser" title="Сбросить ручное"/></button>')).data("click",function(){b=!0,i.html('<div class="text-center"><i class="fa fa-spinner"/></div>');let e={};parseInt(f)||(f="params"),e[f]={},e[f][s.name]="NULL",e.setValuesToDefaults=!0,l._saveEdited.call(l,i,e,!1)}),u.append(C)):s.code&&!s.codeOnlyInAdd&&((C=t('<button class="btn btn-sm btn-default" data-name="Фиксировать"><i class="fa fa-hand-rock-o" title="Фиксировать"/></button>')).data("click",function(){b=!0,i.html('<div class="text-center"><i class="fa fa-spinner"/></div>');let e={};parseInt(f)||(f="params"),e[f]={},e[f][s.name]="params"===f?l.data_params[s.name].v:l.data[f][s.name].v,l._saveEdited.call(l,i,e,!1)}),u.append(C));if(s.changeSelectTable){let n=function(){b=!0;let n={};t.each(o,function(e,t){"$"!==e.substring(0,1)&&(n[e]=t)}),t(this).data("add-button")&&(n[s.name]=null);let i=0;return t(e.top.document.body).on("pctable-opened.select-"+s.name,function(){i++}).on("pctable-closed.select-"+s.name,function(e,n){i--;let a=n&&"insert"===n.method&&n.json&&n.json.chdata&&n.json.chdata.rows;setTimeout(function(){if(0===i||a){let e=x;delete s.list,e.data("input").data("LISTs")&&(e.data("input").data("LISTs").isListForLoad=!0),o=t.extend(!0,{},o),a&&(s.multiple?o[s.name].v.push(Object.keys(n.json.chdata.rows)[0]):o[s.name].v=Object.keys(n.json.chdata.rows)[0]),a||"column"!==s.category||l.model.refresh(function(e){l.table_modify.call(l,e)}),o[s.name].replaceViewValue=function(e){"column"!=s.category&&(l.data_params[s.name].v_=e)},e.replaceWith(x=s.getEditElement(e,o[s.name],o,y,g,w)),t("body").off(".select-"+s.name)}},100)}),l.model.selectSourceTableAction(s.name,n),!1};(C=t('<button class="btn btn-sm btn-primary"><i class="fa fa-edit" title="Изменить в таблице-источнике"/></button>')).on("click",n),u.append(C),2===s.changeSelectTable&&(C=t('<button class="btn btn-sm btn-primary" data-add-button="true"><i class="fa fa-plus" title="Добавить в таблицу-источник"/></button>'),u.append(C),C.on("click",n))}let T=u.find("button").length;u.width(31*T);let S=t("#"+App.popNotify({$text:u,element:k,container:this._container,isParams:!0,placement:"bottom"})),I=parseInt(S.css("top"))-4;S.css("top",-1e7),setTimeout(function(){S.length&&S.isAttached()&&S.css("top",I)},3),s.focusElement(x)}}),function(e,t){t.extend(App.pcTableMain.prototype,{_orderSaveBtn:void 0,row_actions_add:function(){let e=this;e._table.on("mouseenter",".DataRow .id",function(){e.row_actions_icons_show.call(e,t(this))}),e._table.on("mouseout",".DataRow .id",function(n){let i=t(this);return t(n.target).is(".id")&&(i.is(":hover")?setTimeout(function(){i.is(":hover")||e.row_actions_icons_hide.call(e,i.closest("tr"))},100):e.row_actions_icons_hide.call(e,i.closest("tr"))),!1}),e._table.on("click",".DataRow .id button.dropdown",function(){e.row_dropdown.call(e,t(this))}),e._table.on("click",".DataRow .id .btn.chbox",function(n){return e._row_actions_checkbox_click.call(e,t(this).closest("tr"),n.shiftKey),!1}),e._table.on("mouseleave",function(){return t(this).blur(),!1}),e._container.on("click",".row_delete",function(){e.rows_delete.call(e,t(this).data("tr"))}),e._container.on("click",".row_duplicate",function(){e.row_duplicate.call(e,t(this).data("tr"))}),e._container.on("click",".row_refresh",function(){e.row_refresh.call(e,t(this).data("tr"))}),e._table.on("click",".DataRow .id button.edit",function(){e.rows_edit.call(e,t(this).closest("tr"))}),e.isCreatorView&&"cycles"===e.tableRow.type&&e._container.on("click",".cycle_refresh",function(){e.cycle_refresh.call(e,t(this).data("tr"))})},_idCheckButton:t('<button class="btn btn-xxs chbox btn-default" data-action="checkbox"><span class="fa fa-square-o"></span></button>'),_checkStatusBar:t('<div class="check-status-bar">✓ <span data-name="count_checked_rows">0</span> из <span data-name="count_visible_rows">0</span></div>'),_headCellIdButtonsState:function(){"use strict";let e=this;this.row_actions_get_checkedIds().length>0?t("table.pcTable-table").addClass("with-checks"):t("table.pcTable-table").removeClass("with-checks"),this.dataSortedVisible.length!==this.__checkedRows.length?e._idCheckButton.html('<span class="fa fa-square-o"></span>'):e._idCheckButton.html('<span class="fa fa-check"></span>'),this._refreshCheckedStatus(),e.ScrollClasterized.reloadScrollHead.call(e.ScrollClasterized)},_addCellId:function(e,n){let i=t('<td class="id">'+e.id+"</td>");return i.appendTo(n),!0===e.$checked&&(this.row_actions_icons_add(i),this.row_actions_check(e,!0)),i},_addCellNo:function(e,n){let i=t('<td class="No">--</td>');return i.appendTo(n),i},row_actions_uncheck_all:function(){"use strict";let e=this,t=this.row_actions_get_checkedIds();for(let n=0;n<t.length;n++){let i=e._getItemById(t[n]);e.row_actions_uncheck.call(e,i,!0)}this.__checkedRows=[],this._headCellIdButtonsState()},_refreshCheckedStatus:function(){this._checkStatusBar.find('[data-name="count_checked_rows"]:first').text(this.__checkedRows.length),this._checkStatusBar.find('[data-name="count_visible_rows"]:first').text(this.dataSortedVisible.length)},_row_actions_checkbox_click:function(e,n){let i=this,a=e.closest("tr"),o=this._getItemByTr(a),l=t.extend({},i._lastcheckAction||{});if(i._lastcheckAction={id:o.id,isCheck:!o.$checked},n){let e,t=[];if(l.id&&!o.$checked===l.isCheck&&-1!==(e=i.dataSortedVisible.indexOf(l.id))){let n=i.dataSortedVisible.indexOf(o.id);t=e<n?i.dataSortedVisible.slice(e+1,n+1):i.dataSortedVisible.slice(n,e)}else i.dataSortedVisible.some(function(e){if(i.data[e].$checked?t=[]:t.push(e),e===o.id)return!0});o.$checked?t.forEach(function(e){i.__checkedRows.splice(i.__checkedRows.indexOf(e),1),i.row_actions_uncheck(i.data[e],!0)}):t.forEach(function(e){i.__checkedRows.push(e),i.row_actions_check(i.data[e],!0)}),this._headCellIdButtonsState()}else o.$checked?this.row_actions_uncheck(o):this.row_actions_check(o)},row_actions_get_checkedIds:function(){return this.__checkedRows},row_actions_check:function(e,t){if(e.$checked=!0,e.$tr){let t=e.$tr.find(".id:first");0===t.find("button:first").length&&this.row_actions_icons_add(t),t.find(".chbox").html('<i class="fa fa-check"/>'),t.addClass("checked"),t.is(":hover")||this.row_actions_icons_hide(e.$tr)}t||(this.__checkedRows.push(e.id),this._headCellIdButtonsState())},row_actions_uncheck:function(e,t){e.$checked&&(e.$checked=!1,e.$tr&&($tdId=e.$tr.find(".id"),$tdId.removeClass("checked"),$tdId.find(".chbox i").attr("class","fa fa-square-o"),!t&&$tdId.is(":hover")||this.row_actions_icons_hide(e.$tr)),t||(this.__checkedRows.splice(this.__checkedRows.indexOf(e.id),1),this._headCellIdButtonsState()))},row_actions_icons_add:function(e){"use strict";let n,i;n=this.tableRow.panel?t('<button class="btn btn-default edit"><i class="fa fa-th-large"/></button>').on("mouseleave",function(){return t(this).blur(),!1}).css("margin-left",2):t(),this.control.editing&&(i=t('<button class="btn btn-default btn-xxs dropdown"  tabindex="-1" style=" margin-left: 2px;"><i class="fa fa-caret-down" style="font-size: 10px; width: 7px;"/></button>'));let a=t('<button class="btn btn-default btn-xxs chbox"><i class="fa fa-square-o"/></button>'),o=t('<span class="btn-group-xxs">');e.empty().append(o).append(" ").append(a),i&&o.append(i),n&&o.append(n)},row_actions_icons_show:function(e){e.is(".checked")?e.find(".btn-group-xxs").show():this.row_actions_icons_add(e)},row_actions_icons_hide:function(e){let t=this._getItemByTr(e);t.$checked?e.find(".id").find(".btn-group-xxs").hide():e.find(".id").html(t.id)},table_modify:function(e,n,i){"use strict";let a=this,o=0,l=0,s=i?i.data("field"):void 0;if(n&&(o=a.dataSorted.indexOf(n)+1,l=a.dataSortedVisible.indexOf(n)+1),e.chdata){let i=e.chdata.deleted||[],r=[];if(e.chdata.rows&&(e.refresh&&e.chdata.rows&&Object.keys(a.data).forEach(function(t){void 0===e.chdata.rows[t]&&i.push(parseInt(t))}),t.each(e.chdata.rows,function(e,t){let n=a._getItemById(t.id);void 0===n?r.push(t):a.refreshRow(n.$tr,n,t)}),r.length&&(App.isEmpty(a.data)&&a._content&&a._content.find(".pcTable-noDataRow").remove(),t.each(r,function(e,t){t.$visible=!0,t.$checked=!1,o||!a.tableRow.with_order_field||a.tableRow.new_row_in_sort||(t.__inserted=!0),a.data[t.id]=t;let i=o,s=l;!t.__after||n&&n.id===t.__after||(i=a.dataSorted.indexOf(t.__after)+1,s=a.dataSortedVisible.indexOf(t.__after)+1),a.dataSorted.splice(i,0,t.id),a.dataSortedVisible.splice(s,0,t.id),o++,l++}),n&&setTimeout(function(){t.each(r,function(e,t){a.row_actions_check(a.data[t.id])})},50))),i.length&&(t.each(i,function(e,t){a._deleteItemById.call(a,t)}),App.isEmpty(a.data)&&a._content&&0===a._content.find("."+this.noDataRowClass).length&&a._content.append(a._createNoDataRow())),i.length||r.length||e.chdata.nsorted_ids&&a.nSorted&&!Object.equals(e.chdata.nsorted_ids,a.dataSorted)){if(e.chdata.nsorted_ids&&a.nSorted){let t=a.dataSortedVisible;a.dataSorted=e.chdata.nsorted_ids,t.length===a.dataSorted.length?a.dataSortedVisible=a.dataSorted:(a.dataSortedVisible=[],a.dataSorted.forEach(function(e){-1!==t.indexOf(e)&&a.dataSortedVisible.push(e)}))}this.ScrollClasterized.insertToDOM(void 0,!0)}let c={};if(e.chdata.params&&t.each(e.chdata.params,function(e,t){["v","v_","f","e","h","c"].forEach(function(n){(void 0!==t[n]||a.data_params[e][n])&&(Object.equals(a.data_params[e][n],t[n])&&e!==s||(c[e]=!0,a.data_params[e][n]=t[n]))})}),e.chdata.fields&&t.each(e.chdata.fields,function(e,n){n.list&&!Object.equals(a.fields[e].list,n.list)&&(c[e]=!0,t.extend(a.fields[e],n))}),(e.chdata.params||e.chdata.fields)&&(a._refreshParamsBlock(c,!0),a._refreshFootersBlock(c,!0)),e.chdata.f){let t=e.chdata.f;["blockadd","blockdelete","blockorder","background","blockduplicate","block","tabletitle","rowstitle","fieldtitle"].forEach(function(e){if(t[e]||a.f[e])if("object"==typeof t[e]){if(!Object.equals(t[e],a.f[e])){let n=Object.assign({},a.f[e]);a.f[e]=t[e],a.__formatFunctions[e]&&a.__formatFunctions[e].call(a,t[e],n)}}else t[e]!==a.f[e]&&(a.f[e]=t[e],a.__formatFunctions[e]&&a.__formatFunctions[e].call(a,t[e]))})}App.isEmpty(a.data)&&a._content&&a._content.empty().append(this._createNoDataRow())}e.updated&&(a.model.tableData.updated=JSON.parse(e.updated),a._refreshTitle()),e.filtersString&&a._refreshFiltersBlock.call(a,e),a._headCellIdButtonsState()},rows_edit:function(e){"use strict";let t=this,n=this.row_actions_get_checkedIds();return e&&-1===n.indexOf(t._getItemByTr(e).id)&&(this.row_actions_check(t._getItemByTr(e)),n=this.row_actions_get_checkedIds()),t._row_edit.call(t,n.slice()),!1},row_dropdown:function(e){"use strict";let n=this,i=t("<div>"),a=n._getItemByTr(e.closest("tr")),o=a.id;!0!==this.control.duplicating||n.f.blockduplicate||a.f.blockduplicate?i.append(t('<div class="menu-item"><i class="fa fa-clone"/> Дублировать</div>').css("color","gray")):i.append(t('<div class="menu-item row_duplicate"><i class="fa fa-clone"/> Дублировать</div>').attr("data-tr",o)),-1!==["calcs","globcalcs"].indexOf(n.tableRow.type)?i.append(t('<div class="menu-item"><i class="fa fa-refresh"/> Пересчитать</div>').css("color","gray")):i.append(t('<div class="menu-item row_refresh"><i class="fa fa-refresh"/> Пересчитать</div>').attr("data-tr",o)),n.isCreatorView&&"cycles"===n.tableRow.type&&i.append(t('<div class="menu-item cycle_refresh color-danger"><i class="fa fa-refresh"/> Пересчитать цикл</div>').attr("data-tr",o)),!this.control.deleting||this.f.blockdelete||a.f&&(a.f.block||a.f.blockdelete)?i.append(t('<div class="menu-item"><i class="fa fa-times"/> Удалить</div>').css("color","gray")):i.append(t('<div class="menu-item row_delete"><i class="fa fa-times"/> Удалить</div>').attr("data-tr",o));let l=App.popNotify({isParams:!0,$text:i,element:e,container:this._container,trigger:"manual",placement:"bottom"});return t("#"+l).position({my:"left top",at:"left-3px bottom+10px",of:e}).off().on("mouseleave",function(){i.remove(),n.row_actions_icons_hide(e.closest("tr"))}).find(".arrow").css("left","11px").end().find(".popover-content").css("padding","5px"),!1},__getCheckedRowsIds:function(e,n,i){"use strict";let a=this,o=this.row_actions_get_checkedIds();if(e&&-1===o.indexOf(e)){let t=a.data[e];this.row_actions_check(t),o=this.row_actions_get_checkedIds()}if(n){let e=!1;if(o.some(function(t){if(a.data[t].f&&(a.data[t].f.block||a.data[t].f[i]))return e=a.data[t],!0}),e){let n="";"id"!==a.mainFieldName&&(n=' "'+(n=e[a.mainFieldName]._v?e[a.mainFieldName]._v:e[a.mainFieldName].v)+'"');let i=t("<span>").html("Строка <b>id "+e.id+"</b>");if(""!==n){let e=i.find("b");e.text(e.text()+n)}return i.append(" заблокирована"),App.notify(i,"Действие не выполнено"),!1}}return o},row_refresh:function(e){"use strict";let t=this,n=this.__getCheckedRowsIds(e,!1);if(n&&n.length){let e=[{label:"Пересчитать",action:function(e){t.model.refresh_rows(n).then(function(n){t.table_modify.call(t,n),e.close(),t.row_actions_uncheck_all()})}},{label:"Отмена",action:function(e){e.close()}}];BootstrapDialog.show({message:"Точно пересчитать "+n.length+" строк?",title:"Пересчет",buttons:e,draggable:!0})}},cycle_refresh:function(e){"use strict";let t=this,n=this.__getCheckedRowsIds(e,!1);if(n&&n.length){let e=[{label:"Пересчитать",action:function(e){t.model.refresh_cycles(n).then(function(n){t.table_modify.call(t,n),e.close(),t.row_actions_uncheck_all()})}},{label:"Отмена",action:function(e){e.close()}}];BootstrapDialog.show({message:"Точно пересчитать "+n.length+" циклов?",title:"Пересчет",buttons:e,draggable:!0})}},row_duplicate:function(e){"use strict";let n=this,i=this.__getCheckedRowsIds(e,!1);if(i&&i.length){let a=[{label:"Дублировать",cssClass:"btn-danger",action:function(a){let o={},l=[],s=[];n.dataSortedVisible.forEach(function(e){-1!==i.indexOf(e)&&s.push(e)}),i=s;const r=function(t){n.model.duplicate(i,o,e).then(function(i){n.table_modify.call(n,i,e),t&&t.close(),a.close(),n.row_actions_uncheck_all()})};for(let e in n.fieldCategories.column){let t=n.fieldCategories.column[e];"unic"===t.type&&l.push(t.name)}if(l.length){let e,s=t('<table class="simpleTable"><thead><tr><td class="id">id</td></tr></thead><tbody></tbody></table>'),c=s.find("thead tr"),d=s.find("tbody");"id"!==n.mainFieldName&&("unic"!==(e=n.fields[n.mainFieldName]).type?c.append(t("<td></td>").text(e.title)):e=null);for(let e in l){let i=n.fields[l[e]];c.append(t("<td></td>").text(i.title))}for(let a in i){let s=i[a],r=n.data[s],c=t("<tr>");o[s]={},c.append(t('<td class="id"></td>').text(s)),e&&c.append(t("<td></td>").text(r[e.name].v));for(let e in l){let i,a=n.fields[l[e]],d=t('<td class="input"></td>'),f=t("<input>").val(r[a.name].v);o[s][a.name]=r[a.name].v,f.on("keyup",function(){let e=t(this).val();o[s][a.name]=e,i&&(clearTimeout(i),i=null),""!==e?i=setTimeout(function(){n.model.checkUnic(a.name,e).then(function(e){e.ok?d.addClass("ok"):d.removeClass("ok")})},300):a.required?d.removeClass("ok"):d.addClass("ok")}),d.html(f),c.append(d)}d.append(c)}let f=[{label:"Дублировать",cssClass:"btn-m btn-warning",action:function(e){r(e)}},{label:"Отмена",action:function(e){e.close(),a.close()}}];BootstrapDialog.show({message:s,title:"Заполните значения для уникальных полей",buttons:f,draggable:!0})}else r()}},{label:"Отмена",action:function(e){e.close()}}];BootstrapDialog.show({message:"Точно дублировать "+i.length+" строк?",title:"Дублирование",buttons:a,draggable:!0})}},rows_delete:function(e){let t=this,n=this.__getCheckedRowsIds(e,!0,"blockdelete");if(n&&n.length){let e="Точно удалить "+n.length+" строк?",i="Удаление "+n.length+" строк?";if(1==n.length){let a="id-"+n[0];"id"!=t.mainFieldName&&(a=t.data[n[0]][t.mainFieldName],a="id-"+n[0]+' "'+(a.v_&&a.v_[0]?a.v_[0]:a.v)+'"'),e="Точно удалить строку "+a+"?",i="Удаление строки "+a+"?"}let a=[{label:"Удалить",cssClass:"btn-danger",action:function(e){e.close();const a=function(){t.model.delete(n).then(function(e){t.table_modify.call(t,e)})};t.tableRow.delete_timer>0?App.panelTimer(i,t.tableRow.delete_timer,a):a()}},{label:"Отмена",action:function(e){e.close()}}];BootstrapDialog.show({message:e,title:"Удаление",buttons:a,draggable:!0})}}})}(0,jQuery),t.extend(App.pcTableMain.prototype,{_insertItem:null,_insertRow:null,_insertButtons:null,_currentInsertCellIndex:0,_addInsert:function(e){var t=this;this.control.adding&&(this._insertRow&&this._insertRow.length||(e&&(this._insertItem={},this.fieldCategories.column.forEach(function(n){e[n.name]&&(t._insertItem[n.name]={v:e[n.name]})})),this._insertRow=this._createInsertRow(null,0),this._insertButtonsChangeStatuses(),this._beforebody.prepend(this._insertRow),this._table.addClass("with-adding-row")))},_insertButtonsChangeStatuses:function(){this._insertRow?this._insertButtons.find('[data-action="add"]').removeClass("btn-warning").addClass("btn-default").attr("disabled","disabled"):this._insertButtons.find('[data-action="add"]').addClass("btn-warning").removeClass("btn-default").removeAttr("disabled")},_InsertAddInsertBtnsPanel:function(e){let n,i=this,o={};o['<span id="saveInsertRow" tabindex="'+i.fieldCategories.column.length+'">Сохранить</span>']=function(){n.addClass("onSaving"),i.__insertRowActions("saveInsertRow",function(){i._saveInsertRow.call(i,"close").always(function(){n.removeClass("onSaving")})})},o['<i class="fa fa-save"  tabindex="'+(i.fieldCategories.column.length+1)+'"/>']=function(){n.addClass("onSaving"),i.__insertRowActions("saveInsertRow",function(){i._saveInsertRow.call(i).then(function(){n.removeClass("onSaving")})})},o['<i class="fa fa-paste"  tabindex="'+(i.fieldCategories.column.length+2)+'"/>']=function(){n.addClass("onSaving"),i.__insertRowActions("saveInsertRow",function(){i._saveInsertRow.call(i,"notClean").then(function(){n.removeClass("onSaving")})})},o['<i class="fa fa-times" tabindex="'+(i.fieldCategories.column.length+3)+'"/>']=function(){i._closeInsertRow.call(i,t(this).closest("#"+a))},n=this._addRowPanel(a,e,o)},__insertRowActionsStack:[],__insertRowActions:function(e,t){"use strict";let n=this;-1!==["saveInsertRow","clickSourceButton"].indexOf(e)&&setTimeout(function(){let e;(e=n.model.getDefferedProcess())?e.then(t):t()},450)},_saveInsertRow:function(e){let n=this,i={},a=t.Deferred();return n.model.doAfterProcesses(function(){t.each(n._insertItem,function(e,t){"n"!==e&&(i[e]=t.v)}),n.model.add(i).then(function(t){switch(n.table_modify.call(n,t),n._currentInsertCellIndex=0,e){case"notClean":break;case"close":n._closeInsertRow();break;default:n._insertItem=null,n._insertRow.html('<td class="id"></td>'),n._createInsertRow(n._insertRow,0)}}).always(function(){a.resolve()})}),a.promise()},_getInsertButtons:function(){let n,i,a=this;return"cycles"===this.tableRow.type?i=n=function(){a.model.add({}).then(function(t){t.firstTableId?e.location.href=e.location.pathname+"/"+t.chdata.rows[0].id+"/"+t.firstTableId:a.table_modify(t)})}:(n=function(){a._addInsert()},i=function(){a._addInsertWithPanel()}),this._insertButtons=t("<span>"),t('<button data-action="add" class="btn btn-sm btn-warning">Добавить</button>').width(80).on("click",n).appendTo(this._insertButtons),this.tableRow.panel&&t('<button class="btn btn-warning btn-sm"><i class="fa fa-th-large"/></button>').on("click",i).appendTo(this._insertButtons).css("margin-left",5),this._insertButtons},_addInsertWithPanel:function(){let e=this;new EditPanel(e,BootstrapDialog.TYPE_PRIMARY,{}).then(function(t){t&&e.table_modify.call(e,t)})},_closeInsertRow:function(){this._insertPanel?this._insertPanel=null:(this._insertRow.find("td").each(function(){t(this).remove()}),this._insertRow.remove(),this._insertRow=null),this._insertItem=null,this._insertButtonsChangeStatuses(),this._currentInsertCellIndex=0,this._table.removeClass("with-adding-row")},_createInsertRow:function(e,n,a){var o=this,l=o._insertItem||(o._insertItem={});e||(this.insertRow=e=t('<tr class="InsertRow" style="height: 35px;"><td class="id"></td></tr>'),this._InsertAddInsertBtnsPanel(e)),o._currentInsertCellIndex||(o._currentInsertCellIndex=0);let s={};t.each(o._insertItem,function(e,t){"n"!==e&&(s[e]=t.v)});let r=[];return o.fieldCategories.visibleColumns.forEach(function(e){r.push(e.name)}),o.model.checkInsertRow(s,a).then(function(n){l=n.row,t.each(o.fieldCategories.column,function(t,n){if(!n.showMeWidth)return void(o._insertItem[n.name]=l[n.name]);let s=r.indexOf(n.name);var c=e.find("td:eq("+(s+1)+")");let d=o._insertItem[n.name],f=o._insertItem[n.name]&&o._insertItem[n.name].force;if(o._insertItem[n.name]=l[n.name],c.length){let t="n"===n.name||o._insertItem[n.name].f&&!0===o._insertItem[n.name].f.block;if(c.data("input")&&!t){n.name;let t=!1;t=!f&&(null===l[n.name].v&&""==d.v||Object.equals(l[n.name].v,d.v)&&!n.codeSelectIndividual),void 0!==d&&t&&"data_src"!=n.name&&"comments"!=n.type||(o._createInsertCell.call(o,c,n,e,s,"td",o._createInsertRow),a===n.name&&o._colorizeElement(c,i))}else c.replaceWith(o._createInsertCell.call(o,null,n,e,s,"td",o._createInsertRow))}else e.append(c=o._createInsertCell.call(o,null,n,e,s,"td",o._createInsertRow))}),o._insertFocusIt.call(o)}),e},_createInsertCell:function(i,a,o,l,s,r){s=s||"td";i=i||t("<"+s+">");var c=this;if(a.code&&i.addClass("with-code"),void 0===c._insertItem[a.name]&&(c._insertItem[a.name]=null),!a.insertable||c._insertItem[a.name].f&&1==c._insertItem[a.name].f.block){let e=c._insertItem[a.name];return e&&(e=e.v),i.empty().append(a.getCellText(e,i,c._insertItem)),i}a.help&&i.on("focus","input,button,select",function(e){let n=c._table.find("thead th #field-help-"+a.name),i=t(e.target);setTimeout(function(){n.trigger("open"),i.one("blur remove",function(){n.trigger("close")})},120)});var d=function(e){var t;try{t=a.getEditVal(e)}catch(t){return App.popNotify(t,e,"default"),null}return t},f=function(e,t){var n=d(e);null===n?c._insertFocusIt.call(c):(c._currentInsertCellIndex=l+1,a.isDataModified(n,c._insertItem[a.name].v)?(c._insertItem[a.name].v=n,!0===a.isPanelField&&c._createInsertCell.call(c,i,a,o,l,s,r),r.call(c,o,c._currentInsertCellIndex,a.name)):c._insertFocusIt.call(c))},u=function(e,t){setTimeout(function(){let t=e.closest("td");if(!t.length||!t.closest("tr").length)return!1;let n=d(e);null===n?c._insertFocusIt.call(c):a.isDataModified(n,c._insertItem[a.name].v)&&(c._insertItem[a.name].v=n,!0===a.isPanelField&&c._createInsertCell.call(c,t,a,o,l,s,r),r.call(c,o,c._currentInsertCellIndex,a.name))},150)},p=function(e,t){let i=e.closest("td");if(!i.length||!i.closest("tr").length)return!1;let f=d(e),u=c._insertItem[a.name].v+"";a.isDataModified(f,u)&&(c._createInsertCell(i,a,o,l,s,r),c._colorizeElement(i,n))};let h=a.getEditElement(i.data("input"),c._insertItem[a.name],c._insertItem,f,p,u);if(i.on("click focus","input,button,select",function(e){c._currentInsertCellIndex=l}),i.on("click focus",function(){c._currentInsertCellIndex=l}),h.isAttached()||i.html(h).data("input",h),"select"===a.type&&2===a.changeSelectTable){i.addClass("with-source-add-button");let n=t('<button class="btn btn-default btn-sm source-add" tabindex="-1"><i class="fa fa-plus"></i></button>');i.prepend(n);let l=function(){let n={},l=c._insertItem;t.each(l,function(e,t){"$"!==e.substring(0,1)&&(n[e]=t)});n[a.name]=null;let s=0;return t(e.top.document.body).on("pctable-opened.select-add-"+a.name,function(){s++}).on("pctable-closed.select-add-"+a.name,function(e,n){s--;let d=n&&"insert"===n.method&&n.json&&n.json.chdata&&n.json.chdata.rows;if(0===s||d){let e=h;delete a.list,e.data("input").data("LISTs")&&(e.data("input").data("LISTs").isListForLoad=!0),d&&(a.multiple?l[a.name].v.push(Object.keys(n.json.chdata.rows)[0]):l[a.name].v=Object.keys(n.json.chdata.rows)[0]),e.replaceWith(h=a.getEditElement(e,l[a.name],l,f,p,u)),t("body").off(".select-add-"+a.name),i.data("input",h),r.call(c,o,c._currentInsertCellIndex,a.name)}}),c.model.selectSourceTableAction(a.name,n),!1};n.on("click",function(){c.__insertRowActions("clickSourceButton",l)})}return i},_insertFocusIt:function(e){let n=this;if(!e)return setTimeout(function(){n._insertFocusIt.call(n,1)},10),!1;let i=!0,a=!!this._insertPanel,o=this.insertRow;if(a){if(!n._insertPanel)return!1;o=n._insertPanel.$modalBody}if(!o||!o.length)return!1;if(t.each(n.fieldCategories.visibleColumns,function(e,t){if(n._currentInsertCellIndex==e)return!t.insertable||n._insertItem&&n._insertItem[t.name]&&n._insertItem[t.name].f&&!0===n._insertItem[t.name].f.block?void n._currentInsertCellIndex++:(a?t.focusElement(o.find(".cell:eq("+e+")").data("input")):t.focusElement(n._getTdByColumnIndex(o,e+1).data("input")),i=!1,!1)}),i)if(a){n._insertPanel.indexedButtons[Object.keys(n._insertPanel.indexedButtons)[0]].focus()}else t("#saveInsertRow").parent().focus()}});let d=!1;t.extend(App.pcTableMain.prototype,{_rerenderColumnsFooter:function(){let e=this._createFootersBlock();this._footersBlock.replaceWith(e[0]),this._footersBlock=e[0]},_rerendParamsblock:function(){this._paramsBlock.replaceWith($block=this._createParamsBlock()),this._paramsBlock=$block,this._refreshParamsBlock()},_rerendFiltersBlock:function(){this._filtersBlock.replaceWith($block=this._createFiltersBlock()),this._filtersBlock=$block,this._refreshFiltersBlock(this.data_params)},_rerendFooters:function(){let e=this._createFootersBlock();this._footersSubTable.replaceWith(e[1]),this._footersSubTable=e[1],this._footersBlock.replaceWith(e[0]),this._footersBlock=e[0],this._refreshFootersBlock()},_renderTable:function(){let n=this;this._table=t("<table>").addClass(this.tableClass),this.notCorrectOrder&&this._table.addClass("no-correct-n-filtered"),this._table.append(this._createHead()).append(this._createFirstBody()).append(this._createBody()).append(this._createAfterBody());let i=this._createFootersBlock();this._footersBlock=i[0],this._footersSubTable=i[1],this._table.append(this._footersBlock),this._popovers=t('<div class="popovers">'),1===this.fieldCategories.column.length&&n._container.addClass("no-fields");let a=this.scrollWrapper=this._container.append('<div class="pcTable-scrollwrapper">').find(".pcTable-scrollwrapper");a.append(this._createBeforeSpace()),this.isCreatorView&&a.append(this._refreshHiddenFieldsBlock()),a.append(this._paramsBlock=this._createParamsBlock()).append(this._createFiltersBlock()),a.append(t('<div class="pcTable-buttonss">').append(this._rowsButtons())).append(this._innerContainer).append(this._footersSubTable).append(this._popovers),n._container.height(e.innerHeight-n._container.offset().top-20),this.addScrollsRules(),this._seeCalcucatedValData(),this._seeSelectPreview(),this._clickstoCopyMe(),this.isCreatorView&&this._hideHell_storage.checkIssetFields.call(this)},_refreshHiddenFieldsBlock:function(){let e=this._hiddenFieldsBlock();return this.HiddenFieldsBlock&&this.HiddenFieldsBlock.replaceWith(e),this.HiddenFieldsBlock=e,this.HiddenFieldsBlock},_hiddenFieldsBlock:function(){let e,n,i=this,a=0,o=t('<div class="pcTable-hiddenFieldsTables">'),l=0;if(this.beforeSpaceHide||!this._hideHell_storage.getOpened.call(this))return o;let s=this._container.width()-100;return t.each(i.hidden_fields||[],function(r,c){a++;let d=c.width>0?c.width:100;(0===l||s<l+d)&&(e&&e.width(l),e=t("<table class='pcTable-hiddenFieldsTable'><thead><tr></tr></thead></table>\""),o.append(e),l=0,n=e.find("thead tr")),n.append(i._createHeadCell(r,c)),l+=c.width}),i.isCreatorView&&Object.keys(i.fields).forEach(function(r,c){let d=i.fields[r];if(d.showInWeb&&d.showMeWidth<1&&"n"!==d.name){a++;let r=d.width>0?d.width:100;(0===l||s<l+r)&&(e&&e.width(l),e=t("<table class='pcTable-hiddenFieldsTable'><thead><tr></tr></thead></table>\""),o.append(e),l=0,n=e.find("thead tr")),n.append(i._createHeadCell(c,d)),l+=d.width}}),e&&e.width(l),a?o:t('<div class="pcTable-hiddenFieldsTables">')},_clickstoCopyMe:function(){this._container.on("click",".copy_me",function(){let e=t(this);return!e.data("clicked")&&(e.data("clicked",!0),e.width(e.width()),e.data("text")?App.copyMe(e.data("text")):App.copyMe(e.text()),e.button("copied"),setTimeout(function(){e.button("reset"),e.removeData("clicked")},2e3),e.blur(),!1)})},_clicksToCodeView:function(){let n=this;this._container.on("click","th .roles",function(){let i=t(this);if(i.hasClass(".fa-sun-o")||i.hasClass("fa-certificate")){let a,o=n._getFieldBytd(i.closest("th")),l=t('<div class="HTMLEditor" id="bigOneCodemirror" style="height: 100%;"></div>');BootstrapDialog.show({message:l,type:null,title:"Просмотр кода поля "+o.title,cssClass:"fieldparams-edit-panel",draggable:!0,onhide:function(e){mirror.setValue(a.getValue())},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:"90vw",minHeight:"90vh"})},onshown:function(t){a=CodeMirror(l.get(0),{mode:"totum",value:o.code[0],theme:"eclipse",lineNumbers:!0,indentWithTabs:!0,autoCloseTags:!0,bigOneDialog:t,readOnly:!0}),mirror.table&&(a.table=mirror.table);let n=Math.round(t.$modalContent.height()-t.$modalHeader.outerHeight()-40);a.getScrollerElement().style.minHeight=n+"px",l.find(".CodeMirror").css("min-heught",n),a.focus(),t.$modalContent.position({my:"center top",at:"center top+30px",of:e})}})}})},_seeCalcucatedValData:function(){var e=this;this._container.on("mouseover","td .fa-hand-paper-o",function(){var n=t(this),i=n.closest("td"),a=e._getItemBytd(i),o=e._getFieldBytd(i),l=t("<div>");let s="";null===a[o.name].c||""===a[o.name].c||void 0===a[o.name].c?s="":"select"===o.type?o.multiple?t.each(a[o.name].c,function(e,t){""!==s&&(s+=", "),s+=o.getElementString(a[o.name].c[e],a[o.name].c_[e])}):s=o.getElementString(a[o.name].c,a[o.name].c_):"object"==typeof(s=o.getCellText(a[o.name].c,null,a,e))&&(s=s.text()),l.append(t("<div>Расчетное значение: </div>").append(t("<code>").text(s))),n.one("mouseout",function(){l.length&&(l.remove(),l=null)}),setTimeout(function(){l&&l.length&&App.popNotify(l,n)},500)})},_seeSelectPreview:function(){var e=this;this._container.on("mouseover",".select-with-preview li",function(n){let i=t(this),a=setTimeout(function(){if(i.is(":hover")){let t=i.find("span.select-with-preview");e.fields[t.data("field")]&&e.fields[t.data("field")].previewPanel.call(e.fields[t.data("field")],t,i)}},300);i.one("mouseout",function(){a&&clearTimeout(a)})})},_getFavoriteStar:function(){let e=this.tableRow.__is_in_favorites=this.tableRow.__is_in_favorites||!1,n=t("#favorite-start"),i=this;return null===e?t():(0===n.length&&(n=t('<button class="btn btn-default btn-sm" id="favorite-start"></button>').on("click",function(){i.model.setTableFavorite(!n.is(".stared")).then(function(e){i.tableRow.__is_in_favorites=e.status,i._getFavoriteStar.call(i)})})),e?n.addClass("stared").text("★"):n.removeClass("stared").text("☆"),n)},_createBeforeSpace:function(){let n=this;if(n.beforeSpaceHide)return this._beforeSpace=t("<span></span>");this._beforeSpace=t('<div class="pcTable-beforeSpace">'),n.LogButton=t();let i=t('<div class="pcTable-topButtons">'),a=t("#TOTUM_FOOTER");if(a.length&&i.append(a),n.isCreatorView){let e=t('<div class="creator-log-buttons">'),o=t('<button class="btn btn-danger btn-sm"><i class="fa" style="width: 12px"></i> Показать логи</button>').appendTo(e).on("click",function(){let e;const i=function(){let i=[];e.find("input:checked").each(function(e,n){i.push(t(n).attr("name"))}),i.length>0?o.find("i").attr("class","fa fa-check-square-o"):o.find("i").attr("class","fa fa-square-o"),t.cookie("pcTableLogs",JSON.stringify(i),{path:"/"}),n.FullLOGS=[],n.LOGS={},o.popover("destroy")};if(o.is("[aria-describedby]"))e=t("#"+o.attr("aria-describedby")),i();else{let a=t.cookie("pcTableLogs")||"[]";a=JSON.parse(a),(e=t("<div>")).append('<div><input type="checkbox" name="c"/> Код</div>'),e.append('<div><input type="checkbox" name="a"/> Код-действия</div>'),e.append('<div><input type="checkbox" name="s"/> Селекты</div>'),e.append('<div><input type="checkbox" name="f"/> Форматирование</div>'),e.append('<div><input type="checkbox" name="recalcs"/> Пересчеты и селекты</div>');let l=t('<button class="btn btn-xs"><i class="fa fa-table"></i></button>').on("click",function(){n.FieldLOGS?n.model.calcFieldsLog(JSON.stringify(n.FieldLOGS),n.FieldLOGSName||"Расчет вывода таблицы"):App.notify("Лог расчета полей пуст")});e.append(t('<div><input type="checkbox" name="flds"/> Время расчета полей </div>').append(l)),e.append('<div style="padding-top: 10px;"><button class="btn btn-sm btn-default">Применить</button></div>'),e.find("input").each(function(e,n){n=t(n),-1!==a.indexOf(n.attr("name"))&&n.prop("checked","checked")}),e.on("click","button",function(){i()}),o.popover({trigger:"manual",placement:"bottom",content:e,html:!0,animation:!1,container:n._container,onhide:function(){}}).popover("show")}}),l=o.find("i"),s=t.cookie("pcTableLogs")||"[]";(s=JSON.parse(s)).length>0?l.addClass("fa-check-square-o"):l.addClass("fa-square-o");let r=t('<button class="btn btn-danger btn-sm">Лог</button>').appendTo(e);n.LogButton=r,r.on("click",function(){n.FullLOGS&&0!==n.FullLOGS.length?App.logOutput(n.FullLOGS):App.logOutput("Лог пуст. Включите логирование и перегрузите страницу")}),a.length?a.append(e):e.appendTo(i),t('<button class="btn btn-danger btn-sm"><i class="fa fa-eraser" style="width: 13px"></i></button>').on("click",function(){n.FullLOGS=[],n.LOGS={}}).appendTo(e)}let o=t('<span class="common-table-title">');o.append(this.fieldsHiddingGetButton(!0));t('<button class="btn btn-default btn-sm"><i class="fa fa-print"></i></button>').on("click",function(){n._print.call(n)}).appendTo(o);if(n.withCsvButtons){let e=t('<button class="btn btn-default btn-sm">CSV-экспорт</button>').on("click",function(){n._csvExport.call(n)});o.append(e)}if(n.withCsvEditButtons&&this.control.editing){let e=t('<button class="btn btn-default btn-sm">CSV-импорт</button>').on("click",function(){n._csvImportClick.call(n)});o.append(e)}if(this.isAnonim||o.append(this._getFavoriteStar()),this.isCreatorView&&this.isMain){let a=t('<div class="creator-buttons">');t('<button class="btn btn-default btn-xxs field_name copy_me" data-copied-text="Скопировано"/>').text(this.tableRow.name).appendTo(a),t('<button class="btn btn-danger btn-xxs" title="Редактировать настройки таблицы"/>').html('<i class="fa fa-pencil-square-o"/>').on("click",function(){new EditPanel(1,BootstrapDialog.TYPE_DANGER,{id:n.tableRow.id}).then(function(t){t&&e.location.reload(!0)})}).appendTo(a);let o={fl_name:[this.tableRow.id]};if(t('<a href="/Table/'+this.Tables.branchId+"/"+this.Tables.id+"/?"+t.param({f:o})+'" target="_blank" class="btn btn-danger btn-xxs" title="Открыть список таблиц"/>').html('<i class="fa fa-external-link"/>').appendTo(a),o={f_table_categories:this.tableRow.category,f_table:this.tableRow.id},this.tableRow.__version&&(o.fl_version=this.tableRow.__version),t('<a href="/Table/'+this.Tables.branchId+"/"+this.TableFields.id+"/?"+t.param({f:o})+'" target="_blank" class="btn btn-danger btn-xxs" title="Открыть состав таблиц"/>').html('<i class="fa fa-external-link-square"/>').appendTo(a),"calcs"===this.tableRow.type){a.append(" ");let e=t('<a href="/Table/'+this.TablesVersions.branchId+"/"+this.TablesVersions.id+"/?"+t.param({f:this.TablesVersions.version_filters})+'" target="_blank" class="btn btn-danger btn-xxs" title="Создание версий таблиц"><i class="fa fa-code-fork"></i></a>');a.append(e),a.append(" "),e=t('<a href="/Table/'+this.TablesCyclesVersions.branchId+"/"+this.TablesCyclesVersions.id+"/?"+t.param({f:this.TablesCyclesVersions.version_filters})+'" target="_blank" class="btn btn-danger btn-xxs" title="Изменение версий таблиц цикла"><i class="fa fa-random"></i></a>'),a.append(e)}let l=t('<div class="color-danger creator-table-title">'+ +this.tableRow.sort+' <i class="'+App.tableTypes[this.tableRow.type].icon+'"/> '+App.tableTypes[this.tableRow.type].title+"</div>");a.append(l),"calcs"===this.tableRow.type&&l.append(" / Версия "+this.tableRow.__version+" / Цикл "+this.cycle);t('<button class="btn btn-danger btn-sm" id="hide-hell" disabled><i class="fa fa-times"></i></span></button>').on("click",function(){n._hideHell_storage.switchOpened.call(n)}).appendTo(a);a.appendTo(i);t('<button class="btn btn-danger btn-sm">Добавить поле</span></button>').width(113).on("click",function(){let t={table_id:{v:n.tableRow.id}};n.tableRow.__version&&(t.version={v:n.tableRow.__version}),new EditPanel(2,BootstrapDialog.TYPE_DANGER,t).then(function(t){t&&e.location.reload(!0)})}).appendTo(a);a.appendTo(i)}if(this._beforeSpace.append(i),this._beforeSpace_title=t('<div class="pcTable-title"><span class="title"/><span class="bttns"/><div class="updated"/></div>').prependTo(this._beforeSpace),this._beforeSpace_title.find(".bttns").append(o),this.tableRow.description){let e=t('<a class="btn btn-default btn-sm"><i class="fa fa-info"/></a>'),n=t("<div/>").html(this.tableRow.description);e.appendTo(o);let i="table_description_switcher"+this.tableRow.id,a=localStorage.getItem(i)||localStorage.setItem(i,"1")||localStorage.getItem(i);const l=t=>{switch(t&&(a="1"===a?"0":"1"),a){case"1":n.show(),e.removeClass("btn-warning").addClass("btn-default");break;default:n.hide(),e.addClass("btn-warning").removeClass("btn-default")}localStorage.setItem(i,a),t&&this.ScrollClasterized.insertToDOM(0,!0)};l(),e.on("click",l),this._beforeSpace.append(n)}return this._beforeSpace},__$rowsButtons:null,_rowsButtons:function(){let e,n=this;if(this.__$rowsButtons?e=this.__$rowsButtons.empty():(e=t('<div class="pcTable-buttons">'),this.__$rowsButtons=e),this.fieldCategories.column.length){this.control.adding&&!this.f.blockadd&&e.append(n._getInsertButtons());let i=t('<button class="btn btn-default btn-sm" style="margin-left: 5px;" disabled>Сбросить <span class="fa fa-filter"></span></button>').width(82).on("click",function(){setTimeout(function(){n.filtersEmpty.call(n)},50)});e.append(i),this.filtersClearButton=i}return e},_refreshContentTable:function(e,t){let n=this._content;t=t||!1,n.data("state","refreshing");App.fullScreenProcesses.showCog();this.ScrollClasterized.insertToDOM(0,t,e),App.fullScreenProcesses.hideCog(),n.data("state","ready"),n.trigger("refreshed"),this._popovers.empty()},_refreshTitle:function(){if(!this.beforeSpaceHide&&(this._beforeSpace_title.find(".title").text(this.f.tabletitle||this.tableRow.title),this.model.tableData&&this.model.tableData.updated)){let e;this.isAnonim||(e=moment(this.model.tableData.updated.dt,"YYY-MM-DD HH:mm").format("DD.MM HH:mm")+" (code: "+this.model.tableData.updated.code+")");let n=t('<div class="small">').text(e);this.tableRow.__blocked?n.append('<div class="">Блокирована'+(this.tableRow.license_error?": "+this.tableRow.license_error:"")+"</div>"):!1===this.control.editing&&n.append('<div class="">Только чтение</div>'),this._beforeSpace_title.find(".updated").html(n)}},_createFiltersBlock:function(){var n=this;this._filtersBlock=t("<div>");let i=t('<div class="rows-title"></div>');if(n.f.rowstitle?(i.text(n.f.rowstitle).show(),this._filtersBlock.addClass("pcTable-filtersTables")):i.hide(),this._filtersBlock.append(i),n.fieldCategories.filter.length){let i,a,o;this._filtersBlock.addClass("pcTable-filtersTables");let l,s=0,r=this._container.width()-100;const c=function(){if(i){a.append("<th></th>");let l=t('<td class="buttons-go">').html('<button class="btn btn-default btn-xs button-go">GO</button> <button class="btn btn-default btn-xs eraser button-go"><i class="fa fa-eraser"></i></button>').appendTo(o);i.width(s+69),l.on("click",".button-go",function(){if(t(this).is(".eraser"))e.location.href="?";else{const i=function(){e.location.href="?"+t.param({f:n._filtersBlock.data("cryptoFilters")||n.filterDataCrypted})};setTimeout(function(){n.model.doAfterProcesses(i)},500)}return!0})}},d=function(e,d){d.hidden||((0===s||r<s+d.width||d.tableBreakBefore)&&(c(),i=t("<table class='pcTable-filtersTable'><thead><tr></tr></thead><tbody><tr></tr></tbody></table>"),n._filtersBlock.append(i),s=0,a=i.find("thead tr"),o=i.find("tbody tr")),void 0!==d.panelColor&&(l=d.panelColor),a.append(n._createHeadCell(e,d,l)),t("<td>").attr("data-field",d.name).appendTo(o),s+=d.width)};t.each(n.fieldCategories.filter,d),c()}return this._filtersBlock},_refreshFiltersBlock:function(e){let n=this;e=e||{};let i=n._filtersBlock.find(".rows-title");n.f.rowstitle?i.text(n.f.rowstitle).show():i.hide(),e.params?(t.each(n.fieldCategories.filter,function(t,i){n.data_params[i.name]=e.params[i.name]}),n._filtersBlock.data("cryptoFilters",e.filtersString)):n.filterData||(n.filterData={},t.each(n.fieldCategories.filter,function(e,i){n.filterData[i.name]=t.extend(!0,{},n.data_params[i.name])}),n.model.addFiltersData({filters:n.filterDataCrypted}));let a=[],o=[];return t.each(n.fieldCategories.filter,function(e,t){if(t.hidden)return;let i=n._createCell(n.data_params,t);n._filtersBlock.find('td[data-field="'+t.name+'"]').replaceWith(i),Object.equals(n.data_params[t.name].v,n.filterData[t.name].v)||a.push(i),"select"!==t.type||!n.data_params[t.name].v||"*NONE*"!==n.data_params[t.name].v&&"*NONE*"!==n.data_params[t.name].v[0]||o.push(i)}),a.length>0?(a.forEach(function(e){e.addClass("warning-backg")}),n._filtersBlock.removeClass("with_danger").addClass("with_changed")):o.length>0?(o.forEach(function(e){e.addClass("danger-backg")}),n._filtersBlock.removeClass("with_changed").addClass("with_danger")):(n._filtersBlock.removeClass("with_danger, with_changed"),n._filtersBlock.find(".danger-backg, .warning-backg").removeClass("danger-backg, warning-backg")),this._filtersBlock},_createParamsBlock:function(){let e=t("<div>"),n=this;if(n.fieldCategories.param){let i,a,o;e.addClass("pcTable-paramsTables");let l,s=0,r=this._container.width()-100,c="";t.each(n.fieldCategories.param,function(d,f){void 0!==f.panelColor&&(l=f.panelColor),void 0!==f.sectionTitle&&(c=f.sectionTitle),f.showMeWidth&&((0===s||r<s+f.showMeWidth||f.tableBreakBefore)&&(i&&i.width(s),i=t("<table class='pcTable-paramsTable'><thead><tr></tr></thead><tbody><tr></tr></tbody></table>"),c&&e.append(t('<div class="pcTable-sectionTitle"></div>').text(c)),c="",e.append(i),s=0,a=i.find("thead tr"),o=i.find("tbody tr")),a.append(n._createHeadCell(d,f,l)),o.append('<td data-field="'+f.name+'">'),s+=f.showMeWidth)}),i&&i.width(s)}return e},_refreshParamsBlock:function(e,n){var a=this;return a.fieldCategories.param&&t.each(a.fieldCategories.param,function(t,o){if(!o.showMeWidth||e&&!0!==e[o.name])return!0;let l=a._createCell(a.data_params,o);a._paramsBlock.find('td[data-field="'+o.name+'"]').replaceWith(l),n&&a._colorizeElement(l,i)}),this._paramsBlock},_createFootersBlock:function(){let e,n,i=this;if(i.fieldCategories.footer){e=t("<tbody class='pcTable-footers'></tbody>"),n=t("<div>"),i.columnsFooters={};var a=0;t.each(i.fieldCategories.footer,function(e,t){t.showMeWidth&&(t.column||(t.column=""),i.columnsFooters[t.column]||(i.columnsFooters[t.column]=[]),i.columnsFooters[t.column].push(t),t.column&&a<i.columnsFooters[t.column].length&&(a=i.columnsFooters[t.column].length))});for(var o=t(),l=0,s=0;l<a;){var r=t('<tr><td class="id"></td></tr>'),c=t('<tr><td class="id"></td></tr>').data("pctableitemid","footers").data("pctablettemtndex","footers"+s++);t.each(i.fieldCategories.column,function(e,n){if(n.showMeWidth){let a=t("<td>");if(!i.columnsFooters[n.name]||!i.columnsFooters[n.name][l])return a.attr("rowspan",2),r.append(a),void a.addClass("footer-empty");if(a=i._createHeadCell(e,i.columnsFooters[n.name][l],i.columnsFooters[n.name][l].panelColor).addClass("footer-name"),r.append(a),i.columnsFooters[n.name]&&i.columnsFooters[n.name][l]){let e=i.columnsFooters[n.name][l],t=i._createCell(i.data_params,e);t.attr("data-field",e.name),c.append(t)}}}),o=(o=o.add(r)).add(c),l++}e.html(o);let d,f,u,p,h=0,m=this._container.width()-100,b="";t.each(i.columnsFooters[""],function(e,a){void 0!==a.panelColor&&(p=a.panelColor),void 0!==a.sectionTitle&&(b=a.sectionTitle),a.showMeWidth&&((0===h||m<h+a.showMeWidth||a.tableBreakBefore)&&(d&&d.width(h),d=t("<table class='pcTable-footers-table'><thead><tr></tr></thead><tbody><tr></tr></tbody></table>"),b&&n.append(t('<div class="pcTable-sectionTitle"></div>').text(b)),b="",n.append(d),h=0,f=d.find("thead tr"),u=d.find("tbody tr")),f.append(i._createHeadCell(e,a,p)),u.append('<td data-field="'+a.name+'">'),h+=a.showMeWidth)}),d&&d.width(h)}return[e,n]},_refreshFootersBlock:function(e,n){let a=this,o=a._footersBlock.add(a._footersSubTable);return a.fieldCategories.footer&&t.each(a.fieldCategories.footer,function(t,l){if(!l.showMeWidth||e&&!0!==e[l.name])return!0;let s=a._createCell(a.data_params,l);s.attr("data-field",l.name),o.find('td[data-field="'+l.name+'"]').replaceWith(s),n&&a._colorizeElement(s,i)}),this._paramsBlock},_createHead:function(){return this._header=t("<thead>").append(this._createHeadRow()),this._header},_refreshHead:function(){return this._header.empty().append(this._createHeadRow()),this._header},_createFirstBody:function(){return this._beforebody=t("<tbody class='beforeRows'>").append('<tr class="extra-clasters">'),this.extraClastersTop=this._beforebody.find(".extra-clasters"),this._beforebody},_createAfterBody:function(){return this._afterbody=t("<tbody class='afterRows'>").append('<tr class="extra-clasters">'),this.extraClastersBottom=this._afterbody.find(".extra-clasters"),this._afterbody},_createBody:function(){return this._content=t("<tbody class='dataRows'>"),this._content},_createHeadRow:function(){let e,n=this,i=t("<tr>"),a=60;return n._createHeadCellId().appendTo(i),t.each(this.fieldCategories.visibleColumns,function(t,o){let l;void 0!==o.panelColor&&(e=o.panelColor),(l="n"===o.name?n._createHeadCellNo():n._createHeadCell(t,o,e)).appendTo(i),a+=parseInt(o.showMeWidth)}),this.tableWidth=a,this._table.width(this.tableWidth),i},_createHeadCellId:function(){let e=this,n=t('<th class="id"><span>id</span></th>');if(null===e.tableRow.order_field||"id"===e.tableRow.order_field){let t=n.find("span").css("font-weight","bold");e.isCreatorView&&(!0===e.tableRow.order_desc?t.append(' <i class="fa fa-sort-amount-desc roles"></i>'):t.append(' <i class="fa fa-sort-amount-asc roles"></i>'))}let i=t('<div class="pcTable-filters"></div>'),a=t('<button class="btn btn-default btn-xxs"><i class="fa fa-sort"></i></button>').on("click",function(){e.fieldCategories.visibleColumns.some(function(e){return"n"===e.name})?(e.fieldsHiddingHide.call(e,"n"),a.removeClass("btn-warning")):(e.fieldsHiddingHide.call(e,"n",!0),a.addClass("btn-warning"))});e.fieldCategories.visibleColumns.some(function(e){return"n"===e.name})&&a.addClass("btn-warning");let o=this._getIdFilterButton();return i.append(a).append(" ").append(o).append(" ").append(e._idCheckButton),n.append(this._checkStatusBar),n.append(i),e._idCheckButton.off().on("click",function(){if(e._idCheckButton.find("span").is(".fa-check"))e.row_actions_uncheck_all.call(e),e.__checkedRows=[];else{for(let t=0;t<e.dataSortedVisible.length;t++){let n=e.dataSortedVisible[t],i=e._getItemById(n);e.row_actions_check.call(e,i,!0)}e.__checkedRows=e.dataSortedVisible.slice()}e._headCellIdButtonsState()}),i=t('<div class="pcTable-filters for-selected"><button class="btn btn-default btn-xxs"><i class="fa fa-copy"/></button> <button class="btn btn-default btn-xxs" data-names="true"><i class="fa fa-clone"/></button></div>'),n.append(i),this._refreshCheckedStatus(),n},_getIdFilterButton:function(){let e,n=this,i=t("<span>");return e=t('<button class="btn btn-xxs btn-filter" id="checkS"><span class="fa fa-circle-o"></span></button>').on("click",function(){e.is(".btn-warning")?(e.addClass("btn-default").removeClass("btn-warning").find("span").removeClass("fa-circle").addClass("fa-circle-o"),delete n.filters.id,i.find(".btn-filter:not(#checkS)").parent().replaceWith(n.__getFilterButton("id"))):(e.removeClass("btn-default").addClass("btn-warning").find("span").removeClass("fa-circle-o").addClass("fa-circle"),n.filters.id=n.__checkedRows.slice().map(function(e){return e.toString()})),n.__applyFilters(),n._headCellIdButtonsState()}),n.filters.id&&n.filters.id.length?e.addClass("btn-warning").removeClass("btn-default"):e.addClass("btn-default").removeClass("btn-warning"),i.append(e),i.append(n.__getFilterButton("id")),i},_createHeadCellNo:function(){let e=this,n=e.fields.n,i=t('<span class="cell-title">').text(n.title?n.title:n.name).attr("title",n.title),a=t('<button class="btn btn-default btn-xxs" style="width: 45px"><i class="fa fa-save"></i></button>'),o=t('<th class="n">').width(n.userWidth||n.width).append(i);return e.isCreatorView&&("n"===e.tableRow.order_field&&(!0===e.tableRow.order_desc?i.before('<i class="fa fa-sort-amount-desc roles"></i>'):i.before('<i class="fa fa-sort-amount-asc roles"></i>')),i.before("<br/>")),e._orderSaveBtn=a,!e.tableRow.with_order_field||e.f.blockorder||e.tableRow.__blocked?(a.prop("disabled",!0),this._table.addClass("no-correct-n-filtered")):a.on("click",function(){e.reOrderRowsSave.call(e)}),o.append(t('<div class="pcTable-filters">').append(a))},_createHeadCell:function(n,i,a){let o=this,l=i.showMeWidth||i.width||100,s=t("<th>").data("field",i.name).width(l);o.fields[i.name]&&(o.fields[i.name].$th=s),void 0!==a&&""!==a&&s.css("background-color",a),i.webRoles&&1===i.webRoles.length&&"1"===i.webRoles[0]&&s.addClass("admin-see"),"footer"===i.type&&i.column&&(s=t("<td>"));let r=Object.getPath(o.f,["fieldtitle",i.name],i.title?i.title:i.name),c=t('<span class="cell-title">').text(r).attr("title",r).appendTo(s);if(o.isCreatorView){const e=function(e){let t="";switch(e){case"param":t="fa-hand-o-up";break;case"column":t="fa-hand-o-right";break;case"filter":t="fa-hand-o-left";break;case"footer":t="fa-hand-o-down"}return t};!i.isHiddenField&&i.showMeWidth||c.before('<i class="fa '+e(i.category)+' roles"></i>'),!i.showInWeb||i.isHiddenField||i.showMeWidth||s.addClass("eye-hidden"),i.linkTableName&&c.before('<i class="fa fa-chain roles"></i>'),c.before('<i class="fa '+i.icon+' roles"></i>');let n=t('<i class="roles">'+(i._ord||i.ord)+"</i>");if(c.before(n),i._ord&&(n.addClass("reordered"),n.before('<i class="roles">'+i.ord+"</i>")),i._category&&n.before('<i class="fa '+e(i._category)+' roles reordered fa-bold"></i>'),"column"===i.category&&o.tableRow.order_field===i.name&&(n.css("font-weight","bold"),!0===o.tableRow.order_desc?c.before('<i class="fa fa-sort-amount-desc roles"></i>'):c.before('<i class="fa fa-sort-amount-asc roles"></i>')),i.codeAction){let e=t('<i class="fa fa-star roles"></i>');c.before(e);let n="";i.CodeActionOnAdd&&(""!==n&&(n+="\n"),n+="При добавлении"),i.CodeActionOnChange&&(""!==n&&(n+="\n"),n+="При изменении"),i.CodeActionOnDelete&&(""!==n&&(n+="\n"),n+="При удалении"),"button"===i.type&&(""!==n&&(n+="\n"),n+="При клике"),""===n&&e.removeClass("fa-star").addClass("fa-star-o"),e.attr("title",n)}i.code&&(i.codeOnlyInAdd?c.before('<i class="fa fa-cog-o roles"></i>'):c.before('<i class="fa fa-cogs roles"></i>'));const a=function(e){let t="";return e.forEach(function(e){""!==t&&(t+="\n"),t+=o.ROLESLIST[e.toString()]}),t};if(i.webRoles&&c.before(t('<i class="fa fa-eye roles"></i>').attr("title",a(i.webRoles))),"button"!==i.type){let e=!1;i.addRoles?c.before(t('<i class="fa fa-plus roles"></i>').attr("title",a(i.addRoles))):i.insertable||("column"===i.category?i.editable?c.before(t('<i class="fa fa-plus roles"></i>').attr("title","Добавление запрещено")):(c.before(t('<i class="fa fa-lock roles"></i>').attr("title","Добавление и редактирование запрещено")),e=!0):i.editable||(c.before(t('<i class="fa fa-lock roles"></i>').attr("title","Редактирование запрещено")),e=!0)),i.editRoles?c.before(t('<i class="fa fa-pencil roles"></i>').attr("title",a(i.editRoles))):i.editable||e||c.before(t('<i class="fa fa-pencil roles"></i>').attr("title","Редактирование запрещено")),i.logRoles&&c.before(t('<i class="fa fa-archive roles"></i>').attr("title",a(i.logRoles)))}if(i.showInXml){let e="";i.xmlRoles&&(e=a(i.xmlRoles)),c.before(t('<i class="fa fa-exchange roles"></i>').attr("title",e))}c.before("<br/>")}i.unitType&&c.append(", "+i.unitType);let f,u=t('<div class="pcTable-filters">');if(i.help&&i.help.length){(f=t('<span class="btn btn-default btn-xxs" tabindex="-1" id="field-help-'+i.name+'"><i class="fa fa-info"/></span>')).appendTo(u);let e,n=t('<div class="i-inner-div">').html(i.help).width(230);f.on("click open close",function(a){let l=t(this);l.data("bs.popover")?"open"!==a.type&&(e&&clearTimeout(e),e=setTimeout(()=>{l.attr("aria-describedby")&&t("#"+l.attr("aria-describedby").length)&&l.popover("destroy")},120)):"close"!==a.type&&(f.popover({trigger:"manual",content:n,html:!0,placement:()=>{let e="bottom",t=300,a=o._container,s=l.offset().top-a.offset().top;return"column"===i.category&&o.insertRow||s>a.height()/2?(e="top",t=s-40):t=a.height()-s-70,n.css("max-height",t),e},container:o.scrollWrapper}),l.popover("show"))}),d||(d=!0,o._container.on("click escPressed",function(e){o._container.find('[id^="field-help"][aria-describedby^="popover"]').each(function(){t(this).attr("id")===e.target.id||t(e.target).closest("#"+t(this).attr("id")).length||(console.log(e.type),t(this).trigger("close"))})}))}if("column"===i.category&&i.filterable&&i.showMeWidth>0&&this.__getFilterButton(i.name).appendTo(u),(o.isCreatorView||!1!==i.dropdownView&&(i.linkToSelectTable||"filter"!==i.category))&&(s.addClass("with-filter"),function(){let n=t("<div>"),a=t('<button class="btn btn-default btn-xxs"  tabindex="-1"><i class="fa fa-caret-down"/></button>');i.pcTable?!1===i.dropdownView&&a.addClass("field_name"):a.addClass("field_name");const l=function(t){t&&e.location.reload()};if(o.isCreatorView){let s=t('<div class="menu-item color-danger">');s.append('<i class="fa fa-pencil-square-o"/> Изменить'),n.append(s);const r=function(){return new EditPanel(2,BootstrapDialog.TYPE_DANGER,{id:i.id}).then(l),!1};s.on("click",r),a.on("contextmenu",r),(s=t('<div class="menu-item color-danger">')).append('<i class="fa fa-clone"/> Дублировать'),n.append(s),s.on("click",function(){App.getPcTableById(2).then(function(e){e.model.checkEditRow({id:i.id}).then(function(e){let n={};t.each(e.row,function(e,t){"object"==typeof t&&(n[e]=t)}),new EditPanel(2,BootstrapDialog.TYPE_DANGER,n).then(l)})})}),(s=t('<div class="menu-item color-danger">')).append('<i class="fa fa-plus"/> Вставить после'),n.append(s),s.on("click",function(){App.getPcTableById(2,{afterField:i.ord}).then(function(e){let t={};t.ord={v:i.ord+10},t.category={v:i.category},t.table_id={v:o.tableRow.id},o.tableRow.__version&&(t.version={v:o.tableRow.__version}),new EditPanel(e,BootstrapDialog.TYPE_DANGER,t).then(l)})}),(s=t('<div class="menu-item color-danger">')).append('<i class="fa fa-refresh"/> Изменить NAME'),n.append(s),s.on("click",function(){o.model.renameField(i.name)}),(s=t('<div class="menu-item color-danger">')).append('<i class="fa fa-times"/> Удалить'),n.append(s),s.on("click",function(){let t=i.title;BootstrapDialog.show({type:BootstrapDialog.TYPE_DANGER,title:"Удалить поле "+t+" из таблицы "+o.tableRow.title+"?",buttons:[{action:function(n,a){"use strict";n.close(),App.getPcTableById(2).then(function(n){App.panelTimer("Удаление поля "+t+" из таблицы "+o.tableRow.title,n.tableRow.delete_timer,function(){n.model.delete(i.id).then(function(){e.location.reload(!0)})})})},cssClass:"btn-warning",label:"Удалить"},{action:function(e){e.close()},label:"Отмена"}],draggable:!0})})}if("filter"!==i.category&&i.pcTable){let e=t('<div class="menu-item">');e.append('<i class="fa fa-eye-slash"/> Скрыть'),e.on("click",function(){a.popover("hide"),o.fieldsHiddingHide.call(o,i.name)}),e.appendTo(n),(e=t('<div class="menu-item">')).append('<i class="fa fa-arrows-h"/> Ширина поля'),e.on("click",function(){a.popover("hide");let e=t('<div><input type="number" class="form-control" value="'+i.showMeWidth+'" style="padding-left: 2px;"/></div>');BootstrapDialog.show({message:e,title:"Ширина поля "+i.title,onshown:function(t){let n=e.find("input");n.focus(),n.on("keydown",function(n){13===n.keyCode&&(i.pcTable.setColumnWidth.call(i.pcTable,i.name,parseInt(e.find("input").val())),t.close())}),t.$modalDialog.width(500)},buttons:[{label:"Применить",action:function(t){let n=parseInt(e.find("input").val());t.close(),i.pcTable.setColumnWidth.call(i.pcTable,i.name,n)}},{label:"Отмена",action:function(e){e.close()}}],draggable:!0})}),e.appendTo(n)}if(i.showMeWidth>0&&"column"===i.category){{let e=t('<div class="menu-item">');e.append('<i class="fa fa-sort-alpha-asc"/> Сортировать А-Я'),n.append(e),e.on("click",function(){o.sort(i,1)})}{let e=t('<div class="menu-item">');e.append('<i class="fa fa-sort-alpha-desc"/> Сортировать Я-А'),n.append(e),e.on("click",function(){o.sort(i,-1)})}if("column"===i.category&&"number"===i.type){let e=t('<div class="menu-item">');e.append('<i class="fa fa-diamond"/> Математические операции'),n.append(e),e.on("click",function(){let e=t("<div>"),n=0,a=0,l=null,s=null,r=0;o.dataSortedVisible.some(function(e){try{let t=Big(o.data[e][i.name].v);n=Big(n).plus(t),++a,null===l?l=t:t.gt(l)&&(l=t),null===s?s=t:t.lt(s)&&(s=t)}catch(e){++r}});let c=t('<table><thead><tr><th style="width: 180px;height: 32px;">Операция</th><th style="width: 200px;">Значение</th></tr></thead>').appendTo(e),d=t("<tbody>").appendTo(c),f=function(e,t){let n="";if(t=t||!1,i.unitType&&!t&&(n=" "+i.unitType),i.currency){let t={};return i.dectimalPlaces&&(t.minimumFractionDigits=i.dectimalPlaces),parseFloat(e).toLocaleString("ru-RU",t)+n}return e+n};t("<tr><td>Сумма</td><td>"+f(n)+"</td></tr>").appendTo(d),t("<tr><td>Кол-во чисел</td><td>"+f(a,!0)+"</td></tr>").appendTo(d),t("<tr><td>Среднее</td><td>"+f(Big(n).div(a).round(i.dectimalPlaces||0))+"</td></tr>").appendTo(d),t("<tr><td>Максимальное</td><td>"+f(l)+"</td></tr>").appendTo(d),t("<tr><td>Минимальное</td><td>"+f(s)+"</td></tr>").appendTo(d),t("<tr><td>Нечисл. элементов</td><td>"+f(r,!0)+"</td></tr>").appendTo(d),BootstrapDialog.show({title:i.title+(i.unitType?", "+i.unitType:""),type:"edit",message:e,draggable:!0,onshown:function(e){e.$modalDialog.width(400)},buttons:[{action:function(e){e.close()},label:"Закрыть"}]})})}}if(i.linkToSelectTable){let a=i.linkToSelectTable,o=t('<div class="menu-item color-primary">');o.append('<i class="fa fa-external-link"/> '+a.title),n.append(o),o.on("click",function(){return e.open(a.link,"_blank").focus(),!1})}return a.popover({html:!0,content:n,trigger:"manual",container:o._container,placement:"auto bottom"}),a.on("click",function(){let e=t(this);e.data("bs.popover").tip().hasClass("in")||(e.popover("show"),setTimeout(function(){o._container.one("click",function(){e.popover("hide")})},20))}),a}().appendTo(u)),u.appendTo(s),this.isCreatorView){let e=t('<div class="th-left-bottom-buttons">').appendTo(s),n=t('<div class="btn  btn-xxs field_name copy_me"  tabindex="-1" data-copied-text="Скопировано">').text(i.name).appendTo(e),a=34;i.filterable&&(a+=15),f&&(a+=14),(i.filterable||f)&&(a+=5,i.filterable&&f&&(f.css("margin-right",-3),a+=2)),"footer"===i.category&&i.column&&this.fields[i.column]&&!o.hidden_fields[i.name]&&(l=this.fields[i.column].width);let r=l-a,c=function(){let e=n.width();if(0==e)return setTimeout(c,30),!1;(e+=10)>r&&n.width(r)};c()}return s},_createNoDataRow:function(e){var n=0;t.each(this.fields,function(e,t){n++});let i=this,a=t();return this.control.adding&&!this.f.blockadd&&(a=t('<button class="btn btn-warning btn-xxs">Добавить строку</button>').width(120).on("click",function(){i._addInsert.call(i)})),e=e||"Таблица пуста ",t("<tr>").addClass(this.noDataRowClass).append('<td class="id">').append(t("<td>").attr("colspan",n).append(e).append(a))},_createRow:function(e,n){n=n||[];let a=this;e.$tr||(e.$tr=t("<tr>"),e.$tr.height(35),e.$tr.data("item",e));let o=e.$tr.empty();o.attr("class","DataRow"),o.attr("data-pctableitemid",e.id),e.e_data&&1==e.e_data.b&&o.addClass("BlockedRow"),e.InsDel&&o.addClass("insDeleted"),this._addCellId(e,o);let l=0,s=this.fieldCategories.visibleColumns.length;if(this.fieldCategories.visibleColumns[l]&&"n"===this.fieldCategories.visibleColumns[l].name){let n=this.fieldCategories.visibleColumns[l],i=t("<td>");o.append(i.append('<span class="cell-value">').append(n.getCellText(null,i,e))),++l}for(;l<s;++l){let t,s=this.fieldCategories.visibleColumns[l];o.append(t=a._createCell(e,s)),n.indexOf(s.name)>-1&&a._colorizeElement(t,i)}},refreshRow:function(e,n,i){if(e&&e.is(".DataRow")||n){n||(n=this._getItemByTr(e));let o=[];if(i){for(var a in i)null!==i[a]&&"object"==typeof i[a]?i[a].changed?(o.push(a),delete i[a].changed):Object.equals(i[a],n[a])||o.push(a):i[a]!=n[a]&&o.push(a),n[a]=i[a];t.extend(n,i)}e&&this._createRow(n,o)}else this._isParamsArea(e)?this._refreshParamsBlock():this._isFootersArea(e)&&this._refreshFootersBlock()},_createCell:function(e,n){let i=this;var a=t("<td>");let o,l;e[n.name]||(console.log("Не найдено поле "+n.name),console.log(e));try{o=t.extend({},i.f||{},e.f||{},e[n.name].f||{})}catch(t){console.log("test"),console.log(t,e,n.name),o={}}!n.editable||!this.control.editing&&"filter"!==n.category||o.block||(a.addClass("edt"),n.editGroup&&(n.editGroupMultiColumns?a.addClass("e-gm").addClass("e-g"):a.addClass("e-g")),o.editbutton&&(l='<button class="btn btn-default btn-xxs pull-right ttm-edit"><i class="fa fa-edit"></i></button>')),o.block&&a.addClass("blocked"),"column"!==n.category&&a.attr("data-field",n.name);var s=t('<span class="cell-value">'),r=e[n.name];let c,d;if(n.code&&!n.codeOnlyInAdd&&a.addClass("with-code"),"column"!==n.category&&a.data("field",n.name).addClass("val"),r){if(c=r.e,r.h&&(d=void 0!==r.c&&r.v!=r.c?t('<i class="fa fa-hand-paper-o pull-right" aria-hidden="true"></i>'):t('<i class="fa fa-hand-rock-o pull-right" aria-hidden="true"></i>')),r.d&&a.addClass("deleted_value"),r.e)if(n.errorText)s.text(n.errorText);else{let e=t('<i class="fa fa-exclamation-triangle pull-right" aria-hidden="true"></i>').attr("title",r.e);a.append(e)}if(o.text&&"button"!=n.type)s.text(o.text);else if(!r.e||!n.errorText){var f=n.getCellText.call(n,r.v,a,e,i);"object"==typeof f?s.html(f):s.text(f)}}if(d&&a.append(d),l&&a.append(l),s.appendTo(a),o.text||!n.unitType||c||null===r.v||s.attr("data-unit-type"," "+n.unitType),n.css&&a.addClass(n.css),this.isSelected(n.name,e.id)&&a.addClass("selected"),o.background&&a.css("background-color",o.background),o.color&&a.css("color",o.color),o.bold&&a.css("font-weight","bold"),o.align?a.css("text-align",o.align):o.tab&&a.css("padding-left",o.tab+"px"),o.decoration&&a.css("text-decoration",o.decoration),o.italic&&a.css("font-style","italic"),"button"!==n.type)if(o.comment){let e;e=t('<i class="cell-icon fa fa-info"></i>'),a.prepend(e),e.attr("title",o.comment)}else o.icon&&a.prepend('<i class="cell-icon fa fa-'+o.icon+'"></i>');if(o.progress&&o.progresscolor){let e=function(){if(s.isAttached()){let e=Math.round(s.width()*parseInt(o.progress)/100);s.css("box-shadow","inset "+e.toString()+"px 0px 0 0 "+o.progresscolor)}else setTimeout(e,50)};e()}return a},_getLoadingSpinner:function(){return t('<div class="text-center"><i class="fa fa-spinner"/></div>')},_colorizeElement:function(e,t,n){let i=10,a=function(){0===i?e.css("box-shadow",""):(e.css("box-shadow","inset 0 0 100px 100px "+App.hexToRGB(t,i/10)),i--,setTimeout(a,50))};a()},_TmpColorize:function(e,t,n){var i,a=this,o=0;t=t||"#ff0000";"#"!=(n=n||"#ffffff").substr(0,1)&&(n=App.rgb2hex(n));10==++o?i=n:(i=function(e,t,n){var i=parseInt(e.slice(1),16),a=(n=parseInt(n.slice(1),16),t<0?0:n>>16),o=t<0?0:n>>8&255,l=t<0?0:255&n,s=t<0?-1*t:t,r=i>>16,c=i>>8&255,d=255&i;return"#"+(16777216+65536*(Math.round((a-r)*s)+r)+256*(Math.round((o-c)*s)+c)+(Math.round((l-d)*s)+d)).toString(16).slice(1)}(t,.1,n))==t&&(i=n),e.css("background-color",i),i!=n?setTimeout(function(){a._TmpColorize(e,i,n)},50):e.data("backgroundcolor")||e.attr("style",e.attr("style").replace(/(background\-color:[^;"]+;?)/,""))}}),t.extend(App.pcTableMain.prototype,{_addHorizontalDraggable:function(){this._innerContainer.off("mousedown.HorizontalDraggable mouseout").on("mousedown.HorizontalDraggable",function(e){for(var n=e;n;){if(t(e.target).is("input"))return!0;if(n==e.originalEvent)break;n=e.originalEvent}return t(this).data("x",e.clientX).data("scrollLeft",this.scrollLeft),!1}).on("mousemove",function(e){if(0===t(e.target).closest(".InsertRow").length&&"INPUT"!==e.target.tagName&&1===e.buttons&&0===e.button&&Math.abs(t(this).data("x")-e.clientX)>20){let n;t(this).data("moved",!0),n&&clearTimeout(n),n=setTimeout(function(){t(this).data("moved",!1)},200),this.scrollLeft=t(this).data("scrollLeft")+t(this).data("x")-e.clientX}})}}),App.pcTableMain.prototype._addRowPanel=function(e,n,i){var a=t('<div style="width: 165px;"><div class="buttons"></div></div>');if(void 0!==i){var o=a.find(".buttons").empty();t.each(i,function(e,n){if("function"==typeof n)var i=t('<button class="btn btn-sm btn-default">').html(e).on("click",n);else"object"==typeof n&&"checkbox"==n.type&&(i=t('<input type="checkbox">'),n.id&&i.attr("id",n.id),n.func&&i.on("change",n.func),i=i.wrap('<span style="font-size: 10px; padding-left: 8px;" >').parent().append(' <span style="padding-top: 2px;">'+e+"</span>"));o.append(" "),o.append(i)})}n.on("remove",function(){a.remove()});let l=this;return setTimeout(function(){let e={isParams:!0,$text:a,element:n,container:l._container,placement:"bottom",trigger:"manual"};App.popNotify(e);let i=n.attr("aria-describedby"),o=t("#"+i).addClass("warning-bg");o.find(".arrow").css("left","80%"),l._positionPanel.call(l,o,n),a.show()},50),a},App.pcTableMain.prototype._positionPanel=function(e,t){var n=t.position();this.tableWidth;return this._innerContainer.width()>this.tableWidth?e.position({my:"right top",at:"right+2px bottom+12px",of:t}):e.position({my:"right top",at:"right+2px top+"+(n.top+47)+"px ",of:this._innerContainer})},t.extend(App.pcTableMain.prototype,{_csvExport:function(){"use strict";let e=this;this.model.csvExport(e.dataSortedVisible,Object.keys(App.filter(e.fields,(e,t)=>!!t.showMeWidth))).then(function(t){if(t.csv){let n=new Blob([t.csv],{type:"text/csv;charset=utf-8"});saveAs(n,e.tableRow.title+"."+e.model.tableData.updated.dt+".csv")}})},_csvImportClick:function(){let e=this;t('<input type="file" accept="text/csv">').on("change",function(){if(this.files&&this.files[0]){let t=new FileReader;t.onload=function(t){let n=t.target.result;e._csvImportUpload.call(e,n)},t.onerror=function(e){console.log(e.target.error)},t.readAsDataURL(this.files[0])}}).click()},_csvImportUpload:function(e){let t=this,n={},i=function(){t.model.csvImport(e,n).then(function(e){e.question?App.modal(e.question[1],"Вопрос про csv-загрузку",{"Отменить":"close","Загружаем":function(t){"use strict";t.modal("hide"),n[e.question[0]]=1,i()}}):e.ok&&t.table_modify.call(t,e)})};i()}}),function(){t.extend(App.pcTableMain.prototype,{___fieldsHiddingShowAllButton:null,_hideHell_storage:{isset_fields:!1,opened:null,blinkIt:!1,getOpened:function(){return null===this._hideHell_storage.opened&&(this._hideHell_storage.opened=i.getSavedOpenedVal(this.tableRow),!1===this._hideHell_storage.opened&&(this._hideHell_storage.blinkIt=!0)),this._hideHell_storage.opened},checkIssetFields:function(e){if(this.isCreatorView&&this._beforeSpace){let t=this._hideHell_storage.isset_fields;if(this._hideHell_storage.isset_fields=Object.keys(this.hidden_fields).length||Object.keys(this.fields).some(e=>"n"!==e&&(!this.fields[e].showMeWidth||this.fields[e].showMeWidth<1)),e||t!==this._hideHell_storage.isset_fields){let e=this._beforeSpace.find("#hide-hell").removeClass("btn-contour");this._hideHell_storage.isset_fields?(e.removeAttr("disabled"),this._hideHell_storage.opened?(e.find("i").addClass("fa-arrow-up").removeClass("fa-arrow-down").removeClass("fa-times"),e.addClass("btn-contour")):(e.find("i").removeClass("fa-arrow-up").addClass("fa-arrow-down").removeClass("fa-times"),this._hideHell_storage.blinkIt&&(App.blink(e,8,"#fff"),this._hideHell_storage.blinkIt=!1))):(e.attr("disabled","disabled"),e.find("i").addClass("fa-times").removeClass("fa-arrow-up").removeClass("fa-arrow-down"))}}},switchOpened:function(){this._hideHell_storage.opened=!this._hideHell_storage.opened,this._hideHell_storage.checkIssetFields.call(this,!0),i.saveOpenedVal(this.tableRow,this._hideHell_storage.opened),this._refreshHiddenFieldsBlock()}},fieldsHiddingHide:function(e,t){let n=a.get(this.tableRow)||{};t?n[e]=this.fields[e].width:delete n[e],this.setVisibleFields(n)},setVisibleColumns:function(){let e=this;this.fieldCategories.visibleColumns=[],this.fieldCategories.column.forEach(function(t){t.showMeWidth&&e.fieldCategories.visibleColumns.push(t)})},setColumnWidth:function(e,t){let n=a.get(this.tableRow)||{};n[e]=t,this.setVisibleFields(n)},loadVisibleFields:function(){let e={},t=a.getDate(this.tableRow);!t||""!=this.tableRow.fields_actuality&&this.tableRow.fields_actuality>t?(console.log("visibleFields updated"),this.setVisibleFields(e,!0,moment().format(App.dateTimeFormats.db))):(e=a.get(this.tableRow)||{},this.setVisibleFields(e,!0))},setVisibleFields:function(e,n,i){let o=this;e&&0===Object.keys(e).length?(e={},Object.values(o.fields).forEach(function(t){o.fields[t.name].showMeWidth=t.hidden?0:t.width,e[t.name]=o.fields[t.name].showMeWidth})):Object.values(o.fields).forEach(function(t){"filter"===t.category?o.fields[t.name].showMeWidth=t.width:void 0!==e[t.name]?o.fields[t.name].showMeWidth=parseInt(e[t.name]):o.fields[t.name].showMeWidth=n&&!t.hidden?t.width:0,e[t.name]=o.fields[t.name].showMeWidth}),a.set(e,this.tableRow,i),this.setVisibleColumns(),t.each(this.data,function(e,t){delete o.data[e].$tr}),this._header&&(this._refreshHead(),this._refreshContentTable(!0),this._rerenderColumnsFooter(),this.fieldsHiddingGetButton(),this.isCreatorView&&(this._hideHell_storage.checkIssetFields.call(o),this._refreshHiddenFieldsBlock()),this.setWidthes(),this.ScrollClasterized.insertToDOM(null,!0)),this._insertRow&&this._closeInsertRow()},hideAdminViewFields:function(){let e=this,t=a.get(this.tableRow)||{};Object.keys(t).forEach(function(n){if(t[n]>0){let i=e.fields[n];(!i||i.webRoles&&1===i.webRoles.length&&"1"==i.webRoles[0])&&delete t[n]}}),this.setVisibleFields(t)},setDefaultVisibleFields:function(){let e={};Object.values(this.fields).forEach(function(t){t.hidden?e[t.name]=0:e[t.name]=t.width}),this.setVisibleFields.call(this,e)},fieldsHiddingShowPanel:function(){let e,n,i=this,a=t('<div class="hidding-form">');const l=function(e){e=e||t("#defaultEyeGroups"),s=i.tableRow.fields_sets||[],e.empty().append("<b>Наборы по умолчанию:</b> "),s.forEach(function(n,a){let o=t('<a href="#">').text(n.name).data("index",a);e.append(o.wrap("<span>").parent()),i.isCreatorView&&(a>0&&o.parent().append(t('<button class="btn btn-xxs field_name"><i class="fa fa-arrow-left"></i></button>').data("index",a)),o.parent().append(t('<button class="btn btn-xxs field_name"><i class="fa fa-remove"></i></button>').data("index",a)))}),e.off(),i.isCreatorView&&e.on("click",".btn",function(){if(t(this).find("i").is(".fa-remove")){let e=t(this);i.model.removeEyeGroupSet(e.data("index")).then(function(e){i.tableRow.fields_sets=e.sets,l()})}else{let e=t(this);i.model.leftEyeGroupSet(e.data("index")).then(function(e){i.tableRow.fields_sets=e.sets,l()})}}),e.on("click","a",function(){let e=t(this).data("index"),a=s[e].fields;if(Array.isArray(a)){let e={};a.forEach(function(t){i.fields[t]&&(e[t]=i.fields[t].width)}),a=e}i.setVisibleFields.call(i,a),n.close()})};let s=o.getNames(i.tableRow);if(s&&s.length){let e=t('<div class="fieldsHiddenSets">').appendTo(a);e.append("<b>Наборы:</b> "),s.forEach(function(n){let a=t('<a href="#">').text(n).data("name",n);e.append(a.wrap("<span>").parent());let o=a.parent();o.append(t('<button class="btn btn-xxs" data-action="remove"><i class="fa fa-remove"></i></button>').data("name",n)),i.isCreatorView&&o.append(t('<button class="btn btn-xxs field_name" data-action="addDefaultSet" title="Сохранить как набор по умолчанию"><i class="fa fa-save"></i></button>').data("name",n))}),e.on("click",".btn",function(){let e=t(this),n=e.data("name");if(i.isCreatorView&&"addDefaultSet"===t(this).data("action")){let t=o.get(i.tableRow,n)||[];i.model.AddEyeGroupSet(n,t).then(function(t){i.tableRow.fields_sets=t.sets,l(),o.remove(i.tableRow,n),e.parent().remove()})}else o.remove(i.tableRow,n),e.parent().remove()}),e.on("click","a",function(){let e=t(this).data("name"),a=o.get(i.tableRow,e)||[];i.setVisibleFields.call(i,a),n.close()})}s=i.tableRow.fields_sets||[];let r=t('<div class="fieldsHiddenSets" id="defaultEyeGroups">').appendTo(a);s&&s.length&&l(r),a.on("click",'input[type="checkbox"]',function(n){let i=t(this),a=i.closest(".hidding-form");if(n.shiftKey){a.find("input").index(i);let n=a.find("input").index(t(this));a.find("input").each(function(a){(n<=a&&a<e||n>=a&&a>e)&&t(this).prop("checked",!!i.is(":checked")&&"checked").trigger("change")})}else e=a.find("input").index(t(this))});let c=[{label:"Применить",action:function(e){let n={};a.find("input:checked").each(function(){let e=t(this);n[e.attr("name")]=parseInt(e.closest("div").find('input[type="number"]').val())||null}),i.setVisibleFields.call(i,n),e.close()}},{label:"По умолчанию",action:function(e){e.close(),i.setDefaultVisibleFields.call(i)}},{label:"Показать все",action:function(e){e.close();let t={};Object.values(i.fields).forEach(function(e){t[e.name]=e.width}),i.setVisibleFields.call(i,t)}},{label:"Создать набор",action:function(e){let n={};a.find("input:checked").each(function(){let e=t(this);n[e.attr("name")]=parseInt(e.closest("div").find('input[type="number"]').val())||null}),i.setVisibleFields.call(i,n),e.close();let l=t("<div></div>");l.append('<div style="padding-top: 10px;"><label>Название набора</label><input type="text" id="fieldsSetName" class="form-control"/></div>'),BootstrapDialog.show({message:l,title:"Сохранить набор полей",buttons:[{label:"Сохранить",action:function(e){let t=l.find("#fieldsSetName");""===t.val().trim()?t.addClass("error"):(o.set(i.tableRow,n,t.val().trim()),e.close())}},{label:"Закрыть",action:function(e){e.close()}}],draggable:!0})}},{label:"Отмена",action:function(e){e.close()}}];i.isCreatorView&&(c[1].label="C админ полями",c[1].icon="fa fa-angle-right",c.splice(1,0,{label:"Без админ полей",icon:"fa fa-angle-double-right",action:function(e){e.close(),i.hideAdminViewFields.call(i)}}));let d={param:"Хэдер",column:"Колонки",footer:"Футер"};Object.keys(d).forEach(function(e){i.fieldCategories[e]&&i.fieldCategories[e].length&&(a.append('<div class="category-name">'+d[e]+"</div>"),t.each(i.fieldCategories[e],function(e,n){let i="";n.hidden&&(i=" (Скрыто по умолчанию)");let o=t('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="'+n.name+'" class="form-check-input"> '+n.title+i+'</label> <input type="number" placeholder="'+n.width+'" value="'+(n.showMeWidth&&n.showMeWidth!==n.width?n.showMeWidth:n.width)+'"/></div>');n.showMeWidth&&(o.find("input").prop("checked",!0),o.attr("data-checked",!0)),o.appendTo(a)}))}),a.on("change",'input[type="checkbox"]',function(){let e=t(this).closest("div");t(this).is(":checked")?e.attr("data-checked",!0):e.removeAttr("data-checked")}),n=BootstrapDialog.show({message:a,title:"Видимость полей",buttons:c,draggable:!0,onshow:function(e){i.isCreatorView&&e.$modalContent.css({width:"800px"})}})},fieldsHiddingGetButton:function(e){"use strict";let n=this;if(!this.___fieldsHiddingShowAllButton){let e;this.___fieldsHiddingShowAllButton=t('<button class="btn btn-sm"><span class="fa fa-eye-slash"></span></button>').on("click",function(){n.fieldsHiddingShowPanel.call(n)}).on("contextmenu",function(){return n.isCreatorView?e?(clearTimeout(e),e=null,n.hideAdminViewFields.call(n,!0)):e=setTimeout(function(){n.setDefaultVisibleFields.call(n),e=null},500):n.setDefaultVisibleFields.call(n),!1})}return Object.values(n.fields).some(function(e){if(e.showInWeb&&!e.hidden&&!e.showMeWidth)return!0})?(this.___fieldsHiddingShowAllButton.addClass("btn-warning"),this.___fieldsHiddingShowAllButton.removeClass("btn-default"),e&&App.blink(this.___fieldsHiddingShowAllButton,8,"#fff")):(this.___fieldsHiddingShowAllButton.addClass("btn-default"),this.___fieldsHiddingShowAllButton.removeClass("btn-warning")),this.___fieldsHiddingShowAllButton}});let e="pcTableShowFieldsWithDates",n=function(e){let t=e.id;return"calcs"===e.type&&(t+="$"+e.__version),t},i={saveOpenedVal:function(e,t){localStorage.setItem(this.getKeyString(e),t.toString())},getKeyString:function(e){return e.id+"/"+e.__version},getSavedOpenedVal:function(e){let t=localStorage.getItem(this.getKeyString(e));return!t||JSON.parse(t)}},a={set:function(t,i,a){let o=n(i),l={},s=t||{};try{l=JSON.parse(localStorage.getItem(e))||{}}catch(e){}a||!l[o]?l[o]=[s,a]:l[o][0]=s,localStorage.setItem(e,JSON.stringify(l))},get:function(e){let t=n(e);return a.getInner(t)[0]},getDate:function(e){let t=n(e);return a.getInner(t)[1]},getInner:function(t){let n;try{n=JSON.parse(localStorage.getItem(e))||{}}catch(e){n={}}return n[t]||[]}},o={set:function(e,t,i){let a=[],o="pcTableShowFieldsSets"+n(e),l=t||[];try{a=JSON.parse(localStorage.getItem(o))||{}}catch(e){}a[i]=l,localStorage.setItem(o,JSON.stringify(a))},get:function(e,t){let i,a="pcTableShowFieldsSets"+n(e);try{i=(i=JSON.parse(localStorage.getItem(a)))[t]}catch(e){}return null!==i&&void 0!==i||(i=void 0),i},getNames:function(e){let t,i="pcTableShowFieldsSets"+n(e);try{return t=JSON.parse(localStorage.getItem(i)),Object.keys(t)}catch(e){}return null!==t&&void 0!==t||(t=void 0),t},remove:function(e,t){let i,a="pcTableShowFieldsSets"+n(e);try{delete(i=JSON.parse(localStorage.getItem(a)))[t],localStorage.setItem(a,JSON.stringify(i))}catch(e){}}}}(),App.pcTableMain.prototype._print=function(){"use strict";let e=t('<div class="hidding-form">');const n=function(e){if(e.showMeWidth)return!0};this.fieldCategories.param.length&&this.fieldCategories.param.some(n)&&e.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="params" class="form-check-input" checked="checked"> Параметры</label></div>'),this.fieldCategories.filter.length&&e.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="filters" class="form-check-input" checked="checked"> Фильтры</label></div>'),this.fieldCategories.column.length&&this.fieldCategories.column.some(n)&&this.dataSortedVisible.length&&(e.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="rows" class="form-check-input" checked="checked"> Строчную часть</label></div>'),e.append('<div class="form-check no-bold" style="padding-left: 20px;"><label class="form-check-label"><input type="checkbox" name="with-id" class="form-check-input"> с id</label></div>')),this._footersBlock.find(".val").length&&e.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="column-footers" class="form-check-input" checked="checked"> Футеры колонок</label></div>'),this._footersSubTable.find(".val").length&&e.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="other-footers" class="form-check-input" checked="checked"> Футеры вне колонок</label></div>');let i=this,a=[{label:"Печать",action:function(n){let a=[];e.find("input:checked").each(function(){a.push(t(this).attr("name"))}),n.close(),i._printTable.call(i,a)}},{label:"Отмена",action:function(e){e.close()}}];BootstrapDialog.show({message:e,title:"Печать",buttons:a,draggable:!0})},App.pcTableMain.prototype._printTable=function(e){let t=this,n={fields:{}};-1!==e.indexOf("with-id")&&(n.fields.id=50);let i={params:t.fieldCategories.param,filters:t.fieldCategories.filter,rows:t.fieldCategories.column,"column-footers":t.fieldCategories.footer.filter(function(e){return""!==e.column}),"other-footers":t.fieldCategories.footer.filter(function(e){return""===e.column})};Object.keys(i).forEach(function(t){-1!==e.indexOf(t)&&i[t].forEach(function(e){"button"===e.type||e.showMeWidth<1||!e.showMeWidth||(n.fields[e.name]=e.showMeWidth)})}),-1!==e.indexOf("rows")&&(n.ids=t.dataSortedVisible),n.sosiskaMaxWidth=1100,t.model.printTable(n)},App.pcTableMain.prototype.reOrderRows=function(e,n){let i,a=this;if(a.tableRow.with_order_field&&!a.nSorted)return App.notify("Для работы поля порядок перезагрузите таблицу"),!1;let o,l=[];if(0===this.row_actions_get_checkedIds().length){if(l.push(e),(i=this.dataSorted.indexOf(e)+("after"===n?1:-1))<0)return}else{if(-1!==a.row_actions_get_checkedIds().indexOf(e))return App.notify("В качестве якоря для перемещения нужно выбрать не отмеченную строку"),!1;let t=this.row_actions_get_checkedIds().length;this.dataSorted.some(function(e,n){if(0===t)return!0;a.data[e].$checked&&(l.push(e),--t)})}l.forEach(function(e){a.dataSorted.splice(a.dataSorted.indexOf(e),1)}),o=void 0!==i?i:this.dataSorted.indexOf(e)+("after"===n?1:0),a.dataSorted.splice(o,0,...l),this.dataSortedVisible=[],a.dataSorted.forEach(function(e){a.data[e].$visible&&a.dataSortedVisible.push(e)}),a._refreshContentTable(),a.tableRow.with_order_field&&t("table.pcTable-table").addClass("reordered"),a.row_actions_uncheck_all()},App.pcTableMain.prototype.reOrderRowsSave=function(){let e=this;e._orderSaveBtn.prop("disabled",!0).find("i").attr("class","fa fa-cog"),this.model.saveOrder(this.dataSorted).then(function(n){e.table_modify(n),e._orderSaveBtn.prop("disabled",!1).find("i").attr("class","fa fa-save"),t("table.pcTable-table").removeClass("reordered")})},App.pcTableMain.prototype.addReOrderRowBind=function(){let e=this;e._innerContainer.on("click","td.n button",function(n){let i=t(this);e.tableRow.with_order_field&&!e.__getCheckedRowsIds(void 0,!0,"blockorder")||e.reOrderRows.call(e,e._getItemByTr.call(e,i.closest("tr")).id,1===i.find(".fa-angle-up").length?"before":"after")})},App.pcTableMain.prototype.__formatFunctions={blockadd:function(){this._rowsButtons()},blockorder:function(){this._refreshHead()},block:function(){this._refreshParamsBlock(),this._refreshContentTable(!0),this._refreshFootersBlock()},tabletitle:function(){this._refreshTitle()},rowstitle:function(){this._refreshFiltersBlock()},fieldtitle:function(e,t){let n={};for(const i in e)this.fields[i]&&e[i]!==t[i]&&(n[this.fields[i].category]=!0);for(const i in t)this.fields[i]&&e[i]!==t[i]&&(n[this.fields[i].category]=!0);for(const e in n)switch(e){case"param":this._rerendParamsblock();break;case"filter":this._rerendFiltersBlock();break;case"column":this._refreshHead();break;case"footer":this._rerendFooters()}}},t.extend(App.pcTableMain.prototype,{setWidthes:function(){"use strict";let n=t("body>.page_content:first").is(".tree-minifyed")?5:300;this.width=t("body").width()-n,this._container.width(this.width),this._innerContainer.width(this.width-80),this._rerendParamsblock(),this._rerendFiltersBlock(),this._rerendFooters(),this.tableWidth<this._innerContainer.width()?this.__$rowsButtons.width(this.tableWidth-59):this.__$rowsButtons.width(this._innerContainer.width()),this._container.width()<this._table.width()&&this._addHorizontalDraggable(),this._container.height(e.innerHeight-this._container.offset().top-20)},initForPanel:function(e){t.extend(!0,this,e),this.refreshArraysFieldCategories(!1);let n={};this.__checkedRows=[],this.data.map(function(e){this.dataSorted.push(e.id),this.dataSortedVisible.push(e.id),n[e.id]=e,n[e.id].$checked=-1!==this.__checkedRows.indexOf(e.id)},this),this.data=n,this.model.setDataRows(this.data)},_init:function(){let n=this;this._container.addClass(this.contanerClass).addClass("pcTable-type-"+this.tableRow.type);let i=t("#nav-top-line");i.addClass("pcTable-type-"+this.tableRow.type),"tmp"===this.tableRow.type&&i.text("Будьте внимательны - это временная таблица"),this._innerContainer=t('<div class="innerContainer">'),t("body").on("keyup",function(e){27===e.which&&n._container.trigger("escPressed")}),this._container.append(this._innerContainer),this.addReOrderRowBind();let a,o={};this.__checkedRows=[],this.data.map(function(e){this.dataSorted.push(e.id),this.dataSortedVisible.push(e.id),o[e.id]=e,o[e.id].$checked=-1!==this.__checkedRows.indexOf(e.id)},this),this.data=o,this.model.setDataRows(this.data),t(e).resize(function(){a&&clearTimeout(a),a=setTimeout(function(){n.setWidthes()},500)})},refreshArraysFieldCategories:function(n){"use strict";n=n||!1;let i=this;i.hidden_fields=i.hidden_fields||{},t.each(i.hidden_fields,function(e,n){i.hidden_fields[e]=t.extend({},n,l[n.type],n),i.hidden_fields[e].isHiddenField=!0}),i.mainFieldName="id",i.fieldCategories={},["param","column","filter","footer"].forEach(function(e){i.fieldCategories[e]=[]});let a=[];try{a=(a=JSON.parse(decodeURIComponent(e.location.hash.substring(1))||"[]"))&&a.wc?a.wc:[]}catch(e){}let o=!1;const r=function(e,n){n.pcTable=i,-1===a.indexOf(n.category)&&((n=l[n.type]?t.extend({},s,l[n.type],n):t.extend({},s,n)).showInWebOtherOrd&&(n._ord=n.ord,n.ord=n.showInWebOtherOrd,o=!0),n.showInWebOtherPlacement&&(n._category=n.category,n.category=n.showInWebOtherPlacement,o=!0),i.fields[e]=n,n.showInWeb?i.fieldCategories[n.category].push(n):n.name&&(i.hidden_fields[n.name]=n))};if(n){r("n",{type:"n"});let e=t.extend({},this.fields);delete e.n,t.each(e,r)}else t.each(this.fields,r);o&&["param","column","filter","footer"].forEach(function(e){i.fieldCategories[e].sort(function(e,t){return e.ord-t.ord})}),this.tableRow.main_field&&this.fields[this.tableRow.main_field]&&(i.mainFieldName=this.tableRow.main_field)},render:function(e){let t=this;if(this.loadVisibleFields(),this._renderTable(),this._sorting.addSortable&&this._sorting.addSortable(this),this._addSelectable(),this._addEditable(),this._addSave(),this.row_actions_add(),this.setWidthes(),this.__addFilterable(),this._refreshHead(),this.ScrollClasterized=this.Scroll(),t.checkIsUpdated>0){let e=2e3*parseInt(t.checkIsUpdated);setTimeout(function(){t.checkTableIsChanged.call(t,e)},e)}this.refresh(),this.__applyFilters(),e&&t._addInsert(e)},_addSave:function(){t("body").on("keyup",function(e){(e.ctrlKey||e.metaKey)&&"s"===String.fromCharCode(e.which).toLowerCase()&&0===t("#bigOneCodemirror").length&&t("body").trigger("ctrlS")})},reloaded:function(){let e=t("#refresh-notify");e.length&&(e.closest(".alert").remove(),this.checkTableIsChanged(2e3*parseInt(this.checkIsUpdated)))},checkTableIsChanged:function(e){let n=this;document.hidden?setTimeout(function(){n.checkTableIsChanged.call(n,e)},1e3):n.model.checkTableIsChanged.call(n.model).then(function(i){if(i.no||n.model.tableData.updated.code===i.code)n.checkTableIsChanged.call(n,e);else{let a=function(){n.model.tableData.updated.code===i.code?n.checkTableIsChanged.call(n,e):(t.notify({message:'<div id="refresh-notify"><button class="btn btn-warning btn-sm" style="margin-right: 20px;">Обновить</button> <span>Таблица была изменена пользователем <b>'+i.username+"</b> в <b>"+App.dateFormats.covert(i.dt,"YY-MM-DD HH:mm","HH:mm DD.MM")+"</b> </span></div>"},{type:"warning",allow_dismiss:!1,delay:0}),t("#refresh-notify button").on("click",function(){n.model.refresh()}))};n.model.doAfterProcesses(function(){setTimeout(a,200)})}})},_getTableMainFieldName:function(e,t){let n;return Object.keys(e).some(function(i){let a=e[i];if(a.id==t)return n=a.name,!0}),n},_getFieldbyName:function(e){return this.fields[e]},_getColumnIndexByTd:function(e,t){return(t=t||e.closest("tr")).find("td").index(e)},_fieldByTd:function(e,t){let n=this._getColumnIndexByTd(e,t);return this.fieldCategories.visibleColumns[n-1]},_getRowIndexById:function(e){let t=this;for(let n in t.data)if(t.data[n].id==e)return n;return null},_getFieldBytd:function(e){return e.closest("tr").is(".DataRow")?this.fieldCategories.visibleColumns[e.closest("tr").find(e.prop("tagName")).index(e)-1]:this.fields[e.data("field")]},_isParamsArea:function(e){return e.closest("table").is(".pcTable-paramsTable")},_isFootersArea:function(e){return e.closest("tbody").is(".pcTable-footers")},_getItemBytd:function(e){let t=e.closest("tr");return this._getItemByTr(t)},_getItemByTr:function(e){return e.is(".DataRow")?this.data[e.data("pctableitemid")]:this.data_params},_getItemById:function(e){return this.data[e]},_deleteItemById:function(e){let t=this._getItemById(e);t&&t.$tr&&t.$tr.remove(),["dataSorted","dataSortedVisible","__checkedRows"].some(function(t){let n=this[t].indexOf(e);-1!==n&&this[t].splice(n,1)},this),delete this.data[e]},_getTdByFieldName:function(e,t){let n=0;return this.fieldCategories.visibleColumns.every(function(t,i){return e!=t.name||(n=i,!1)}),this._getTdByColumnIndex(t,n+1)},_getTdByColumnIndex:function(e,t){return e.find("td:eq("+t+")")},refresh:function(){this._refreshTitle(),this._refreshParamsBlock(),this._refreshFiltersBlock(this.data_params),this._refreshFootersBlock(),this._refreshContentTable()}})}(window,jQuery),App.models||(App.models={}),App.models.table=function(e,t,n){let i,a,o=!1,l=null;return n=n||{},{setDataRows:function(e){i=e},addFiltersData:function(e){"use strict";n=$.extend(!0,{},n,e)},tableData:t,url:e,isInProcess:function(){return o},doAfterProcesses:function(e){let t=this;setTimeout(function(){let n;(n=t.getDefferedProcess())?n.then(e):e()},50)},getDefferedProcess:function(){if(!o)return!1;let e=$.Deferred();const t=function(){o?setTimeout(t,50):e.resolve()};return t(),e.promise()},showLinks:function(e){App.showLInks(e.links,a.model),delete e.links},shoInterfaceDatas:function(e){App.showDatas.call(a.model,e.interfaceDatas),delete e.interfaceDatas},showPanels:function(e){App.showPanels(e.panels),delete e.panels},addPcTable:function(e){a=e},__ajax:function(e,s,r,c,d){"use strict";let f=this.url,u=$.Deferred();d=d||{};let p=!1,h=!1,m=$.extend(!0,{},s,{tableData:t,ajax:!0},n,d);"checkTableIsChanged"===s.method||"checkForNotifications"===s.method?"checkForNotifications"===s.method?f="/nobuffer/index.php":(m=$.extend({},s,{code:t.updated.code,ajax:!0},n),t.sess_hash&&(m.tableData={sess_hash:t.sess_hash})):(o=!0,c||setTimeout(function(){p||(App.fullScreenProcesses.showCog(),h=!0)},1e3)),void 0!==m.data&&"object"==typeof m.data&&(m.data=JSON.stringify(m.data)),i&&(m.ids=JSON.stringify(Object.keys(i)));let b=this,g=function(e){let t={edit:"Изменение",checkInsertRow:"Предварительное добавление",duplicate:"Дублирование",refresh_rows:"Пересчет строк",getTableData:"Загрузка информации о таблице",refresh:"Обновление данных таблицы",checkEditRow:"Предварительный расчет панели",saveEditRow:"Сохранение панели",save:"Изменение поля",click:"Нажатие кнопки",selectSourceTableAction:"Вызов панели",add:"Добавление строки",getEditSelect:"Загрузка селекта",delete:"Удаление"},n=$("#table").data("pctable");if(n){if(e.LOGS&&(n.LOGS||(n.LOGS={}),n.LOGS=$.extend(n.LOGS,e.LOGS)),e.FullLOGS){n.FullLOGS||(n.FullLOGS=[]);let i={text:t[m.method]||m.method};i.children=e.FullLOGS,e.FullLOGS.length&&(n.FullLOGS.push(i),App.blink(n.LogButton,8,"#fff"))}e.FieldLogs&&(n.FieldLOGSName=t[m.method]||m.method,n.FieldLOGS=e.FieldLogs)}if(e.error){var i=$("<div>").html(e.error.replace(/\[\[(.*?)\]\]/g,"<b>$1</b>"));if(e.log){let t=$('<button class="btn btn-xxs btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> c</i></button>');t.on("click",function(){BootstrapDialog.show({message:$('<pre style="max-height: '+($("body").height()-200)+'px; overflow: scroll">').css("font-size","11px").text(JSON.stringify(e.log,null,1)),type:BootstrapDialog.TYPE_DANGER,title:"Лог расчета",buttons:[{label:"Закрыть",cssClass:"btn-m btn-default",action:function(e){e.close()}}],draggable:!0,onshown:function(e){e.$modalContent.position({of:window})},onshow:function(e){e.$modalHeader.css("cursor","pointer"),e.$modalContent.css({width:1200})}})}),i.append(" "),i.append(t)}App.notify(i),u.reject(e)}else e.reload?window.location.href=window.location.href:(e.links&&e.links.length>0&&b.showLinks(e),e.interfaceDatas&&e.interfaceDatas.length>0&&b.shoInterfaceDatas(e),e.panels&&e.panels.length>0&&b.showPanels(e)),u.resolve(e)},_=function(e){let t,n;e&&200===e.status?e.responseJSON&&e.responseJSON.error?t=e.responseJSON.error:(t=$("<div>Ошибка выполнения операции  </div>"),a&&a.isCreatorView&&(t.append('<button class="btn danger-backg btn-xs" data-toggle="collapse" data-target="#notify-texh"><i class="fa fa-angle-down"></i><i class="fa fa-angle-up"></i></button>'),t.append($('<div id="notify-texh" class="collapse">').append($("<code>").text(e.responseText))))):!r&&e&&"abort"!=e.statusText&&"error"!=e.statusText?(t=e.statusText,n=200):r&&r.jqXHR&&"abort"!==r.jqXHR.statusText&&(t="Нет соединения с сервером",n=200),t&&(n?setTimeout(function(){App.notify(t)},n):App.notify(t),e.responseText||console.log(e,r)),u.reject(e)},v=function(){if(!/^\/nobuffer/.test(f)){if((new Date).getTime()-l<150)return void setTimeout(v,50);l=(new Date).getTime(),/\?/.test(f)?f+="&":f+="?",f+="rn="+Math.round(1e5*Math.random())+(m.method||"")}$.ajax({url:f,method:e,data:m,dataType:"json",beforeSend:function(e,t){r&&(r.jqXHR=e)}}).then(g).fail(_)};v();let w=function(){o=!1,p=!0,h&&App.fullScreenProcesses.hideCog()};return u.always(function(){setTimeout(w,100)}),u.promise()},delete:function(e){return 0!==e.length&&this.__ajax("post",{delete_ids:JSON.stringify(e),method:"delete"})},duplicate:function(e,t,n){return 0!==e.length&&this.__ajax("post",{duplicate_ids:JSON.stringify(e),data:t,insertAfter:n,method:"duplicate"})},getFieldLog:function(e,t,n){return this.__ajax("post",{field:e,id:t,method:"getFieldLog",rowName:n})},refresh_rows:function(e){return 0!==e.length&&this.__ajax("post",{refreash_ids:JSON.stringify(e),method:"refresh_rows"})},refresh_cycles:function(e){return 0!==e.length&&this.__ajax("post",{refreash_ids:JSON.stringify(e),method:"refresh_cycles"})},checkUnic:function(e,t){"use strict";return this.__ajax("post",{fieldName:e,fieldVal:t,method:"checkUnic"})},add:function(e){return this.__ajax("post",{data:e,method:"add"})},getValue:function(e,t){return this.__ajax("post",{data:e,method:"getValue",table_id:t})},getNotificationsTable:function(){return this.__ajax("post",{method:"getNotificationsTable"})},__setInProcess:function(e){o=e},get:function(e){return this.__ajax("get",{id:e})},setTableFavorite:function(e){return this.__ajax("post",{status:e,method:"setTableFavorite"})},checkInsertRow:function(e,t){var n={};return $.each(e,function(e,t){void 0!=t&&(n[e]=t)}),this.__ajax("post",{data:n,savedFieldName:t,method:"checkInsertRow"})},checkEditRow:function(e){var t={};return $.each(e,function(e,n){void 0!=n&&(t[e]=n)}),this.__ajax("post",{data:t,method:"checkEditRow"})},checkTableIsChanged:function(){return this.__ajax("post",{method:"checkTableIsChanged",table_id:a.tableRow.id,cycle_id:a.tableRow.cycle_id})},checkForNotifications:function(e,t,n){return this.__ajax("post",{method:"checkForNotifications",periodicity:e,activeIds:t},n)},notificationUpdate:function(e,t){return this.__ajax("post",{method:"notificationUpdate",id:e,type:t})},selectSourceTableAction:function(e,t){return this.__ajax("post",{field_name:e,data:t,method:"selectSourceTableAction"})},saveEditRow:function(e){var t={};return $.each(e,function(e,n){void 0!==n&&(t[e]=n)}),this.__ajax("post",{data:t,method:"saveEditRow"})},getEditSelect:function(e,t,n,i,a){return this.__ajax("post",{data:{item:e,field:t},q:n,parentId:i,method:"getEditSelect"},void 0,!a)},loadPreviewHtml:function(e,t,n){return this.__ajax("post",{data:{item:function(e){let t={};return Object.keys(e).forEach(function(n){/^\$/.test(n)||("id"===n?t[n]=e[n]:null!==e[n]&&"object"==typeof e[n]&&-1!==Object.keys(e[n]).indexOf("v")?t[n]=e[n].v:t[n]=e[n])}),t}(t),field:e,val:n},method:"loadPreviewHtml"},null,!0)},save:function(e){let t={};return e.params&&Object.keys(e.params).some(function(e){if("filter"===a.fields[e].category)return a._filtersBlock.data("cryptoFilters")&&(t.filters=a._filtersBlock.data("cryptoFilters")),!0}),this.__ajax("post",{data:e,method:"edit"},null,null,t)},click:function(e){return this.__ajax("post",{data:e,method:"click"})},csvExport:function(e,t){return this.__ajax("post",{method:"csvExport",sorted_ids:JSON.stringify(e),visibleFields:JSON.stringify(t)})},csvImport:function(e,t){return this.__ajax("post",{csv:e,answers:t,method:"csvImport"})},getTableData:function(e){return this.__ajax("post",{method:"getTableData",tableData:{sess_hash:e}})},refresh:function(e){e=e||function(e){a.table_modify.call(a,e),a.reloaded.call(a)},this.__ajax("post",{method:"refresh"}).then(e)},saveOrder:function(e){return this.__ajax("post",{method:"saveOrder",orderedIds:JSON.stringify(e)})},setCommentsViewed:function(e,t,n){return this.__ajax("post",{method:"setCommentsViewed",nums:e,field_name:t,id:n})},AddEyeGroupSet:function(e,t){return this.__ajax("post",{method:"addEyeGroupSet",name:e,fields:t})},removeEyeGroupSet:function(e){return this.__ajax("post",{method:"removeEyeGroupSet",index:e})},leftEyeGroupSet:function(e){return this.__ajax("post",{method:"leftEyeGroupSet",index:e})},reUser:function(e){return this.__ajax("post",{method:"reuser",userId:e})},printTable:function(e){return this.__ajax("post",{method:"printTable",settings:JSON.stringify(e)})},getAllTables:function(){return this.__ajax("post",{method:"getAllTables"})},calcFieldsLog:function(e,t){return this.__ajax("post",{method:"calcFieldsLog",calc_fields_data:e,name:t})},renameField:function(e){return this.__ajax("post",{method:"renameField",name:e})}}},addTree=function(e,t,n){if(!App.isTopWindow())return $("div.page_content").addClass("tree-minifyed iframed"),!1;$.jstree.defaults.core.dblclick_toggle=!1,$.jstree.defaults.core.expand_selected_onload=!0,$.jstree.defaults.core.force_text=!0,$.jstree.link_prefix=e;let i=localStorage.getItem("tree")||"{}";i=JSON.parse(i),$.each(t,function(e,a){if(t[e].data={type:a.type},a.state&&a.state.selected&&(t[e].li_attr={class:"jstree-selected"}),i[a.id]&&(t[e].state||(t[e].state={}),t[e].state.opened=!0),a.href?t[e].a_attr={href:$.jstree.link_prefix+a.href}:a.link&&(t[e].a_attr={href:a.link}),n)switch(a.type){case"folder":t.push({type:"plus",id:"plus-table"+a.id.substring(4),text:"Таблицу",parent:a.id,li_attr:{class:"jstree-creatorView"}}),t.push({type:"plus",id:"plus-folder"+a.id.substring(4),text:"Папку/Ссылку",parent:a.id,li_attr:{class:"jstree-creatorView"}});break;case"cycle_name":t.push({type:"plus",id:"plus-calcs"+a.parent.substring(4),text:"Таблицу",parent:a.id,li_attr:{class:"jstree-creatorView"}})}});let a=$("#leftTree"),o=$("#LeftTree");a.on("loaded.jstree after_open.jstree",function(e){let t=a.width();if(a.find("a.jstree-anchor").each(function(){let e=$(this),n=e.offset().left;e.width(t-n)}),"loaded"===e.type){let e=localStorage.getItem(l);e&&o.scrollTop(e)}}).jstree({state:{key:"leftTree"},core:{check_callback:!0,expand_selected_onload:!0,open_parents:!0,data:t,themes:{name:"default-dark"}},types:{folder:{},plus:{icon:"fa fa-plus"},cycle_name:{icon:"fa fa-dot-circle-o"},text:{icon:"jstree-file"},table:{icon:"jstree-file"},table_simple:App.tableTypes.simple,table_version:App.tableTypes.version,table_calcs:App.tableTypes.calcs,table_tmp:App.tableTypes.tmp,table_globcalcs:App.tableTypes.globcalcs,table_cycles:App.tableTypes.cycles,table_data:{icon:"jstree-file"}},plugins:["types","themes"]}),a.on("select_node.jstree",function(e,t){switch((t.node.data?t.node.data.type:null)||t.node.type){case"plus":let e=t.node.id.substring(5,10);if("calcs"===e){let e=t.node.id.substring(11);t.node.parent.substring(5),new EditPanel(1,BootstrapDialog.TYPE_DANGER,{tree_node_id:{v:e},type:{v:"calcs"}}).then(function(e){e&&window.location.reload(!0)})}else if("table"===e){let e=t.node.id.length>10?t.node.id.substring(10):window.location.pathname.match(/^\/.*\/(\d+)\//)[1];new EditPanel(1,BootstrapDialog.TYPE_DANGER,{tree_node_id:{v:e}}).then(function(e){e&&window.location.reload(!0)})}else{let e=t.node.id.length>11?t.node.id.substring(11):window.location.pathname.match(/^\/.*\/(\d+)\//)[1];new EditPanel(3,BootstrapDialog.TYPE_DANGER,{parent_id:{v:e}}).then(function(e){e&&window.location.reload(!0)})}return!1;case"link":window.location.href=t.node.a_attr.href;case"folder":case"project":return t.node.state.opened?($("#leftTree").jstree("close_node",t.node),i[t.node.id]&&(delete i[t.node.id],localStorage.setItem("tree",JSON.stringify(i)))):($("#leftTree").jstree("open_node",t.node),i[t.node.id]=!0,localStorage.setItem("tree",JSON.stringify(i))),!1;default:"#"==t.node.original.parent?window.location.href=t.node.original.href:window.location.href=$.jstree.link_prefix+t.node.original.href}return!1});let l="tree_scroll_part_"+(window.location.pathname.match(/\/Table\/(\d+)/)||{1:0})[1];const s=function(){setTimeout(function(){o.getNiceScroll().resize(),localStorage.setItem(l,o.scrollTop())},250)};o.on("scroll",function(){localStorage.setItem(l,o.scrollTop())}),a.on("open_node.jstree",function(e,t){i[t.node.id]=!0,localStorage.setItem("tree",JSON.stringify(i)),s()}),a.on("close_node.jstree",function(e,t){i[t.node.id]&&(delete i[t.node.id],localStorage.setItem("tree",JSON.stringify(i))),s()});let r=localStorage.getItem("TreeMinimizer")||"false";r=JSON.parse(r);let c=function(e){r=e,e?($("body>.page_content").addClass("tree-minifyed"),$("#LeftTree").getNiceScroll().resize()):$("body>.page_content").removeClass("tree-minifyed"),$("#table").data("pctable")&&$("#table").data("pctable").setWidthes(),localStorage.setItem("TreeMinimizer",JSON.stringify(r)),s()};o.niceScroll({cursorwidth:7,mousescrollstep:190,mousescroll:190,autohidemode:!1,enablekeyboard:!1,cursoropacitymin:1,railoffset:{left:4}}),$("#TreeMaximizer").on("click",function(){c(!1)}),$("#TreeMinimizer").on("click",function(){c(!0)}),!0===r&&c(r)},LOGINJS=function(){let e=$('<div><div class="form-group"><label>Email:</label><input id="elseEmail"  type="text"\n                                                                      name="login"\n                                                                      value=""\n                                                                      class="form-control"\n                /></div></div>');if($("body").on("click","#recover",function(){let t=[{action:function(e){if(""==$("#elseEmail").val().trim())return void $("#elseEmail").addClass("error");let t=$('<form method="post"><input type="hidden" name="login" value=""><input type="hidden" name="recover" value="true"></form>');t.find('[name="login"]').val($("#elseEmail").val()),t.appendTo("body"),t.submit(),e.close()},label:"Отправить пароль на email"},{action:function(e){e.close()},label:"Отмена"}];BootstrapDialog.show({message:e,title:"Новый пароль",buttons:t,draggable:!0})}),$("body").on("click","#register",function(){let t=[{action:function(e){if(""==$("#elseEmail").val().trim())return void $("#elseEmail").addClass("error");let t=$('<form method="post"><input type="hidden" name="login" value=""><input type="hidden" name="register" value="true"></form>');t.find('[name="login"]').val($("#elseEmail").val()),t.appendTo("body"),t.submit(),e.close()},label:"Зарегистрировать и отправить пароль на email"},{action:function(e){e.close()},label:"Отмена"}];BootstrapDialog.show({message:e,title:"Регистрация",buttons:t,draggable:!0})}),sessionStorage.getItem("browserConfirm")||navigator.userAgent.match(/(chrome|safari|firefox|yandex(?=\/))\/?\s*(\d+)/i)&&!navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i))$("#auth_form").show();else{let e=$("#auth_form");$("body").html('<div style="width: 600px; margin: auto; padding-top: 50px; font-size: 16px; text-align: center;" id="comeinBlock"><img src="/imgs/start.png" alt=""><div style="padding-bottom: 10px;">Сервис оптимизирован под десктопные броузеры Chrome, Safari, Yandex, FireFox последних версий.</div><div><a href="#" id="comein" class="btn-default btn">Все равно хочу посмотреть</a></div></div>'),$("#comein").on("click",function(){sessionStorage.setItem("browserConfirm",!0),$("#comeinBlock").remove(),$("body").html(e),e.show()})}};
+(function () {
+    $.fn.datetimepicker.defaults.icons.close = 'glyphicon glyphicon-ok';
+    $.fn.datetimepicker.defaults.tooltips.close = 'Применить и закрыть';
+
+})();
+(function () {
+    if (!window.Hlps)
+        window.Hlps = {};
+    var Hlps = window.Hlps;
+    Hlps.selectpicker = {};
+    Hlps.selectpicker.open = function (selectElement) {
+        var btn = $(selectElement).data('selectpicker').$newElement.children()[0];
+        btn = $(btn);
+        if (!btn.attr('aria-expanded') || btn.attr('aria-expanded') === 'false') {
+            btn.click();
+        }
+    }
+    Hlps.selectpicker.focus = function (selectElement) {
+
+        var focusIt=function(){
+            var selectpicker = selectElement.data('this');
+
+            if (!selectpicker || !selectElement.is('.selectpicker')){
+                var i = 0;
+                setTimeout(function(){
+
+                    i++;
+                    if (i<4) focusIt();
+                    else return false;
+
+                }, 1+100*i);
+            }
+            else {
+                var btn = selectpicker.$newElement.children()[0];
+                btn = $(btn);
+                btn.focus();
+            }
+        }
+        focusIt();
+    }
+    Hlps.selectpicker.getButton = function (selectElement) {
+        var btn = $(selectElement).data('selectpicker').$newElement.children()[0];
+        btn = $(btn);
+       return btn;
+    }
+
+})();
+(function () {
+    LOGINJS = function () {
+
+        let $fieldsDiv = $('<div><div class="form-group"><label>Email:</label><input id="elseEmail"  type="text"\n' +
+            '                                                                      name="login"\n' +
+            '                                                                      value=""\n' +
+            '                                                                      class="form-control"\n' +
+            '                /></div></div>');
+
+
+        $('body').on('click', '#recover', function () {
+            let buttons = [
+                {
+                    action: function (dialog) {
+                        let email = $('#elseEmail').val().trim();
+                        if (email == '') {
+                            $('#elseEmail').addClass('error');
+                            return;
+                        }
+                        let form = $('<form method="post"><input type="hidden" name="login" value=""><input type="hidden" name="recover" value="true"></form>');
+                        form.find('[name="login"]').val($('#elseEmail').val());
+                        form.appendTo('body');
+                        form.submit();
+                        dialog.close();
+                    },
+                    label: 'Отправить пароль на email'
+                },
+                {
+                    action: function (dialog) {
+                        dialog.close();
+                    },
+                    label: 'Отмена'
+                }
+            ];
+
+            BootstrapDialog.show({
+                message: $fieldsDiv,
+                title: 'Новый пароль',
+                buttons: buttons,
+                draggable: true
+            })
+        });
+
+        $('body').on('click', '#register', function () {
+            let buttons = [
+                {
+                    action: function (dialog) {
+                        let email = $('#elseEmail').val().trim();
+                        if (email == '') {
+                            $('#elseEmail').addClass('error');
+                            return;
+                        }
+                        let form = $('<form method="post"><input type="hidden" name="login" value=""><input type="hidden" name="register" value="true"></form>');
+                        form.find('[name="login"]').val($('#elseEmail').val());
+                        form.appendTo('body');
+                        form.submit();
+                        dialog.close();
+                    },
+                    label: 'Зарегистрировать и отправить пароль на email'
+                },
+                {
+                    action: function (dialog) {
+                        dialog.close();
+                    },
+                    label: 'Отмена'
+                }
+            ];
+
+            BootstrapDialog.show({
+                message: $fieldsDiv,
+                title: 'Регистрация',
+                buttons: buttons,
+                draggable: true
+            })
+        });
+
+        if (!sessionStorage.getItem('browserConfirm') && (!navigator.userAgent.match(/(chrome|safari|firefox|yandex(?=\/))\/?\s*(\d+)/i) || navigator.userAgent.match(/BlackBerry|iPod|Opera Mini|IEMobile/i))) {
+            let authForm = $('#auth_form');
+            $('body').html('<div style="width: 600px; margin: auto; padding-top: 50px; font-size: 16px; text-align: center;" id="comeinBlock">' +
+                '<img src="/imgs/start.png" alt="">' +
+                '<div style="padding-bottom: 10px;">Сервис оптимизирован под броузеры Chrome, Safari, Yandex, FireFox последних версий.</div>' +
+                '<div><a href="#" id="comein" class="btn-default btn">Все равно хочу посмотреть</a></div></div>');
+            $('#comein').on('click', function () {
+                sessionStorage.setItem('browserConfirm', true);
+                $('#comeinBlock').remove();
+                $('body').html(authForm);
+                authForm.show();
+            });
+        } else {
+            $('#auth_form').show();
+        }
+    }
+})();
+(function () {
+    App.blink=function ($element, $times, $color) {
+        let i = $times || 8;
+        let warn = true;
+        let blink = function () {
+            if (warn){
+                $element.css('background-color', $color);
+            }else{
+                $element.css('background-color', '');
+            }
+            warn = !warn;
+            i--;
+            if (i>0){
+                setTimeout(blink, 300)
+            }
+        };
+        setTimeout(blink, 300)
+    }
+
+})();
+(function () {
+        App.mobilePanel = function (title, $div, props) {
+            props = props || {};
+
+            let dialog = window.top.BootstrapDialog.show($.extend({
+                type: 'edit',
+                message: $div,
+                draggable: true,
+                title: title,
+                cssClass: 'mobile-panel '+ (props.buttons?' with-buttons':'')
+            }, props));
+            return dialog;
+        }
+    }
+)();
+(function () {
+    App.panelTimer=function(title, numStart, func){
+        let i=numStart;
+        let $div = $('<div>');
+        $div.html(i);
+        let TimeObject;
+
+        let panelTimer = BootstrapDialog.show({
+            type: BootstrapDialog.TYPE_DANGER,
+            title:title ,
+            message: $div,
+            buttons: [
+                {
+                    action: function (panelTimer) {
+                        if (TimeObject){
+                            clearTimeout(TimeObject);
+                        }
+                        panelTimer.close();
+                    },
+                    label: 'Отмена'
+                }]
+        });
+        let timeoutFunc = function () {
+            if (--i<=0){
+                panelTimer.close();
+                func();
+            }else{
+                $div.html(i);
+                TimeObject=setTimeout(timeoutFunc, 1000);
+            }
+        };
+        timeoutFunc();
+    }
+
+})();
+(function () {
+        App.panel = function (title, $div, props) {
+            props = props || {};
+            let dialog = window.top.BootstrapDialog.show($.extend({
+                type: 'edit',
+                message: $div,
+                draggable: true,
+                title: title,
+                cssClass: 'web-panel '+ (props.buttons?' with-buttons':'')
+            }, props));
+            return dialog;
+        }
+    }
+)();
+(function () {
+    App.setSessionStorage=function (name, data) {
+        sessionStorage.setItem(name, JSON.stringify(data))
+    }
+
+})();
+(function () {
+    BootstrapDialog.BUTTON_SIZES[BootstrapDialog.SIZE_NORMAL] = 'btn-m';
+    BootstrapDialog.defaultOptions.animate=false;
+    BootstrapDialog.defaultOptions.closeByBackdrop=false;
+    BootstrapDialog.defaultOptions.nl2br=false;
+})();
+(function () {
+    let iframeNum = 0;
+    let dialogOffset = -1;
+
+    App.showLInks = function (links, model) {
+        links.forEach(function (linkObject) {
+
+            if (['top-iframe', 'iframe'].indexOf(linkObject.target) !== -1 && window.top != window) {
+                window.top.App.showLInks([linkObject], model);
+                return;
+            }
+
+            let openLinkLocation = function (target) {
+                "use strict";
+
+                if (linkObject.postData) {
+                    let _target = '_self';
+                    let form;
+
+                    if (target === 'iframe' || target === 'top-iframe') {
+                        let iframeName = 'iframe' + (++iframeNum);
+                        _target = iframeName;
+
+                        let fn = BootstrapDialog;
+
+                        let $iframe;
+
+                        let dialog = fn.show({
+                            message: $iframe = $('<iframe style="width: 100%; ' + (linkObject.width ? '' : 'min-width: 500px;') + ' height: 70vh; border: none" name = "' + iframeName + '"></iframe>'),
+                            size: BootstrapDialog.SIZE_WIDE,
+                            title: linkObject['title'],
+                            draggable: true,
+                            cssClass: 'target-iframe',
+                            onhidden: function () {
+                                if (linkObject.refresh) {
+                                    let pcTable = $('#table').data('pctable');
+                                    model.refresh()
+                                    //window.location.reload();
+                                }
+                            },
+                            onshown: function (dialog) {
+                                if (linkObject.width) {
+                                    let width = 500;
+                                    if (linkObject.width > width) width = linkObject.width;
+                                    dialog.$modalDialog.width(width)
+                                }
+                                let wnd = $iframe.get(0).contentWindow;
+                                let check = function () {
+                                    try {
+                                        if (wnd.App && wnd.App.setSessionStorage) wnd.App.setSessionStorage.call(wnd, 'linkObject', linkObject);
+                                        else {
+                                            setTimeout(check, 200)
+                                        }
+                                    } catch (e) {
+
+                                    }
+                                };
+                                check();
+                            },
+                            buttons: [
+                                {
+                                    'label': "Обновить",
+                                    cssClass: 'btn-m btn-default',
+                                    'action': function () {
+                                        $iframe.get(0).contentWindow.location.reload();
+                                        form.detach();
+                                    }
+                                },
+                                {
+                                    'label': "Открыть",
+                                    cssClass: 'btn-m btn-default',
+                                    'action': function (dialog) {
+                                        openLinkLocation('self');
+                                        //dialog.close();
+                                    }
+                                },
+                                {
+                                    'label': "Во вкладке",
+                                    cssClass: 'btn-m btn-default',
+                                    'action': function (dialog) {
+                                        try {
+                                            if ($iframe.get(0).contentWindow.sessionStorage.linkObject)
+                                                linkObject = JSON.parse($iframe.get(0).contentWindow.sessionStorage.linkObject);
+                                        } catch (e) {
+
+                                        }
+                                        openLinkLocation('blank');
+                                        dialog.close();
+                                    }
+                                },
+                                {
+                                    'label': "Закрыть",
+                                    cssClass: 'btn-m btn-default',
+                                    'action': function (dialog) {
+                                        dialog.close();
+                                    }
+                                }
+                            ]
+                        });
+
+                        $iframe.on('load', function () {
+                            let _window = $iframe.get(0).contentWindow;
+                            try {
+                                _window.closeMe = function () {
+                                    dialog.close();
+                                };
+                            } catch (e) {
+
+                            }
+                        })
+                    } else if (target === 'blank') {
+                        _target = '_blank';
+                    } else if (target === 'parent') {
+                        _target = '_parent';
+                        //window.parent.App.linkObject=linkObject;;
+                    } else if (target === 'top') {
+                        _target = '_top';
+                    } else {
+
+                        if (window.parent !== window) {
+                            sessionStorage.linkObject = JSON.stringify(linkObject);
+                        }
+                    }
+
+                    form = $('<form>', {
+                        method: "post",
+                        action: linkObject.uri,
+                        target: _target,
+                    });
+
+
+                    const getMultiInput = function (name, v) {
+                        if (typeof v === 'boolean') {
+                            v = v === true ? 'true' : 'false';
+                        }
+                        if (typeof v === 'string' || typeof v === 'number' || v === null) {
+                            form.append($('<input>', {
+                                type: 'hidden',
+                                name: name,
+                                value: v
+                            }))
+                        } else {
+                            $.each(v, function (k, v) {
+                                getMultiInput(name + '[' + k + ']', v);
+                            });
+                        }
+                    };
+
+                    $.each(linkObject.postData, function (k, v) {
+                        getMultiInput(k, v);
+                    });
+                    form.appendTo('body').submit();
+                    form.detach();
+
+                } else {
+                    switch (target) {
+                        case 'top':
+                            window.top.location.href = linkObject.uri;
+                            break;
+                        case 'parent':
+                            //window.parent.App.linkObject=linkObject;;
+                            window.parent.location.href = linkObject.uri;
+                            break;
+                        case 'blank':
+                            let a = $('<a href="' + linkObject.uri + '" target="_blank">link</a>');
+                            a.appendTo('body');
+                            a.get(0).click();
+                            a.remove();
+                            break;
+                        case 'iframe':
+                        case 'top-iframe':
+                            let uri = linkObject.uri;
+                            if (linkObject.elseData) {
+                                let withoutCategories = [];
+                                if (linkObject.elseData.header === false) {
+                                    withoutCategories.push('param')
+                                }
+                                if (linkObject.elseData.footer === false) {
+                                    withoutCategories.push('footer')
+                                }
+                                uri += '#' + encodeURIComponent(JSON.stringify({wc: withoutCategories}));
+                            }
+                            let $iframe = $('<iframe src="' + uri + '" style="width: 100%; height: 70vh; border: none"></iframe>');
+
+                            let dialog = BootstrapDialog.show({
+                                message: $iframe,
+                                draggable: true,
+                                size: BootstrapDialog.SIZE_WIDE,
+                                title: linkObject['title'],
+                                cssClass: 'target-iframe',
+                                onhidden: function () {
+                                    if (linkObject.refresh) {
+                                        model.refresh()
+                                    }
+                                    dialogOffset--;
+                                },
+                                onshown: function (dialog) {
+                                    if (linkObject.width) {
+                                        dialog.$modalDialog.width(linkObject.width)
+                                    }
+                                    if (++dialogOffset) {
+                                        dialog.$modalDialog.css('margin-top', 30 + 20 * dialogOffset)
+                                    }
+
+                                    let wnd = $iframe.get(0).contentWindow;
+                                    let check = function () {
+                                        try {
+                                            if (wnd.App && wnd.App.setSessionStorage) wnd.App.setSessionStorage.call(wnd, 'linkObject', linkObject);
+                                            else {
+                                                setTimeout(check, 200)
+                                            }
+                                        } catch (e) {
+
+                                        }
+                                    };
+                                    check();
+                                },
+                                buttons: [
+                                    {
+                                        'label': "Обновить",
+                                        cssClass: 'btn-m btn-default',
+                                        'action': function () {
+                                            $iframe.get(0).contentWindow.location.reload();
+                                        }
+                                    },
+                                    {
+                                        'label': "Открыть",
+                                        cssClass: 'btn-m btn-default',
+                                        'action': function (dialog) {
+                                            try {
+                                                if ($iframe.get(0).contentWindow.sessionStorage.linkObject)
+                                                    linkObject = JSON.parse($iframe.get(0).contentWindow.sessionStorage.linkObject);
+                                            } catch (e) {
+
+                                            }
+                                            openLinkLocation('self');
+                                            //dialog.close();
+                                        }
+                                    },
+                                    {
+                                        'label': "Во вкладке",
+                                        cssClass: 'btn-m btn-default',
+                                        'action': function (dialog) {
+
+                                            try {
+                                                if ($iframe.get(0).contentWindow.sessionStorage.linkObject)
+                                                    linkObject = JSON.parse($iframe.get(0).contentWindow.sessionStorage.linkObject);
+                                            } catch (e) {
+
+                                            }
+                                            openLinkLocation('blank');
+                                            dialog.close();
+                                        }
+                                    },
+                                    {
+                                        'label': "Закрыть",
+                                        cssClass: 'btn-m btn-default',
+                                        'action': function (dialog) {
+                                            dialog.close();
+                                        }
+                                    }
+                                ]
+                            });
+                            $iframe.on('load', function () {
+                                let _window = $iframe.get(0).contentWindow;
+                                try {
+                                    _window.closeMe = function () {
+                                        dialog.close();
+                                    };
+                                } catch (e) {
+
+                                }
+                            })
+                            break;
+                        default:
+                            if (window.parent != window) {
+                                sessionStorage.linkObject = JSON.stringify(linkObject);
+                            }
+                            window.location.href = linkObject.uri;
+
+                    }
+                }
+
+            };
+            openLinkLocation(linkObject.target);
+
+        });
+    };
+    App.showDatas = function (datas, notificationId) {
+        let dialogs = [];
+        let model = this;
+        datas.forEach(function (data) {
+            switch (data[0]) {
+                case 'table':
+                    if (window.top != window) {
+                        return window.top.App.showDatas.call(model, [data]);
+                    } else {
+                        dialogs.push(showTable(data[1], model));
+                    }
+
+                    break;
+                case 'text':
+                    dialogs.push(showText(data[1], model));
+                    break;
+                case 'print':
+                    dialogs.push(showPrint(data[1]['body'], data[1]['styles']));
+                    break;
+                case 'notification':
+                    if (data[1].text) {
+                        let notification = $.notify({
+                            message: '<div>' + data[1].text + '</div>'
+                        }, {
+                            'offset': {x: 20, y: 50},
+                            type: 'warning',
+                            allow_dismiss: true,
+                            delay: 0,
+                            onClose: function () {
+                                model.notificationUpdate(notificationId, 'deactivate').then(function () {
+                                    notification.$ele.trigger('hide.bs.modal');
+                                });
+                            }
+                        });
+                        notification.$ele.find('button.close').before('<button class="timer"><i class="fa fa-clock-o"></i></button>');
+                        notification.$ele.on('click', '.timer', function () {
+                            model.notificationUpdate(notificationId, 'later').then(function () {
+                                notification.$ele.trigger('hide.bs.modal');
+                                notification.$ele.remove();
+                            })
+                        });
+                        dialogs.push({
+                            $modal: notification.$ele, simpleClose: function () {
+                                notification.$ele.remove();
+                            }
+                        });
+
+                    } else {
+
+                        dialogs.push(showNotificationTable(data[1]));
+                    }
+                    break;
+            }
+        });
+        return dialogs;
+    };
+    App.getPcTableById = function (id, elseData, element, config_else) {
+        let $d = $.Deferred();
+        (new App.models.table('/Table/0/' + id.toString(), {}, {})).getTableData(elseData ? elseData.sess_hash : null).then(function (config) {
+
+            if (config_else && (config_else.withHeader === false || config_else.withFooter === false)) {
+                let fields = [];
+                Object.values(config.fields).forEach(function (field, i) {
+                    if (field.category === 'param' && config_else.withHeader === false) delete config.fields[field.name];
+                    else if (field.category === 'footer' && config_else.withFooter === false) delete config.fields[field.name];
+                });
+                delete config_else.withHeader;
+                delete config_else.withFooter;
+            }
+
+            config.model = new App.models.table('/Table/0/' + id.toString(), $.extend({'updated': config.updated}, elseData || {}));
+
+            $.extend(true, config, config_else);
+
+            let pcTable = new App.pcTableMain(element, config);
+            $d.resolve(pcTable);
+        });
+        return $d.promise();
+    };
+    App.showPanels = function (panels) {
+        if (window.top != window) return window.top.App.showPanels.call(window.top, panels)
+
+        let pcTables = {};
+        let def = $.Deferred();
+        const showPanel = function () {
+            let panel = panels.shift();
+
+            let data = {};
+            if (panel.id) {
+                data.id = panel.id;
+            } else if (panel.field) {
+                data = panel.field;
+            }
+
+            const show = function (pcTable) {
+                (new EditPanel(pcTable.tableRow.id, BootstrapDialog.TYPE_PRIMARY, data, panels.length > 0)).then(function (json, isNext) {
+                    if (json && panel.refresh) {
+                        let pcTable = $('#table').data('pctable');
+                        pcTable.model.refresh()
+                    } else if (json || isNext) {
+                        if (panels.length) {
+                            showPanel();
+                            return;
+                        }
+                    }
+                    def.resolve();
+                });
+            };
+
+            if (panel.uri !== window.location.pathname) {
+                if (pcTables[panel.uri]) {
+                    show(pcTables[panel.uri]);
+                } else {
+                    (new App.models.table(panel.uri, {}, {})).getTableData().then(function (config) {
+                        config.model = new App.models.table(panel.uri, {'updated': config.updated});
+                        pcTables[panel.uri] = new App.pcTableMain(null, config);
+
+                        show(pcTables[panel.uri]);
+                    });
+                }
+            } else {
+                show($('#table').data('pctable'));
+            }
+        };
+
+        showPanel();
+        return def;
+    };
+
+    let notificationDialog = function (title, body, width, refresh, type) {
+        return BootstrapDialog.show({
+            message: body,
+            draggable: false,
+            closable: false,
+            modal: false,
+            onhidden: function () {
+                if (refresh) {
+                    let pcTable = $('#table').data('pctable');
+                    pcTable.model.refresh()
+                }
+            },
+            onshown: function (dialog) {
+                dialog.$modalHeader.remove();
+                dialog.$modal.css({
+                    position: 'static'
+                });
+                dialog.$modalDialog.css({
+                    width: width || '600',
+                    right: 0,
+                    margin: 0,
+                    position: 'fixed',
+                    height: 300,
+                    top: 0
+                });
+                dialog.$modalBody.css({
+                    padding: 0
+                });
+                dialog.$modal.data('bs.modal').$backdrop.hide()
+            }
+        });
+    };
+
+
+    let dialog = function (title, body, width, refresh, type, model, btns) {
+        btns = btns || [];
+        btns.push({
+            'label': "Закрыть",
+            cssClass: 'btn-m btn-default',
+            'action': function (dialog) {
+                dialog.close();
+            }
+        });
+
+        return BootstrapDialog.show({
+            message: body,
+            title: title,
+            type: type || null,
+            draggable: true,
+            onhidden: function () {
+                if (refresh) {
+                    if (refresh === 'strong') {
+                        window.location.reload()
+                    } else {
+                        model.refresh()
+                    }
+                }
+                dialogOffset--;
+            },
+            onshown: function (dialog) {
+                if (width) {
+                    dialog.$modalDialog.width(width)
+                }
+                if (++dialogOffset) {
+                    dialog.$modalDialog.css('margin-top', 30 + 20 * dialogOffset)
+                }
+            },
+            buttons: btns
+        });
+    };
+
+    function showText(data, model) {
+        dialog(data['title'], data['text'], data.width, data.refresh, null, model)
+    }
+
+    function showNotificationTable(data) {
+
+        if (data.table_id) {
+            let $iframe = $('<iframe style="width: 100%; height: 100%; border: none;" src="/html.html?rand=' + Math.round(Math.random() * 10000) + '">');
+            let div = $('<div class="notificationTable"></div>').appendTo('body').append($iframe).css({
+                width: data.width,
+                height: data.height
+            });
+            $iframe.on('load', function () {
+                let _window = $iframe.get(0).contentWindow;
+
+                data.ROLESLIST = window.ROLESLIST || $('#table').data('pctable').ROLESLIST;
+
+                _window.data = data;
+                _window.closeMe = function () {
+                    div.trigger('hide.bs.modal');
+                    div.remove();
+                };
+                $iframe.contents().find('body').append('<div class="page_content tree-minifyed"><div id="table"></div></div><script>let table_id=window.data.table_id;' +
+                    ' App.getPcTableById(table_id, {sess_hash: window.data.sess_hash}, ' +
+                    '$("#table"), {beforeSpaceHide: true, ROLESLIST: window.data.ROLESLIST, withoutScrolls: true, data: window.data.data, f: window.data.f, data_params: window.data.data_params, withHeader: !(window.data.elseData && window.data.elseData.header===false), withFooter: !(window.data.elseData && window.data.elseData.footer===false)})</script>');
+            });
+
+            return {
+                $modal: div, simpleClose: function () {
+                    div.remove();
+                }
+            };
+        }
+    }
+
+    function showTable(data, model) {
+
+        let height;
+        if (data.height) {
+            height = data.height;
+            if (/^\d+$/.test(data.height)) {
+                height += 'px';
+            }
+        }
+
+        let src = '/Table/0/' + data.table_id + '?sess_hash=' + data.sess_hash;
+        if (!/^\/Table\//.test(window.location.pathname))
+            src = data.table_id + '?sess_hash=' + data.sess_hash;
+
+        let $iframe = $('<iframe style="width: 100%; height: ' + (height || "80vh") + '; border: none;" src="' + src + '">');
+        $('body').append($iframe);
+        let btns = [];
+        if ($('#table').data('pctable').isCreatorView) {
+            btns.push({
+                'label': "В новой вкладке",
+                cssClass: 'btn-m btn-danger',
+                'action': function (dialog) {
+                    let wnd = window.open(src, '_blank');
+                    dialog.close();
+                    return;
+                }
+            });
+        }
+
+        let _dialog = dialog(data['title'], $iframe, data.width, data.refresh, BootstrapDialog.TYPE_PRIMARY, model, btns);
+        $iframe.on('load', function () {
+            let _window = $iframe.get(0).contentWindow;
+            _window.closeMe = function () {
+                _dialog.close();
+            };
+        })
+    }
+
+    function showPrint(body, styles, pdf) {
+        App.fullScreenProcesses.showCog();
+
+
+        if (pdf) {
+            var pdfFile = new Blob([atob(pdf)], {
+                type: "application/pdf"
+            });
+            var pdfUrl = URL.createObjectURL(pdfFile);
+            var a = document.createElement('a');
+            a.href = pdfUrl;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+
+        } else {
+            let iframe = $('<iframe style="width: 500px; height: 200px; position: absolute; top: -1000px; background: #fff;">').appendTo('body');
+            let tempFrame = iframe[0];
+            let tempFrameWindow = tempFrame.contentWindow ? tempFrame.contentWindow : tempFrame.contentDocument.defaultView;
+
+
+            tempFrameWindow.document.head.innerHTML = '<style>' + styles + '</style>';
+            tempFrameWindow.document.body.innerHTML = body;
+            let iBody = tempFrameWindow.document.body;
+
+            let def = $.Deferred();
+            let iCheck = 0;
+            const checkScroll = function () {
+                iBody.scrollTop = iBody.scrollHeight + 100;
+                if (++iCheck < 100 && iBody.scrollTop >= iBody.scrollHeight) {
+                    setTimeout(checkScroll, 50);
+                } else {
+                    setTimeout(function () {
+                        def.resolve();
+
+                    }, 3000)
+                }
+            };
+
+            const checkBodyHeight = function () {
+                if (++iCheck < 100 && iBody.scrollHeight < 200) {
+                    setTimeout(checkBodyHeight, 50);
+                    return;
+                }
+                //console.log('checkBodyHeight'+iCheck);
+                iCheck = 0;
+                checkScroll();
+            };
+            checkBodyHeight();
+            def.then(function () {
+                App.fullScreenProcesses.hideCog();
+
+                setTimeout(function () {
+                    tempFrameWindow.focus();
+                    tempFrameWindow.print();
+                }, 250);
+
+                setTimeout(function () {
+                    // iframe.remove();
+                }, 10000);
+            });
+        }
+    }
+})();
+Object.equals = function (first, second) {
+
+    let cache = []; //кеш обьектов, для избежания рекурсии
+
+    function inCache(first, second) {
+        var i = cache.length;
+        while (i--) if (
+            (cache[i][0] === first || cache[i][0] === second) && (cache[i][1] === second || cache[i][1] === first)
+        ) return true;
+        return false
+    }
+
+    return function eq(f, s) {
+        if (f === s) return true; //сравниваем обычным образом
+        if (f instanceof Date && s instanceof Date) return +f === +s; //время
+        if (typeof f !== 'object' || typeof s !== 'object' || s === null || f === null) return false; //если хотябы один из аргументов не объект (положительный случай для необъектов рассмотрен выше)
+        if (inCache(f, s)) return true; //есть в кеше
+        cache.push([f, s]); //кешируем
+
+        if (Array.isArray(f) !== Array.isArray(s)) return false;
+        if (Array.isArray(f)) {
+            if (f.length !== s.length) return false;
+            let i = f.length;
+            while (i--) if (!eq(f[i], s[i])) return false; //рекурсивный вызов
+        } else {
+            let keys = Object.keys(f), i = keys.length; //получаем ключи
+            if (Object.keys(s).length !== i) return false; //если количество ключей не совпадает
+            while (i--) if (!eq(f[keys[i]], s[keys[i]])) return false; //рекурсивный вызов
+        }
+        return true
+    }(first, second)
+};
+
+
+(function () {
+    Object.getPath = function (obj, path, def) {
+        let cur = obj;
+        for (let i = 0; i < path.length; i++) {
+            let key = path[i];
+            if ((typeof cur !== 'object') || !(key in cur)) return def;
+            cur = cur[key];
+        }
+        return cur;
+    }
+
+})();
+(function () {
+    String.prototype.hashCode = function() {
+        var hash = 0, i, chr;
+        if (this.length === 0) return hash;
+        for (i = 0; i < this.length; i++) {
+            chr   = this.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    };
+
+})();
+(function () {
+
+    App.confirmation = function (text, btns, title) {
+        let _btns = [];
+        Object.keys(btns).forEach(function (k) {
+            _btns.push({
+                label: k,
+                action: btns[k]
+            })
+        });
+
+        return BootstrapDialog.show({
+            /*cssClass: 'edit-row-panel',*/
+            type: 'edit',
+            title: title,
+            message: text,
+            buttons: _btns,
+            draggable: true,
+            onshow: function (dialog) {
+                dialog.$modalContent.css({
+                    width: "70vw",
+                    maxWidth: "800px"
+                });
+            },
+            onshown: function (dialog) {
+            dialog.$modalContent.position({
+                of: window
+            })
+        }
+        })
+    };
+
+   // return App.modal(text, title, btns);
+
+
+})();
+(function () {
+    App.copyMe = function (str) {
+        let tmp = document.createElement('textarea');
+        tmp.value = str;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+    }
+
+})();
+(function () {
+    App.dateFormats = {
+        'base': 'DD.MM.YY',
+        'db': 'YYYY-MM-DD',
+        covert: function (date, from, to) {
+            return moment(date, from).format(to);
+        },
+        covertToDb: function (date, from) {
+            var from = from || this.base;
+            return moment(date, from).format(this.db);
+        },
+        covertFromDb: function (date, to) {
+            var to = to || this.base;
+            return moment(date, this.db).format(to);
+        },
+        isValid: function (date, format) {
+            var format = format || this.base;
+            return moment(date, format).isValid();
+        }
+    };
+    App.dateTimeFormats = {
+        'base': 'DD.MM.YY HH:mm',
+        'db': 'YYYY-MM-DD HH:mm',
+        covert: function (date, from, to) {
+            return moment(date, from).format(to);
+        },
+        covertToDb: function (date, from) {
+            var from = from || this.base;
+            return moment(date, from).format(this.db);
+        },
+        covertFromDb: function (date, to) {
+            var to = to || this.base;
+            return moment(date, this.db).format(to);
+        },
+        isValid: function (date, format) {
+            var format = format || this.base;
+            return moment(date, format).isValid();
+        }
+    };
+})
+();
+(function () {
+    let Img = 'fa-cog';
+    let processStack = {};
+    let $image = $('#big_loading i');
+    let iCog = 0;
+
+    App.fullScreenProcesses = {
+        showCog: function () {
+            iCog++;
+            if (iCog === 1){
+                App.fullScreenProcesses.show('fa-cog', true)
+            }
+        },
+        hideCog: function () {
+            iCog--;
+            if (iCog < 1) {
+                iCog = 0;
+                App.fullScreenProcesses.hide();
+            }
+        }
+    };
+    App.fullScreenProcesses.show = function (image, withRotate) {
+        withRotate = withRotate || false;
+        $('body').addClass('lock');
+
+        if (withRotate && !$image.is('.fa-spin')) {
+            $image.addClass('fa-spin')
+        } else if (!withRotate && $image.is('.fa-spin')) {
+            $image.removeClass('fa-spin')
+        }
+
+        if (Img != image) {
+            $image.removeClass(Img).addClass(image);
+            Img = image;
+        }
+        $('#big_loading').show().animate({opacity:1}, 250);
+    };
+    let opacity;
+    App.fullScreenProcesses.hide = function (uin) {
+        $('body').removeClass('lock');
+        $('#big_loading').animate({opacity:0}, 250, function () {
+            $('#big_loading').hide();
+        });
+    }
+})();
+(function(){
+    App.hexToRGB = function (hex, alpha) {
+                       var r = parseInt(hex.slice(1, 3), 16),
+                           g = parseInt(hex.slice(3, 5), 16),
+                           b = parseInt(hex.slice(5, 7), 16);
+
+                       if (alpha) {
+                           return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+                       } else {
+                           return "rgb(" + r + ", " + g + ", " + b + ")";
+                       }
+                   }
+    
+})();
+(function(){
+    $.fn.extend({
+    isAttached: function(){
+        return $(this).closest('html').length===1;
+        }
+    });
+    
+})();
+(function () {
+    App.isTopWindow = function () {
+        let isFramed = false;
+        try {
+            isFramed = window != window.top || document != top.document || self.location != top.location;
+        } catch (e) {
+            isFramed = true;
+        }
+
+        return !isFramed
+    }
+})();
+(function () {
+    App.logOutput = function (log) {
+        let $mes = $('<div style="overflow-x: auto">');
+
+        let btns=[
+            {
+                'label': "Развернуть все",
+                cssClass: 'btn-m btn-default',
+                'action': function (dialog) {
+                    $mes.jstree("open_all");
+                }
+            },
+            {
+                'label': "Закрыть",
+                cssClass: 'btn-m btn-default',
+                'action': function (dialog) {
+                    dialog.close();
+                }
+            }];
+
+        if (typeof log === 'string') {
+            btns.splice(0, 1);
+        }
+
+        window.top.BootstrapDialog.show({
+            message: $mes,
+            type: BootstrapDialog.TYPE_DANGER,
+            title: 'Схема расчета',
+            buttons: btns,
+            draggable: true,
+            onshown: function (dialog) {
+                dialog.$modalContent.position({
+                    of: window.top
+                });
+
+                if (typeof log === 'string') {
+                    $mes.html('<div style="color: white; ">'+log+'</div>');
+                } else {
+
+                    $mes.jstree({
+                        "state": {"key": "leftTree"},
+                        'core': {
+                            'check_callback': true,
+                            "open_parents": true,
+                            'data': log,
+                            themes: {
+                                'name': 'default-dark'
+                            }
+                        },
+                        "types": {
+                            "folder": {},
+                            "code": {"icon": "fa fa-cog"},
+                            "cogs": {"icon": "fa fa-cogs"},
+                            "error": {"icon": "fa fa-exclamation-triangle"},
+                            "list": {"icon": "fa fa-code"},
+                            "fixed": {"icon": "fa fa-hand-rock-o"},
+                            "param": {"icon": "fa fa-hashtag"},
+                            "execcode": {"icon": "fa fa-magic"},
+                            "recalcs": {"icon": "fa fa-recycle"},
+                            "clocks": {"icon": "fa fa-clock-o"},
+                            "mbs": {"icon": "fa fa-database"},
+                            "selects": {"icon": "fa fa-navicon"},
+                            "!": {"icon": "fa fa-exclamation"},
+                            "table_simple": App.tableTypes.simple,
+                            "table_version": App.tableTypes.version,
+                            "table_calcs": App.tableTypes.calcs,
+                            "table_tmp": App.tableTypes.tmp,
+                            "table_globcalcs": App.tableTypes.globcalcs,
+                            "table_cycles": App.tableTypes.cycles,
+                        },
+                        "plugins": ["types", "themes"]
+                    });
+                }
+            },
+            onshow: function (dialog) {
+                let width = window.top.innerWidth*0.8;
+
+                dialog.$modalHeader.css('cursor', 'pointer');
+                dialog.$modalContent.css({
+                    width: width
+                });
+                dialog.$modalContent.find('.modal-body').css('background-color', '#333');
+            }
+
+        });
+    };
+
+})();
+(function(){
+
+    App.modal=function($text, $title, $footer){
+
+        var div = $('<div class="modal fade" id="appNotify" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">'
+            + ' <div class="modal-dialog">'
+            + ' <div class="modal-content">'
+            + ' <div class="modal-header">'
+            + ' <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'
+            + '<h4 class="modal-title"></h4>'
+            + ' </div>'
+            + ' <div class="modal-body">'
+            + ' </div>'
+            + ' <div class="modal-footer">'
+            + ' </div>'
+            + ' </div>'
+            + ' </div>'
+            + ' </div>');
+
+
+        var modal={
+            body: div.find('.modal-body'),
+            header: div.find('.modal-header'),
+            title: div.find('.modal-title'),
+            footer: div.find('.modal-footer'),
+            block: div
+        }
+
+       modal.block.on('hidden.bs.modal', function(){
+            $(this).remove();
+        });
+
+        if (typeof $text == 'object' && $text instanceof jQuery){
+            modal.body.empty().append($text);
+        }else{
+            modal.body.html($text);
+        }
+        if ($title)  {
+            modal.title.html($title);
+        }
+        else {
+            modal.header.hide();
+        }
+        if ($footer)  {
+            if (typeof $footer == 'object'){
+                var ftr=$('<div>');
+                var modal=modal;
+                $.each($footer, function(btnName, func){
+                    if (func == 'close'){
+                        ftr.append('<button type="button" class="btn btn-default" data-dismiss="modal">'+btnName+'</button>')
+                        return;
+                    }
+                    var btnClass='default';
+
+                    if (typeof func == 'object'){
+                        if (func.class) btnClass=func.class;
+                        if (func.func) func=func.func;
+                    }
+                    var btn=$('<button type="button" class="btn btn-'+btnClass+'">'+btnName+'</button>');
+                    ftr.append(btn);
+
+                    if (func && typeof func =='function'){
+                        btn.on('click', function(){
+                            func(modal.block);
+                        });
+                    }
+                });
+                modal.footer.html(ftr.children());
+            }
+            else modal.footer.html($footer);
+        }
+        else modal.footer.hide();
+
+        modal.block.modal('show').css('z-index', '10000');
+        return modal.block;
+    }
+})();
+(function () {
+    $.expr.pseudos.multiincludes = function (obj, index, meta) {
+        let $obj = $(obj).find('a');
+        let haystack = ($obj.data('tokens') || $obj.text()).toString().toUpperCase().replace('ё', 'е');
+        let qs = meta[3].toUpperCase().replace('ё', 'е').split(" ");
+        return !qs.some(function (q) {
+            return haystack.indexOf(q)===-1
+        });
+    };
+
+})();
+(function () {
+    App.notify = function ($text, $title, $style) {
+
+        BootstrapDialog.show({
+            message: $text,
+            type: BootstrapDialog.TYPE_DEFAULT,
+            title: $title,
+            buttons: [
+                {
+                    label: 'Закрыть',
+                    action: function (dialogRef) {
+                        dialogRef.close();
+                    }
+
+                }
+            ],
+            onshow: function (dialog) {
+                if (!$title) {
+                    dialog.$modalHeader.remove();
+                }
+            }
+        })
+        /* return App.modal($text, $title, {'Закрыть': 'close'});*/
+    };
+    App.topNotify = function ($text, $title, $style) {
+        $style = 'success';
+        $title = $title || '';
+        $('#notifies').append('<div class="alert alert-' + $style + '">' +
+            '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+            '<strong>' + $title + '</strong>' + $text +
+            '</div>');
+    };
+
+    App.popNotify = function ($text, element, timeout, container, trigger) {
+        let placement = 'bottom';
+        let inOptions = {};
+        let class_p;
+        let options = {};
+        if ($text.isParams) {
+            inOptions = $text;
+            if ($text['element']) element = $text['element'];
+            if ($text['timeout']) timeout = $text['timeout'];
+            if ($text['container']) container = $text['container'];
+            if ($text['trigger']) trigger = $text['trigger'];
+            if ($text['placement']) placement = $text['placement'];
+            if ($text['class']) class_p = $text['class'];
+            $text = $text['$text'];
+        }
+        timeout = timeout || undefined;
+        container = container || element.closest('.pcTable-scrollwrapper, .InsertPanel');
+        trigger = trigger || 'manual';
+
+        options = $.extend(options, {
+            html: true,
+            content: $text,
+            trigger: trigger,
+            container: container,
+            placement: placement,
+            width: "70vw",
+            animation: false
+        });
+
+        if (timeout == 'default') {
+            timeout = 2000;
+        }
+
+        element.on('shown.bs.popover', function () {
+            let popover = element.data('bs.popover');
+            let left = parseInt(popover.$tip.css('left'));
+            let arrowLeft = parseInt(popover.$arrow.css('left'));
+            if (left < 0) {
+                popover.$tip.css('left', 0);
+                popover.$arrow.css('left', (arrowLeft + left) + 'px');
+            }
+            if (placement === 'bottom') {
+                let top = element.offset().top + element.outerHeight();
+                let popovertop = popover.$tip.offset().top;
+                let containerTop = container.scrollTop() - container.offset().top;
+                if (popovertop - top > 10) {
+                    popover.$tip.css('top', top + 2 + containerTop + (container.is('.InsertPanel') ? $('.modal-dialog').offset().top : 0));
+                }
+            }
+        });
+
+        element.popover(options)
+        if (trigger == 'manual') {
+            element.popover('show');
+            if(class_p){
+                $('#' + element.attr('aria-describedby')).addClass(class_p);
+            }
+        }
+
+        element.on('remove destroy', function () {
+            if (element && element.attr('aria-describedby'))
+                element.popover('destroy');
+        });
+        if ($text.on) {
+            $text.on('remove destroy', function () {
+                if (element.length && element.attr('aria-describedby') && $('#' + element.attr('aria-describedby')).length)
+                    element.popover('destroy');
+                //$('#' + element.attr('aria-describedby')).remove();
+            });
+        }
+        if (timeout) {
+            setTimeout(function () {
+                if (element && element.attr('aria-describedby')) {
+                    element.popover('destroy');
+                }
+            }, timeout)
+        }
+        return element.attr('aria-describedby');
+    }
+})();
+(function () {
+    App.ksort = function(obj){
+        var keys = Object.keys(obj).sort()
+            , sortedObj = {};
+        for(var i in keys) {
+            sortedObj[keys[i]] = obj[keys[i]];
+        }
+        return sortedObj;
+    };
+
+    App.values = function (obj) {
+        let list=[];
+        for (let i in obj){
+            list.push(obj[i])
+        }
+        return list;
+    };
+    App.keys = function (obj) {
+        let list=[];
+        for (let i in obj){
+            list.push(i)
+        }
+        return list;
+    };
+    App.isEmpty = function(obj) {
+        // null and undefined are "empty"
+        if (obj == null) return true;
+
+        // Assume if it has a length property with a non-zero value
+        // that that property is correct.
+        if (obj.length > 0)    return false;
+        if (obj.length === 0)  return true;
+
+        // If it isn't an object at this point
+        // it is empty, but it can't be anything *but* empty
+        // Is it empty?  Depends on your application.
+        if (typeof obj !== "object") return true;
+
+        // Otherwise, does it have any properties of its own?
+        // Note that this doesn't handle
+        // toString and valueOf enumeration bugs in IE < 9
+        for (var key in obj) {
+            if (hasOwnProperty.call(obj, key)) return false;
+        }
+
+        return true;
+    };
+    App.filter = function (obj, func) {
+        let objReturn={};
+        Object.keys(obj).forEach(function (key) {
+            if(func(key, obj[key])){
+                objReturn[key]=obj[key]
+            }
+        });
+        return objReturn;
+    }
+})();
+(function () {
+    App.openInIframe = function (title, uri, iframeName) {
+        iframeName = iframeName || 'newIframe';
+        let $iframe = $('<iframe style="min-width: 500px; width: 100%; height: 70vh; border: none" name = "' + iframeName + '"></iframe>');
+        BootstrapDialog.show({
+            message: $iframe.attr('src', uri),
+            size: BootstrapDialog.SIZE_WIDE,
+            title: title,
+            buttons: [
+                {
+                    'label': "Обновить",
+                    cssClass: 'btn-m btn-default',
+                    'action': function (dialog) {
+                        let $iframeNew;
+                        $iframeNew= $('<iframe style="min-width: 500px; width: 100%; height: 70vh; border: none" name = "' + iframeName + '"></iframe>').attr('src', uri);
+                        $iframe.replaceWith($iframeNew);
+                        $iframe = $iframeNew;
+                    }
+                },
+                {
+                    'label': "Открыть",
+                    cssClass: 'btn-m btn-default',
+                    'action': function (dialog) {
+                        $('<a>').attr('href', uri).hide().appendTo('body').get(0).click();
+                        dialog.close();
+                    }
+                },
+                {
+                    'label': "Во вкладке",
+                    cssClass: 'btn-m btn-default',
+                    'action': function (dialog) {
+                    debugger
+                        let a = $('<a>').attr('href', uri).attr('target', '_blank').hide().appendTo('body')
+                        a.get(0).click();
+                        a.remove();
+                        dialog.close();
+                    }
+                },
+                {
+                    'label': "Закрыть",
+                    cssClass: 'btn-m btn-default',
+                    'action': function (dialog) {
+                        dialog.close();
+                    }
+                }
+            ]
+        });
+    };
+
+    App.aInIframe = function (a) {
+        a = $(a);
+        App.openInIframe(a.text(), a.attr('href'));
+        return false;
+    }
+
+})();
+(function () {
+
+    App.reUserInterface = function (users, isNotCreatorHimSelf) {
+        let UserFio =  $('#UserFio');
+        UserFio.css('cursor', 'pointer');
+
+        if (isNotCreatorHimSelf){
+            App.blink(UserFio, 10, '#ffe486');
+        }
+
+        const setAuthUser=function (userId) {
+            let model = App.models.table('/Main/', {}, {});
+
+            let pcTable = $('#table').data('pctable') || {isCreatorView: true};
+            model.addPcTable(pcTable);
+            model.reUser(userId);
+        };
+
+        const addFioClick = function () {
+
+
+            let selectDiv = $('<div class="tech-table" style="height: 220px; width: 200px;"><div class="select-btn"></div><div></div></div>');
+
+            let select = $('<select data-size="6" class="open" title="Выберите пользователя" data-style="btn-sm btn-default" data-live-search="true" data-width="100%">');
+
+            Object.keys(users).forEach(function (uId) {
+                select.append($('<option>').text(uId).data('content', users[uId]));
+            });
+            let techTable = selectDiv.find('.tech-table');
+            selectDiv.find('.select-btn').append(select);
+
+            UserFio.popover({
+                html: true,
+                content: selectDiv,
+                trigger: 'manual',
+                container: 'body',
+                placement: 'auto bottom',
+                template: '<div class="popover" role="tooltip" style=""><div class="arrow" style="left: 50%;"></div><div class="popover-content" style=" padding: 3px 5px;"></div></div>'
+            });
+            select.selectpicker('render').selectpicker('toggle');
+            select.data('container', techTable);
+            select.on('hide.bs.select', function () {
+                if (select.val()){
+                    setAuthUser(select.val());
+                }
+                $('body').off('click.FioPopover');
+                return false;
+            });
+            setTimeout(function () {
+                select.selectpicker('render');
+                UserFio.popover('show');
+                let popover = $('#' + UserFio.attr('aria-describedby'));
+                popover.css('top', '45px');
+                select.data('selectpicker').$searchbox.focus();
+                $('body').one('click.FioPopover', function (e) {
+                    if (e.altKey !== undefined) {
+                        UserFio.popover('destroy');
+                        UserFio.one('click', addFioClick);
+                    }
+                });
+            }, 50);
+        };
+
+        UserFio.one('click', addFioClick);
+
+
+    };
+
+})();
+(function () {
+    App.rgb2hex=function (rgb){
+        rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+        return (rgb && rgb.length === 4) ? "#" +
+            ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+            ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+            ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
+    }
+
+})();
+(function () {
+    App.tableTypes={
+        "simple": {"icon": "fa fa-table", 'title': 'Простая'},
+        "version": {"icon": "fa fa-calendar", 'title': 'Версионная'},
+        "calcs": {"icon": "fa fa-calculator", 'title': 'Расчетная в цикле'},
+        "globcalcs": {"icon": "fa fa-calculator", 'title': 'Расчетная'},
+        "tmp": {"icon": "fa fa-clock-o", 'title': 'Временная'},
+        "cycles": {"icon": "fa fa-circle-o", 'title': 'Циклы'}
+    };
+})();
+(function () {
+    App.textWithLinks = function (text) {
+        let div = $('<div>').text(text);
+        let regExp = /(https?:\/\/[^\s]+)/g;
+
+        return div.html().replace(regExp, function (url) {
+            return '<a href="' + url + '" target="_blank">' + url + '</a>';
+        });
+    }
+})();
+(function () {
+    var Uin = 0;
+    App.getUn = function(){
+        return Uin++;
+    }
+
+})();
+(function () {
+    restModel=function(url){
+
+        return {
+            url: url,
+            create: function(){
+                return $.ajax({
+                    url: this.url,
+                    method: 'post',
+                    data: data
+                })
+            },
+            get: function(id){
+                return $.ajax({
+                    url: this.url,
+                    method: 'get',
+                    data: {id:id}
+                })
+            },
+            save: function(id, data){
+                return $.ajax({
+                    url: this.url,
+                    method: 'PUT',
+                    data: $.extend(data, {id:id})
+                })
+            }
+        }
+    }
+
+
+})();
+$(function () {
+
+    if (App.isTopWindow()) {
+        let BellNotifications = $('#bell-notifications');
+        if (BellNotifications.length) {
+            let model = App.models.table('/Main/');
+            model.addPcTable({model: model});
+
+            BellNotifications.on('click', function () {
+                model.getNotificationsTable();
+            });
+
+            let RequestObject = {};
+            let activeNotifications = {};
+            let periodicity = BellNotifications.data('periodicity') || 0;
+            if (periodicity > 0) {
+                const check = function () {
+                    switch (document.visibilityState) {
+                        case 'hidden':
+                            if (RequestObject.jqXHR && RequestObject.jqXHR.abort)
+                                RequestObject.jqXHR.abort();
+                            RequestObject = {};
+                            break;
+                        case 'visible':
+
+                            model.checkForNotifications(periodicity, Object.keys(activeNotifications), RequestObject).then(function (json) {
+                                if (json.notifications && json.notifications.length) {
+                                    activeNotifications[json.notification_id] = App.showDatas.call(model, json.notifications, json.notification_id);
+
+                                    let deffs = [];
+                                    activeNotifications[json.notification_id].forEach(function (dialog) {
+                                        if (dialog) {
+                                            let def = $.Deferred();
+
+                                            dialog.$modal.on('hide.bs.modal', function () {
+                                                def.resolve();
+                                            });
+                                            deffs.push(def)
+                                        }
+                                    });
+
+                                    $.when(...deffs).then(function () {
+                                        delete activeNotifications[json.notification_id];
+                                    })
+                                }
+                                if (json.deactivated && json.deactivated.forEach) {
+                                    json.deactivated.forEach(function (id) {
+                                        if (activeNotifications[id]) {
+                                            activeNotifications[id].forEach(function (dialog) {
+                                                dialog.simpleClose();
+                                            });
+                                            delete activeNotifications[id];
+                                        }
+                                    })
+                                }
+                                check()
+                            }).fail(function (json) {
+                                if (json && json.error) {
+                                    document.removeEventListener("visibilitychange", check);
+                                }
+                            })
+                    }
+                };
+                document.addEventListener("visibilitychange", check);
+                check();
+            }
+        }
+    }
+});
+$(function () {
+
+    let DocsButton= $('#docs-link');
+
+
+
+    const addDocsClick = function () {
+        let type = $(this).data('type');
+
+        let selectDiv = $('<div class="tech-table" id="DocsPopover" data-type="'+type+'" style="min-height: 250px"></div>');
+
+        $.post('https://docs.totum.online/index_'+type+'.json', function (json) {
+            if (json && json.length){
+                json.forEach(function(row){
+                    selectDiv.append('<div style="'+(row[2] || "")+'"><i class="fa fa-external-link"></i> <a href="http://docs.totum.online'+row[1]+'" target="totum-docs">'+row[0]+'</a></div>');
+                });
+            }
+        });
+
+        DocsButton.popover({
+            html: true,
+            content: selectDiv,
+            trigger: 'manual',
+            container: 'body',
+            placement: 'auto bottom',
+            template: '<div class="popover" role="tooltip" style=""><div class="arrow" style="left: 50%;"></div><div class="popover-content" style=" padding: 3px 5px;"></div></div>'
+        });
+
+        setTimeout(function () {
+            DocsButton.popover('show');
+            let popover = $('#' + DocsButton.attr('aria-describedby'));
+            popover.css('top', '45px');
+            $('body').one('click.DocsPopover', function (e) {
+                if (e.altKey !== undefined) {
+                    DocsButton.popover('destroy');
+                    DocsButton.one('click', addDocsClick);
+                }
+            });
+        }, 50);
+    };
+
+    DocsButton.one('click', addDocsClick);
+});
+(function (window, $) {
+
+    let BUTTONS_TIMEOUT = 2000;
+
+    const pcTABLE_ROW_HEIGHT = 35;
+    const MOBILE_MAX_WIDTH = window.MOBILE_MAX_WIDTH = 1199;
+
+    const pcTable_DATA_KEY = 'pctable';
+    const pcTable_DATA_INDEX = 'pctablettemtndex';
+    const pcTable_ROW_ItemId_KEY = 'pctableitemid';
+    const pcTable_COLORS = {
+        'blured': '#ee0c1f'
+        , 'saved': '#3fbf46'
+        , 'savedAndChaged': '#eeec0b'
+    };
+
+    const pcTable_TYPES = {
+        'data': 'data',
+        'system': 'syst',
+        'global': 'glob',
+        'project': 'proj'
+    };
+
+    const pcTable_PANNEL_IDS = {
+        'insert': 'pcTableInsertRowPanel'
+    };
+
+    var technicalFunctions = {
+        stopPropagationByKeyCode: function (event, keyCode) {
+            var originalEvent = event;
+            while (originalEvent) {
+                if (originalEvent.keyCode == keyCode)
+                    originalEvent.stopPropagation();
+
+                if (originalEvent == event.originalEvent)
+                    break;
+
+                originalEvent = event.originalEvent;
+            }
+        }
+    };
+
+    var pcTableIds = 0;
+
+
+(function () {
+
+
+
+    let funcsFromTable = App.functions || [];
+
+
+
+    let ActiveFuncNames = [];
+
+    funcsFromTable.forEach(function (row) {
+
+        if (!row.d) ActiveFuncNames.push(row.name);
+
+    });
+
+
+
+    let TOTUMjsFuncs = {};
+
+    funcsFromTable.forEach(function (row) {
+
+        TOTUMjsFuncs[row.name.toLowerCase()] = [row.t, 0, row.p, row.n, row.m];
+
+    });
+
+    let DbFieldParams = ['where', 'order', 'field', 'sfield', 'bfield', 'tfield', 'preview', 'parent', 'section', 'table', 'filter', 'fieldtitle'];
+
+
+
+    CodeMirror.defaults.scrollbarStyle = 'overlay';
+
+    CodeMirror.defineInitHook(function (mirror) {
+
+        try {
+
+            if (!mirror.options.bigOneDialog && screen.width > window.MOBILE_MAX_WIDTH) {
+
+                let $resizer = $('<i class="fa fa-expand codemirror-expander" style="position: absolute;\n' +
+
+                    '    right: 10px;\n' +
+
+                    '    bottom: 10px;\n' +
+
+                    '    z-index: 10000;\n' +
+
+                    '    font-family: FontAwesome; cursor: pointer"></i>');
+
+
+
+                $(mirror.display.wrapper).append($resizer);
+
+                let newCodemirrorDiv;
+
+                $resizer.on('click', function () {
+
+                    newCodemirrorDiv = $('<div class="HTMLEditor" id="bigOneCodemirror" style="height: 100%;"></div>');
+
+
+
+                    let value = mirror.getValue();
+
+                    let editorMax;
+
+
+
+                    window.top.BootstrapDialog.show({
+
+                        message: newCodemirrorDiv,
+
+                        type: null,
+
+                        title: 'Правка текстового поля',
+
+
+
+                        cssClass: 'fieldparams-edit-panel',
+
+                        draggable: true,
+
+                        onhide: function (event) {
+
+                            mirror.setValue(editorMax.getValue());
+
+                        },
+
+
+
+                        onshow: function (dialog) {
+
+                            dialog.$modalHeader.css('cursor', 'pointer');
+
+                            dialog.$modalContent.css({
+
+                                width: "90vw",
+
+                                minHeight: "90vh"
+
+                            });
+
+                            dialog.$modalHeader.find('button.close').css('font-size', '16px').html('<i class="fa fa-compress"></i>')
+
+
+
+
+
+                        },
+
+                        onshown: function (dialog) {
+
+                            editorMax = CodeMirror(newCodemirrorDiv.get(0), {
+
+                                mode: mirror.options.mode,
+
+                                value: value,
+
+                                theme: 'eclipse',
+
+                                lineNumbers: true,
+
+                                indentWithTabs: true,
+
+                                autoCloseTags: true,
+
+                                bigOneDialog: dialog
+
+                            });
+
+
+
+                            if (mirror.table) editorMax.table = mirror.table;
+
+
+
+                            let minheight = Math.round(dialog.$modalContent.height() - dialog.$modalHeader.outerHeight() - 40);
+
+                            editorMax.getScrollerElement().style.minHeight = minheight + 'px';
+
+                            newCodemirrorDiv.find('.CodeMirror').css('min-heught', minheight);
+
+                            editorMax.focus();
+
+                            dialog.$modalContent.position({
+
+                                my: 'center top',
+
+                                at: 'center top+30px',
+
+                                of: window.top
+
+                            });
+
+                        }
+
+
+
+                    });
+
+
+
+                })
+
+            }
+
+        } catch (e) {
+
+            mirror.setValue(e.message);
+
+        }
+
+    });
+
+
+
+
+
+    const TotumTab = function (cm, alt, shift) {
+
+        var cur = cm.getCursor(), token = cm.getTokenAt(cur);
+
+        if (token.state.inFunction) {
+
+            let start, stop;
+
+            let line = cm.getLine(cur.line);
+
+
+
+            if (shift) {
+
+
+
+                start = cur.ch;
+
+                if (line[start] === ';') start--;
+
+                while (line[start] && [';', '('].indexOf(line[start]) === -1) {
+
+                    start--;
+
+                }
+
+                stop = start;
+
+
+
+
+
+                while (line[start] && [':', '('].indexOf(line[start]) === -1) {
+
+                    start--;
+
+                }
+
+                if (line[start] === ':') {
+
+                    start++;
+
+                    if (line[start] === ' ') start++;
+
+                }
+
+                stop = cur.ch;
+
+
+
+
+
+            } else {
+
+
+
+                start = cur.ch;
+
+                while (line[start] && [':', ')'].indexOf(line[start]) === -1) {
+
+                    start++;
+
+                }
+
+                if (line[start] === ':') {
+
+                    start++;
+
+                    if (line[start] === ' ') start++;
+
+                }
+
+
+
+
+
+                if (line[start] === ' ') start++;
+
+                stop = start;
+
+                while (line[stop] && [';', ')'].indexOf(line[stop]) === -1) {
+
+                    stop++;
+
+                }
+
+
+
+                if (alt) {
+
+                    start = cur.ch;
+
+                }
+
+            }
+
+
+
+            cm.setSelection({line: cur.line, ch: start}, {line: cur.line, ch: stop});
+
+            //cm.setCursor({line: cur.line, ch: cur.ch+5});
+
+            return true;
+
+        }
+
+    };
+
+
+
+    CodeMirror.defineMode("totum", function () {
+
+        return {
+
+            startState: function () {
+
+                return {inString: false, isStart: true, inFunction: false, lineName: ''};
+
+            },
+
+            token: function (stream, state) {
+
+
+
+
+
+                function streamString() {
+
+                    return stream.string.substring(stream.start, stream.pos);
+
+                }
+
+
+
+                function error() {
+
+                    "use strict";
+
+                    stream.skipToEnd();
+
+                    return 'error';
+
+                }
+
+
+
+                state.lineNames = [];
+
+                try {
+
+                    stream.lineOracle.doc.cm.getValue().split("\n").forEach(function (line) {
+
+                        if (line.trim().length === 0 || line.indexOf('//') === 0) return '';
+
+                        return state.lineNames.push(line.replace(/^\s*~?\s*([a-zA-Z_0-9=]+)\s*:.*/, '$1'));
+
+                    });
+
+                } catch (e) {
+
+
+
+                }
+
+
+
+                if (stream.pos === 0 || state.isStart === true) {
+
+                    if (stream.string.match('^[\t\s]*\/\/')) {
+
+                        stream.skipToEnd();
+
+                        state.isStart = false;
+
+                        return 'comment';
+
+                    }
+
+                    let classes = 'start';
+
+                    state.isStart = true;
+
+
+
+                    if (/[\t\n]/.test(stream.peek()) && stream.next()) {
+
+                        while (/[\t\n]/.test(stream.peek()) && stream.next()) ;
+
+                        return 'start-tabs';
+
+                    }
+
+
+
+
+
+                    if (stream.skipTo(':')) {
+
+                        state.lineName = streamString().trim();
+
+                        if (state.lineName.substring(0, 1) === '~') {
+
+                            classes += " fixed";
+
+                            state.lineName = state.lineName.substring(1);
+
+                        }
+
+                        if (!/^[a-z0-9_]+\s*$/i.test(state.lineName) && state.lineName !== '=' && !/^f[0-9]+\s*=\s*$/i.test(state.lineName)) {
+
+                            return error();
+
+                        }
+
+                        stream.next();
+
+                    } else return error();
+
+
+
+                    $(stream.lineOracle.doc.cm.getWrapperElement()).find('.cm-var-not-in').each(function () {
+
+                        let text = $(this).text();
+
+                        text = text.replace(/\[.*/, '');
+
+                        if (text === '$' + state.lineName || text === '#$' + state.lineName || text === '$$' + state.lineName) {
+
+                            $(this).removeClass('cm-var-not-in')
+
+                        }
+
+                    });
+
+
+
+                    let matchesCount = state.lineNames.filter(function (v) {
+
+                        return v === state.lineName
+
+                    }).length;
+
+                    if (matchesCount > 1) {
+
+                        classes += " dubbled";
+
+                    }
+
+                    state.isStart = false;
+
+                    return classes;
+
+                }
+
+                state.isStart = false;
+
+
+
+                switch (stream.peek()) {
+
+                    case ' ':
+
+                        stream.next();
+
+                        return null;
+
+                        break;
+
+
+
+                    case '{':
+
+                        stream.next();
+
+
+
+                        if (stream.skipTo('}')) {
+
+                            stream.next();
+
+                        } else return error();
+
+
+
+                        return "inVars";
+
+                        break;
+
+
+
+                    case '"':
+
+
+
+                        let quote = stream.peek();
+
+                        stream.next();
+
+
+
+                        if (stream.skipTo(quote)) {
+
+                            stream.next();
+
+                        } else return error();
+
+                        return "string";
+
+                        break;
+
+                    case '#':
+
+                        stream.next();
+
+                        let classes = 'db_name';
+
+
+
+                        while (/[a-z0-9_А-Яа-я\-\[\]\$\#".]/.test(stream.peek()) && stream.next()) {
+
+                        }
+
+                        let varName = stream.string.substring(stream.start + 1, stream.pos);
+
+
+
+                        if (/[^0-9a-z._]/.test(varName.replace(/\[.*/g, '').slice(1))) {
+
+                            classes += ' tmp-error'
+
+                        }
+
+
+
+                        if (varName === "") return error();
+
+
+
+                        if (varName[0] === '$') {
+
+
+
+                            varName = varName.replace(/\[.*/g, '').slice(1).trim();
+
+
+
+                            if (state.lineNames.indexOf(varName) === -1) {
+
+                                classes += " var-not-in";
+
+                            }
+
+                        }
+
+                        return classes;
+
+                        break;
+
+                    case '@':
+
+                        stream.next();
+
+                        let string = stream.peek();
+
+                        let nS;
+
+                        while (/[a-z0-9_.\[\$\#"A-Z\]]/.test(nS = stream.peek()) && stream.next()) {
+
+                            string += nS;
+
+                        }
+
+                        if (/^[a-z0-9_]{3,}\.[a-z0-9_]{2,}(\[[a-zA-Z0-9_\$\#"]+\])*$/i.test(string)) {
+
+                            return "db_name";
+
+                        }
+
+
+
+                        return error();
+
+                        break;
+
+                    case '$':
+
+                        stream.next();
+
+
+
+                        if (stream.peek() === '#') {
+
+                            stream.next();
+
+                            while (/[a-z0-9_\-\[\]\$\#"]/i.test(stream.peek()) && stream.next()) {
+
+                            }
+
+                            return 'code-var'
+
+                        } else {
+
+
+
+                            while (/[a-zA-Z0-9_\[\]\$\#"]/i.test(stream.peek()) && stream.next()) {
+
+                            }
+
+                            let variableName = stream.string.substring(stream.start, stream.pos);
+
+                            variableName = variableName.replace(/\[.*/g, '');
+
+                            let classes = 'variable';
+
+                            let varName = variableName.substring(1);
+
+                            if (varName[0] === '$') {
+
+                                classes += " dollar-dollar";
+
+
+
+                                varName = varName.substring(1);
+
+                            }
+
+
+
+                            if (state.lineNames.indexOf(varName) === -1) {
+
+                                classes += " var-not-in";
+
+                            }
+
+                            return classes;
+
+                        }
+
+
+
+                        break;
+
+
+
+                    case 't':
+
+                        if (stream.string.substring(stream.start, stream.start + 4) === 'true') {
+
+                            stream.skipTo('e');
+
+                            stream.next();
+
+                            return "boolean";
+
+                        }
+
+
+
+                        break;
+
+
+
+                    case 'f':
+
+                        if (stream.string.substring(stream.start, stream.start + 5) === 'false') {
+
+                            stream.skipTo('e');
+
+                            stream.next();
+
+                            return "boolean";
+
+                        }
+
+                        break;
+
+                }
+
+
+
+
+
+                state.inFuncName = false;
+
+                if (!state.inFunction && /[a-zA-Z]/.test(stream.peek())) {
+
+
+
+                    state.inFuncName = true;
+
+
+
+
+
+                    if (!stream.skipTo('(')) {
+
+                        stream.skipToEnd();
+
+                    } else {
+
+                        state.inFunction = true;
+
+
+
+                    }
+
+
+
+                    if (!/^[a-zA-Z]+[0-9]*\s*$/.test(streamString())) {
+
+                        return error();
+
+                    }
+
+                    let func = TOTUMjsFuncs[streamString().trim().toLowerCase()];
+
+
+
+                    if (!func) {
+
+                        return error();
+
+                    }
+
+
+
+                    state.func = func;
+
+
+
+                    stream.next();
+
+                    return 'function';
+
+                }
+
+
+
+                if (state.inFunction) {
+
+
+
+                    if (stream.peek() === ')') {
+
+                        stream.next();
+
+                        state.inFunction = false;
+
+                        state.functionParam = '';
+
+                        return 'function';
+
+                    }
+
+
+
+                    if (!state.functionParam && /[a-z_]/.test(stream.peek())) {
+
+                        if (stream.skipTo(':')) {
+
+                            let paramName = stream.string.substring(stream.start, stream.pos);
+
+                            if (/^[a-z_]+\s*$/.test(paramName)) {
+
+                                state.functionParam = paramName;
+
+                                stream.next();
+
+                                if (state.func[2].indexOf(paramName) === -1) return error();
+
+
+
+                                let classes = 'functionParam';
+
+                                if (DbFieldParams.indexOf(paramName) !== -1) {
+
+                                    classes += ' fieldParam';
+
+                                }
+
+                                if (state.func[3].indexOf(paramName) !== -1) {
+
+                                    classes += ' reqParam';
+
+                                }
+
+                                if (state.func[4] && state.func[4].indexOf(paramName) !== -1) {
+
+                                    classes += ' multiParam';
+
+                                }
+
+                                return classes;
+
+                            } else return error();
+
+                        } else {
+
+                            if (stream.skipTo(')')) {
+
+                                return 'error fieldParam';
+
+                            } else return error();
+
+                        }
+
+                    }
+
+                    if (!state.functionParam) {
+
+                        return error();
+
+                    }
+
+
+
+                    if (stream.peek() === ';') {
+
+                        stream.next();
+
+
+
+                        state.functionParam = '';
+
+                        return '';
+
+                    }
+
+
+
+                    if (state.functionParam === 'order' && /[ad]/.test(stream.peek())) {
+
+                        if (stream.string.substring(stream.start, stream.start + 3) === 'asc') {
+
+                            stream.next();
+
+                            stream.next();
+
+                            stream.next();
+
+                            return '';
+
+                        } else if (stream.string.substring(stream.start, stream.start + 4) === 'desc') {
+
+                            stream.next();
+
+                            stream.next();
+
+                            stream.next();
+
+                            stream.next();
+
+                            return '';
+
+                        }
+
+
+
+                    }
+
+
+
+                    if (stream.peek() === "'") {
+
+                        let quote = stream.peek();
+
+                        stream.next();
+
+
+
+                        if (stream.skipTo(quote)) {
+
+                            stream.next();
+
+                        } else return error();
+
+                        return "string-name";
+
+                    }
+
+
+
+
+
+                }
+
+
+
+                if (stream.peek() === "'") {
+
+                    let quote = stream.peek();
+
+                    stream.next();
+
+
+
+                    if (stream.skipTo(quote)) {
+
+                        stream.next();
+
+                    } else return error();
+
+                    return "string";
+
+                }
+
+                if (/\d|%/.test(stream.peek())) {
+
+                    stream.next();
+
+
+
+                    while (/[0-9.%]/.test(stream.peek()) && stream.next()) {
+
+                    }
+
+                    if (!/^\d+(\.\d+)?%?$/.test(stream.string.substring(stream.start, stream.pos))) {
+
+                        return error();
+
+                    }
+
+                    return "number";
+
+                }
+
+                if (/[+-\/*!<>=]/.test(stream.peek())) {
+
+                    stream.next();
+
+                    return "operator";
+
+                }
+
+
+
+
+
+                return error();
+
+            }
+
+        };
+
+    });
+
+
+
+    function autoCloseS(cm) {
+
+        if (cm.getOption("disableInput") || cm.getOption("mode") !== 'totum') return CodeMirror.Pass;
+
+        var ranges = cm.listSelections(), replacements = [];
+
+        let openHints = false;
+
+        for (let i = 0; i < ranges.length; i++) {
+
+            if (!ranges[i].empty()) return CodeMirror.Pass;
+
+            var pos = ranges[i].head, tok = cm.getTokenAt(pos, true);
+
+
+
+
+
+            if (tok.state.inFuncName || tok.type == 'function' || tok.type == 'error') {
+
+                let func;
+
+                let lower = tok.string.toLowerCase();
+
+                let params = '';
+
+                if (lower.indexOf('/') !== -1) {
+
+                    func = lower.substring(0, lower.indexOf('/'));
+
+                    params = lower.substring(lower.indexOf('/'));
+
+
+
+                } else func = lower.trimRight();
+
+
+
+
+
+                if (func = TOTUMjsFuncs[func]) {
+
+                    let replaceText = '';
+
+                    let newPosition = 0;
+
+                    if (params.length) {
+
+                        replaceText = '(';
+
+                        let firstParamCh = 1;
+
+                        let isFirst = true;
+
+                        params.split('/').forEach(function (str) {
+
+                            if (str.length === 0) ;
+
+                            else {
+
+                                if (!isFirst) {
+
+                                    replaceText += '; ';
+
+                                }
+
+                                isFirst = false;
+
+                                let fulled = str.indexOf(':') !== -1 && (str.slice(str.indexOf(':') + 1).trim() !== "");
+
+                                replaceText += str + (str.indexOf(':') === -1 ? ': ' : '');
+
+
+
+                                if (firstParamCh === 1 && !fulled) {
+
+                                    let param = str.slice(0, str.indexOf(':'));
+
+                                    /*if (DbFieldParams.indexOf(param)!==-1){
+
+                                        replaceText+="''";
+
+                                        firstParamCh = replaceText.length-1;
+
+                                    }else{
+
+                                        firstParamCh = replaceText.length;
+
+                                    }*/
+
+
+
+                                    firstParamCh = replaceText.length;
+
+                                }
+
+                            }
+
+                        });
+
+
+
+                        if (firstParamCh === 1) {
+
+                            firstParamCh = replaceText.length;
+
+                        } else {
+
+                            openHints = true;
+
+                        }
+
+
+
+                        newPosition += firstParamCh;
+
+                        replaceText += ')';
+
+
+
+                    } else {
+
+                        replaceText = func[0];
+
+                        if (!/:/.test(replaceText)) newPosition += replaceText.length;
+
+                        else {
+
+                            let _firstParamCh = replaceText.indexOf(':');
+
+                            let _firstParamStartStr = replaceText.substring(_firstParamCh);
+
+                            let _firstParamStr = _firstParamStartStr.substring(0, _firstParamStartStr.indexOf(';') || _firstParamStartStr.indexOf(')'));
+
+
+
+                            newPosition += _firstParamCh;
+
+
+
+                            if (_firstParamStr.indexOf("'") !== -1) {
+
+                                newPosition += _firstParamStr.indexOf("'") + 1;
+
+                            } else {
+
+                                newPosition += 2;
+
+                            }
+
+                            openHints = true;
+
+                        }
+
+
+
+
+
+                    }
+
+                    replacements[i] = {
+
+                        text: replaceText,
+
+                        newPos: CodeMirror.Pos(pos.line, pos.ch - params.length + newPosition),
+
+                        replace: CodeMirror.Pos(pos.line, pos.ch - params.length)
+
+                    };
+
+                } else {
+
+                    replacements[i] = {
+
+                        text: "()",
+
+                        newPos: CodeMirror.Pos(pos.line, pos.ch + 1),
+
+                        replace: CodeMirror.Pos(pos.line, pos.ch)
+
+                    };
+
+                }
+
+                let info = replacements[i];
+
+                if (info) {
+
+                    cm.replaceRange(info.text, info.replace, ranges[i].anchor, "+insert");
+
+                    var sel = cm.listSelections().slice(0);
+
+                    sel[i] = {head: info.newPos, anchor: info.newPos};
+
+                    cm.setSelections(sel);
+
+                    if (openHints) {
+
+                        CodeMirror.showHint(cm, CodeMirror.hint.totumVars, {});
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+
+
+
+    }
+
+
+
+    CodeMirror.registerHelper("hint", "totumVars", function javascriptHint(editor, options) {
+
+        return scriptHint(editor, totumKeywords,
+
+            function (e, cur) {
+
+                return e.getTokenAt(cur);
+
+            },
+
+            options);
+
+    });
+
+    let AllTables = [];
+
+    let tablesQueried = false;
+
+    const getTables = function () {
+
+        if (AllTables.length === 0 && !tablesQueried) {
+
+            tablesQueried = true;
+
+            $('#table').data('pctable').model.getAllTables().then(function (json) {
+
+                AllTables = json.tables;
+
+            })
+
+        }
+
+        return AllTables;
+
+    };
+
+    const renderHint = function (el, data, row) {
+
+        $(el).append('<span class="' + row.type + '">' + (row.textVis || row.text) + (row.title === "" ? '' : ' <span class="descr">' + row.title + '</span>') + '</span>')
+
+    };
+
+
+
+    function scriptHint(editor, keywords, getToken, options) {
+
+        // Find the token at the cursor
+
+        var cur = editor.getCursor(), token = getToken(editor, cur);
+
+
+
+        if (token.type !== 'error' && token.type !== 'string-name' && /\b(?:string|comment)\b/.test(token.type)) return;
+
+
+
+
+
+        var innerMode = CodeMirror.innerMode(editor.getMode(), token.state);
+
+        if (innerMode.mode.helperType === "json") return;
+
+        token.state = innerMode.state;
+
+
+
+        token.inString = token.string;
+
+
+
+        token.state.isDb_name = false;
+
+        token.state.showAll = true;
+
+
+
+        options.inStart = true;
+
+
+
+        let hintFunc = function (cm, data, completion) {
+
+            if (completion !== undefined && completion !== null) {
+
+                cm.replaceRange(completion.text || completion, data.from, data.to);
+
+
+
+                if (completion.curPos) {
+
+                    cm.setCursor({line: data.from.line, ch: completion.curPos});
+
+
+
+                }
+
+                if (completion.showHint) {
+
+                    CodeMirror.showHint(cm, CodeMirror.hint.totumVars, {});
+
+                }
+
+            }
+
+        };
+
+
+
+        let match;
+
+
+
+        keywords = keywords.slice();
+
+        if (token.state.isStart || cur.ch === 0) {
+
+            keywords = [];
+
+            token.string = token.string.replace(/^[\t]+/, '');
+
+            let tilda = '';
+
+            if (/^~/.test(token.string)) {
+
+                token.string.replace(/^~/, '');
+
+                tilda = '~';
+
+            }
+
+            $(editor.getWrapperElement()).find('.cm-var-not-in').each(function () {
+
+                let text = $(this).text().replace(/^(\#|\$)?\$/, '').replace(/\[.*/, '');
+
+
+
+                keywords.push({text: tilda + text + ': ', displayText: text});
+
+            });
+
+
+
+
+
+        } else if (/^'.*?'?$/.test(token.string) && DbFieldParams.indexOf(token.state.functionParam) !== -1) {
+
+
+
+            token.state.showAll = true;
+
+
+
+            if (token.string === "''") {
+
+                token.end = token.end;
+
+                token.start += 1;
+
+                token.string = '';
+
+            } else {
+
+                if (/'[a-z_0-9]+'/.test(token.string)) {
+
+                    token.start += 1;
+
+                    token.string = token.string.slice(1, cur.ch - token.start);
+
+                } else {
+
+
+
+                    token.string = token.string.slice(1, cur.ch - token.start);
+
+                    token.start += 1;
+
+                    token.end = cur.ch;
+
+
+
+                    if (editor.getLine(cur.line)[cur.ch] === "'") {
+
+                        token.end++;
+
+                    }
+
+                }
+
+
+
+
+
+            }
+
+
+
+
+
+            if (token.state.functionParam === 'table') {
+
+                let tables = getTables();
+
+                keywords = [];
+
+
+
+                Object.keys(tables).forEach(function (name) {
+
+                    keywords.push({
+
+                        text: name + "'",
+
+                        textVis: name,
+
+                        title: tables[name].t,
+
+                        render: renderHint,
+
+                        type: 'item-string-name',
+
+                        hint: hintFunc,
+
+                        tab: true
+
+                    })
+
+                });
+
+
+
+            } else {
+
+                let line = editor.getLine(cur.line);
+
+                let str = line.substring(0, cur.ch);
+
+                let lastPart = line.substring(cur.ch);
+
+                let q = lastPart.substring(0, lastPart.indexOf(')'));
+
+                str = str.substring(str.lastIndexOf('(')) + q;
+
+                let tblMatch;
+
+                if (tblMatch = str.match(/table:\s*((\$#ntn)|'([a-z_0-9]*)')/)) {
+
+                    let tableName = tblMatch[2] ? editor.table : tblMatch[3];
+
+
+
+                    keywords = [];
+
+                    Object.keys(AllTables[tableName].f).forEach(function (fName) {
+
+                        keywords.push({
+
+                            text: fName + "'",
+
+                            textVis: fName,
+
+                            title: AllTables[tableName].f[fName],
+
+                            render: renderHint,
+
+                            type: 'item-string-name', curPos: cur.ch + fName.length + 1,
+
+                            tab: true
+
+                        });
+
+                    });
+
+
+
+                    keywords.push({
+
+                        text: 'id' + "'",
+
+                        textVis: 'id'
+
+                        , title: '', render: renderHint, type: 'item-string-name', curPos: cur.ch + 3,
+
+                        tab: true
+
+                    })
+
+                }
+
+            }
+
+
+
+
+
+        } else {
+
+
+
+
+
+            if (token.end > cur.ch) {
+
+                token.end = cur.ch;
+
+                token.string = token.string.slice(0, cur.ch - token.start);
+
+            }
+
+
+
+            /* @ */
+
+            if (token.string.indexOf('@') === 0) {
+
+                options.inStart = false;
+
+                keywords = [];
+
+                let tables = getTables();
+
+                let matches;
+
+
+
+
+
+                token.string = token.string.slice(1, cur.ch - token.start);
+
+                token.start = token.start + 1;
+
+                token.end = cur.ch;
+
+
+
+                if (matches = token.string.match(/^([a-z_0-9]+)\./)) {
+
+                    let tName = matches[1];
+
+
+
+                    token.start += (tName + '.').length;
+
+                    token.string = token.string.slice((tName + '.').length);
+
+
+
+
+
+                    if (tables[tName] && tables[tName]["@"].length) {
+
+                        tables[tName]["@"].forEach(function (fName) {
+
+                            keywords.push({
+
+                                text: fName,
+
+                                title: tables[tName].f[fName],
+
+                                render: renderHint,
+
+                                type: 'item-db_name'
+
+                            })
+
+                        });
+
+                    }
+
+
+
+                } else {
+
+
+
+                    Object.keys(tables).forEach(function (tName) {
+
+                        if (tables[tName]["@"].length) {
+
+                            keywords.push({
+
+                                text: tName + '.',
+
+                                textVis: tName,
+
+                                title: tables[tName].t,
+
+                                render: renderHint,
+
+                                type: 'item-db_name',
+
+                                showHint: true,
+
+                                hint: hintFunc
+
+                            })
+
+                        }
+
+                    });
+
+                }
+
+
+
+            } else if (token.string.slice(0, 2) === '$#') {
+
+
+
+                keywords = [
+
+                    {text: "$#lc", title: 'Пустой лист', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#nd", title: 'дата - Y-m-d', render: renderHint, type: 'item-code-var'}, //, hint: function (cm, data, completion) {}
+
+                    {text: "$#ndt", title: 'дата-время - Y-m-d H:i', render: renderHint, type: 'item-code-var'},
+
+                    {
+
+                        text: "$#ndts",
+
+                        title: 'дата-время с секундами - Y-m-d H:i:s',
+
+                        render: renderHint,
+
+                        type: 'item-code-var'
+
+                    },
+
+                    {text: "$#nu", title: 'id пользователя', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#nr", title: 'ids ролей пользователя', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#nti", title: 'id таблицы', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#ntn", title: 'NAME таблицы', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#nth", title: 'HASH врем. таблицы', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#nci", title: 'Cycle расчетной таблицы', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#nf", title: 'NAME поля', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#nl", title: 'Новая строка', render: renderHint, type: 'item-code-var'},
+
+                    {text: "$#ids", title: 'id отмеченных галочками полей', render: renderHint, type: 'item-code-var'},
+
+                    {
+
+                        text: "$#nfv",
+
+                        title: 'Значение текущего поля (для селектов/действий/форматов)',
+
+                        render: renderHint,
+
+                        type: 'item-code-var'
+
+                    },
+
+                    {
+
+                        text: "$#onfv",
+
+                        title: 'Прошлое значение текущего поля',
+
+                        render: renderHint,
+
+                        type: 'item-code-var'
+
+                    },
+
+                    {text: "$#nh", title: 'Текущий хост-name', render: renderHint, type: 'item-code-var'},
+
+                ];
+
+
+
+                const funcSort = function (firsts) {
+
+                    let sort = keywords.slice();
+
+                    let firstsFull = [];
+
+                    sort = sort.filter(function (v) {
+
+                        if (firsts.indexOf(v.text) === -1) return true;
+
+                        else firstsFull.push(v)
+
+                    });
+
+                    return sort = firstsFull.concat(sort);
+
+                };
+
+
+
+                switch (token.state.functionParam) {
+
+                    case 'table':
+
+                        keywords = funcSort(['$#ntn']);
+
+                        break;
+
+                    case 'cycle':
+
+                        keywords = funcSort(['$#nci']);
+
+                        break;
+
+                    case 'field':
+
+                        keywords = funcSort(['$#nf', '$#nfv']);
+
+                        break;
+
+                }
+
+
+
+
+
+            } else if (match = token.string.match(/^(#?\$)/)) {
+
+
+
+                keywords = [];
+
+                token.string = token.string.slice(match[1].length, cur.ch - token.start);
+
+                token.start = token.start + match[1].length;
+
+                token.end = cur.ch;
+
+
+
+                token.state.lineNames.forEach(function (name) {
+
+                    if (name.indexOf('=') === -1) {
+
+                        keywords.push(name);
+
+                    }
+
+                });
+
+
+
+            } else if (match = token.string.match(/^\#/)) {
+
+
+
+                keywords = [];
+
+                token.string = token.string.slice(1, cur.ch - token.start);
+
+                token.start = token.start + 1;
+
+                token.end = cur.ch;
+
+
+
+                if (match = token.string.match(/^([a-z]{1,3}\.)/)) {
+
+                    token.string = token.string.slice(match[1].length);
+
+                    token.start += match[1].length;
+
+                }
+
+
+
+                if (editor.table && AllTables[editor.table]) {
+
+                    Object.keys(AllTables[editor.table].f).forEach(function (fName) {
+
+                        keywords.push({
+
+                            text: fName,
+
+                            title: AllTables[editor.table].f[fName],
+
+                            render: renderHint,
+
+                            type: 'item-db-name'
+
+                        });
+
+                    });
+
+                    keywords.push({
+
+                        text: 'id',
+
+                        title: '',
+
+                        render: renderHint,
+
+                        type: 'item-db-name'
+
+                    });
+
+                }
+
+
+
+            } else if (token.state.inFuncName) {
+
+                if (!token.state.inFunction) {
+
+                    if (match = token.string.match(/^([a-zA-Z]+)\//)) {
+
+                        let func;
+
+                        token.state.showAll = true;
+
+
+
+                        if (func = TOTUMjsFuncs[match[1].toLowerCase()]) {
+
+                            let oldStart = token.start;
+
+                            token.start = token.start + token.string.lastIndexOf('/') + 1;
+
+                            token.string = token.string.slice(token.string.lastIndexOf('/') + 1, cur.ch - oldStart);
+
+                            token.end = cur.ch;
+
+                            keywords = [];
+
+                            func[2].forEach(function (fName) {
+
+                                let type = '';
+
+                                if (func[3].indexOf(fName) !== -1) type += ' item-reqParam';
+
+                                if (func[4].indexOf(fName) !== -1) type += ' item-multiParam';
+
+                                if (DbFieldParams.indexOf(fName) !== -1) type += ' item-fieldParam';
+
+
+
+                                keywords.push({
+
+                                    text: fName + ': ',
+
+                                    textVis: fName,
+
+                                    title: "",
+
+                                    render: renderHint,
+
+                                    type: type
+
+                                });
+
+                            })
+
+
+
+                        }
+
+                    } else {
+
+                        keywords = ActiveFuncNames.slice();
+
+                        keywords.push('true');
+
+                        keywords.push('false')
+
+                    }
+
+                }
+
+            } else if (token.state.func && (token.type === 'error fieldParam' || /(\(|;\s*)$/.test(editor.getLine(cur.line).slice(0, token.start)))) {
+
+                keywords = [];
+
+
+
+                token.state.func[2].forEach(function (fName) {
+
+
+
+                    let type = '';
+
+                    let zpt = '';
+
+
+
+                    if (editor.getLine(cur.line).slice(cur.ch).trim() !== ')') zpt = '; ';
+
+
+
+                    if (token.state.func[3].indexOf(fName) !== -1) type += ' item-reqParam';
+
+                    if (token.state.func[4].indexOf(fName) !== -1) type += ' item-multiParam';
+
+                    if (DbFieldParams.indexOf(fName) !== -1) type += ' item-fieldParam';
+
+
+
+                    keywords.push({
+
+                        text: fName + ': ' + zpt,
+
+                        textVis: fName,
+
+                        title: "",
+
+                        render: renderHint,
+
+                        type: type,
+
+                        hint: hintFunc,
+
+                        curPos: token.start + (fName + ': ' + zpt).length - zpt.length
+
+                    });
+
+                })
+
+            } else {
+
+
+
+                keywords = [
+
+                    'true',
+
+                    'false'
+
+
+
+                ];
+
+                if (token.state.functionParam === 'order') {
+
+                    keywords = keywords.concat(['asc', 'desc'])
+
+                }
+
+            }
+
+
+
+        }
+
+
+
+        return {
+
+            list: getCompletions(token, keywords, options),
+
+            from: CodeMirror.Pos(cur.line, token.start),
+
+            to: CodeMirror.Pos(cur.line, token.end)
+
+        };
+
+    }
+
+
+
+    let totumKeywords = [];
+
+
+
+
+
+    /*var fooHint = CodeMirror.hint.foo;
+
+    CodeMirror.hint.foo = function(cm, options) {
+
+        var result = fooHint(cm, options);
+
+        if (result)
+
+        return result;
+
+    });*/
+
+
+
+
+
+    CodeMirror.defineOption("autoCloseFunctions", false, function (cm) {
+
+        if (cm.getOption('mode') !== 'totum') return false;
+
+
+
+        getTables();
+
+
+
+        var map = {name: "autoCloseFunctions"};
+
+        map["'('"] = autoCloseS;
+
+        cm.addKeyMap(map);
+
+
+
+        cm.on('keydown', function (cm, event) {
+
+            if ((event.keyCode || event.which).toString() === '9') {
+
+                if (TotumTab(cm, event.altKey, event.shiftKey)) {
+
+
+
+                    event.preventDefault();
+
+                }
+
+            }
+
+        });
+
+
+
+        cm.on("keyup", function (cm, event) {
+
+            var popupKeyCodes = {
+
+                "9": "tab",
+
+                "13": "enter",
+
+                "27": "escape",
+
+                "33": "pageup",
+
+                "34": "pagedown",
+
+                "35": "end",
+
+                "36": "home",
+
+                "38": "up",
+
+                "40": "down",
+
+                "57": "("
+
+            };
+
+
+
+            //ctrl-s
+
+            let isBigOneSave = cm.options.bigOneDialog && event.ctrlKey && (event.keyCode || event.which).toString() === '83';
+
+
+
+
+
+            if (isBigOneSave) {
+
+                event.stopPropagation();
+
+                cm.options.bigOneDialog.close()
+
+
+
+            } else if (event.ctrlKey && (event.keyCode || event.which).toString() === '191') {
+
+                CodeMirror.commentMe(cm);
+
+            }
+
+
+
+            if ((event.keyCode || event.which).toString() === '27') {
+
+                if (cm.state.completionActive) {
+
+                    cm.state.completionActive.close();
+
+                }
+
+                event.stopPropagation();
+
+
+
+            } else if (!popupKeyCodes[(event.keyCode || event.which).toString()]) {
+
+                CodeMirror.showHint(cm, CodeMirror.hint.totumVars, {});
+
+            }
+
+
+
+        });
+
+        cm.on('dblclick', function (event) {
+
+            var cur = cm.getCursor(), token = cm.getTokenAt(cur).state;
+
+            let name;
+
+            let wrapper = $(cm.getWrapperElement());
+
+            let line = cm.getLine(cur.line);
+
+            let startVal = line.substring(0, cur.ch);
+
+
+
+            if (/^\s*~?\s*?[a-zA-Z0-9_]+$/.test(startVal)) {
+
+                name = token.lineName;
+
+            } else {
+
+                let pos = cur.ch - 1;
+
+                if (/[a-zA-Z0-9_]/.test(line[pos])) {
+
+                    while (--pos && pos >= 0 && /[a-zA-Z0-9_]/.test(line[pos])) ;
+
+                    if (line[pos] === '$') {
+
+                        let start = pos + 1;
+
+                        pos = cur.ch - 1;
+
+                        while (++pos && line.length > pos && /[a-zA-Z0-9_]/.test(line[pos])) ;
+
+                        name = line.substring(start, pos);
+
+                    }
+
+                }
+
+
+
+            }
+
+
+
+            if (name) {
+
+                let regTest = new RegExp('^\s*~?\s*' + name + '\s*:');
+
+                if (regTest.test(wrapper.find('.cm-start.light').text())) {
+
+                    wrapper.find('.cm-variable').removeClass('light');
+
+                    wrapper.find('.cm-start').removeClass('light');
+
+                } else {
+
+
+
+                    wrapper.find('.cm-variable').removeClass('light').each(function () {
+
+                        let cmVar = $(this);
+
+                        if (cmVar.text() === '$' + name) {
+
+                            cmVar.addClass('light');
+
+                        }
+
+                    });
+
+                    wrapper.find('.cm-start').removeClass('light').each(function () {
+
+                        let cmVar = $(this);
+
+                        if (cmVar.text().trim().replace('~', '').replace(':', '') === name) {
+
+                            cmVar.addClass('light');
+
+                        }
+
+                    })
+
+                }
+
+            }
+
+
+
+        });
+
+
+
+    });
+
+    /* CodeMirror.on("keyup", function (cm, event) {
+
+         if (cm.state.completionActive && event.keyCode === 51) {
+
+             CodeMirror.showHint(cm, CodeMirror.hint.totumVars, {});
+
+         }
+
+     });*/
+
+
+
+
+
+    (function () {
+
+        "use strict";
+
+
+
+        CodeMirror.showHint = function (cm, getHints, options) {
+
+            // We want a single cursor position.
+
+            if (cm.somethingSelected()) return;
+
+            if (getHints == null) getHints = cm.getHelper(cm.getCursor(), "hint");
+
+            if (getHints == null) return;
+
+
+
+            if (cm.state.completionActive) cm.state.completionActive.close();
+
+
+
+            var completion = cm.state.completionActive = new Completion(cm, getHints, options || {});
+
+            CodeMirror.signal(cm, "startCompletion", cm);
+
+            if (completion.options.async)
+
+                getHints(cm, function (hints) {
+
+                    completion.showHints(hints);
+
+                }, completion.options);
+
+            else
+
+                return completion.showHints(getHints(cm, completion.options));
+
+        };
+
+
+
+        CodeMirror.commentMe = function (cm) {
+
+            var cur = cm.getCursor(), token = cm.getTokenAt(cur).state, line = cm.lineInfo(cur.line);
+
+            let comment;
+
+            if (comment = line.text.match(/^([\t\s]*)\/\//)) {
+
+                cm.replaceRange("", {line: cur.line, ch: comment[1].length}, {line: cur.line, ch: comment[0].length});
+
+            } else {
+
+                comment = line.text.match(/^[\t\s]*/);
+
+                cm.replaceRange("//", {line: cur.line, ch: comment[0].length}, {line: cur.line, ch: comment[0].length});
+
+            }
+
+
+
+        };
+
+
+
+        function Completion(cm, getHints, options) {
+
+            this.cm = cm;
+
+            this.getHints = getHints;
+
+            this.options = options;
+
+            this.widget = this.onClose = null;
+
+        }
+
+
+
+        Completion.prototype = {
+
+            close: function () {
+
+                if (!this.active()) return;
+
+
+
+                if (this.widget) this.widget.close();
+
+                if (this.onClose) this.onClose();
+
+                this.cm.state.completionActive = null;
+
+                CodeMirror.signal(this.cm, "endCompletion", this.cm);
+
+            },
+
+
+
+            active: function () {
+
+                return this.cm.state.completionActive == this;
+
+            },
+
+
+
+            pick: function (data, i) {
+
+                var completion = data.list[i];
+
+                if (completion.hint) completion.hint(this.cm, data, completion);
+
+                else this.cm.replaceRange(getText(completion), data.from, data.to);
+
+                this.close();
+
+                let cm = this.cm;
+
+            },
+
+
+
+            showHints: function (data) {
+
+                if (!data || !data.list.length || !this.active()) return this.close();
+
+                this.showWidget(data);
+
+            },
+
+
+
+            showWidget: function (data) {
+
+                this.widget = new Widget(this, data);
+
+                CodeMirror.signal(data, "shown");
+
+
+
+                var debounce = null, completion = this, finished;
+
+                var closeOn = this.options.closeCharacters || /[\s()\[\]{};:>,]/;
+
+                var startPos = this.cm.getCursor(), startLen = this.cm.getLine(startPos.line).length;
+
+
+
+                function done() {
+
+                    if (finished) return;
+
+                    finished = true;
+
+                    completion.close();
+
+                    completion.cm.off("cursorActivity", activity);
+
+                    CodeMirror.signal(data, "close");
+
+                }
+
+
+
+                function isDone() {
+
+                    if (finished) return true;
+
+                    if (!completion.widget) {
+
+                        done();
+
+                        return true;
+
+                    }
+
+                }
+
+
+
+                function update() {
+
+                    if (isDone()) return;
+
+                    if (completion.options.async)
+
+                        completion.getHints(completion.cm, finishUpdate, completion.options);
+
+                    else
+
+                        finishUpdate(completion.getHints(completion.cm, completion.options));
+
+                }
+
+
+
+                function finishUpdate(data) {
+
+                    if (isDone()) return;
+
+                    if (!data || !data.list.length) return done();
+
+                    completion.widget.close();
+
+                    completion.widget = new Widget(completion, data);
+
+                }
+
+
+
+                function activity() {
+
+                    clearTimeout(debounce);
+
+                    var pos = completion.cm.getCursor(), line = completion.cm.getLine(pos.line);
+
+                    if (pos.line != startPos.line || line.length - pos.ch != startLen - startPos.ch ||
+
+                        pos.ch < startPos.ch || completion.cm.somethingSelected() ||
+
+                        (pos.ch && closeOn.test(line.charAt(pos.ch - 1))))
+
+                        completion.close();
+
+                    else
+
+                        debounce = setTimeout(update, 170);
+
+                }
+
+
+
+                this.cm.on("cursorActivity", activity);
+
+                this.onClose = done;
+
+            }
+
+        };
+
+
+
+        function getText(completion) {
+
+            if (typeof completion == "string") return completion;
+
+            else return completion.text;
+
+        }
+
+
+
+        function buildKeyMap(options, handle) {
+
+            var baseMap = {
+
+                Up: function () {
+
+                    handle.moveFocus(-1);
+
+                },
+
+                Down: function () {
+
+                    handle.moveFocus(1);
+
+                },
+
+                PageUp: function () {
+
+                    handle.moveFocus(-handle.menuSize());
+
+                },
+
+                PageDown: function () {
+
+                    handle.moveFocus(handle.menuSize());
+
+                },
+
+                Home: function () {
+
+                    handle.setFocus(0);
+
+                },
+
+                End: function () {
+
+                    handle.setFocus(handle.length);
+
+                },
+
+                Enter: handle.pick,
+
+                Esc: handle.close
+
+            };
+
+            var ourMap = options.customKeys ? {} : baseMap;
+
+
+
+            function addBinding(key, val) {
+
+                var bound;
+
+                if (typeof val != "string")
+
+                    bound = function (cm) {
+
+                        return val(cm, handle);
+
+                    };
+
+                // This mechanism is deprecated
+
+                else if (baseMap.hasOwnProperty(val))
+
+                    bound = baseMap[val];
+
+                else
+
+                    bound = val;
+
+                ourMap[key] = bound;
+
+            }
+
+
+
+            if (options.customKeys)
+
+                for (var key in options.customKeys) if (options.customKeys.hasOwnProperty(key))
+
+                    addBinding(key, options.customKeys[key]);
+
+            if (options.extraKeys)
+
+                for (var key in options.extraKeys) if (options.extraKeys.hasOwnProperty(key))
+
+                    addBinding(key, options.extraKeys[key]);
+
+            return ourMap;
+
+        }
+
+
+
+        function Widget(completion, data) {
+
+            this.completion = completion;
+
+            this.data = data;
+
+            var widget = this, cm = completion.cm, options = completion.options;
+
+
+
+            var hints = this.hints = window.top.document.createElement("ul");
+
+            hints.className = "CodeMirror-hints";
+
+            this.selectedHint = 0;
+
+
+
+            var completions = data.list;
+
+            for (var i = 0; i < completions.length; ++i) {
+
+                var elt = hints.appendChild(window.top.document.createElement("li")), cur = completions[i];
+
+                var className = "CodeMirror-hint" + (i ? "" : " CodeMirror-hint-active");
+
+                if (cur.className != null) className = cur.className + " " + className;
+
+                elt.className = className;
+
+                if (cur.render) cur.render(elt, data, cur);
+
+                else elt.appendChild(window.top.document.createTextNode(cur.displayText || getText(cur)));
+
+                elt.hintId = i;
+
+            }
+
+
+
+            var pos = cm.cursorCoords(options.alignWithWord !== false ? data.from : null);
+
+            var left = pos.left, top = pos.bottom + 3, below = true;
+
+            hints.style.left = left + "px";
+
+            hints.style.top = top + "px";
+
+            // If we're at the edge of the screen, then we want the menu to appear on the left of the cursor.
+
+            var winW = window.innerWidth || Math.max(window.top.document.body.offsetWidth, window.top.document.documentElement.offsetWidth);
+
+            var winH = window.innerHeight || Math.max(window.top.document.body.offsetHeight, window.top.document.documentElement.offsetHeight);
+
+            var box = hints.getBoundingClientRect();
+
+            var overlapX = box.right - winW, overlapY = box.bottom - winH;
+
+            if (overlapX > 0) {
+
+                if (box.right - box.left > winW) {
+
+                    hints.style.width = (winW - 5) + "px";
+
+                    overlapX -= (box.right - box.left) - winW;
+
+                }
+
+                hints.style.left = (left = pos.left - overlapX) + "px";
+
+            }
+
+            if (overlapY > 0) {
+
+                var height = box.bottom - box.top;
+
+                if (box.top - (pos.bottom - pos.top) - height > 0) {
+
+                    overlapY = height + (pos.bottom - pos.top);
+
+                    below = false;
+
+                } else if (height > winH) {
+
+                    hints.style.height = (winH - 5) + "px";
+
+                    overlapY -= height - winH;
+
+                }
+
+                hints.style.top = (top = pos.bottom - overlapY) + "px";
+
+            }
+
+            (options.container || window.top.document.body).appendChild(hints);
+
+
+
+            cm.addKeyMap(this.keyMap = buildKeyMap(options, {
+
+                moveFocus: function (n) {
+
+                    widget.changeActive(widget.selectedHint + n);
+
+                },
+
+                setFocus: function (n) {
+
+                    widget.changeActive(n);
+
+                },
+
+                menuSize: function () {
+
+                    return widget.screenAmount();
+
+                },
+
+                length: completions.length,
+
+                close: function () {
+
+                    completion.close();
+
+                },
+
+                pick: function () {
+
+                    widget.pick();
+
+                }
+
+            }));
+
+
+
+            if (options.closeOnUnfocus !== false) {
+
+                var closingOnBlur;
+
+                cm.on("blur", this.onBlur = function () {
+
+                    closingOnBlur = setTimeout(function () {
+
+                        completion.close();
+
+                    }, 100);
+
+                });
+
+                cm.on("focus", this.onFocus = function () {
+
+                    clearTimeout(closingOnBlur);
+
+                });
+
+            }
+
+
+
+            var startScroll = cm.getScrollInfo();
+
+            cm.on("scroll", this.onScroll = function () {
+
+                var curScroll = cm.getScrollInfo(), editor = cm.getWrapperElement().getBoundingClientRect();
+
+                var newTop = top + startScroll.top - curScroll.top;
+
+                var point = newTop - (window.pageYOffset || (window.top.document.documentElement || window.top.document.body).scrollTop);
+
+                if (!below) point += hints.offsetHeight;
+
+                if (point <= editor.top || point >= editor.bottom) return completion.close();
+
+                hints.style.top = newTop + "px";
+
+                hints.style.left = (left + startScroll.left - curScroll.left) + "px";
+
+            });
+
+
+
+            CodeMirror.on(hints, "click", function (e) {
+
+                var t = e.target || e.srcElement;
+
+                while (t.nodeName === 'SPAN') t = t.parentNode;
+
+                if (t.hintId != null) {
+
+                    widget.changeActive(t.hintId);
+
+                    widget.pick();
+
+                }
+
+            });
+
+            /*CodeMirror.on(hints, "click", function (e) {
+
+                var t = e.target || e.srcElement;
+
+                while (t.nodeName ==='SPAN') t = t.parentNode;
+
+
+
+                if (t.hintId != null) widget.changeActive(t.hintId);
+
+            });*/
+
+            CodeMirror.on(hints, "mousedown", function () {
+
+                setTimeout(function () {
+
+                    cm.focus();
+
+                }, 20);
+
+            });
+
+
+
+            CodeMirror.signal(data, "select", completions[0], hints.firstChild);
+
+            return true;
+
+        }
+
+
+
+        Widget.prototype = {
+
+            close: function () {
+
+                if (this.completion.widget != this) return;
+
+                this.completion.widget = null;
+
+                this.hints.parentNode.removeChild(this.hints);
+
+                this.completion.cm.removeKeyMap(this.keyMap);
+
+
+
+                var cm = this.completion.cm;
+
+                if (this.completion.options.closeOnUnfocus !== false) {
+
+                    cm.off("blur", this.onBlur);
+
+                    cm.off("focus", this.onFocus);
+
+                }
+
+                cm.off("scroll", this.onScroll);
+
+            },
+
+
+
+            pick: function () {
+
+                this.completion.pick(this.data, this.selectedHint);
+
+            },
+
+
+
+            changeActive: function (i) {
+
+                i = Math.max(0, Math.min(i, this.data.list.length - 1));
+
+                if (this.selectedHint == i) return;
+
+                var node = this.hints.childNodes[this.selectedHint];
+
+                node.className = node.className.replace(" CodeMirror-hint-active", "");
+
+                node = this.hints.childNodes[this.selectedHint = i];
+
+                node.className += " CodeMirror-hint-active";
+
+                if (node.offsetTop < this.hints.scrollTop)
+
+                    this.hints.scrollTop = node.offsetTop - 3;
+
+                else if (node.offsetTop + node.offsetHeight > this.hints.scrollTop + this.hints.clientHeight)
+
+                    this.hints.scrollTop = node.offsetTop + node.offsetHeight - this.hints.clientHeight + 3;
+
+                CodeMirror.signal(this.data, "select", this.data.list[this.selectedHint], node);
+
+            },
+
+
+
+            screenAmount: function () {
+
+                return Math.floor(this.hints.clientHeight / this.hints.firstChild.offsetHeight) || 1;
+
+            }
+
+        };
+
+    })();
+
+
+
+    function getCompletions(token, keywords, options) {
+
+        var foundStart = [], foundOther = [], start = token.string.toLowerCase(),
+
+            global = options && options.globalScope || window;
+
+
+
+        if (!token.state.showAll && start === "") return found;
+
+
+
+        function maybeAdd(str) {
+
+            let testStr, testStrRus = "";
+
+            if (typeof str === "string") {
+
+                testStr = str.toLowerCase();
+
+            } else {
+
+                testStr = str.text.toLowerCase();
+
+                if (str.title) {
+
+                    testStrRus = str.title.toLowerCase();
+
+                }
+
+            }
+
+
+
+            if (!arrayContains(foundStart, testStr) && !arrayContains(foundOther, testStr)) {
+
+                let tLeft;
+
+
+
+                if (testStr.lastIndexOf(start, 0) === 0) foundStart.push(str);
+
+                else if (testStrRus.lastIndexOf(start, 0) === 0) foundStart.push(str);
+
+                else if (testStrRus.indexOf(start, 0) !== -1) foundOther.push(str);
+
+                else if (!options.inStart && testStr.indexOf(start) !== -1) foundOther.push(str);
+
+            }
+
+        }
+
+
+
+        keywords.forEach(maybeAdd);
+
+
+
+        if (foundStart.length === 1 && foundStart[0] === start) return [];
+
+        if (foundStart.length === 1 && foundStart[0].text === start) return [];
+
+        if (foundOther.length === 1 && foundOther[0] === start) return [];
+
+        if (foundOther.length === 1 && foundOther[0].text === start) return [];
+
+
+
+        return foundStart.concat(foundOther);
+
+    }
+
+
+
+    function arrayContains(arr, item) {
+
+        return arr.indexOf(item) !== -1;
+
+    }
+
+
+
+})();
+(function () {
+
+    const getContext=function (cm) {
+        return {
+            doc: cm.doc
+        }
+    };
+
+
+    CodeMirror.extendMode("css", {
+        commentStart: "/*",
+        commentEnd: "*/",
+        newlineAfterToken: function (type, content) {
+            return /^[;{}]$/.test(content);
+        }
+    });
+
+    CodeMirror.extendMode("javascript", {
+        commentStart: "/*",
+        commentEnd: "*/",
+        // FIXME semicolons inside of for
+        newlineAfterToken: function (type, content, textAfter, state) {
+            if (this.jsonMode) {
+                return /^[\[,{]$/.test(content) || /^}/.test(textAfter);
+            } else {
+                if (content == ";" && state.lexical && state.lexical.type == ")") return false;
+                return /^[;{}]$/.test(content) && !/^;/.test(textAfter);
+            }
+        }
+    });
+
+    CodeMirror.extendMode("xml", {
+        commentStart: "<!--",
+        commentEnd: "-->",
+        newlineAfterToken: function (type, content, textAfter) {
+            return type == "tag" && />$/.test(content) || /^</.test(textAfter);
+        }
+    });
+
+    // Comment/uncomment the specified range
+    CodeMirror.defineExtension("commentRange", function (isComment, from, to) {
+        var cm = this, curMode = CodeMirror.innerMode(cm.getMode(), cm.getTokenAt(from).state).mode;
+        cm.operation(function () {
+            if (isComment) { // Comment range
+                cm.replaceRange(curMode.commentEnd, to);
+                cm.replaceRange(curMode.commentStart, from);
+                if (from.line == to.line && from.ch == to.ch) // An empty comment inserted - put cursor inside
+                    cm.setCursor(from.line, from.ch + curMode.commentStart.length);
+            } else { // Uncomment range
+                var selText = cm.getRange(from, to);
+                var startIndex = selText.indexOf(curMode.commentStart);
+                var endIndex = selText.lastIndexOf(curMode.commentEnd);
+                if (startIndex > -1 && endIndex > -1 && endIndex > startIndex) {
+                    // Take string till comment start
+                    selText = selText.substr(0, startIndex)
+                        // From comment start till comment end
+                        + selText.substring(startIndex + curMode.commentStart.length, endIndex)
+                        // From comment end till string end
+                        + selText.substr(endIndex + curMode.commentEnd.length);
+                }
+                cm.replaceRange(selText, from, to);
+            }
+        });
+    });
+
+    // Applies automatic mode-aware indentation to the specified range
+    CodeMirror.defineExtension("autoIndentRange", function (from, to) {
+        var cmInstance = this;
+        this.operation(function () {
+            for (var i = from.line; i <= to.line; i++) {
+                cmInstance.indentLine(i, "smart");
+            }
+        });
+    });
+
+    // Applies automatic formatting to the specified range
+    CodeMirror.defineExtension("autoFormatRange", function (from, to) {
+        var cm = this;
+        var outer = cm.getMode(), text = cm.getRange(from, to).split("\n");
+        var state = CodeMirror.copyState(outer, cm.getTokenAt(from).state);
+        var tabSize = cm.getOption("tabSize");
+
+        var out = "", lines = 0, atSol = from.ch == 0;
+
+        function newline() {
+            out += "\n";
+            atSol = true;
+            ++lines;
+        }
+
+        for (var i = 0; i < text.length; ++i) {
+            var stream = new CodeMirror.StringStream(text[i], tabSize, getContext(cm, i));
+            while (!stream.eol()) {
+                var inner = CodeMirror.innerMode(outer, state);
+                var style = outer.token(stream, state), cur = stream.current();
+                stream.start = stream.pos;
+                if (!atSol || /\S/.test(cur)) {
+                    out += cur;
+                    atSol = false;
+                }
+                if (!atSol && inner.mode.newlineAfterToken &&
+                    inner.mode.newlineAfterToken(style, cur, stream.string.slice(stream.pos) || text[i + 1] || "", inner.state))
+                    newline();
+            }
+            if (!stream.pos && outer.blankLine) outer.blankLine(state);
+            if (!atSol) newline();
+        }
+
+        cm.operation(function () {
+            cm.replaceRange(out, from, to);
+            for (var cur = from.line + 1, end = from.line + lines; cur <= end; ++cur)
+                cm.indentLine(cur, "smart");
+            cm.setSelection(from, cm.getCursor(false));
+        });
+    });
+
+    $(function () {
+
+    });
+})();
+
+
+    let fieldTypes = {};
+
+var defaultField = {
+    sortable: false, //'acs', 'desc'
+    width: 50,
+    icon: 'fa-font',
+    editable: false,
+    required: true,
+    insertable: false,
+    type: 'string',
+    getPanelVal(val) {
+        return val;
+    },
+    getEditVal: function (input) {
+        var val = input.val().trim();
+        var error = false,
+            notify;
+        if (this.required && (val === undefined || val === '' || val === null)) {
+            notify = 'Поле ' + this.title + ' должно быть заполнено';
+            error = true;
+        }
+
+        if (this.regexp && val !== '') {
+            var r = new RegExp(this.regexp);
+            if (!r.test(val)) {
+                notify = this.regexpErrorText || 'regexp не проходит - "' + this.regexp + '"';
+                notify = 'Ошибка заполнения поля "' + this.title + '": ' + notify;
+                error = true;
+            }
+        }
+        if (error) throw notify;
+        return val;
+    },
+    getEditElement: function ($oldInput, oldValue, item, enterClbk, escClbk, blurClbk, tabindex) {
+        var $input = $('<input type="text" class="form-control" name="cell_edit" autocomplete="off" autocorrect="off" />');
+        if (typeof tabindex !== 'undefined') $input.attr('tabindex', tabindex);
+
+        var field = this;
+        oldValue = oldValue.v;
+        $input.val(oldValue).on('keyup', function (event) {
+            switch (event.keyCode) {
+                case 13:
+                    try {
+                        $input.data('enterClicked', true);
+                        enterClbk($(this), event);
+                    } catch (err) {
+                        $input.data('enterClicked', false);
+                        App.popNotify(err, $input, 'default');
+                        field.focusElement($input);
+                    }
+                    break;
+                case 27:
+                    escClbk($(this), event);
+                    break;
+            }
+        });
+
+
+        $input.on('blur', function (event) {
+            blurClbk($input, event);
+        });
+        return $input.select();
+    },
+    checkEditRegExp: function (val) {
+        if (!this.warningEditRegExp) return true;
+        try {
+            let matches = this.warningEditRegExp.match(/^\/(.*?)\/([a-z]*)$/);
+            let regExp = new RegExp(matches[1], matches[2]);
+
+            return regExp.test(val);
+        } catch (e) {
+            return true;
+        }
+    },
+    getCellText: function (fieldValue) {
+        if (this.url === true && fieldValue) {
+            let target = this.openIn || 'window';
+            switch (target) {
+                case 'window':
+                    target = '_self';
+                    break;
+                case 'newWindow':
+                    target = '_blank';
+                    break;
+            }
+            let a = $('<a class="uri" target="' + target + '">').attr('href', fieldValue).text(fieldValue);
+            if (target === 'iframe') {
+                a.attr('onclick', 'return App.aInIframe(this);');
+            }
+            return a;
+        }
+        return fieldValue;
+    },
+    getPanelText: function (fieldValue, td, item) {
+        return this.getCellText(fieldValue, td, item);
+    },
+    getCopyText: function (fieldValue, item) {
+        let res = this.getPanelText(fieldValue.v, null, item);
+
+        if (typeof res === 'string') return res;
+
+        const checkDiv=function(res){
+            if(res && res.each && {}.toString.call(res.each) === '[object Function]'){
+                let result = '';
+                res.each(function () {
+                    if (result !== "") result += "\n";
+                    result += $(this).text();
+                });
+                return result;
+            }
+            return res;
+        };
+
+        if (res===null) return  "";
+
+        if (typeof res ==='object' && !(res instanceof jQuery)){
+            let text;
+            let def = $.Deferred();
+            res.done(function (data) {
+                def.resolve(checkDiv(data))
+            }).fail(function(){
+                def.resolve('Не удалось загрузить данные')
+            });
+
+            return def;
+        }
+
+
+
+        return checkDiv(res);
+    },
+    focusElement: function (input) {
+        input.focus();
+    },
+    isDataModified: function (editVal, itemVal) {
+
+        editVal = editVal + '';
+        itemVal = itemVal + '';
+
+        editVal === 'null' ? editVal = '' : false;
+        itemVal === 'null' ? itemVal = '' : false;
+        itemVal === (this.errorText || 'ОШБК!') ? itemVal = '' : false;
+        itemVal === 'undefined' ? itemVal = '' : false;
+
+        return editVal !== itemVal;
+    },
+    getFilterDataByValue: function(valObj){
+        let filterVals=[];
+        this.addDataToFilter(filterVals, valObj);
+        return Object.keys(filterVals)[0];
+    },
+    addDataToFilter: function (filterVals, valObj) {
+        let hash;
+        if (valObj.v === null) {
+            hash = 'null'.hashCode();
+        } else {
+            hash = valObj.v.toString().hashCode();
+        }
+        filterVals[hash] = typeof valObj.v === "string" ? valObj.v.replace(/"/g, "&quot;") : valObj.v;
+    },
+    checkIsFiltered: function (fieldVal, filters) {
+        let val = fieldVal.v;
+        var contains = false;
+        filters.forEach(function (v) {
+            var valstr = val == null ? 'null' : val.toString();
+
+            if (v === valstr.hashCode().toString()) {
+                contains = true;
+                return false;
+            }
+        });
+        return contains;
+    },
+    getCellTextInPanel: function (fieldValue, td, item) {
+        return this.getCellText(fieldValue, td, item);
+    }
+};
+fieldTypes.text = {
+    width: 50,
+    icon: 'fa-align-left',
+    type: 'Text',
+    isPanelField: true,
+    getEditVal: function (div) {
+        var val = div.data('val').trim();
+        return val;
+    },
+    getCellText: function (fieldValue) {
+        if (typeof fieldValue !== 'string') return '';
+        let length = fieldValue.length;
+        return $('<div>').text(fieldValue.substring(0, this.viewTextMaxLength) + (length > this.viewTextMaxLength ? '...' : '')).text();
+    },
+    getValue: function (value, item, isModulPanel) {
+        "use strict";
+
+        if (isModulPanel || (typeof value === 'string' && value.length < this.viewTextMaxLength)) {
+            let def = $.Deferred();
+            setTimeout(function () {
+
+                if (!value) value = '';
+
+                def.resolve({'value': value})
+            }, 20);
+            return def;
+        }
+
+        let data = {'fieldName': this.name};
+        if (item.id) {
+            data['rowId'] = item.id;
+        }
+        return this.pcTable.model.getValue(data, this.table_id);
+    },
+    getPanelTextWithLinks: function (text) {
+        let field = this;
+        if (field.textType === 'text') {
+            let div = $('<div>');
+            div.html(App.textWithLinks(text));
+            text = div;
+        } else {
+            text = $('<div>').text(text);
+        }
+        return text;
+    },
+    getPanelText: function (fieldValue, td, item) {
+        if (typeof fieldValue !== 'string') return '';
+
+        let field = this;
+
+        if (fieldValue.length <= this.viewTextMaxLength) return field.getPanelTextWithLinks.call(field, fieldValue);
+
+        let def = $.Deferred();
+
+        this.getValue(fieldValue, item, false).then(function (json) {
+            def.resolve($('<div>').append(field.getPanelTextWithLinks.call(field, json.value)));
+
+        }).fail(function () {
+            def.reject();
+        });
+
+        return def.promise();
+    },
+    getEditElement: function ($oldInput, oldValueParam, item, enterClbk, escClbk, blurClbk, tabindex, editNow) {
+
+        let field = this;
+        let div = $('<div>');
+        let dialog = $('<div>').css('min-height', 200);
+        let buttons;
+        let element = $('<div class="HTMLEditor">');
+
+        oldValueParam = oldValueParam.v || '';
+
+        let formFill = function () {
+
+            field.getValue(oldValueParam, item, !editNow).then(function (json) {
+                let editor;
+                div.append(element);
+                element.empty().appendTo(dialog);
+
+                if (field.textType === 'json') {
+
+                    editor = new JSONEditor(element.get(0), {});
+                    try {
+                        if (json.value !== '') {
+                            editor.setText(json.value);
+                        }
+                    } catch (e) {
+                        App.modal('Ошибка формата JSON ')
+                    }
+                    element.css('min-height', 200);
+
+                    let btn = $('<a href="#" style="padding-top: 5px; display: inline-block; padding-left: 20px;">Вручную</a>').on('click', function () {
+                        let div = $('<div>');
+                        let textarea = $('<textarea class="form-control" style="height: 350px;">').val(JSON.stringify(editor.get(), null, 2)).appendTo(div);
+                        let buttons = [
+                            {
+                                'label': "Сохранить",
+                                cssClass: 'btn-m btn-warning',
+                                action: function (dialog) {
+                                    try {
+                                        editor.setText(textarea.val());
+                                        dialog.close();
+                                    } catch (e) {
+                                        App.modal('Ошибка формата JSON')
+                                    }
+                                }
+                            }, {
+                                'label': "Закрыть",
+                                cssClass: 'btn-m btn-default',
+                                'action': function (dialog) {
+                                    dialog.close();
+                                }
+                            }
+                        ];
+
+                        if (field.pcTable.isMobile) {
+                            App.mobilePanel('Ручное изменение json-поля', div, {buttons: buttons})
+                        } else {
+                            BootstrapDialog.show({
+                                message: div,
+                                type: null,
+                                title: 'Ручное изменение json-поля',
+                                buttons: buttons,
+                                cssClass: 'fieldparams-edit-panel',
+                                draggable: true,
+                                onshown: function (dialog) {
+                                    dialog.$modalContent.position({
+                                        of: window
+                                    });
+                                },
+                                onshow: function (dialog) {
+                                    dialog.$modalHeader.css('cursor', 'pointer');
+                                    dialog.$modalContent.css({
+                                        width: 500
+                                    });
+                                }
+                            });
+                        }
+                        return false;
+                    });
+                    element.find('.jsoneditor-menu').append(btn);
+                } else {
+
+
+                    let mode = 'text';
+                    switch (field.textType) {
+                        case 'html':
+                            mode = 'text/html';
+                            break;
+                        case 'totum':
+                            mode = 'totum';
+                            break;
+                        case 'markdown':
+                            mode = 'text/x-markdown';
+                            break;
+                        case 'xml':
+                            mode = 'application/xml';
+                            break;
+                        case 'css':
+                            mode = 'text/css';
+                            break;
+                        case 'javascript':
+                            mode = 'text/javascript';
+                            break;
+                    }
+
+
+                    let el = $('<div>').appendTo(element);
+                    let options = {
+                        value: json.value,
+                        mode: mode,
+                        minHeight: '150px',
+                        readOnly: false,
+                        theme: 'eclipse',
+                        lineNumbers: true,
+                        indentWithTabs: true,
+                        autoCloseTags: true
+                    };
+
+                    if (mode === 'text') {
+                        options.lineNumbers = false;
+                        options.lineWrapping = true;
+                    }
+
+                    editor = CodeMirror(el.get(0), options);
+                    editor.on('paste', function (cm, event) {
+                        setTimeout(function () {
+                            editor.refresh();
+                        }, 1);
+                    });
+                    if (field.pcTable && field.pcTable.tableRow.name === 'tables') {
+                        editor.table = item.name.v || item.name;
+                    }
+                    editor.getScrollerElement().style.minHeight = '350px';
+                    editor.focus();
+
+                }
+
+                element.data('editor', editor);
+            });
+
+        };
+
+        const save = function (dialog, event, notEnter) {
+            if (field.textType === 'json') {
+                div.data('val', JSON.stringify(element.data('editor').get()));
+            } else {
+                div.data('val', element.data('editor').getValue());
+            }
+            if (!notEnter) {
+                enterClbk(div, {});
+                dialog.close();
+            }
+        };
+
+
+        buttons = [];
+
+        let btnsSave = {
+            'label': "Сохранить",
+            cssClass: 'btn-m btn-warning',
+            action: save
+        }, btnsClose = {
+            'label': "Закрыть",
+            cssClass: 'btn-m btn-default',
+            'action': function (dialog) {
+                escClbk(div, {});
+                dialog.close();
+            }
+        };
+
+        if (['xml', 'html'].indexOf(field.textType) !== -1) {
+            buttons.unshift({
+                label: 'Форматировать',
+                action: function () {
+                    let editor = element.data('editor');
+                    let totalLines = editor.lineCount();
+                    let totalChars = editor.getValue().length;
+                    editor.autoFormatRange({line: 0, ch: 0}, {line: totalLines, ch: totalChars});
+                }
+            });
+        }
+
+        let title = 'Текст поля <b>' + (this.title) + ', ' + field.textType + '</b>';
+        let eventName = 'ctrlS.textedit';
+
+        if (editNow) {
+            let btnClicked = false;
+            setTimeout(function () {
+                let cdiv = div.closest('td').find('.cdiv');
+                if (cdiv.length > 0) {
+                    cdiv.data('bs.popover').options.content.find('.btn').each(function () {
+                        let btn = $(this);
+                        let buttn = {};
+                        buttn.label = btn.data('name');
+                        buttn.cssClass = btn.attr('class').replace('btn-sm', 'btn-m');
+                        buttn.icon = btn.find('i').attr('class');
+                        buttn.save = btn.data('save');
+                        buttn.click = btn.data('click');
+                        buttn.action = function (dialog) {
+                            if (buttn.save) {
+                                save(dialog, {}, true);
+                            }
+                            buttn.click({});
+                            btnClicked = true;
+                            dialog.close();
+                        };
+
+                        buttons.push(buttn)
+                    });
+                    cdiv.popover('destroy');
+                } else {
+                    buttons.push(btnsSave);
+                    buttons.push(btnsClose)
+                }
+
+                if (field.pcTable.isMobile) {
+
+                    App.mobilePanel(title, dialog, {
+                        buttons: buttons, onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshown: function (dialog) {
+                            formFill();
+                        },
+                        onshow: function (dialog) {
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+                    })
+
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        title: title,
+                        cssClass: 'fieldparams-edit-panel',
+                        draggable: true,
+                        buttons: buttons,
+                        onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalContent.position({
+                                of: $('body'),
+                                my: 'top+50px',
+                                at: 'top'
+                            });
+                            formFill();
+                        },
+                        onshow: function (dialog) {
+                            dialog.$modalHeader.css('cursor', 'pointer')
+                            dialog.$modalContent.css({
+                                width: '100%'
+                            });
+
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+
+                    });
+                }
+
+
+            }, 1);
+
+
+            div.text('Редактирование в форме').addClass('edit-in-form');
+        } else {
+            div.on('focus click', 'button', function () {
+                let _buttons = buttons.splice();
+                _buttons.push(btnsSave);
+                _buttons.push(btnsClose);
+
+                var div = $(this).closest('div');
+                if (field.pcTable.isMobile) {
+
+                    App.mobilePanel(title, dialog, {
+                        buttons: _buttons,
+                        onhide: function (event) {
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshown: function (dialog) {
+                            formFill();
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+                    })
+
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        cssClass: 'fieldparams-edit-panel',
+                        title: title,
+                        buttons: _buttons,
+                        draggable: true,
+                        onhide: function (event) {
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalHeader.css('cursor', 'pointer');
+                            formFill();
+
+                            dialog.$modalContent.css({
+                                width: 900
+                            });
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+                    })
+                }
+            });
+
+            let btn = $('<button class="btn btn-default btn-sm text-edit-button">').text('Редактировать текст');
+            if (tabindex) btn.attr('tabindex', tabindex);
+
+            div.append(btn);
+            setTimeout(function () {
+                if (div.closest('.InsertPanel').length !== 0 && oldValueParam != "") {
+                    let textDiv = $('<div/>').text(field.getCellText(oldValueParam, div, item));
+                    textDiv.css('padding-bottom', "5px");
+                    div.prepend(textDiv)
+                }
+            }, 10)
+        }
+        return div.data('val', oldValueParam);//.attr('data-category', category).attr('data-category', category);
+
+    }, getCellTextInPanel: function (fieldValue, td, item) {
+
+
+        return $("<div>").append(this.getCellText(fieldValue, td, item)).css('white-space', 'pre-wrap');
+    }
+};
+fieldTypes.checkbox = {
+    icon: 'fa-check-square',
+    getEditVal: function (input) {
+        return input.is(':checked')?true:false;
+    },
+    getCellText: function (fieldValue) {
+        if (fieldValue === true) return '✓';
+        if (fieldValue === false) return '-';
+        return '';
+    },
+    getEditElement: function ($oldInput, oldValue, item, enterClbk, escClbk, blurClbk, tabindex) {
+        var $input = $('<input type="checkbox" name="cell_edit"/>');
+
+        if (tabindex) $input.attr('tabindex', tabindex);
+
+        $input.on('keyup', function (event) {
+            if (event.keyCode == 13) {
+                setTimeout(function () {
+                    enterClbk($input, event);
+                }, 20);
+
+            }
+        })
+        var field = this;
+
+        if (oldValue.v===true){
+            $input.prop('checked', true);
+        }
+
+        $input.on('click', function (event) {
+            enterClbk($input, event);
+        });
+        return $input;
+    }
+
+};
+fieldTypes.string = {
+
+};
+fieldTypes.number = {
+    icon: 'fa-hashtag',
+    getEditVal: function (input) {
+
+        let val = input.val().trim();
+
+        if (this.required && (val === undefined || val === '' || val === null)) {
+            throw 'Поле ' + this.title + ' должно быть заполнено';
+        }
+
+
+        if (this.regexp) {
+            var r = new RegExp(this.regexp);
+            if (!r.test(val)) {
+                let notify = this.regexpErrorText || 'regexp не проходит - "' + this.regexp + '"';
+                notify = 'Ошибка заполнения поля "' + this.title + '": ' + notify;
+                throw notify;
+            }
+        }
+
+        if (val === '') return '';
+
+        let valNew = val.replace(/[^\-()\d/*+.,%:\/]/g, '');
+        if (!/^(\+|\*|\%|\/|\:)?(\-?[\d]+((\.|\,)[\d]+)?)%?$/.test(valNew)) {
+            throw 'Здесь должно быть число';
+        }
+        val = val.replace(/,/, '.');
+        return val;
+
+    },
+    getCopyText: function (val, td, item) {
+        if (val === null || val === undefined || val === '' || val.v === null) return '';
+
+        return (val.v).toString().replace(/\./g, ',');
+    },
+    getCellText: function (val, td, item) {
+        if (val === null || val === undefined || val === '') return '';
+
+        if (this.currency) {
+            let options = {};
+            if (this.dectimalPlaces) {
+                options.minimumFractionDigits = this.dectimalPlaces;
+            }
+            return parseFloat(val).toLocaleString('ru-RU', options);
+        }
+        return val;
+    }
+};
+fieldTypes.date = {
+    icon: 'fa-calendar-o',
+    getEditVal: function (input) {
+        if (this.required && input.val().trim() == '') throw 'Поле должно быть заполнено';
+        if (!input.val().trim()) return '';
+        let date = input.data('calendar').data('DateTimePicker').date();
+
+        return this.getDbString(date);
+    },
+    getEditElement: function ($oldInput, oldValue, item, enterClbk, escClbk, blurClbk, tabindex) {
+        var $input = $('<input type="text" name="cell_edit" class="form-control" autocomplete="off" autocorrect="off" />');
+
+        if (tabindex) $input.attr('tabindex', tabindex);
+
+        var field = this;
+        let format = this.getFormat();
+
+        $input.data('AppUin', App.getUn());
+
+        oldValue = oldValue.v;
+
+
+        $input.val(this.getViewString(oldValue));
+
+
+        let cParent = $('<div>');
+        let popoverClass;
+        if (this.dateTime){
+            popoverClass="date-popover"
+        }
+        var calendar = $('<div></div>').appendTo(cParent);
+        calendar.on('dp.change', function (event) {
+            if (event.oldDate === null && field.dateTime && (!$input.val() || $input.val() === '')) {
+                let date = event.date;
+                let now = moment();
+                if (date.format('HH:mm') === now.format('HH:mm')) {
+                    date = date.hours(0).minutes(0);
+                }
+                $input.val(date.format(format));
+                setDateTimePickerDate();
+            } else {
+                $input.val(event.date.format(format));
+            }
+        });
+        let timeoutObject;
+
+        $input.on('keyup', function (event) {
+            if (timeoutObject) clearTimeout(timeoutObject);
+            if (event.keyCode === 13) {
+                setDateTimePickerDate();
+                enterClbk($(this), event);
+            } else if (event.keyCode === 27) {
+                escClbk($(this), event);
+            } else if (event.keyCode >= 48) {
+                timeoutObject = setTimeout(function () {
+                    setDateTimePickerDate();
+                }, 2000);
+            }
+        });
+        let popoverId, popover;
+
+        const setDateTimePickerDate = function () {
+            "use strict";
+            let val = $input.val();
+
+            if (val) {
+                val = moment(val, format);
+
+            } else {
+                val = "";
+            }
+            try {
+                calendar.data("DateTimePicker").date(val);
+            } catch (e) {
+
+            }
+        };
+
+        setTimeout(function () {
+            let cdiv = $input.closest('td').find('.cdiv');
+            if (cdiv.length > 0) {
+                cParent.append(cdiv.data('bs.popover').options.content);
+                cdiv.popover('destroy');
+                popover = $('#' + App.popNotify({
+                    $text: cParent,
+                    element: cdiv,
+                    container: field.pcTable._container,
+                    isParams: true,
+                    placement: 'bottom',
+                    class: popoverClass,
+                }));
+                $input.on('focus click', function () {
+                    popover.show();
+                });
+
+            } else {
+                $input.on('focus click', function () {
+                    if (!popover) {
+                        popoverId = App.popNotify(cParent, $input);
+                        popover = $('#' + popoverId);
+                    }
+                    calendar.data("DateTimePicker").show();
+                    popover.show();
+                    setDateTimePickerDate();
+                });
+            }
+
+        }, 20);
+        $input.on('blur', function (event) {
+            setTimeout(function () {
+                if (popover && popover.is(':visible')) {
+                    popover.hide();
+                    setDateTimePickerDate();
+                    blurClbk($input, event);
+                }
+            }, 200);
+        });
+
+
+        calendar.datetimepicker({
+            inline: true,
+            format: format,
+            useCurrent: false,
+            showClose: false,
+            locale: 'ru',
+            sideBySide: true,
+            collapse: false
+            // defaultDate: moment().format("YYYY-MM-DD 00:00")
+        });
+
+        if (oldValue) {
+            try {
+                calendar.data("DateTimePicker").date(field.getMoment(oldValue));
+            } catch (e) {
+
+            }
+        } else {
+            $input.val("");
+        }
+
+        $input.data('calendar', calendar);
+        return $input;
+    },
+
+    getCellText: function (fieldValue) {
+        if (!fieldValue || fieldValue === null) return '';
+        return this.getViewString(fieldValue);
+    },
+    getViewString: function (val) {
+        if (!val) return '';
+        if (this.dateTime) {
+            return App.dateTimeFormats.covertFromDb(val, this.getFormat());
+        } else {
+            return App.dateFormats.covertFromDb(val, this.getFormat());
+        }
+    },
+    getDbString: function (val) {
+        if (!val) return '';
+
+        if (this.dateTime) {
+            return App.dateTimeFormats.covertToDb(val, this.getFormat());
+        } else {
+            return App.dateFormats.covertToDb(val, this.getFormat());
+        }
+    },
+    getMoment: function (val) {
+
+        if (this.dateTime) {
+            return moment(val, App.dateTimeFormats.db)
+        } else {
+            return moment(val, App.dateFormats.db)
+        }
+    },
+    addDataToFilter: function (filterVals, valObj) {
+
+        let hash;
+        if (valObj.v === null) {
+            hash = 'null'.hashCode();
+        } else {
+            hash = valObj.v.toString().hashCode();
+        }
+        let format = this.dateTime ? App.dateTimeFormats : App.dateFormats;
+
+        filterVals[hash] = typeof valObj.v === "string" ? format.covertFromDb(valObj.v) : valObj.v;
+
+    },
+    getFormat: function () {
+        let format = this.dateFormat;
+        if (!format) {
+            if (this.dateTime) {
+                format = 'd.m.y H:i';
+            } else {
+                format = 'd.m.y';
+            }
+        }
+        let replaces = {
+            'd': 'DD',
+            'D': 'ddd',
+            'j': 'M',
+            'z': 'DDD',
+            'W': 'W',
+            'm': 'MM',
+            'M': 'MMM',
+            'n': 'M',
+            'y': 'YY',
+            'Y': 'YYYY',
+            'H': 'HH',
+            'i': 'mm',
+            's': 'ss',
+        };
+        let formatNew = '';
+        for (let i = 0; i < format.length; i++) {
+            let letter = format[i];
+            formatNew += replaces[letter] || letter;
+        }
+        return formatNew;
+    }
+
+};
+
+
+
+
+fieldTypes.unic = {
+    icon: 'fa-fire',
+};
+fieldTypes.file = {
+    icon: 'fa-file-image-o',
+    getSize: function (size) {
+        if (size > 100 * 1024) {
+            return ' ' + (Math.round(size / (1024 * 1024) * 10) / 10).toLocaleString() + 'Mb'
+        } else {
+            return ' ' + Math.round(size / 1024).toLocaleString() + 'Kb'
+        }
+    },
+    getCellText: function (fieldValue) {
+        if (!fieldValue || fieldValue === null || fieldValue.length == 0) return '';
+        let div = $('<span style=""></span>');
+        const file_images = function (file) {
+            let img;
+            if (['png', 'jpg'].indexOf(file.ext) !== -1) {
+                img = '<img src="/fls/' + file.file + '_thumb.jpg" style="max-height: 24px; padding-right: 3px;"/>';
+            } else {
+                img = '<img src="/imgs/file_ico.png" style="max-height: 24px; padding-right: 3px;"/>';
+            }
+            let a = $('<a href="/fls/' + file.file + '" download="' + $('<div>').text(file.name).html() + '" style="padding-right: 5px">' + img + '</a>');
+            a.append(file.name);
+            div.append(a);
+        };
+        if (fieldValue.length && fieldValue.forEach) {
+            fieldValue.forEach(file_images);
+        }
+        return div;
+        if (this.multiple && fieldValue.length > 1) {
+            return fieldValue.length.toString() + ' файлов';
+        }
+        return file_images(fieldValue[0]);
+        return $('<a href="/fls/' + fieldValue[0].file + '" download="' + $('<div>').text(fieldValue[0].name).html() + '">').text(fieldValue[0].name);
+    },
+    getCopyText: function (fieldValue, item) {
+        fieldValue = fieldValue.v;
+        if (!fieldValue || fieldValue === null || fieldValue.length == 0) return '';
+        let field = this;
+        let toCopy = '';
+        fieldValue.forEach(function (file) {
+            if (toCopy !== '') toCopy += "\n";
+            toCopy += file.name + ' ' + window.location.protocol + '//' + window.location.host + '/fls/' + file.file + ' ' + field.getSize(file.size);
+        });
+        return toCopy;
+    },
+    getPanelText: function (fieldValue) {
+        if (!fieldValue || fieldValue === null || fieldValue.length == 0) return '';
+        let div = $('<div>');
+        let field = this;
+        let toCopy = '';
+        let imgRand = Math.random();
+        fieldValue.forEach(function (file) {
+            let img = '';
+            let _class = '';
+            if (['jpg', 'png'].indexOf(file.ext) !== -1) {
+                img = '<img src="/fls/' + file.file + '_thumb.jpg?rand=' + imgRand + '"/>';
+                _class = 'with-img';
+            }
+            $('<div>').addClass(_class).appendTo(div).append($(img + '<br/><a href="/fls/' + file.file + '" download="' + $('<div>').text(file.name).html() + '">').text(file.name)).append(field.getSize(file.size));
+
+            if (toCopy !== '') toCopy += "\n";
+            toCopy += window.location.protocol + '//' + window.location.host + '/fls/' + file.file;
+        });
+        return div.data('text', toCopy);
+    },
+    getEditVal: function (div) {
+        if (this.required && div.data('val') == '') throw 'Поле должно быть заполнено';
+        return div.data('val');
+    },
+    getEditElement: function ($oldInput, oldValue, item, enterClbk, escClbk, blurClbk, tabindex, editNow) {
+        let field = this;
+        let div = $('<div>');
+        let dialogBody = $('<div>').css('min-height', 200);
+        let buttons, dialog;
+        let Files = oldValue.v || [];
+        let isEntered = false;
+
+        const printFile = function (file) {
+            let addDiv = $('<div class="filePart"><div><span class="name"></span><span class="size"></span><button class="btn btn-danger btn-xs remove"><i class="fa fa-remove"></i></button></div></div>');
+
+            let fl = {
+                name: file.name,
+                type: file.type,
+                tmpfile: file.tmpfile,
+                size: file.size,
+                file: file.file,
+                ext: file.ext
+            };
+            let regExpName = new RegExp('^' + field.pcTable.tableRow.id + '_' + (item.id ? item.id : ''));
+            if (file.file && !regExpName.test(file.file)) {
+                addDiv.find('.remove').remove();
+            }
+
+            addDiv.data('file', fl);
+            addDiv.find('.name').text(file.name);
+            addDiv.find('.size').text(field.getSize(file.size));
+            if (!file.file) {
+                addDiv.append('<div class="progressbar">&nbsp;</div>');
+            } else {
+                let a = $('<a>').attr('href', '/fls/' + file.file).attr('download', file.name);
+                addDiv.find('.name').wrap(a);
+                if (['jpg', 'png'].indexOf(file.ext) !== -1) {
+                    $('<img>').attr('src', '/fls/' + file.file + '_thumb.jpg?rand=' + Math.random()).insertBefore(addDiv.find('.name'));
+                    addDiv.addClass('with-img')
+                }
+
+            }
+            if (file.tmpfile) {
+                addDiv.addClass('addFile');
+                let process = addDiv.find('.progressbar');
+                process.text('Требуется сохранение элемента для привязки файла');
+            }
+            return addDiv;
+        };
+
+        const saveDisable = function (disable) {
+            dialog.$modalFooter.find('button:first').prop('disabled', disable);
+        };
+
+        const formFill = function () {
+            dialogBody.empty();
+            let addForm = $('<div>').appendTo(dialogBody);
+            let btn = $('<button class="btn btn-default btn-sm">Добавить файл' + (field.multiple ? 'ы' : '') + '</button>');
+            addForm.append(btn);
+            btn.wrap('<div class="addFilesButton">');
+
+            const checkBtnDisable = function () {
+                if (!field.multiple) {
+                    if (dialogBody.find('.filePart').length > 0) {
+                        btn.prop('disabled', true);
+                    } else {
+                        btn.prop('disabled', false);
+                    }
+                }
+            };
+
+
+            //Вывести файлы
+            Files.forEach(function (fl) {
+                let part = printFile(fl).appendTo(dialogBody);
+                part.on('click', '.remove', function () {
+                    part.remove();
+                    checkBtnDisable();
+                });
+            });
+
+            checkBtnDisable();
+
+            btn.on('click', function () {
+                let fileAdd = $('<input type="file" name = "file" ' + (field.multiple ? 'multiple' : '') + ' accept="' + field.accept + '" style="display: block; position: absolute; top: -3000px"/>');
+                $('body').append(fileAdd);
+                fileAdd.click();
+                fileAdd.on('change', function () {
+                        if (this.files) {
+                            let deffs = [];
+                            saveDisable(true);
+
+                            for (let i = 0, numFiles = this.files.length; i < numFiles; i++) {
+                                let file = this.files[i];
+                                let addDiv = printFile(file).addClass('addFile').appendTo(dialogBody);
+                                checkBtnDisable();
+
+
+                                let process = addDiv.find('.progressbar');
+
+                                if (file.size > 10 * 1024 * 1024) {
+                                    process.text('Ошибка - файл больше 10 Mb').css({
+                                        'box-shadow': 'none',
+                                        'background-color': '#ffe486'
+                                    });
+                                    addDiv.on('click', '.remove', function () {
+                                        addDiv.remove();
+                                        checkBtnDisable();
+                                    });
+                                    continue;
+                                }
+
+
+                                let xhr = new XMLHttpRequest();
+                                let deff = $.Deferred();
+
+                                addDiv.on('click', '.remove', function () {
+                                    addDiv.remove();
+                                    xhr.abort();
+                                    deff.resolve();
+                                    checkBtnDisable();
+                                });
+
+                                xhr.upload.onprogress = function (event) {
+                                    process.css('box-shadow', 'inset ' + Math.round(parseInt(process.width()) * event.loaded / event.total).toString() + 'px 0px 0 0 #85FF82');
+                                    if (event.loaded === event.total) {
+                                        process.text('Проверка файла сервером');
+                                    }
+                                };
+
+
+                                xhr.onload = xhr.onerror = function (mess) {
+                                    deff.resolve();
+
+                                    if (this.status === 200) {
+                                        try {
+                                            let ans = JSON.parse(this.responseText);
+                                            if (ans.fname) {
+                                                process.text('Готово');
+                                                addDiv.data('file').tmpfile = ans.fname;
+                                                return;
+                                            }
+                                        } catch (e) {
+
+                                        }
+                                    }
+                                    addDiv.data('file', null);
+                                    process.text('Ошибка').css({'box-shadow': 'none', 'background-color': '#ffe486'})
+
+                                };
+
+
+                                xhr.open("POST", "/Table/", true);
+
+                                let formData = new FormData();
+                                formData.append("file", file);
+                                formData.append("method", 'tmpFileUpload');
+                                xhr.send(formData);
+                                deffs.push(deff.promise());
+                            }
+                            $.when(...deffs).then(function () {
+                                saveDisable(false)
+                            })
+                        }
+                    }
+                );
+            });
+
+        };
+
+        const save = function (dialog) {
+            let files = [];
+            dialog.$modalContent.find('.filePart').each(function () {
+                let fileDiv = $(this), file = fileDiv.data('file');
+                if (file) {
+                    files.push(file)
+                }
+            });
+            div.data('val', files);
+            Files = files;
+            isEntered = true;
+            enterClbk(div, {});
+            dialog.close();
+        };
+
+
+        buttons = [
+            {
+                'label': "Сохранить",
+                cssClass: 'btn-m btn-warning',
+                action: save
+            }, {
+                'label': "Закрыть",
+                cssClass: 'btn-m btn-default',
+                'action': function (dialog) {
+                    dialog.close();
+                }
+            }
+        ];
+
+        let title = 'Форма файлов <b>' + (this.title) + '</b>';
+        let eventName = 'ctrlS.textdialog';
+
+        let showDialog = function (div) {
+
+            if (field.pcTable.isMobile) {
+                dialog = App.mobilePanel(title, dialogBody, {
+                    buttons: buttons,
+                    onhide: function (event) {
+                        $('body').off(eventName);
+                        if (!isEntered) {
+                            escClbk(div, event);
+                        }
+                    },
+                    onshown: function (dialog) {
+                        formFill();
+                        $('body').on(eventName, function (event) {
+                            save(dialog);
+                        });
+
+                    }
+                })
+            } else {
+                dialog = BootstrapDialog.show({
+                    message: dialogBody,
+                    type: null,
+                    cssClass: 'fieldparams-edit-panel',
+                    title: title,
+                    draggable: true,
+                    buttons: buttons,
+                    onhide: function (event) {
+                        $('body').off(eventName);
+                        if (!isEntered) {
+                            escClbk(div, event);
+                        }
+                    },
+                    onshown: function (dialog) {
+                        dialog.$modalHeader.css('cursor', 'pointer');
+                        dialog.$modalContent.css({
+                            width: 600
+                        });
+                        formFill();
+
+                        $('body').on(eventName, function (event) {
+                            save(dialog);
+                        });
+
+                    }
+                })
+            }
+
+
+        };
+
+        if (editNow) {
+
+            showDialog(div);
+            div.text('Редактирование в форме').addClass('edit-in-form');
+        } else {
+            div.on('focus click', 'button', function () {
+                showDialog($(this).closest('div'))
+            });
+
+            let btn = $('<button class="btn btn-default btn-sm text-edit-button">').text('Редактировать поле');
+            if (tabindex) btn.attr('tabindex', tabindex);
+
+            div.append(btn);
+            setTimeout(function () {
+                if (div.closest('.InsertPanel').length !== 0) {
+
+                    let textDiv = $('<div/>').html(field.getCellTextInPanel(oldValue.v));
+                    textDiv.css('padding-bottom', "5px");
+                    div.prepend(textDiv)
+                }
+            }, 10)
+
+        }
+        return div.data('val', Files);
+    },
+    getCellTextInPanel: function (oldValue) {
+        let div = $('<div class="panel-preview"></div>');
+        if (oldValue && oldValue.length && oldValue.forEach) {
+            oldValue.forEach(function (file) {
+                let img;
+                if (['png', 'jpg'].indexOf(file.ext) !== -1) {
+                    img = '<img src="/fls/' + file.file + '_thumb.jpg" />';
+                } else {
+                    img = '<img src="/imgs/file_ico.png" />';
+                }
+                let a = $('<div><a href="/fls/' + file.file + '" download="' + $('<div>').text(file.name).html() + '">' + img + '</a></div>');
+                a.append(file.name);
+                div.append(a);
+            });
+        }
+        return div;
+    },
+    isDataModified: function (edited, fromItem) {
+
+        if ([null, ''].indexOf(edited) !== -1 && [null, ''].indexOf(fromItem) !== -1) return false;
+        if ([null, ''].indexOf(edited) !== -1 || [null, ''].indexOf(fromItem) !== -1) return true;
+
+        return !Object.equals(fromItem, edited);
+    }
+};
+fieldTypes.n = $.extend({}, fieldTypes.default, {
+    name: 'n',
+    width: 52,
+    title: 'Порядок',
+    category: 'column',
+    hidden: true,
+    showInWeb: true,
+    getCellText: function (val, td, item) {
+        let format = item.f || {};
+        td.addClass('n');
+
+        if (!item.id || format.block || format.blockOrder || item.__inserted){
+            return '';
+        }
+
+
+
+        return $('<span class="btns"><button class="btn btn-xxs btn-default"><i class="fa fa-angle-up"></i></button> <button class="btn btn-xxs btn-default"><i class="fa fa-angle-down"></i></button></span>');
+    }
+
+});
+
+fieldTypes.listRow = $.extend({}, fieldTypes.default, {
+    icon: 'fa-code',
+    isPanelField: true,
+    getPanelTextAsTable: function (fieldValue) {
+        if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.settings && fieldValue.data && fieldValue.settings.columns && fieldValue.settings.columns.length) {
+            const table = $('<table class="json-table">');
+            let field = this;
+            let settings = fieldValue.settings;
+            let columns = settings.columns;
+            let headRow = false;
+            try {
+                if (settings.headRow) {
+                    const tr = $('<tr>').appendTo(table);
+                    if (typeof settings.headRow === 'boolean') {
+                        columns.forEach(function (column) {
+                            $('<td>').text(column).appendTo(tr).addClass('head');
+                        })
+                    } else {
+                        columns.forEach(function (column) {
+                            $('<td>').text(settings.headRow[column]).appendTo(tr).addClass('head');
+                        })
+                    }
+                }
+
+                fieldValue.data.forEach(function (listItem) {
+                    const tr = $('<tr>').appendTo(table);
+                    columns.forEach(function (column) {
+                        let val = listItem[column];
+                        if (typeof val != "string" || val === "") {
+                            val = JSON.stringify(val)
+                        }
+                        const td = $('<td>').text(val).appendTo(tr);
+                    });
+                    if (settings.headColumn) {
+                        tr.find('td:first').addClass('head');
+                    }
+                });
+                return table;
+
+            } catch (e) {
+                console.log(e);
+
+            }
+        }
+    },
+    getPanelText: function (fieldValue, td, item) {
+        let def = $.Deferred();
+        let field = this;
+
+        const panelHtmlResult = function (val) {
+            let table = field.getPanelTextAsTable.call(field, val);
+            if (table) {
+                table.copyText = JSON.stringify(val)
+                def.resolve(table);
+                return;
+            }
+            def.resolve($('<div>').text(JSON.stringify(val, null, 2)));
+        };
+
+
+        if (typeof fieldValue !== 'string') {
+            panelHtmlResult(fieldValue);
+        } else {
+            this.getValue(fieldValue, item, false).then(function (json) {
+                panelHtmlResult(json.value)
+
+            }).fail(function () {
+                def.reject();
+            });
+        }
+
+        return def.promise();
+    },
+    getValue: function (value, item, isModulPanel) {
+        "use strict";
+        let def = $.Deferred();
+
+        if (isModulPanel || this.category === "filter" || typeof value === "object" || !value) {
+            def.resolve({value: value});
+            return def;
+        } else {
+            let data = {'fieldName': this.name};
+            if (item.id) {
+                data['rowId'] = item.id;
+            }
+            this.pcTable.model.getValue(data, this.table_id).then(function (json) {
+                def.resolve(json);
+            })
+        }
+
+
+        return def;
+    },
+    getEditElement: function ($oldInput, oldValueParam, item, enterClbk, escClbk, blurClbk, tabindex, editNow) {
+
+        let field = this;
+        let div = $('<div>');
+        let dialog = $('<div>').css('min-height', 200);
+        let buttons;
+        let element = $('<div class="HTMLEditor">');
+
+        oldValueParam = oldValueParam.v || '';
+
+        let formFill = function () {
+
+            field.getValue(oldValueParam, item, !editNow).then(function (json) {
+                let editor;
+                div.append(element);
+                element.empty().appendTo(dialog);
+
+                editor = new JSONEditor(element.get(0), {});
+                try {
+                    if (json.value !== '') {
+                        editor.setText(JSON.stringify(json.value));
+                    }
+                } catch (e) {
+                    App.modal('Ошибка формата JSON ')
+                }
+                element.css('min-height', 200);
+
+                let btn = $('<a href="#" style="padding-top: 5px; display: inline-block; padding-left: 20px;">Вручную</a>').on('click', function () {
+                    let div = $('<div>');
+                    let textarea = $('<textarea class="form-control" style="height: 350px;">').val(JSON.stringify(editor.get(), null, 2)).appendTo(div);
+                    let title = 'Ручное изменение json-поля', buttons = [
+                        {
+                            'label': "Сохранить",
+                            cssClass: 'btn-m btn-warning',
+                            action: function (dialog) {
+                                try {
+                                    editor.setText(textarea.val());
+                                    dialog.close();
+                                } catch (e) {
+                                    App.modal('Ошибка формата JSON')
+                                }
+                            }
+                        }, {
+                            'label': "Закрыть",
+                            cssClass: 'btn-m btn-default',
+                            'action': function (dialog) {
+                                dialog.close();
+                            }
+                        }
+                    ];
+
+                    if (field.pcTable.isMobile) {
+                        App.mobilePanel(title, div, {
+                            buttons: buttons,
+                        })
+                    } else {
+                        BootstrapDialog.show({
+                            message: div,
+                            type: null,
+                            title: title,
+                            draggable: true,
+                            cssClass: 'fieldparams-edit-panel',
+                            buttons: buttons,
+                            onhide: function (event) {
+                                // escClbk(div, event);
+                            },
+                            onshown: function (dialog) {
+                                dialog.$modalContent.position({
+                                    of: window
+                                });
+                            },
+                            onshow: function (dialog) {
+                                dialog.$modalHeader.css('cursor', 'pointer')
+                                dialog.$modalContent.css({
+                                    width: 500
+                                });
+                            }
+
+                        });
+                    }
+
+
+                    return false;
+                });
+                element.find('.jsoneditor-menu').append(btn);
+                element.data('editor', editor);
+            });
+
+        };
+
+        const save = function (dialog, event, notEnter) {
+            div.data('val', element.data('editor').get());
+            if (!notEnter) {
+                enterClbk(div, {});
+                dialog.close();
+            }
+        };
+
+
+        buttons = [];
+
+        let btnsSave = {
+            'label': "Сохранить",
+            cssClass: 'btn-m btn-warning',
+            action: save
+        }, btnsClose = {
+            'label': "Закрыть",
+            cssClass: 'btn-m btn-default',
+            'action': function (dialog) {
+                escClbk(div, {});
+                dialog.close();
+            }
+        };
+
+        let title = 'Текст поля <b>' + (this.title) + '</b>';
+        let eventName = 'ctrlS.textedit';
+
+        if (editNow) {
+            let btnClicked = false;
+            setTimeout(function () {
+                let cdiv = div.closest('td').find('.cdiv');
+                if (cdiv.length > 0) {
+                    cdiv.data('bs.popover').options.content.find('.btn').each(function () {
+                        let btn = $(this);
+                        let buttn = {};
+                        buttn.label = btn.data('name');
+                        buttn.cssClass = btn.attr('class').replace('btn-sm', 'btn-m');
+                        buttn.icon = btn.find('i').attr('class');
+                        buttn.save = btn.data('save');
+                        buttn.click = btn.data('click');
+                        buttn.action = function (dialog) {
+                            if (buttn.save) {
+                                save(dialog, {}, true);
+                            }
+                            buttn.click({});
+                            btnClicked = true;
+                            dialog.close();
+                        };
+
+                        buttons.push(buttn)
+                    });
+                    cdiv.popover('destroy');
+                } else {
+                    buttons.push(btnsSave);
+                    buttons.push(btnsClose)
+                }
+
+                if (field.pcTable.isMobile) {
+                    App.mobilePanel(title, dialog, {
+                        buttons: buttons,
+                        onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshown: function (dialog) {
+                            formFill();
+                        },
+                        onshow: function (dialog) {
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+                    })
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        title: title,
+                        cssClass: 'fieldparams-edit-panel',
+                        draggable: true,
+                        buttons: buttons,
+                        onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalContent.position({
+                                of: $('body'),
+                                my: 'top+50px',
+                                at: 'top'
+                            });
+                            formFill();
+                        },
+                        onshow: function (dialog) {
+                            dialog.$modalHeader.css('cursor', 'pointer')
+                            dialog.$modalContent.css({
+                                width: 900
+                            });
+
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+
+                    });
+                }
+
+
+            }, 1);
+
+
+            div.text('Редактирование в форме').addClass('edit-in-form');
+        } else {
+            div.on('focus click', 'button', function () {
+                let _buttons = buttons.splice();
+                _buttons.push(btnsSave);
+                _buttons.push(btnsClose);
+
+                var div = $(this).closest('div');
+                if (field.pcTable.isMobile) {
+                    App.mobilePanel(title, dialog, {
+                        buttons: _buttons,
+                        onhide: function (event) {
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshown: function (dialog) {
+                            formFill();
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+                    })
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        cssClass: 'fieldparams-edit-panel',
+                        title: title,
+                        draggable: true,
+                        buttons: _buttons,
+                        onhide: function (event) {
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalHeader.css('cursor', 'pointer');
+                            formFill();
+
+                            dialog.$modalContent.css({
+                                width: 900
+                            });
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event);
+                            });
+                        }
+                    })
+                }
+
+            });
+
+            let btn = $('<button class="btn btn-default btn-sm text-edit-button">').text('Редактировать список/json');
+            if (tabindex) btn.attr('tabindex', tabindex);
+
+            div.append(btn);
+
+        }
+        return div.data('val', oldValueParam);//.attr('data-category', category).attr('data-category', category);
+
+    },
+    isDataModified: function (editVal, itemVal) {
+        if (editVal === "") editVal = null;
+        if (itemVal === "") itemVal = null;
+
+        if (itemVal === editVal) return false;
+
+        if (Object.equals(editVal, itemVal)) return false;
+
+        return true;
+
+
+    },
+    getEditVal: function (div) {
+        return div.data('val');
+    },
+    getCellText: function (fieldValue) {
+        if (typeof fieldValue != 'string') {
+            return JSON.stringify(fieldValue)
+        }
+        return fieldValue;
+    },
+});
+
+
+fieldTypes.password = {
+    icon: 'fa-lock',
+    getEditVal: function(input){
+        var val=input.val().trim();
+        var error = false;
+        if (val === undefined || val === '' || val === null) {
+            notify = 'Поле ' + this.title + ' должно быть заполнено';
+            error = true;
+        }
+        if (error) throw notify;
+
+        return val;
+    },
+    getCellText: function (val) {
+        return '**PASSWORD**';
+    },
+    getEditElement: function ($oldInput, oldValue, item, enterClbk, escClbk, blurClbk, tabindex) {
+        var $input = $('<input type="password" name="cell_edit" class="form-control" autocomplete="off" autocorrect="off" placeholder="'+(oldValue?'Поменять пароль':'Новый пароль')+'"/>');
+        $input.on('save-me', function (event) {
+            enterClbk($(this), event);
+        });
+
+
+        if (tabindex) $input.attr('tabindex', tabindex);
+
+        var field = this;
+        oldValue=oldValue.v;
+        $input.on('keyup', function (event) {
+            switch (event.keyCode) {
+                case 13:
+                    try{
+                        $input.data('enterClicked', true);
+                        enterClbk($(this), event);
+                    }
+                    catch (err){
+                        $input.data('enterClicked', false);
+                        App.popNotify(err, $input, 'default');
+                        field.focusElement($input);
+                    }
+                    break;
+                case 27:
+                    escClbk($(this), event);
+                    break;
+            }
+        })
+
+        var blur = function(event) {
+            blurClbk($input, event);
+            return;
+        }
+        $input.one('blur', function (event) {
+            setTimeout(function(){blur(event)}, 50);
+        });
+        return $input.select();
+    },
+};
+fieldTypes.select = {
+    icon: 'fa-th-list',
+    getEditVal: function (div) {
+        if (div.data('input')) {
+            var val = div.data('input').selectpicker('val');
+            if (val === null) {
+                if (this.multiple) val = [];
+            }
+            return val;
+        }
+    },
+    loadPreviewPanel(panel, fieldName, item, val) {
+        let $def = $.Deferred();
+        panel.html('<div class="center"><i class="fa fa-spinner fa-spin"></i></div>');
+        this.pcTable.model.loadPreviewHtml(fieldName, item, val).then(function (json) {
+            if (panel) {
+
+                let html = $('<div>');
+                json.previews.forEach(
+                    function (preview) {
+                        let $_html = $('<div class="preview">');
+
+                        switch (preview[2]) {
+                            case 'file':
+                                window.imgRand = window.imgRand || Math.random();
+
+                                if (Array.isArray(preview[1])) {
+                                    preview[1].forEach(function (file) {
+                                        if (['jpg', 'png'].indexOf(file.ext) !== -1) {
+                                            $_html.append($('<a href="/fls/' + file.file + '" target="_blank">').html('<img src="/fls/' + file.file + '_thumb.jpg?rand=' + window.imgRand + '"/><br/>'));
+                                        }
+                                        $_html.append($('<a href="/fls/' + file.file + '" target="_blank">').text(file.name + ' ' + Math.round(file.size / 1024).toLocaleString('ru-RU') + ' Kb'));
+                                    });
+                                }
+                                break;
+                            case 'html':
+                                $_html.text(preview[0]);
+                                break;
+                            case 'text':
+                                $_html.text(App.textWithLinks(preview[0]));
+                                break;
+                            case 'currency':
+                            case 'number':
+                                if (preview[2] === 'currency') {
+                                    try {
+                                        $_html.text(parseFloat(preview[1]).toLocaleString('ru-RU'));
+                                    } catch (e) {
+                                        $_html.text(preview[1]);
+                                    }
+                                } else {
+                                    $_html.text(preview[1]);
+                                }
+
+                                if (preview[3]['unitType']) {
+                                    $_html.append(' ' + preview[3]['unitType']);
+                                }
+
+                                break;
+                            case 'url':
+                                $_html = $('<div>').append($('<a target="_blank">').text(preview[1]).attr('href', preview[1]));
+                                break;
+                            default:
+                                $_html = $('<div>').text(preview[1]);
+                        }
+
+                        html.append($('<div class="title">').text(preview[0]));
+                        html.append($_html);
+                    }
+                );
+                panel.empty().append(html);
+            }
+            $def.resolve()
+        }).fail(function () {
+            $def.reject();
+        });
+        return $def;
+    },
+    previewPanel: function (span, li) {
+
+        let panel = $('<div id="selectPanel" class="text preview" style="white-space: pre-wrap; height: 200px;">');
+        let field = this;
+
+        let item = {};
+        if (this.category === 'column') {
+            if (span.data('id')) {
+                item = this.pcTable._getItemById(span.data('id'));
+            } else {
+                item = this.pcTable._insertItem;
+            }
+        } else {
+            item = this.pcTable.data_params;
+        }
+
+        li.popover({
+            html: true,
+            content: panel,
+            trigger: 'manual',
+            container: 'body',
+            placement: 'auto right',
+            animation: false
+        }).popover('show');
+        let popover = $('#' + li.attr('aria-describedby')).css('z-index', 10000);
+
+        const destroyPopover = function () {
+            if (li.attr('aria-describedby')) {
+                if (popover.length) {
+                    li.off('.preview');
+                    popover.off('.preview');
+                    popover.remove();
+                }
+            }
+        };
+
+        li.on('mouseout.preview', function () {
+            setTimeout(function () {
+                if (popover && !popover.is(':hover')) destroyPopover();
+            }, 300);
+        });
+        popover.on('mouseout.preview', function () {
+            if (!popover.is(':hover') && li && !li.is(':hover')) destroyPopover();
+        });
+
+
+        li.one('remove destroy', function () {
+            if (li.attr('aria-describedby')) {
+                li.popover('destroy');
+            }
+        });
+
+
+        field.loadPreviewPanel(panel, span.data('field'), item, span.data('val')).then(function () {
+            const _t = function () {
+                if (li && !li.height()) destroyPopover();
+                else setTimeout(_t, 500);
+            };
+            _t();
+        });
+
+    },
+    getEditElement: function ($oldParent, oldValue, item, enterClbk, escClbk, blurClbk, tabindex) {
+        "use strict";
+
+        if (!oldValue) oldValue = {};
+
+        let field = this,
+            input,
+            divParent,
+            LISTs,
+            val = oldValue.v || null;
+
+        if (field.multiple && typeof val === 'string') {
+            try {
+                val = JSON.parse(val);
+            } catch (e) {
+                val = [];
+            }
+        }
+
+        if ($oldParent && $oldParent.data('input')) {
+            divParent = $oldParent;
+            input = divParent.data('input');
+            input.data('is-rendered', true);
+
+            LISTs = input.data('LISTs');
+        }else{
+            divParent = $('<div>');
+            LISTs = {
+                isListForLoad: true,
+                innerList: [],
+                innerIndexed: [],
+                isSliced: true,
+                isPreview: false
+            };
+            if (field.list) {
+                LISTs = field.list;
+            }
+        }
+
+
+        let GetLoadListDeffered = function (q) {
+            let def = $.Deferred();
+            let itemTmp = {};
+            Object.keys(item).forEach(function (k) {
+                //Фильтруем jquery-объекты из item
+                if (!/^\$/.test(k)) {
+                    if (k === 'id') {
+                        itemTmp[k] = item[k];
+                    } else {
+                        if (item[k] !== null && typeof item[k] === 'object' && Object.keys(item[k]).indexOf('v') !== -1) {
+                            itemTmp[k] = item[k]['v'];
+                        } else {
+                            itemTmp[k] = item[k];
+                        }
+                    }
+                }
+            });
+            if (divParent.isAttached()) {
+                divParent.append('<i class="fa fa-cog fa-spin fa-3x loading" style="position: absolute; z-index: 1' +
+                    '    right: 1px;' +
+                    '    top: 1px;' +
+                    '    font-size: 8px;"/>');
+            }
+            field.pcTable.model.getEditSelect(itemTmp, field.name, q, null).then(function (json) {
+                divParent.find('.loading').remove();
+
+                LISTs.innerList = json.list ? json.list : [];
+                LISTs.innerIndexed = json.indexed ? json.indexed : {};
+                LISTs.isSliced = json.sliced;
+                LISTs.isPreview = json.previewdata;
+
+                if (!field.codeSelectIndividual && (q === null || q === '' || q === undefined) && !LISTs.isSliced) {
+                    field.list = LISTs;
+                    LISTs.isListForLoad = false;
+                }
+
+
+                def.resolve()
+            }, function () {
+                def.reject();
+            });
+            return def.promise();
+        };
+
+
+        setTimeout(function () {
+            if (divParent.length && divParent.isAttached() && divParent.find('.mark-loading').length) {
+                divParent.find('.mark-loading').html('<i class="fa fa-spinner"/>');
+            }
+        }, 200);
+
+
+        let iRenered = 0;
+        const renderMe = function () {
+
+            if (item[field.name] && item[field.name].replaceViewValue && LISTs.innerIndexed[item[field.name].v]) {
+                item[field.name].replaceViewValue(LISTs.innerIndexed[item[field.name].v]);
+                delete item[field.name].replaceViewValue;
+            }
+
+            let td = divParent.closest('body');
+            if (td && td.length) {
+
+                let $ = td.get(0).ownerDocument == document ? window.$ : window.top.$;
+
+
+                const addValues = function (val, q) {
+                    "use strict";
+                    let optgroups = {'Выбранное': $('<optgroup label="Выбранное">'), '': $('<optgroup label="">')};
+                    let checked = optgroups['Выбранное'];
+                    const createOption = function (val, text, deleted, subtext) {
+                        subtext = subtext ? $('<small class="text-muted">').text(subtext) : '';
+
+                        let option = $('<option>').text(val);
+                        let content = $('<div>').text((text === null || text === '' ? '[' + val + ']' : text));
+                        if (subtext) {
+                            content.append(subtext);
+                        }
+                        content = content.html();
+
+                        if (deleted) {
+                            option.attr('data-content', '<span class="text" style="text-decoration: line-through">' + content + '</span>');
+                        } else {
+                            let $span = $('<span class="text" >' + content + '</span>');
+                            if (LISTs.isPreview) {
+                                $span.addClass('select-with-preview');
+                                $span.attr('data-id', item.id);
+                                $span.attr('data-field', field.name);
+                                $span.attr('data-val', val);
+                            }
+                            option.data('content', $span.get(0).outerHTML);
+                        }
+                        return option;
+                    };
+
+                    let isLikedFunc = function () {
+                        return true;
+                    };
+                    if (q && q !== '') {
+                        let qs = q.toLowerCase().replace('ё', 'е').split(" ");
+                        isLikedFunc = function (v) {
+                            let text = v !== null ? v.toString().toLowerCase().replace('ё', 'е') : "";
+                            return !qs.some(function (q) {
+                                return text.indexOf(q) === -1
+                            })
+                        }
+                    }
+
+                    let vals = {};
+                    let checkedVal;
+
+                    if (val || field.category === 'filter') {
+                        const addCheckedOpts = function (key) {
+
+                            if (key === null) key = "";
+
+                            let v = LISTs.innerIndexed[key], opt;
+                            if (!v) {
+                                opt = createOption(key, key, true, null);
+                            } else {
+                                opt = createOption(key, v[0], false, v[1]);
+                            }
+
+                            checked.append(opt);
+                            vals[key] = 1;
+                            if (v) {
+                                if (!isLikedFunc(v[0])) opt.addClass('hidden');
+                                return true;
+                            } else return false;
+                        };
+
+                        if (field.multiple) {
+
+                            if (Array.isArray(val)) {
+                                val.forEach(addCheckedOpts);
+                                checkedVal = Object.keys(vals);
+                            } else {
+                                if (val !== undefined) {
+                                    addCheckedOpts(val);
+                                    checkedVal = [val];
+                                }
+                            }
+                        } else {
+                            addCheckedOpts(val);
+                            checkedVal = val;
+                        }
+
+                    }
+
+
+                    if (q !== 'onlyVals') {
+
+                        if (!field.multiple) {
+                            if (field.withEmptyVal && field.withEmptyVal.trim() !== '' && field.category !== 'filter') {
+                                optgroups[''].append($('<option>').data('content', field.withEmptyVal).text(""));
+                            }
+                        }
+
+                        for (let i in LISTs.innerList) {
+                            let iList = LISTs.innerList[i];
+                            if (vals[iList] === 1) continue;
+                            let v = LISTs.innerIndexed[iList];
+
+                            if (!LISTs.isSliced) {
+                                if (!isLikedFunc(v[0])) continue;
+                            }
+
+                            let opt = createOption(iList, v[0]);
+                            let groupName = v[1] ? v[1] : '';
+
+                            if (!optgroups[groupName]) {
+                                optgroups[groupName] = $('<optgroup label="' + groupName + '">');
+                            }
+                            optgroups[groupName].append(opt);
+                        }
+                    }
+                    input.empty();
+
+                    Object.keys(optgroups).forEach(function (groupName) {
+                        input.append(optgroups[groupName]);
+                    });
+
+                    if (LISTs.isSliced === true) {
+                        let opt = createOption(0, 'Данные не полны. Воспользуйтесь поиском!');
+                        opt.prop('disabled', true);
+                        opt.css('text-align', 'center');
+                        input.append(opt);
+                    }
+
+                    input.selectpicker('refresh');
+                    input.selectpicker('val', checkedVal);
+                    return checkedVal
+                };
+                if (!($oldParent && $oldParent.data('input'))) {
+                    const getTitle = function () {
+
+                        let title = '-----';
+                        if (field.category === 'filter') {
+                            title = 'Пустое';
+                            if (field.selectFilterWithEmptyText) {
+                                title = field.selectFilterWithEmptyText
+                            }
+                        } else if (field.withEmptyVal && field.withEmptyVal.trim() !== '') title = field.withEmptyVal;
+
+                        return title;
+                    };
+
+                    input = $('<select class="form-control" ' + (field.multiple == true ? 'multiple ' : '') + ' data-size="auto" style="display: none;" name="cell_insert" data-style="btn-sm btn-default" data-width="css-width" data-live-search="true" data-title="' + getTitle() + '">').width(field.width);
+                    divParent.append(input);
+                    divParent.append('<div class="text-center mark-loading"></div>');
+                    if (tabindex) input.attr('tabindex', tabindex);
+                    input.data('AppUin', App.getUn());
+                    divParent.data('input', input);
+
+                    input.data('LISTs', LISTs);
+                }
+
+
+                divParent.find('.mark-loading').remove();
+                let container = input.closest('.modal-body').length === 0 ? field.pcTable._container : input.closest('.modal-body');
+                input.data('container', container);
+
+
+                addValues(val);
+
+
+                if (!input.data('is-rendered')) {
+
+                    let searchTimeout;
+
+                    input.data('selectpicker').$searchbox.off().on('click.dropdown.data-api focus.dropdown.data-api touchend.dropdown.data-api', function (e) {
+                        e.stopPropagation();
+                    });
+
+                    let Q = '';
+
+
+                    input.data('selectpicker').$searchbox.on('keyup', function (e) {
+                        if (e.key === 'Escape') {
+                            input.data('selectpicker').$button.click();
+                            return true;
+                        }
+
+                        let q = $(this).val();
+                        if (Q !== q) {
+                            Q = q;
+                            if (searchTimeout) {
+                                clearTimeout(searchTimeout)
+                            }
+                            searchTimeout = setTimeout(function () {
+                                if (LISTs.isListForLoad || LISTs.isSliced) {
+                                    GetLoadListDeffered.call(field, q).then(function () {
+                                        addValues.call(field, val, q);
+                                    });
+                                } else {
+                                    addValues.call(field, val, q);
+                                }
+                            }, 750);
+                        }
+                    });
+
+
+                    let $td = $(field).closest('td, .cell');
+
+                    if (input.closest('.InsertRow, .InsertPanel').length === 0) {
+
+                        let $selectContainer = input.data('container');
+
+                        input.on('remove', function () {
+                            $selectContainer.off('click.selectContainer.' + input.data('AppUin'));
+                            $selectContainer.off('keydown.selectContainer.' + input.data('AppUin'));
+                        });
+
+                        $selectContainer.on('click.selectContainer.' + input.data('AppUin'), function (event) {
+                            let target = $(event.target);
+                            if (!target.closest('td').is('.editing') && !target.closest('.bootstrap-select').length) {
+                                blurClbk(divParent, event)
+                            }
+                        });
+                        $selectContainer.on('keydown.selectContainer.' + input.data('AppUin'), function (event) {
+
+                            if (event.keyCode === 27) {
+                                input.data('keyPressed', 'Esc');
+                                escClbk(divParent, event);
+                                return false;
+                            }
+                            if (event.keyCode === 13) {
+                                input.data('enterPressed', true);
+
+                            }
+
+                            if (event.keyCode !== 9 && event.keyCode !== 16) {
+                                $td.data('edited')
+                            }
+                            if (event.altKey || event.shiftKey) {
+                                let key = event.altKey ? 'altKey' : (event.shiftKey ? 'shiftKey' : false);
+                                input.data('keyPressed', key);
+                            }
+
+                        }).on('keyup', function (event) {
+                            input.removeData('keyPressed');
+                            input.removeData('enterPressed');
+                        });
+                        field.focusElement(divParent);
+                    }
+
+                    input.on('hidden.bs.select', function () {
+                        let changed = input.data('changed');
+                        let event = {};
+                        let keyPressed = input.data('keyPressed');
+                        if (keyPressed) event[keyPressed] = true;
+
+                        if (!field.multiple) {
+                            setTimeout(function () {
+                                "use strict";
+                                enterClbk(divParent, event)
+                            }, 200);
+
+                        } else if (changed && input.closest('td.edt').length === 0) {
+                            enterClbk(divParent, event);
+                        }
+                        input.data('changed', false);
+                    });
+                    input.on('show.bs.select', function () {
+
+                        addValues(val);
+                    });
+                    input.on('shown.bs.select', function () {
+                        let selectPicker = input.data('selectpicker');
+                        selectPicker.$bsContainer.addClass('pcTable-selectpicker');
+                        if (LISTs.isPreview) {
+                            selectPicker.$bsContainer.addClass('select-with-preview');
+                        }
+
+                        if (selectPicker.$menuInner.height() < 100 && selectPicker.$menuInner.find('li').length > 6) {
+                            selectPicker.$menuInner.height(300)
+                        }
+
+                        if (!selectPicker.cropped) {
+                            selectPicker.cropped = true;
+                            if (input.data('container').is('.pcTable-container')) {
+                                selectPicker.$menuInner.height(selectPicker.$menuInner.height() - 4)
+                            }
+                        }
+                    });
+                    input.on('changed.bs.select', function () {
+                        input.data('changed', true);
+                        let oldVal = [];
+                        if (val && val.forEach) {
+                            val.forEach(function (v) {
+                                oldVal.push(v);
+                            });
+                        }
+                        val = input.val();
+
+
+                        if (field.category === 'filter') {
+                            if (field.multiple) {
+                                let len = val.length;
+
+                                if (oldVal.length > val.length) {
+                                    if (val.length === 0) {
+                                        val.push('*NONE*');
+                                    }
+                                } else {
+                                    let newElement;
+                                    val.some(function (el) {
+                                        if (oldVal.indexOf(el) === -1) {
+                                            newElement = el;
+                                            return true;
+                                        }
+                                    });
+                                    if (['*NONE*', '*ALL*'].indexOf(newElement) !== -1) {
+                                        val = [newElement];
+                                    } else {
+                                        ['*NONE*', '*ALL*'].some(function (SpecialValue) {
+                                            let SpecialIndex;
+                                            if ((SpecialIndex = val.indexOf(SpecialValue)) !== -1) {
+                                                val.splice(SpecialIndex, 1);
+                                                return true;
+                                            }
+                                        })
+                                    }
+                                }
+
+                                if (val.length !== len) {
+                                    input.selectpicker('val', val);
+                                }
+                            }
+                        }
+
+                    });
+
+                    input.on('remove', function () {
+                        input.data('selectpicker').$bsContainer.remove();
+                        input.data('container')
+                            .off('keydown.selectContainer.' + input.data('AppUin'))
+                            .off('click.selectContainer.' + input.data('AppUin'))
+                    })
+                }
+
+            } else {
+                if (iRenered < 50) {
+                    setTimeout(function () {
+                        renderMe(input, val)
+                    }, iRenered * 10 + 1);
+                    iRenered++;
+                }
+            }
+        };
+
+
+        if (!LISTs || LISTs.isListForLoad) {
+            GetLoadListDeffered().then(function () {
+                renderMe.call(field);
+            });
+        } else {
+            renderMe();
+        }
+
+
+        return divParent;
+    },
+    getPanelText: function (fieldValue, td, item) {
+        let field = this;
+        let $div = $('<div>');
+        let listVals = item[field['name']].v_;
+        if (!field.multiple && item[field['name']].v_) {
+            listVals = [item[field['name']].v_];
+        }
+
+        if (listVals) {
+            $.each(listVals, function (k, val) {
+                "use strict";
+                let d = $('<div>').text(val[0]);
+
+                if (val[1]) {
+                    d.addClass('deleted_value')
+                } else if (listVals.length !== 1) {
+                    d.add('select-item');
+                }
+                $div.append(d);
+            });
+        } else {
+            if (fieldValue === null || fieldValue === '') {
+                if (field.withEmptyVal) return field.withEmptyVal;
+                else return '';
+            }
+
+            let fieldValues = fieldValue;
+            if (!field.multiple) {
+                fieldValues = [fieldValues];
+            }
+
+            if (!fieldValues) fieldValues = [];
+
+            if (field.list) {
+                let vals = [];
+                for (let i = 0; i < fieldValues.length; i++) {
+                    vals[i] = fieldValues[i].toString();
+                }
+
+                for (let i = 0; i < field.list.length; i++) {
+                    let v = field.list[i];
+                    if (vals.indexOf(v[2].toString()) !== -1) {
+                        let d = $('<span>').text(v[0])
+                        if (v[1]) {
+                            d.addClass('deleted_value')
+                        } else if (vals.length !== 1) {
+                            d.add('select-item');
+                        }
+                        $div.append(d);
+                    }
+                }
+            }
+        }
+        return $div.children();
+    },
+    getCellText: function (fieldValue, td, item) {
+        let field = this;
+        let text = '';
+        let $div = $('<div>');
+        let listVals = item[field['name']].v_;
+        if (!field.multiple && item[field['name']].v_) {
+            listVals = [item[field['name']].v_];
+        }
+
+        if (listVals) {
+            if (field.multiple && listVals.length > 1 && (field.multySelectView == 0)) {
+                $div.append('<span class="select-item">' + listVals.length + ' элементов<span>');
+            } else {
+                if (listVals.length === 0) {
+                    $div.append('<span class="select-item">' + this.getElementString(null) + '</span>');
+                } else {
+                    $.each(listVals, function (k, val) {
+                        "use strict";
+                        let d = $('<span>');
+                        let id = null;
+                        if (fieldValue) {
+                            if (typeof fieldValue === 'object') {
+                                id = fieldValue[k];
+                            } else {
+                                id = fieldValue;
+                            }
+                        }
+
+                        d.text(field.getElementString(id, val));
+
+                        if (val[1]) {
+                            d.addClass('deleted_value')
+                        } else if (listVals.length !== 1) {
+                            d.add('select-item');
+                        }
+                        $div.append(d);
+                    });
+                }
+            }
+        } else {
+            if (fieldValue === null || fieldValue === '') {
+                if (field.withEmptyVal) return field.withEmptyVal;
+                else return '';
+            }
+
+            let fieldValues = fieldValue;
+            if (!field.multiple) {
+                fieldValues = [fieldValues];
+            }
+
+            if (!fieldValues) fieldValues = [];
+
+            if (field.list) {
+                let vals = [];
+                for (let i = 0; i < fieldValues.length; i++) {
+                    vals[i] = fieldValues[i].toString();
+                }
+
+                for (let i = 0; i < field.list.length; i++) {
+                    let v = field.list[i];
+                    if (vals.indexOf(v[2].toString()) !== -1) {
+                        let d = $('<span>').text(field.getElementString(v[2], v));
+                        if (v[1]) {
+                            d.addClass('deleted_value')
+                        } else if (vals.length !== 1) {
+                            d.add('select-item');
+                        }
+                        $div.append(d);
+                    }
+                }
+            }
+        }
+        return $div.children();
+    },
+    focusElement: function (div) {
+        let button = div.find('button');
+        let field = this;
+        if (button.length == 0) {
+            setTimeout(function () {
+                field.focusElement(div)
+            }, 50)
+        } else
+            button.focus();
+
+    },
+    isDataModified: function (edited, fromItem) {
+
+        if ([null, ''].indexOf(edited) !== -1 && [null, ''].indexOf(fromItem) !== -1) return false;
+        if ([null, ''].indexOf(edited) !== -1 || [null, ''].indexOf(fromItem) !== -1) return true;
+
+        return !Object.equals(fromItem, edited);
+    },
+    checkIsFiltered: function (fieldVal, filters) {
+        let val, check;
+        if (this.multiple) {
+            val = [];
+            if (fieldVal && fieldVal.v_ && fieldVal.v_.length) {
+                fieldVal.v_.forEach(function (v) {
+                    val.push(v[0].hashCode().toString())
+                })
+            }
+            check = function (v) {
+                if (val.indexOf(v) !== -1) {
+                    return true;
+                }
+            }
+        } else {
+            val = fieldVal.v_[0] === null ? 'null' : fieldVal.v_[0].toString();
+            val = val.hashCode().toString();
+            check = function (v) {
+                if (v === val) {
+                    return true;
+                }
+            }
+        }
+        return filters.some(check);
+    },
+    checkEditRegExp: function (val) {
+        if (!this.warningEditRegExp) return true;
+        try {
+            if (this.multiple && Array.isArray(val)) {
+                return val.some((v) => (new RegExp(this.warningEditRegExp)).test(val))
+            }
+            return (new RegExp(this.warningEditRegExp)).test(val);
+        } catch (e) {
+            return true;
+        }
+    },
+    addDataToFilter: function (filterVals, valObj) {
+
+        const addFiltersData = function (valObjElem) {
+            let hash;
+            let str = valObjElem[0];
+            if (str === null) {
+                hash = 'null'.hashCode();
+            } else {
+                hash = str.toString().hashCode();
+                str = str.replace(/"/g, "&quot;");
+            }
+            filterVals[hash] = str;
+        };
+        if (this.multiple) {
+            if (valObj && valObj.v_.length) {
+                valObj.v_.forEach(function (valObj) {
+                    addFiltersData(valObj);
+                })
+            }
+        } else {
+            addFiltersData(valObj.v_)
+        }
+
+    },
+    getElementString: function (val, arrayVal) {
+        "use strict";
+        if (val === null || val === undefined) {
+            if (!arrayVal || !arrayVal[0]) return this.withEmptyVal || '';
+        }
+
+        if (arrayVal[0] === null || arrayVal[0] === '') {
+
+            return '[' + (this.withEmptyVal || '') + ']';
+        }
+
+
+        return arrayVal[0];
+    }
+};
+fieldTypes.tree = {
+    icon: 'fa-tree',
+    FullView: false,
+    getEditVal: function (div) {
+        return div.data('val');
+    },
+    getEditElement: function ($oldInput, oldValueParam, item, enterClbk, escClbk, blurClbk, tabindex, editNow) {
+
+
+        let field = this;
+        let div = $oldInput || $('<div>');
+        let dialog = div.data('dialog') || $('<div>').css('min-height', 200);
+        div.data('dialog', dialog);
+        let buttons, btn;
+
+        oldValueParam = oldValueParam.v || '';
+
+        let formFill = function (dlg) {
+            field.treePanel.call(field, dialog, item, oldValueParam, enterClbk, escClbk);
+        };
+
+        const save = function (dlg, event, notEnter) {
+            let checked_ids = [];
+            let checked = dialog.data('jstree').jstree("get_selected", true);
+            checked.forEach(function (node) {
+                checked_ids.push(node.id);
+            });
+
+            if (!field.multiple) {
+                checked_ids = checked_ids[0] || '';
+            }
+
+            div.data('val', checked_ids);
+            if (!notEnter) {
+                enterClbk(div, {});
+                dlg.close();
+            }
+        };
+
+
+        buttons = [];
+
+        let btnsSave = {
+            'label': "Сохранить",
+            cssClass: 'btn-m btn-warning',
+            action: save
+        }, btnsClose = {
+            'label': "Закрыть",
+            cssClass: 'btn-m btn-default',
+            'action': function (dialog) {
+                escClbk(div, {});
+                dialog.close();
+            }
+        };
+
+        let title = '<b>' + (this.title) + '</b>';
+        let eventName = 'ctrlS.commentdialog';
+        const onshown = function (dialog) {
+            if (!field.pcTable.isMobile) {
+                dialog.$modalHeader.css('cursor', 'pointer');
+                dialog.$modalContent.css({
+                    width: $('body').width() * 0.8 > 800 ? 800 : $('body').width() * 0.8
+                });
+            }
+
+            if (dialog.$modalBody.find('textarea').length === 0) {
+                formFill(dialog);
+            }
+            $('body').on(eventName, function (event) {
+                save(dialog, event, false);
+            });
+
+        };
+        if (editNow) {
+            let btnClicked = false;
+            setTimeout(function () {
+
+                let cdiv = div.closest('td').find('.cdiv');
+                if (cdiv.length > 0) {
+                    cdiv.data('bs.popover').options.content.find('.btn').each(function () {
+                        btn = $(this);
+                        let buttn = {};
+                        buttn.label = btn.data('name');
+                        buttn.cssClass = btn.attr('class').replace('btn-sm', 'btn-m');
+                        buttn.icon = btn.find('i').attr('class');
+                        buttn.save = btn.data('save');
+                        buttn.click = btn.data('click');
+                        buttn.action = function (dialog) {
+                            if (buttn.save) {
+                                save(dialog, {}, true);
+                            }
+                            buttn.click({});
+                            btnClicked = true;
+                            dialog.close();
+                        };
+
+                        buttons.push(buttn)
+                    });
+                    cdiv.popover('destroy');
+                } else {
+                    buttons.push(btnsSave);
+                    buttons.push(btnsClose)
+                }
+
+                if (field.pcTable.isMobile) {
+                    App.mobilePanel(title, dialog, {
+                        buttons: buttons,
+                        onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshow: onshown
+                    })
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        title: title,
+                        cssClass: 'fieldparams-edit-panel',
+                        draggable: true,
+                        buttons: buttons,
+                        onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalContent.position({
+                                of: $('body'),
+                                my: 'top+50px',
+                                at: 'top'
+                            });
+                        },
+                        onshow: onshown
+
+                    });
+                }
+            }, 1);
+
+
+            div.text('Редактирование в форме').addClass('edit-in-form');
+        } else {
+            let showned = false;
+            div.off().on('focus click', 'button', function () {
+                if (showned) return false;
+                showned = true;
+                let buttonsClick = buttons.slice(0);
+                buttonsClick.push(btnsSave);
+                buttonsClick.push(btnsClose);
+
+                var div = $(this).closest('div');
+
+                if (field.pcTable.isMobile) {
+                    App.mobilePanel(title, dialog, {
+                        buttons: buttonsClick,
+                        onhide: function (event) {
+                            showned = false;
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshow: onshown
+                    })
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        cssClass: 'fieldparams-edit-panel',
+                        title: title,
+                        draggable: true,
+                        size: BootstrapDialog.SIZE_WIDE,
+                        buttons: buttonsClick,
+                        onhide: function (event) {
+                            showned = false;
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshow: onshown
+                    })
+                }
+
+            });
+
+            if (div.find('button').length === 0) {
+                btn = $('<button class="btn btn-default btn-sm text-edit-button">').text('Редактирование в форме');
+                if (tabindex) btn.attr('tabindex', tabindex);
+
+                div.append(btn);
+            }
+
+        }
+        return div.data('val', oldValueParam);//.attr('data-category', category).attr('data-category', category);
+
+    },
+    treePanel: function ($treeblock, item, oldValueParam, enterClbk, escClbk, loadingFunc) {
+        let field = this;
+
+        let plugins = ["themes", 'json_data', 'search'];//, 'massload'
+        if (field.multiple) {
+            plugins.push('checkbox');
+        }
+        let $search = $('<div class="tree-search"><input class="form-control" type="text"></div>');
+        let $searchInput = $search.find('input');
+        setTimeout(function () {
+            $searchInput.focus()
+        }, 200);
+        let $mes = $('<div></div>');
+
+
+        let closed = 0;
+        let to = false;
+        let pastSearch = "";
+
+        $searchInput.keyup(function () {
+            if (to) {
+                clearTimeout(to);
+            }
+            to = setTimeout(function () {
+
+                if ($mes.closest('body').length) {
+                    let v = $searchInput.val();
+                    if (pastSearch !== v) {
+                        pastSearch = v;
+                        $mes.jstree(true).search(v, closed === 0);
+                    }
+                }
+            }, 750);
+        });
+
+
+        $treeblock.append($search).append($mes);
+        $treeblock.data('jstree', $mes);
+
+        if (!this.multiple && this.withEmptyVal) {
+            $mes.on("click", 'li.jstree-node[aria-selected="true"]', function (e) {
+                // let node = $mes.jstree(true).get_node($(this).attr('id'));
+                // console.log(node);
+                $mes.jstree(true).deselect_node($(this));
+                return false;
+            })
+
+        }
+
+
+        $mes.on("init.jstree", function (e, data) {
+            data.instance.settings.checkbox.cascade = '';
+        }).jstree({
+            "search": {
+                "show_only_matches": true,
+                "case_insensitive": true,
+                "show_only_matches_children": true,
+                search_callback: function (q, title) {
+                    if (!title) return false;
+
+                    let qs = q.toLowerCase().replace('ё', 'е').split(" ");
+                    let text = title.text.toLowerCase().replace('ё', 'е');
+
+                    return !qs.some(function (q) {
+                        return text.indexOf(q) === -1
+                    })
+                },
+                'ajax': function (q, cd) {
+                    var self = this;
+                    field.getEditSelect(item, q, null).then(function ($data) {
+                        cd.call(self, $data[0])
+                    });
+                },
+            },
+            "massload": function (ids, cd) {
+                var self = this;
+                closed -= 1;
+                field.getEditSelect(item, "", ids).then(function ($data) {
+                    Object.values($data[0]).forEach(function (children) {
+                        children.forEach(function (v) {
+                            if (v.children === true) {
+                                closed += 1;
+                            }
+                        });
+                    });
+
+                    cd.call(self, $data[0])
+                });
+
+            },
+            'core': {
+                'check_callback': true,
+                "open_parents": true,
+                'data': function (obj, cd) {
+                    var self = this;
+                    closed -= 1;
+                    field.getEditSelect(item, "", obj.id == "#" ? null : obj.id).then(function ($data) {
+                        $data[0].forEach(function (v) {
+                            if (v.children === true) {
+                                closed += 1;
+                            }
+                        });
+                        cd.call(self, $data[0])
+                    });
+                },
+                themes: {
+                    "icons": false,
+                    'name': 'default'
+                }
+            }
+            , checkbox: {
+                //  three_state: false,
+            },
+            "plugins": plugins
+        });
+
+        if (field.multiple) {
+            if (field.category === "filter") {
+                $mes.on("select_node.jstree", function (evt, data) {
+                    if (["*ALL*", "*NONE*"].indexOf(data.node.id) !== -1) {
+                        if (data.selected.length > 1) {
+                            data.selected.forEach(function (nodeId) {
+                                if (nodeId !== data.node.id) {
+                                    data.instance.deselect_node($mes.jstree(true).get_node(nodeId));
+                                }
+                            });
+
+                        }
+                    } else {
+                        ["*ALL*", "*NONE*"].forEach(function (nodeId) {
+                            if (data.selected.indexOf(nodeId) !== -1) {
+                                data.instance.deselect_node($mes.jstree(true).get_node(nodeId));
+                            }
+                        })
+
+                    }
+
+                })
+            }
+        }
+    },
+    getEditSelect: function (item, q, parentId) {
+        let field = this;
+        let d = $.Deferred();
+
+        let itemTmp = {};
+        Object.keys(item).forEach(function (k) {
+            //Фильтруем jquery-объекты из item
+            if (!/^\$/.test(k)) {
+                if (k === 'id' || !(item[k] !== null && typeof item[k] === 'object' && Object.keys(item[k]).indexOf('v') !== -1)) {
+                    itemTmp[k] = item[k];
+                } else {
+                    itemTmp[k] = item[k]['v'];
+                }
+            }
+        });
+
+        this.pcTable.model.getEditSelect(itemTmp, this.name, q, parentId, true).then(function (json) {
+            let lists = [json.list, json.indexed];
+            if (!field.codeSelectIndividual)
+                field.list = lists;
+            d.resolve(lists);
+        });
+        return d;
+    },
+    getPanelText: function (fieldValue, td, item) {
+        this.FullView = true;
+        let r = this.getCellText(fieldValue, td, item);
+        delete this.FullView;
+        return r;
+    },
+    getCellText: function (fieldValue, td, item) {
+        let field = this;
+        let arrayVals = item[field.name].v_;
+        if (fieldValue) {
+            if (field.multiple) {
+                if (Array.isArray(fieldValue)) {
+                    if (fieldValue.length === 0) return field.getElementSpan(null);
+                    else if (fieldValue.length === 1) return field.getElementSpan(fieldValue[0], arrayVals[0]);
+                    else {
+                        if (field.multySelectView === "0" && !field.FullView) {
+                            return $('<span class="select-item">' + fieldValue.length + ' эл.<span>')
+                        } else {
+                            let span = $('<span class="select-item">');
+                            fieldValue.forEach((fVal, i) => span.append(field.getElementSpan(fVal, arrayVals[i])));
+                            return span;
+                        }
+                    }
+                } else {
+                    return field.getElementSpan(fieldValue, [fieldValue, 0]);
+                }
+            } else return field.getElementSpan(fieldValue, arrayVals);
+        } else return field.getElementString(null);
+
+    },
+    checkIsFiltered: function (fieldVal, filters) {
+        let val, check;
+        if (this.multiple) {
+            val = [];
+            if (fieldVal && fieldVal.v_ && fieldVal.v_.length) {
+                fieldVal.v_.forEach(function (v) {
+                    val.push(v[0].hashCode().toString())
+                })
+            }
+            check = function (v) {
+                if (val.indexOf(v) !== -1) {
+                    return true;
+                }
+            }
+        } else {
+            val = fieldVal.v_[0] === null ? 'null' : fieldVal.v_[0].toString();
+            val = val.hashCode().toString();
+            check = function (v) {
+                if (v === val) {
+                    return true;
+                }
+            }
+        }
+        return filters.some(check);
+    },
+    addDataToFilter: function (filterVals, valObj) {
+
+        const addFiltersData = function (valObjElem) {
+            let hash;
+            if (valObjElem[0] === null) {
+                hash = 'null'.hashCode();
+            } else {
+                hash = valObjElem[0].toString().hashCode();
+            }
+            filterVals[hash] = valObjElem[0].replace(/"/g, "&quot;");
+        };
+        if (this.multiple) {
+            if (valObj && valObj.v_.length) {
+                valObj.v_.forEach(function (valObj) {
+                    addFiltersData(valObj);
+                })
+            }
+        } else {
+            addFiltersData(valObj.v_)
+        }
+
+    },
+    getElementSpan: function (val, arrayVal) {
+        let span = $('<span>');
+        if (val !== null) {
+            span.text(this.getElementString(val, arrayVal));
+            if (arrayVal[1] === 1) {
+                span.addClass('deleted_value')
+            }
+        }
+        return span;
+    },
+    getElementString: function (val, arrayVal) {
+        "use strict";
+        if (val === null || val === undefined) {
+            if (!arrayVal || !arrayVal[0]) return this.withEmptyVal || '';
+        }
+
+        if (arrayVal[0] === null || arrayVal[0] === '') {
+
+            return '[' + (this.withEmptyVal || '') + ']';
+        }
+        if (this.FullView) {
+            return arrayVal[2] || arrayVal[0];
+        }
+        return arrayVal[0];
+    }
+};
+fieldTypes.json = {
+
+    __addInput: function (fName, f, oldValue) {
+        var f = f || {};
+        var type = f.type || typeof oldValue[fName];
+        var width = 12;
+        if (type == 'checkbox') width = 3;
+        if (f.width) width = f.width;
+        var input = $('<div class="field form-group">').attr('data-name', fName).addClass('col-sm-' + width);
+
+
+        var element;
+
+        switch (type) {
+            case 'string':
+                element = $('<input>').val(oldValue[fName] ? oldValue[fName] : (f.default ? f.default : ''));
+                break;
+            case 'json':
+                element = $('<div class="JSONEditor">').height(300);
+                var editor = new JSONEditor(element.get(0), {});
+                var btn = $('<a href="#">editText</a>').on('click', function () {
+                    var div = $('<div>');
+                    var textarea = $('<textarea class="form-control" style="height: 250px;">').val(JSON.stringify(editor.get(), null, 2)).appendTo(div);
+                    div.dialog({
+                        title: 'Содержимое JSON-поля',
+                        width: 500,
+                        height: 600,
+                        buttons: {
+                            'Сохранить': function () {
+                                editor.setText(textarea.val());
+                                div.dialog('close')
+                            },
+                            'Закрыть': function () {
+                                div.dialog('close')
+                            }
+                        }
+                    });
+                    return false;
+                });
+                element.find('.jsoneditor-menu').append(btn);
+
+                element.data('editor', editor);
+                editor.set(oldValue[fName] ? oldValue[fName] : (f.default ? JSON.parse(f.default) : {}));
+                break;
+            case 'html':
+                element = $('<div class="HTMLEditor">').height(300);
+                var el = $('<div>').appendTo(element);
+                var editor = CodeMirror(el.get(0), {
+                    value: (oldValue[fName] ? oldValue[fName] : (f.default ? f.default : "")),
+                    mode: "text/html",
+                    height: '250px',
+                    readOnly: false,
+                    theme: 'eclipse',
+                    lineNumbers: true,
+                    gutter: true,
+                    indentWithTabs: true,
+                    autoCloseTags: true
+                });
+                setTimeout(function () {
+                    editor.refresh()
+                }, 20);
+                element.data('editor', editor);
+                break;
+            case 'integer':
+                element = $('<input>').val(oldValue[fName] ? oldValue[fName] : (f.default ? f.default : "")).attr('type', 'number');
+                if (f.min !== undefined) element.attr('min', f.min);
+                if (f.max !== undefined) element.attr('max', f.max);
+                if (f.step !== undefined) element.attr('step', f.step);
+                break;
+            case 'checkbox':
+                element = $('<input>').attr('type', 'checkbox');
+                if (oldValue[fName]) element.prop('checked', true);
+                else if (oldValue[fName] === undefined) element.prop('checked', true);
+
+                break;
+            case 'select':
+                element = $('<select>');
+                if (f.values) {
+                    $.each(f.values, function (k, v) {
+                        element.append($('<option>').attr('value', k).text(v));
+                    })
+                }
+
+                if (oldValue[fName]) element.val(oldValue[fName]);
+                else if (oldValue[fName] === undefined && f.default) element.val(f.default);
+                break;
+        }
+        if (type == 'checkbox') {
+            input.prepend($('<label>').text(f.title ? f.title : fName).addClass('form-check-label'));
+            if (element) {
+                element.data('type', type)
+                input.find('label').prepend(element);
+            }
+            // input.addClass('checkbox');
+        }
+        else {
+            input.prepend($('<label>').text(f.title ? f.title : fName));
+            if (element) element.data('type', type).addClass('form-control');
+            input.append(element);
+        }
+
+        input.data('type', type);
+
+        var button = $(' <span>*</span>');
+
+        if (f.required) {
+            button.addClass('text-danger');
+        } else {
+            button.text('');
+            button.addClass('glyphicon glyphicon-remove remove');
+            button.on('click', function () {
+                var field = $(this).closest('.field');
+                var name = field.data('name');
+                field.remove();
+                //TODO - not worked
+                /* var elseFields=$(this).closest('.jsonForm').parent().find('.elseFields select');
+                 elseFields.append('<option name="' +name+ '">' +name+ '</option>');*/
+            })
+        }
+
+
+        input.find('label').after(button);
+        return input;
+    },
+
+    getEditElement: function ($oldInput, oldValueParam, item, enterClbk, escClbk, blurClbk) {
+
+        var field = this;
+        var div = $('<div>');
+        var dialog = $('<div>').css('min-height', 200);
+        var buttons;
+        var form = $('<div class="jsonForm row">').appendTo(dialog);
+        div.data('form', form);
+        div.data('field', this);
+
+
+        var format = this.jsonFields;
+        var oldValue = oldValueParam || {};
+
+        if (typeof oldValue == 'string') oldValue = JSON.parse(oldValue);
+
+        var addInput = function (fName) {
+            var input = field.__addInput(fName, format[fName], oldValue);
+            form.append(input);
+        };
+
+        var oldValueTmp = $.extend({}, oldValue);
+
+
+        var emptyGroup = '';
+        var elseFieldsLength = 0;
+        var elseFields = {}
+        elseFields[emptyGroup] = [];
+
+        $.each(format, function (fName, fOpt) {
+            if (fOpt.required == true || fOpt.showInForm == true) {
+                addInput(fName);
+                if (oldValueTmp[fName] !== undefined) delete oldValueTmp[fName];
+            }
+            else if (oldValueTmp[fName] === undefined) {
+                var group = emptyGroup;
+                if (fOpt.fGroup) {
+                    group = fOpt.fGroup
+                    if (!elseFields[fOpt.fGroup]) {
+                        elseFields[fOpt.fGroup] = [];
+                    }
+                }
+                elseFields[group].push(fName);
+                elseFieldsLength++;
+            }
+        });
+
+        $.each(oldValueTmp, function (k, v) {
+            addInput(k)
+        });
+
+        if (elseFieldsLength) {
+            var input = $('<div class="row elseFields">');
+            element = $('<select class="selectpicker form-control dropup" data-size="5" data-title="--Выбрать поле--">');
+
+            if (App.keys(elseFields).length == 1) {
+                $.each(elseFields[App.keys(elseFields)[0]], function (k, fName) {
+                    element.append($('<option>').attr('value', fName).text(format[fName].title ? format[fName].title : fName));
+                });
+            }
+            else {
+                $.each(elseFields, function (group, fields) {
+                    var group = $('<optgroup label="' + group + '">');
+                    $.each(fields, function (k, fName) {
+                        group.append($('<option>').attr('value', fName).text(format[fName].title ? format[fName].title : fName));
+                    });
+                    element.append(group);
+                })
+            }
+
+
+            input.prepend($('<label>').text('Добавить поле'));
+            element.addClass('form-control');
+
+            input.append(element);
+            element.selectpicker('render');
+            element.on('change', function () {
+                var f = $(this).val();
+                element.find('option[value="' + f + '"]').remove();
+                addInput(f);
+            });
+
+            dialog.append(input.wrap('<div style="padding:10px">').parent());
+        }
+
+
+        buttons = {
+
+            "Сохранить": function () {
+
+                var obj = {};
+                var fullJSONEditor = form.find('.fullJSONEditor');
+                if (fullJSONEditor.length == 1) {
+                    obj = fullJSONEditor.data('editor').get();
+                }
+                else {
+
+                    form.find('input, select, textarea, .JSONEditor, .HTMLEditor').not('.JSONEditor *').not('.HTMLEditor *').each(function () {
+                        var element = $(this);
+                        var nameField = element.closest('.field').data('name');
+
+
+                        switch (element.closest('.field').data('type')) {
+                            case "array":
+                                try {
+                                    obj[nameField] = element.data('editor').get();
+                                    if (!$.isArray(obj[nameField])) {
+                                        throw 'Ошибка структуры поля';
+                                    }
+                                }
+                                catch (err) {
+                                    App.notify('Ошибка структуры поля ' + nameField);
+                                    throw 'Ошибка структуры поля';
+                                }
+                                break;
+                            case "object":
+                            case "json":
+                                try {
+                                    obj[nameField] = element.data('editor').get();
+                                    if (typeof obj[nameField] !== "object") {
+                                        throw 'Ошибка структуры поля';
+                                    }
+                                }
+                                catch (err) {
+                                    App.notify('Ошибка структуры поля ' + nameField);
+                                    throw 'Ошибка структуры поля';
+                                }
+                                break;
+                            case "html":
+                                obj[nameField] = element.data('editor').getValue();
+                                break;
+                            case "checkbox":
+                            case "boolean":
+                                obj[nameField] = element.is(':checked') ? true : false;
+                                break;
+                            case "integer":
+                                obj[nameField] = parseInt(element.val());
+                                break;
+                            default:
+                                obj[nameField] = element.val();
+                                break;
+                        }
+
+
+                    });
+                }
+                div.data('val', JSON.stringify(obj));
+
+                enterClbk(div, event);
+                dialog.remove();
+            },
+            "Закрыть": function () {
+                dialog.dialog('close');
+            }, "Редактор": function () {
+                var height = form.height();
+                var element = $('<div class="fullJSONEditor">').height(height + 100);
+                var editor = new JSONEditor(element.get(0), {});
+                editor.set(oldValue)
+                var btn = $('<a href="#">editText</a>').on('click', function () {
+                    var div = $('<div>');
+                    var textarea = $('<textarea class="form-control" style="height: 250px;">').val(JSON.stringify(editor.get(), null, 2)).appendTo(div);
+                    div.dialog({
+                        title: 'Содержимое JSON-поля',
+                        width: 500,
+                        height: height + 100,
+                        buttons: {
+                            'Сохранить': function () {
+                                editor.setText(textarea.val());
+                                div.dialog('close')
+                            },
+                            'Закрыть': function () {
+                                div.dialog('close')
+                            }
+                        }
+                    });
+                    return false;
+                });
+                form.empty().append(element);
+                form.next().empty();
+                element.data('editor', editor);
+                element.find('.jsoneditor-menu').append(btn);
+            }
+        };
+
+        if (item.id) {
+            dialog.dialog({
+                title: (item && item.id ? item.id : '') + ' ' + this.title
+                , width: 700
+                , modal: true
+                , close: function (event) {
+                    escClbk(div, event);
+                    dialog.remove();
+                },
+                buttons: buttons
+            });
+            div.text('Редактирование в форме').addClass('edit-in-form');
+        }
+        else {
+            div.on('focus click', 'button', function () {
+                var div = $(this).closest('div');
+                dialog.dialog({
+                    title: field.title || field.name
+                    , width: 700
+                    , modal: true
+                    , close: function (event) {
+                        escClbk(div, event);
+                        dialog.remove();
+                    },
+
+                    buttons: buttons
+                });
+            });
+            div.append($('<button class="btn btn-default">').text(oldValueParam ? oldValueParam : 'Редактирование'))
+        }
+
+        return div.data('val', oldValueParam);
+
+    },
+    getEditVal: function (input) {
+        return input.data('val');
+    },
+    getCellText: function (val) {
+        return JSON.stringify(val);
+    },
+    focusElement: function (div) {
+        var button = div.find('button');
+        var field = this;
+        if (button.length === 0) {
+            setTimeout(function () {
+                field.focusElement(div)
+            }, 50)
+        }
+        else
+            button.focus();
+
+    }
+    /*,
+     getCellText: function(fieldValue){
+     return $('<div>').text(fieldValue).height(30).css('textOverflow', 'ellipsis')
+     }*/
+};
+fieldTypes.fieldParams = $.extend({}, fieldTypes.json, {
+    icon: 'fa-code',
+    isPanelField: true,
+    isDataModified: function (newVal, oldVal) {
+        return !Object.equals(oldVal, newVal);
+    },
+    getEditElement: function ($oldInput, oldValueParam, item, enterClbk, escClbk, blurClbk, tabindex, editNow) {
+
+
+        let field = this;
+        let div = $('<div>');
+        let dialog = $('<div>').css('min-height', 200);
+        let buttons;
+        let form = $('<div class="jsonForm">').appendTo(dialog);
+        div.data('form', form);
+        div.data('field', this);
+
+        let formFill = function (oldValueParam) {
+
+            let jsonFields = field.jsonFields;
+
+            field.getValue(oldValueParam, item, !editNow).then(function (json) {
+                let oldValue = json.value;
+
+                if (typeof oldValue === 'string') oldValue = JSON.parse(oldValue);
+                let oldValueTmp = $.extend({}, oldValue);
+
+
+                let addInput = function (fName, fieldsList, fieldsLevelFuncs) {
+                    let fieldSettings = jsonFields.fieldSettings[fName];
+                    if (!fieldSettings) return false;
+
+                    if (fieldSettings['categories']) {
+                        if (fieldSettings['categories'].indexOf(item['category']['v']) === -1) return false;
+                    }
+
+
+                    let thisValue = {};
+                    if (oldValueTmp[fName] === undefined || oldValueTmp[fName].isOn === undefined) {
+                        thisValue.isOn = oldValueTmp[fName] !== undefined;
+                        thisValue.Val = oldValueTmp[fName];
+                        if (thisValue.Val === undefined) {
+                            thisValue.Val = fieldSettings.default;
+                        }
+                        if (!fieldSettings.parent && fieldSettings.type === 'checkbox' && thisValue.Val === true) {
+                            thisValue.isOn = true;
+                        }
+                        oldValueTmp[fName] = thisValue;
+                    } else {
+                        thisValue = oldValueTmp[fName];
+                    }
+
+                    if (fName === 'codeSelect') {
+                        let treeSelectDefault = '=: selectRowListForTree(table: \'\'; field: \'\'; order: \'\' asc; where:  \'\' = ; parent: \'\'; disabled:)';
+                        if (form.find('div[data-name="type"] select').val() === "tree") {
+                            if (thisValue.Val === fieldSettings.default)
+                                thisValue.Val = treeSelectDefault;
+                        } else {
+                            if (thisValue.Val === treeSelectDefault)
+                                thisValue.Val = fieldSettings.default;
+                        }
+                    }
+
+
+                    let isHidden = false;
+
+                    let parentSettings = jsonFields.fieldSettings[fieldSettings.parent];
+                    let parentValue = oldValueTmp[fieldSettings.parent];
+
+
+                    if (fieldSettings.parent && fieldsList.indexOf(fieldSettings.parent) !== -1) {
+                        if (!parentValue || parentValue.isOnCheck !== true) {
+                            isHidden = true;
+                        }
+                    }
+                    thisValue.changed = function () {
+                        "use strict";
+                        if (this.isOnCheck === true) {
+                            form.find('[data-parent="' + fName.toLowerCase() + '"]').show();
+                        } else {
+                            form.find('[data-parent="' + fName.toLowerCase() + '"]').hide().find('input[type="checkbox"]').prop('checked', false).trigger('change');
+                        }
+                    };
+                    let divInput = field.__addInput.call(field, fName, fieldSettings, thisValue, item);
+                    form.append(divInput);
+                    if (fieldSettings.parent) {
+                        divInput.attr('data-parent', fieldSettings.parent.toLowerCase());
+                        if (isHidden) {
+                            divInput.hide();
+                        }
+                    }
+
+                    let level = fieldsLevelFuncs[fName]();
+
+                    divInput.css('padding-left', level * 19);
+
+                    return divInput;
+                };
+
+
+                let fieldType = 'string';
+                if (oldValueTmp.type) {
+                    fieldType = oldValueTmp.type.Val || oldValueTmp.type;
+                }
+
+                let editorsRefresh = function () {
+                    dialog.find('.codeEditor, .HTMLEditor').each(function () {
+                        if ($(this).data('editor')) {
+                            $(this).data('editor').refresh();
+                        }
+                    });
+
+                };
+
+                function addfields(fieldType) {
+                    let fieldsList;
+                    form.empty();
+                    if (item.table_id.v === '2' && (item.name.v === 'data_src' || item.name.v === 'data')) {
+                        if (item.name.v === 'data') {
+                            fieldsList = ['width', 'showInWeb'];
+                        } else {
+                            fieldsList = ['width', 'jsonFields', 'showInWeb', 'editable', 'insertable', 'required', 'logging', 'default', 'copyOnDuplicate'];
+                        }
+                        fieldType = 'fieldParams';
+                    } else if (item.table_name && item.table_name.v === 'tables_vidgets' && (item.name.v === 'data_src' || item.name.v === 'data')) {
+                        if (item.name.v === 'data') {
+                            fieldsList = ['width', 'showInWeb'];
+                        } else {
+                            fieldsList = ['width', 'jsonFields', 'showInWeb', 'editable', 'insertable', 'required', 'logging', 'default', 'copyOnDuplicate'];
+                        }
+                        fieldType = 'fieldParams';
+                    } else {
+                        fieldsList = jsonFields.fieldListParams[fieldType];
+                    }
+
+                    let fieldsLevelFuncs = {
+                        type: function () {
+                            return 0;
+                        }
+                    };
+                    fieldsList.forEach(function (fieldName) {
+                        let fSettings = jsonFields.fieldSettings[fieldName];
+                        if (!fSettings.parent || fieldsList.indexOf(fSettings.parent) === -1) {
+                            fieldsLevelFuncs[fieldName] = function () {
+                                return 0;
+                            };
+                        } else {
+                            fieldsLevelFuncs[fieldName] = function () {
+                                return fieldsLevelFuncs[fSettings.parent]() + 1;
+                            };
+                        }
+
+                    });
+
+                    oldValueTmp['type'] = {
+                        isOn: true,
+                        Val: fieldType
+                    };
+
+
+                    let typeInput = addInput('type', fieldsList, fieldsLevelFuncs).find('select');
+
+                    typeInput.on('change', function () {
+                        addfields($(this).val())
+                    });
+
+                    fieldsList.forEach(function (fName) {
+                        addInput(fName, fieldsList, fieldsLevelFuncs);
+                    });
+
+                    editorsRefresh();
+
+                }
+
+                addfields(fieldType);
+            })
+        };
+
+        const save = function (dialog) {
+
+            var obj = {};
+            var fullJSONEditor = form.find('.fullJSONEditor');
+            if (fullJSONEditor.length === 1) {
+                obj = fullJSONEditor.data('editor').get();
+            } else {
+
+                form.find('input, select, textarea, .JSONEditor, .HTMLEditor, .codeEditor').not('.JSONEditor *').not('.HTMLEditor *').not('.codeEditor *').not('input[data-type="switcher"]').each(function () {
+                    var element = $(this);
+                    let val;
+                    let field = element.closest('.field')
+                    var nameField = field.data('name');
+                    switch (element.closest('.field').data('type')) {
+                        case 'code':
+                            val = element.data('editor').getValue();
+                            break;
+                        case "json":
+                            try {
+                                val = element.data('editor').get();
+                                if (typeof val !== "object") {
+                                    throw 'Ошибка структуры поля';
+                                }
+                            } catch (err) {
+                                App.notify('Ошибка структуры поля ' + nameField);
+                                throw 'Ошибка структуры поля';
+                            }
+                            break;
+                        case "html":
+                            val = element.data('editor').getValue();
+                            break;
+                        case "checkbox":
+                            val = !!element.is(':checked');
+                            break;
+                        case "integer":
+                            val = parseInt(element.val());
+                            break;
+                        default:
+                            val = element.val();
+                            break;
+                    }
+
+                    let isOn;
+                    isOnCheckbox = field.find('input[data-type="switcher"]');
+                    if (isOnCheckbox.length === 0) {
+                        isOn = element.is(':visible');
+                    } else {
+                        isOn = isOnCheckbox.is(':checked');
+                    }
+                    obj[nameField] = {
+                        isOn: isOn,
+                        Val: val
+                    }
+                });
+            }
+            div.data('val', obj);
+
+            enterClbk(div, event);
+            dialog.close();
+        };
+
+        buttons = [
+            {
+                'label': "Сохранить",
+                cssClass: 'btn-m btn-warning',
+                action: save
+            }, {
+                'label': "Закрыть",
+                cssClass: 'btn-m btn-default',
+                'action': function (dialog) {
+                    dialog.close();
+                }
+            }
+        ];
+
+        let eventName = 'ctrlS.FieldParams';
+
+        if (editNow) {
+            window.top.BootstrapDialog.show({
+                message: dialog,
+                type: BootstrapDialog.TYPE_DANGER,
+                title: 'Параметры поля <b>' + (item.title.v) + '</b>',
+                buttons: buttons,
+                cssClass: 'fieldparams-edit-panel',
+                draggable: true,
+                onhide: function (event) {
+                    escClbk(div, event);
+                    $('body').off(eventName);
+                },
+                onshown: function (dialog) {
+                    formFill(oldValueParam.v);
+                    dialog.$modalContent.position({
+                        of: $('body'),
+                        my: 'top+50px',
+                        at: 'top'
+                    })
+                },
+                onshow: function (dialog) {
+                    dialog.$modalHeader.css('cursor', 'pointer')
+                    dialog.$modalDialog.width(1000);
+                    $('body').on(eventName, function (event) {
+                        save(dialog);
+                    });
+                }
+
+            });
+
+
+            div.text('Редактирование в форме').addClass('edit-in-form');
+        } else {
+            let clicked = false;
+            div.on('focus click', 'button', function () {
+                if (clicked) return;
+                clicked = true;
+
+                var div = $(this).closest('div');
+                window.top.BootstrapDialog.show({
+                    message: dialog,
+                    type: BootstrapDialog.TYPE_DANGER,
+                    cssClass: 'fieldparams-edit-panel',
+                    title: 'Параметры поля <b>' + (item.title.v) + '</b>',
+                    buttons: buttons,
+                    draggable: true,
+                    size: BootstrapDialog.SIZE_WIDE,
+                    onhide: function (event) {
+                        escClbk(div, event);
+                        $('body').off(eventName);
+                        clicked = false;
+                    },
+                    onshown: function (dialog) {
+                        dialog.$modalDialog.width(1000);
+                        dialog.$modalHeader.css('cursor', 'pointer')
+                        formFill(oldValueParam.v);
+                        $('body').on(eventName, function (event) {
+                            save(dialog);
+                        });
+                    }
+                })
+            });
+
+            let btn = $('<button class="btn btn-danger btn-sm text-edit-button">').text('Редактировать параметры');
+            if (tabindex) btn.attr('tabindex', tabindex);
+
+            div.append(btn);
+
+        }
+        return div.data('val', oldValueParam);//.attr('data-category', category).attr('data-category', category);
+
+    },
+    __addInput: function (fName, f, Val, item) {
+        let field = this;
+        var f = f || {};
+        var type = f.type;
+        let oldValue;
+        let isOn;
+
+        oldValue = Val.Val;
+        isOn = Val.isOn;
+
+
+        var input = $('<div class="field form-group">').attr('data-name', fName);
+
+
+        var element;
+
+
+        switch (type) {
+            case 'code':
+
+                element = $('<div class="codeEditor">');
+                var el = $('<div>').appendTo(element);
+                var editor = CodeMirror(el.get(0), {
+                    value: (oldValue ? oldValue : (f.default ? f.default : "")),
+                    mode: "totum",
+                    height: '150px',
+                    readOnly: false,
+                    theme: 'eclipse',
+                    lineNumbers: true,
+                    gutter: false,
+                    indentWithTabs: true
+                });
+                editor.getScrollerElement().style.minHeight = '150px';
+                element.data('editor', editor);
+                editor.table = item.table_name && item.table_name.v ? item.table_name.v : null;
+                break;
+
+            case 'string':
+                element = $('<input>').val(oldValue !== undefined ? oldValue : (f.default ? f.default : ''));
+                break;
+            case 'json':
+                element = $('<div class="JSONEditor">').height(300);
+                var editor = new JSONEditor(element.get(0), {});
+                var btn = $('<a href="#" style="padding-top: 5px; display: inline-block; padding-left: 20px;">Вручную</a>').on('click', function () {
+                    var div = $('<div>');
+                    var textarea = $('<textarea class="form-control" style="height: 250px;">').val(JSON.stringify(editor.get(), null, 2)).appendTo(div);
+
+                    BootstrapDialog.show({
+                        message: div,
+                        type: null,
+                        title: 'Ручное изменение json-поля',
+                        buttons: [
+                            {
+                                'label': "Сохранить",
+                                cssClass: 'btn-m btn-warning',
+                                action: function (dialog) {
+                                    try {
+                                        editor.setText(textarea.val());
+                                        dialog.close();
+                                    } catch (e) {
+                                        App.modal('Ошибка формата JSON')
+                                    }
+                                }
+                            }, {
+                                'label': "Закрыть",
+                                cssClass: 'btn-m btn-default',
+                                'action': function (dialog) {
+                                    dialog.close();
+                                }
+                            }
+                        ],
+                        cssClass: 'fieldparams-edit-panel',
+                        draggable: true,
+                        onhide: function (event) {
+                            // escClbk(div, event);
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalContent.position({
+                                of: window
+                            });
+                        },
+                        onshow: function (dialog) {
+                            dialog.$modalHeader.css('cursor', 'pointer')
+                            dialog.$modalContent.css({
+                                width: 500
+                            });
+                        }
+
+                    });
+                    return false;
+                });
+                element.find('.jsoneditor-menu').append(btn);
+
+                element.data('editor', editor);
+                let ov = (typeof oldValue === 'string' ? JSON.parse(oldValue) : oldValue);
+                editor.set(ov);
+                break;
+            case 'html':
+                element = $('<div class="HTMLEditor">')
+                var el = $('<div>').appendTo(element);
+                var editor = CodeMirror(el.get(0), {
+                    value: (oldValue ? oldValue : (f.default ? f.default : "")),
+                    mode: "text/html",
+                    height: '150px',
+                    readOnly: false,
+                    theme: 'eclipse',
+                    lineNumbers: true,
+                    indentWithTabs: true,
+                    autoCloseTags: true
+                });
+                editor.getScrollerElement().style.minHeight = '150px',
+
+                    element.data('editor', editor);
+                break;
+            case 'integer':
+                element = $('<input>').val(oldValue !== undefined ? oldValue : (f.default ? f.default : "")).attr('type', 'number');
+                if (f.min !== undefined) element.attr('min', f.min);
+                if (f.max !== undefined) element.attr('max', f.max);
+                if (f.step !== undefined) element.attr('step', f.step);
+                break;
+            case 'checkbox':
+                element = $('<input>').attr('type', 'checkbox').data('type', type);
+                if (oldValue) element.prop('checked', true);
+                //else if (oldValue === undefined) element.prop('checked', true);
+
+                break;
+            case 'select':
+                element = $('<select>');
+                if (f.values) {
+                    let icons = f.valIcons || {};
+                    let orders;
+                    if (f.valuesOrder) {
+                        orders = f.valuesOrder.slice(0);
+                    }
+                    if (fName === 'type') {
+                        if (item.table_name && item.name && item.table_name.v === "tables_fields" && item.name.v==='data_src') {
+                            orders = ["fieldParams"]
+                        }
+                        $.each(orders, function (i, k) {
+                            if (fieldTypes[k]) {
+                                icons[k] = 'fa ' + fieldTypes[k].icon;
+                            }
+                        });
+                    }
+
+                    const addOption = function (k, v) {
+                        let option = $('<option>').attr('value', k).text(v);
+                        if (icons[k]) {
+                            option.data('icon', icons[k]);
+                        }
+                        element.append(option);
+                    };
+                    if (orders) {
+                        orders.forEach(function (valName) {
+                            addOption(valName, f.values[valName])
+                        })
+                    } else {
+                        $.each(f.values, addOption)
+
+                    }
+
+                }
+
+                if (f.multiple) {
+                    element.attr('multiple', 'multiple');
+                    element.attr('size', '2');
+                }
+                setTimeout(function () {
+                    element.selectpicker();
+                }, 20);
+
+
+                if (oldValue) element.val(oldValue);
+                else if (oldValue === undefined && f.default) element.val(f.default);
+                break;
+
+        }
+        let $switcher;
+        Val.isOnCheck = true;
+
+        if (type === 'checkbox') {
+            input.prepend($('<label class="field-param-lable">').text(f.title ? f.title : fName)
+                .addClass('form-check-label').prepend(element)
+                .append('<a href="http://docs.totum.online/polya#fields-settings-' + fName + '" target="_blank"><i class="fa fa-question-circle-o"></i></a>'));
+            input.addClass('checkbox');
+            $switcher = element;
+            if (!element.is(':checked')) {
+                Val.isOnCheck = false;
+                input.addClass('disabled');
+            }
+        } else {
+            input.prepend($('<label class="field-param-lable">').text(f.title ? f.title : fName)
+                .append('<a href="http://docs.totum.online/polya#fields-settings-' + fName + '" target="_blank"><i class="fa fa-question-circle-o"></i></a>'));
+
+            if (element) {
+                element.data('type', type);
+                if (!element.data('editor'))
+                    element.addClass('form-control');
+                input.append(element);
+            }
+
+
+            if (f.required !== true) {
+                $switcher = $('<input type="checkbox" data-type="switcher"/>');
+
+                if (isOn) {
+                    Val.isOnCheck = true;
+                    $switcher.prop('checked', true);
+                } else {
+                    Val.isOnCheck = false;
+                    input.addClass('disabled');
+                }
+
+                input.find('label').prepend($switcher);
+                input.addClass('checkbox');
+            }
+        }
+
+        if ($switcher) {
+            $switcher.on('change', function () {
+                if ($(this).is(':checked')) {
+                    if (Val.isOnCheck !== true) {
+                        Val.isOnCheck = true;
+                        input.removeClass('disabled');
+                        Val.changed();
+                    }
+                } else {
+                    if (Val.isOnCheck !== false) {
+                        Val.isOnCheck = false;
+                        input.addClass('disabled');
+                        Val.changed();
+                    }
+                }
+            });
+        }
+
+
+        input.data('type', type);
+        return input;
+    },
+    getValue: function (value, item, isModulPanel) {
+        "use strict";
+        if (isModulPanel) {
+            let def = $.Deferred();
+            def.resolve({'value': (value || {})});
+            return def;
+        }
+        let data = {'fieldName': this.name};
+        if (item.id) {
+            data['rowId'] = item.id;
+        }
+        return this.pcTable.model.getValue(data, this.table_id);
+    },
+    getPanelText: function (fieldvalue) {
+        let data = {};
+        return JSON.stringify(fieldvalue, null, 2);
+        /*
+        Object.keys(fieldvalue).forEach(function (k) {
+            let v = fieldvalue[k];
+            if (v.isOn) data[k] = v.Val;
+        });
+        return JSON.stringify(data, null, 2);*/
+    },
+    getCellText: function (fieldValue) {
+        return 'Настройки поля';
+    }
+})
+;
+fieldTypes.button = {
+    icon: 'fa-hand-pointer-o',
+    getCellText: function (fieldValue, td, item) {
+        let field = this, format={};
+        if (this.category === 'column') {
+            if (item.id){
+                format = $.extend({}, (field.pcTable.f || {}), (item.f || {}), (item[field.name].f || {}));
+            }else{
+                format.block = true;
+            }
+        }else{
+            format = $.extend({}, (field.pcTable.f || {}), (item[field.name].f || {}));
+        }
+        if (format.block || (!this.pcTable.control.editing && !this.pressableOnOnlyRead)){
+            let btn =  $('<button class="btn btn-default btn-xxs button-field" tabindex="-1" disabled>').text(this.buttonText || 'Кнопочка');
+
+            if(format.text){
+                btn.text(format.text)
+            }
+            if(format.comment){
+                let i;
+                i = $('<i class="cell-icon fa fa-info"></i>');
+                btn.prepend(i);
+                i.attr('title', format.comment)
+            }
+            else if (format.icon){
+                btn.prepend('<i class="cell-icon fa fa-'+format.icon+'"></i>');
+            }
+
+            return btn.wrap('<span class="cell-value">').parent()
+        }
+
+
+        if (td) {
+            td.addClass('cell-button');
+        }
+        let btn = $('<button class="btn btn-default btn-xxs button-field" tabindex="-1">').text(this.buttonText || 'Кнопочка');
+
+        if(format.text){
+            btn.text(format.text)
+        }
+        if(format.comment){
+            let i;
+            i = $('<i class="cell-icon fa fa-info"></i>');
+            btn.prepend(i);
+            i.attr('title', format.comment)
+        }
+        else if (format.icon){
+            btn.prepend('<i class="cell-icon fa fa-'+format.icon+'"></i>');
+        }
+
+
+        return btn;
+    },
+    btnOK: function ($td) {
+        let btn = $td.find('button');
+        let field = this;
+        btn.text('Выполнено');
+        $td.data('clicked', true);
+
+        setTimeout(function () {
+            $td.removeData('clicked');
+            let item=field.pcTable._getItemBytd.call(field.pcTable, $td);
+            btn.replaceWith(field.getCellText.call(field, item[field.name], $td, item));
+        }, BUTTONS_TIMEOUT)
+    }
+};
+fieldTypes.link = {
+  icon: 'fa-link'
+};
+fieldTypes.comments = {
+    icon: 'far fa-comments-o',
+    getEditVal: function (div) {
+        return div.data('val');
+    },
+    getCellText: function (fieldValue) {
+        let field = this;
+        if (fieldValue.n === 0 || !fieldValue.n) return '';
+
+        let mainDiv = $('<span>');
+
+        let div = $('<span class="comments">').text(fieldValue.c[0] + ' ' + fieldValue.c[1] + ': ' + fieldValue.c[2]).appendTo(mainDiv);
+
+        if (fieldValue.notViewed) {
+            div.addClass('notViewed');
+            if (field.decorationColor) {
+                div.css('border-bottom-color', field.decorationColor);
+            }
+        }
+
+        return mainDiv;
+    },
+    getValue: function (value, item, isModulPanel) {
+        "use strict";
+        let field = this;
+        let def = $.Deferred();
+
+        if (isModulPanel) {
+            if (!value) value = [];
+            def.resolve({'value': value});
+        } else if (value.n === 0 || (value.n === 1 && !value.cuted && !value.notViewed)) {
+            if (!value) value = [];
+            def.resolve({'value': [value.c]});
+
+        } else {
+            let data = {'fieldName': this.name};
+            if (item.id) {
+                data['rowId'] = item.id;
+            }
+            def = this.pcTable.model.getValue(data, this.table_id);
+        }
+        def.then(function (json) {
+            if (item[field.name].v.notViewed || item[field.name].notViewed) {
+                let $_def = $.Deferred();
+                $_def.then(function () {
+                    delete item[field.name].v.notViewed;
+                    delete item[field.name].notViewed;
+                    let td;
+                    if (item.id) {
+                        td = field.pcTable._getTdByFieldName(field.name, field.pcTable.data[item.id].$tr);
+                    } else {
+                        td = field.pcTable._paramsBlock.find('td[data-field="' + field.name + '"]');
+                        if (!td.length) {
+                            td = field.pcTable._footersBlock.find('td[data-field="' + field.name + '"]')
+                        }
+                    }
+                    if (td && td.length) {
+                        td.find('.notViewed-num').remove();
+                        td.find('.notViewed').removeClass('notViewed');
+                    }
+                });
+                if (item[field.name].notViewed) {
+                    field.pcTable.model.setCommentsViewed(item[field.name].v.length, field.name, item.id).then(function () {
+                        $_def.resolve();
+                    });
+                } else {
+                    $_def.resolve();
+                }
+
+            }
+        });
+
+        return def;
+    },
+    getPanelText: function (_, td, item) {
+        let field = this;
+        let def = $.Deferred();
+        let fieldValue = item[field.name];
+        this.getValue(fieldValue, item, false).then(function (json) {
+            let div = $('<div class="comments">');
+            $.each(json.value, function (i, com) {
+                div.append(field.getCommentLine(com));
+            });
+            def.resolve(div);
+
+        }).fail(function () {
+            def.reject();
+        });
+
+        return def.promise();
+    },
+    getCommentLine: function (com) {
+        let div = $('<div class="comments-line">');
+        div.append($('<span class="com_dt">').text(com[0]));
+        div.append(' ');
+        div.append($('<span class="com_author">').text(com[1]));
+        div.append(' ');
+        div.append($('<span class="com_text">').html(App.textWithLinks(com[2])));
+
+        return div;
+    },
+    getPanelVal(val, div) {
+        if (div) return this.getEditVal(div);
+    },
+    getEditElement: function ($oldInput, oldValueParam, item, enterClbk, escClbk, blurClbk, tabindex, editNow) {
+
+        let field = this;
+        let div = $oldInput || $('<div>');
+        let dialog = div.data('dialog') || $('<div>').css('min-height', 200);
+        div.data('dialog', dialog);
+        let buttons;
+        let valPreview;
+
+        oldValueParam = oldValueParam.v || '';
+
+        let formFill = function (dlg) {
+            field.getValue.call(field, oldValueParam, item, !editNow).then(function (json) {
+                let $input = $('<textarea type="text" style="height:90px;resize: vertical" class="form-control"/>');
+                $.each(json.value, function (i, com) {
+                    dialog.append(field.getCommentLine(com));
+                });
+                dialog.append($('<div class="comments-input">').append($input));
+                dialog.data('input', $input);
+                $input.focus();
+            });
+
+        };
+
+        const save = function (dlg, event, notEnter) {
+            let val = dialog.find('textarea').val().trim();
+            div.data('val', val);
+
+            if (valPreview) {
+                valPreview.text(val);
+
+                if (val !== '') {
+                    valPreview.css('color', 'red');
+                } else {
+                    valPreview.html(field.getValPreview(oldValueParam));
+                    valPreview.css('color', '');
+                }
+            }
+            if (!notEnter) {
+                enterClbk(div, {});
+                dlg.close();
+            }
+        };
+
+
+        buttons = [];
+
+        let btnsSave = {
+            'label': "Сохранить",
+            cssClass: 'btn-m btn-warning',
+            action: save
+        }, btnsClose = {
+            'label': "Закрыть",
+            cssClass: 'btn-m btn-default',
+            'action': function (dialog) {
+                escClbk(div, {});
+                dialog.close();
+            }
+        };
+
+        let title = 'Комментарии поля <b>' + (this.title) + '</b>';
+        let eventName = 'ctrlS.commentdialog';
+
+        if (editNow) {
+            let btnClicked = false;
+            setTimeout(function () {
+                let cdiv = div.closest('td').find('.cdiv');
+                if (cdiv.length > 0) {
+                    cdiv.data('bs.popover').options.content.find('.btn').each(function () {
+                        let btn = $(this);
+                        let buttn = {};
+                        buttn.label = btn.data('name');
+                        buttn.cssClass = btn.attr('class').replace('btn-sm', 'btn-m');
+                        buttn.icon = btn.find('i').attr('class');
+                        buttn.save = btn.data('save');
+                        buttn.click = btn.data('click');
+                        buttn.action = function (dialog) {
+                            if (buttn.save) {
+                                save(dialog, {}, true);
+                            }
+                            buttn.click({});
+                            btnClicked = true;
+                            dialog.close();
+                        };
+
+                        buttons.push(buttn)
+                    });
+                    cdiv.popover('destroy');
+                } else {
+                    buttons.push(btnsSave);
+                    buttons.push(btnsClose)
+                }
+
+                if (field.pcTable.isMobile) {
+                    App.mobilePanel(title, dialog, {
+                        buttons: buttons,
+                        onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshown: function (dialog) {
+
+                            formFill(dialog);
+                        },
+                        onshow: function (dialog) {
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event, false);
+                            });
+                        }
+                    })
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        title: title,
+                        cssClass: 'fieldparams-edit-panel',
+                        draggable: true,
+                        buttons: buttons,
+                        onhide: function (dialog) {
+                            $('body').off(eventName);
+                            if (!btnClicked) {
+                                blurClbk(div, {});
+                            }
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalContent.position({
+                                of: $('body'),
+                                my: 'top+50px',
+                                at: 'top'
+                            });
+                            formFill(dialog);
+                        },
+                        onshow: function (dialog) {
+                            dialog.$modalHeader.css('cursor', 'pointer');
+                            dialog.$modalContent.css({
+                                width: 900
+                            });
+
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event, false);
+                            });
+                        }
+
+                    });
+                }
+
+
+            }, 1);
+
+
+            div.text('Редактирование в форме').addClass('edit-in-form');
+        } else {
+            let showned = false;
+            div.off().on('focus click', 'button', function () {
+                if (showned) return false;
+                showned = true;
+                let buttonsClick = buttons.slice(0);
+                buttonsClick.push(btnsSave);
+                buttonsClick.push(btnsClose);
+
+                var div = $(this).closest('div');
+                if (field.pcTable.isMobile) {
+                    App.mobilePanel(title, dialog, {
+                        buttons: buttonsClick,
+                        onhide: function (event) {
+                            showned = false;
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshown: function (dialog) {
+                            if (dialog.$modalBody.find('textarea').length === 0) {
+                                formFill(dialog);
+                            }
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event, false);
+                            });
+
+                        }
+                    })
+                } else {
+                    BootstrapDialog.show({
+                        message: dialog,
+                        type: null,
+                        cssClass: 'fieldparams-edit-panel',
+                        title: title,
+                        draggable: true,
+                        size: BootstrapDialog.SIZE_WIDE,
+                        buttons: buttonsClick,
+                        onhide: function (event) {
+                            showned = false;
+                            $('body').off(eventName);
+                            escClbk(div, event);
+                        },
+                        onshown: function (dialog) {
+                            dialog.$modalHeader.css('cursor', 'pointer');
+                            if (dialog.$modalBody.find('textarea').length === 0) {
+                                formFill(dialog);
+                            }
+
+                            dialog.$modalContent.css({
+                                width: 900
+                            });
+
+                            $('body').on(eventName, function (event) {
+                                save(dialog, event, false);
+                            });
+
+                        }
+                    })
+                }
+
+            });
+
+            if (div.find('button').length === 0) {
+                let btn = $('<button class="btn btn-default btn-sm text-edit-button">').text('Добавить комментарий');
+                if (tabindex) btn.attr('tabindex', tabindex);
+
+                div.append(btn);
+                setTimeout(function () {
+
+                    if (div.closest('.InsertPanel').length !== 0) {
+                        valPreview = $('<div class="val-preview"/>').html(oldValueParam?field.getValPreview(oldValueParam):'');
+                        if (div.data('val')) {
+                            valPreview.text(div.data('val'));
+                        }
+                        valPreview.css('padding-bottom', "5px");
+                        div.prepend(valPreview)
+                    }
+                }, 10);
+
+            }
+
+        }
+        return div.data('val', null);//.attr('data-category', category).attr('data-category', category);
+
+    },
+    getValPreview(oldValueParam) {
+        return this.getCellText({
+            c: oldValueParam[oldValueParam.length - 1],
+            n: oldValueParam.length
+        })
+    }
+
+};
+
+    $.each(fieldTypes, function (k, v) {
+        fieldTypes[k] = $.extend({}, defaultField, v);
+    });
+
+    App.pcTableMain = function (element, config) {
+
+        config = $.extend({},
+            {
+                tableRow: {},
+                nSorted: true,
+                isCreatorView: false,
+                withCsvButtons: false,
+                withCsvEditButtons: false,
+                noDataRowClass: 'pcTable-noDataRow',
+                contanerClass: 'pcTable-container',
+                tableClass: 'pcTable-table',
+                width: null,
+                checkIsUpdated: 0,
+                _containerId: '',
+                scrollWrapper: null,
+                tableWidth: 0,
+                control: {
+                    adding: false,
+                    sorting: false,
+                    deleting: false,
+                    duplicating: false
+                },
+                dataSorted: [],
+                data: [],
+                data_params: null,
+                dataSortedVisible: [],
+                mainFieldName: 'id',
+
+                insertRow: null,
+                _container: null,
+                _content: null,
+
+                extraClastersBottom: null,
+                extraClastersTop: null,
+                dataSortedClasters: {'t': [], 'm': [], 'b': []},
+                ScrollClasterized: null,
+
+                _innerContainer: null,
+                _header: null,
+                _table: null,
+
+                LogButton: null,
+
+                model: null,
+                fields: {},
+                hidedFields: [],
+                fieldCategories: {
+                    column: [],
+                    params: [],
+                    footer: []
+                },
+                sorted: {
+                    field: '',
+                    direction: 'asc'
+                },
+                _sorting: {},
+                _filterable: false,
+                filtersClearButton: null,
+                _indexes: {
+                    fieldByName: {}
+                },
+                beforeSpaceHide: true
+            }, config);
+        $.extend(this, config, true);
+
+        if (screen.width <= MOBILE_MAX_WIDTH) {
+            this.isCreatorView = false;
+            this.isMobile = true;
+        }
+
+        this.hidden_fields = this.hidden_fields || {};
+        if (this.hidden_fields.length === 0) this.hidden_fields = {};
+
+        if (App.isTopWindow()) {
+            this.beforeSpaceHide = false;
+        }
+
+        if (element) {
+            this.refreshArraysFieldCategories(true);
+            let $element = $(element);
+            $element.data(pcTable_DATA_KEY, this);
+            this._container = $element;
+            this._containerId = this._container.attr('id');
+            if (!this._containerId) {
+                this._containerId = 'pcTable' + (pcTableIds++);
+                this._container.attr('id', this._containerId)
+            }
+            this._init();
+            this.render(config.addVars);
+        } else {
+            this.initForPanel(config)
+        }
+
+        this.model.addPcTable(this);
+        //if (this.tableRow.type === 'tmp') {}
+        return this;
+    };
+
+let panelId = 0;
+window.EditPanel = function (pcTable, dialogType, inData, isElseItems) {
+
+    if (window.top !== window) return window.top.EditPanel.call(window.top, pcTable, dialogType, inData, isElseItems);
+
+    let data = $.extend(true, {}, inData);
+
+    let EditPanelFunc = this;
+    EditPanelFunc.pcTable = pcTable;
+    EditPanelFunc.panelId = 'panel' + (panelId++);
+
+    let $d = $.Deferred();
+
+    this.$panel = $('<div class="InsertPanel">');
+    this.isNewPanel = true;
+    this.blockedFields = {};
+    this.bootstrapPanel = null;
+
+
+    let checkMethod = data.id ? 'checkEditRow' : 'checkInsertRow';
+    let saveMethod = data.id ? 'saveEditRow' : 'add';
+    this.panelType = data.id ? 'edit' : 'insert';
+    this.editItem = data || {};
+    $('body').trigger('pctable-opened', {'type': 'panel'});
+
+    EditPanelFunc.resolved = false;
+
+    this.checkRow = function (field, isFirstCall) {
+
+        EditPanelFunc.pcTable.model[checkMethod](this.getDataForPost(), field).then(function (json) {
+            EditPanelFunc.editRow.call(EditPanelFunc, json);
+        });
+    };
+    this.saveRow = function (panel, btn) {
+        EditPanelFunc.pcTable.model[saveMethod](this.getDataForPost())
+            .then(function (json) {
+                $d.resolve(json);
+                EditPanelFunc.resolved = true;
+                $(window.top.document.body).trigger('pctable-closed', {
+                    'type': 'panel',
+                    json: json,
+                    method: EditPanelFunc.panelType,
+                    tableId: EditPanelFunc.pcTable.tableRow.id
+                });
+                EditPanelFunc.bootstrapPanel.close();
+            }).fail(function () {
+            if (btn.length && btn.isAttached()) {
+                let btn = panel.$modal.find('.btn-save').prop('disabled', false);
+            }
+        })
+    };
+
+    this.editRow = function (json) {
+        "use strict";
+        let isAnyEditableFields = false;
+        EditPanelFunc.pcTable.f = json.f || {};
+        EditPanelFunc.editItem.f = json.row.f || {};
+
+        EditPanelFunc.pcTable.fieldCategories.column.forEach(function (field, index) {
+
+            if (field.name === 'n') return;
+
+            let cell = EditPanelFunc.$panel.find('div.cell[data-field-name="' + field.name + '"]');
+
+            let Oldval = EditPanelFunc.editItem[field.name];
+            EditPanelFunc.editItem[field.name] = json.row[field.name];
+
+            if (EditPanelFunc.isEditable(field)) isAnyEditableFields = true;
+
+            let format = $.extend({}, (EditPanelFunc.pcTable.f || {}), (EditPanelFunc.editItem.f || {}), (EditPanelFunc.editItem[field.name].f || {}));
+
+            if (cell.length) {
+                let btns = cell.parent().find('.btns:first');
+
+                if (cell.data('input') && !format.block) {
+                    if (!Oldval || field.isDataModified(EditPanelFunc.editItem[field.name].v, Oldval.v) || field.codeSelectIndividual) {
+                        EditPanelFunc.createCell.call(EditPanelFunc, cell, field, index, format);
+                    }
+                } else {
+                    EditPanelFunc.createCell.call(EditPanelFunc, cell, field, index, format)
+                }
+            } else {
+                let divWrapper = $('<div class="cell-wrapper" style="position: relative">');
+
+                let label = $('<label>').text(field.title || field.name).prependTo(divWrapper);
+                if (field.unitType) {
+                    label.text(label.text() + ', ' + field.unitType);
+                }
+                $('<div class="btns pull-right">').prependTo(divWrapper);
+
+                EditPanelFunc.$panel.append(divWrapper);
+                cell = EditPanelFunc.createCell.call(EditPanelFunc, cell, field, index, format, divWrapper);
+
+                if (!EditPanelFunc.pcTable.isMobile) {
+                    divWrapper.width(390);
+                }
+
+                setTimeout(() => {
+                    let cellWidth = divWrapper.find('.btns').width();
+                    if (cellWidth > 0) {
+                        cellWidth += 3;
+                    }
+                    label.css('max-width', 'calc(100% -  ' + cellWidth + 'px)');
+
+                }, 2);
+
+                if (field.linkToSelectTable) {
+                    divWrapper.append(' <a href="' + field.linkToSelectTable.link + '" class="color-primary-primary" style="font-size: 12px" target="_blank">' + field.linkToSelectTable.title + '</a> ')
+                }
+            }
+
+
+            if (format.hideinpanel) {
+                cell.parent().css('display', 'none');
+            } else {
+                cell.parent().css('display', '');
+            }
+            cell.attr('data-field-name', field.name);
+            cell.attr('data-field-type', field.type);
+
+            if (EditPanelFunc.panelType === 'edit') {
+
+                if (field.code && !field.codeOnlyInAdd) {
+                    let button = cell.parent().find('.btns button.handled');
+                    if (!button.length) {
+                        button = $('<button class="btn btn-sm btn-default handled" tabindex="' + (index * 2 + 2) + '"></button>');
+                        cell.parent().find('.btns').prepend(button);
+                        if (EditPanelFunc.isEditable(field)) {
+                            button.on('click', function () {
+                                if (EditPanelFunc.editItem[field.name].h === true) {
+                                    EditPanelFunc.editItem[field.name].h = false;
+                                } else {
+                                    EditPanelFunc.editItem[field.name].h = true;
+                                }
+                                EditPanelFunc.checkRow.call(EditPanelFunc);
+                            });
+                            button.prop('disabled', false);
+                        } else {
+                            button.prop('disabled', 'disabled');
+                            if (!EditPanelFunc.editItem[field.name].h) {
+                                button.remove();
+                            }
+
+                        }
+                    }
+                    button.removeClass('btn-warning').addClass('btn-default');
+
+
+                    button.html('<i class="fa fa-hand-grab-o"/>');
+                    if (EditPanelFunc.editItem[field.name].h) {
+                        button.addClass('btn-warning').removeClass('btn-default');
+                        if (Object.keys(EditPanelFunc.editItem[field.name]).indexOf('c') !== -1 && EditPanelFunc.editItem[field.name].c !== EditPanelFunc.editItem[field.name].v) {
+                            button.html('<i class="fa fa-hand-paper-o"/>');
+                        }
+                    }
+                }
+            }
+
+        }, EditPanelFunc);
+
+        if (EditPanelFunc.isNewPanel) {
+            let title = '';
+            if (this.panelType === 'edit') {
+                let itemName;
+                if (EditPanelFunc.pcTable.tableRow.main_field && EditPanelFunc.pcTable.fields[EditPanelFunc.pcTable.tableRow.main_field]) {
+                    let fieldName = EditPanelFunc.pcTable.tableRow.main_field;
+                    itemName = (EditPanelFunc.editItem[fieldName] || json.row[fieldName]);
+                    if (itemName) itemName = itemName.v;
+                    itemName = ' "' + itemName + '"';
+                }
+                if (!itemName) {
+                    itemName = 'id ' + (EditPanelFunc.editItem['id'] || json.row.id);
+                } else {
+                    itemName = 'id ' + (EditPanelFunc.editItem['id'] || json.row.id) + ' ' + itemName;
+                }
+
+                if (!EditPanelFunc.pcTable.control.editing || (json.row.f.block && !isAnyEditableFields)) {
+                    title = 'Просмотр <b> ' + itemName + '</b> таблицы <b>' + EditPanelFunc.pcTable.tableRow.title + '</b>';
+                } else {
+                    title = 'Редактирование <b> ' + itemName + '</b> таблицы <b>' + EditPanelFunc.pcTable.tableRow.title + '</b>';
+                }
+            } else {
+                title = 'Добавление строки в таблицу <b>' + EditPanelFunc.pcTable.tableRow.title + '</b>';
+            }
+
+            EditPanelFunc.cleateBootstrapPanel.call(EditPanelFunc, title, dialogType, (EditPanelFunc.type === 'insert' || isAnyEditableFields));
+            EditPanelFunc.isNewPanel = false;
+        }
+
+    };
+
+
+    this.cleateBootstrapPanel = function (title, type, isEditable) {
+        let EditPanel = this;
+        let buttons = [];
+
+        if (isEditable) {
+
+            buttons.push({
+                action: function (panel, event) {
+                    "use strict";
+                    let btn = panel.$modal.find('.btn-save').prop('disabled', 'disabled');
+                    setTimeout(function () {
+                        EditPanelFunc.pcTable.model.doAfterProcesses(function () {
+                            EditPanel.saveRow.call(EditPanel, panel, btn);
+
+                        });
+                    }, 250)
+                },
+                cssClass: 'btn-warning btn-save',
+                label: 'Cохранить'
+            });
+        }
+
+        if (isElseItems) {
+
+            buttons.push({
+                action: function (panel) {
+
+                    panel.close();
+                },
+                label: 'Закрыть'
+            });
+
+        }
+
+        buttons.push({
+            action: function (panel) {
+                $d.resolve(undefined, /*next*/true);
+                EditPanelFunc.resolved = true;
+
+                panel.close();
+            },
+            label: 'Закрыть' + (isElseItems === true ? ' →' : '')
+        });
+
+        EditPanel.bootstrapPanel = BootstrapDialog.show({
+            type: type || null,
+            size: BootstrapDialog.SIZE_WIDE,
+            message: EditPanel.$panel,
+            cssClass: 'edit-row-panel',
+            title: title,
+            buttons: buttons,
+            draggable: true,
+            onhidden: function () {
+                $d.resolve();
+                if (!EditPanelFunc.resolved) {
+                    $(window.top.document.body).trigger('pctable-closed', {'type': 'panel'});
+                }
+                $(window.top.document.body).off('.' + EditPanelFunc.panelId);
+            },
+            onshown: function (dialog) {
+                "use strict";
+                dialog.indexedButtons[Object.keys(dialog.indexedButtons)[0]].attr('tabindex', 500);
+                if (Object.keys(dialog.indexedButtons).length === 2) {
+                    dialog.indexedButtons[Object.keys(dialog.indexedButtons)[1]].attr('tabindex', 501);
+                }
+            }
+
+        })
+    };
+
+    this.createCell = function (cell, field, fieldIndex, format, divWrapper) {
+        let item = EditPanelFunc.editItem || {};
+        item[field.name] = item[field.name] || {};
+
+        if (cell.length === 0) {
+            cell = $("<div data-name='" + field.name + "' class='cell'>").appendTo(divWrapper);
+
+            if (field.code) {
+                cell.addClass('with-code');
+            }
+        }else{
+            divWrapper=cell.parent();
+        }
+
+        let btns = divWrapper.find('.btns');
+        btns.find('.select-btns').remove();
+
+        if (!this.isEditable(field)) {
+            EditPanelFunc.blockedFields[field.name] = true;
+
+            let span = $('<span class="' + (field.type !== 'button' ? 'form-control no-borders' : 'link') + '">');
+
+            if (field.type !== "button" && format.text) {
+                span.text(format.text);
+            } else {
+                span.append(field.getCellTextInPanel.call(field, (EditPanelFunc.editItem[field.name].v), cell, EditPanelFunc.editItem, EditPanelFunc.pcTable));
+            }
+            if (field.type !== "button") {
+                if (format.comment) {
+                    let i;
+                    i = $('<i class="cell-icon fa fa-info"></i>');
+                    span.prepend(i);
+                    i.attr('title', format.comment)
+                } else if (format.icon) {
+                    span.prepend('<i class="cell-icon fa fa-' + format.icon + '"></i>');
+                }
+            }
+
+            if (field.unitType) {
+                span.append(' ' + field.unitType);
+            }
+
+            if (field.type === 'button' && EditPanelFunc.pcTable) {
+                cell.on('click', function () {
+                    EditPanelFunc.pcTable._buttonClick.call(EditPanelFunc.pcTable, cell, field, item);
+                });
+            }
+
+            cell.html(span).prepend(btns).data('input', null);
+
+            return cell;
+        }
+
+        EditPanelFunc.blockedFields[field.name] = false;
+
+        let getEditVal = function ($input) {
+            let editVal;
+            try {
+                editVal = field.getEditVal($input);
+            } catch (error) {
+                App.popNotify(error, $input, 'default');
+                return null;
+            }
+            return editVal;
+        };
+
+        let onAction = false;
+
+        let inFocus = cell.find('input,button').is(':focus');
+
+
+        let saveClbck = function ($input, event, onBlur) {
+            onAction = true;
+
+            let editValResult = getEditVal($input);
+
+            if (editValResult === null) {
+
+                EditPanelFunc.FocusIt.call(EditPanelFunc, fieldIndex);
+
+            } else {
+                if (!onBlur) {
+
+                    EditPanelFunc.FocusIt.call(EditPanelFunc, fieldIndex + 1);
+                }
+                if (field.isDataModified(editValResult, EditPanelFunc.editItem[field.name].v)) {
+                    EditPanelFunc.editItem[field.name].v = editValResult;
+                    if (field.code && !field.codeOnlyInAdd) {
+                        EditPanelFunc.editItem[field.name].h = true;
+                    }
+                    if (field.isPanelField === true) {
+                        EditPanelFunc.createCell.call(EditPanelFunc, cell, field, 50 + fieldIndex);
+                    }
+                    EditPanelFunc.checkRow.call(EditPanelFunc, field.name);
+                }
+            }
+            onAction = false;
+        };
+        let blurClbck = function ($input, event) {
+            setTimeout(function () {
+                if ($input && $input.length && $input.isAttached()) {
+                    if (onAction) {
+                        onAction = false;
+                    } else {
+                        saveClbck($input, event, true);
+                    }
+                }
+
+            }, 40);
+            return false;
+        };
+        let escClbck = function ($input, event) {
+            onAction = true;
+
+            let editValResult = getEditVal($input);
+            if (field.isDataModified(editValResult, EditPanelFunc.editItem[field.name].v)) {
+                EditPanelFunc.checkRow.call(EditPanelFunc);
+            }
+        };
+
+
+        let input = field.getEditElement(cell.data('input'), EditPanelFunc.editItem[field.name], EditPanelFunc.editItem, saveClbck, escClbck, blurClbck, 50 + fieldIndex);
+
+        if (!input.isAttached()) {
+            cell.html(input)
+        }
+        cell.data('input', input);
+
+        if (inFocus) {
+            field.focusElement(input);
+        }
+
+        if (field['type'] === 'select' && field.changeSelectTable) {
+
+            let sourseBtnClick = function () {
+                let ee = {};
+                $.each(EditPanelFunc.editItem, function (k, v) {
+                    if (k.substring(0, 1) !== '$') {
+                        ee[k] = v;
+                    }
+                });
+                let isAdd = $(this).is('.source-add');
+                if (isAdd) {
+                    ee[field.name] = null;
+                }
+                let opened = 0;
+                $(window.top.document.body)
+                    .on('pctable-opened.select-' + EditPanelFunc.panelId, function () {
+                        opened++;
+                    })
+                    .on('pctable-closed.select-' + EditPanelFunc.panelId, function (event, data) {
+                        opened--;
+                        let isAdded = (data && /*data.tableId === field.selectTableId &&*/ data.method === 'insert' && data.json && data.json.chdata && data.json.chdata.rows);
+                        const refreshInputAndPage = function () {
+                            if (opened === 0 || isAdded) {
+                                let inputOld = input;
+                                delete field.list;
+                                if (inputOld.data('input').data('LISTs')) {
+                                    inputOld.data('input').data('LISTs').isListForLoad = true;
+                                }
+                                if (isAdded) {
+                                    if (field.multiple) {
+                                        EditPanelFunc.editItem[field.name].v.push(Object.keys(data.json.chdata.rows)[0]);
+                                    } else {
+                                        EditPanelFunc.editItem[field.name].v = Object.keys(data.json.chdata.rows)[0];
+                                    }
+                                }
+
+                                inputOld.replaceWith(input = field.getEditElement(null, EditPanelFunc.editItem[field.name], EditPanelFunc.editItem, saveClbck, escClbck, blurClbck));
+                                cell.data('input', input);
+                                EditPanelFunc.checkRow.call(EditPanelFunc, field.name);
+
+
+                                if (!isAdd && EditPanelFunc.pcTable.isMain) {
+                                    EditPanelFunc.pcTable.model.refresh(function (json) {
+                                        EditPanelFunc.pcTable.table_modify.call(EditPanelFunc.pcTable, json);
+                                    })
+                                }
+                                $('body').off('.select-' + EditPanelFunc.panelId);
+                            }
+                        };
+                        setTimeout(refreshInputAndPage, 100);//Чтобы успело открыться окошко слещующей панели, если оно есть
+                    });
+                EditPanelFunc.pcTable.model.selectSourceTableAction(field.name, ee)
+            };
+
+            let selectBtns = $('<span class="select-btns">').appendTo(btns);
+            let btn = $('<button class="btn btn-default-primary btn-sm"><i class="fa fa-edit"></i></button>');
+            selectBtns.append(btn);
+            btn.on('click', sourseBtnClick);
+
+            if (field.changeSelectTable === 2) {
+                let btn = $('<button class="btn btn-default-primary btn-sm source-add"><i class="fa fa-plus"></i></button>');
+                selectBtns.append(btn);
+                btn.on('click', sourseBtnClick);
+            }
+        }
+
+        return cell;
+    };
+    this.getDataForPost = function () {
+        let data = {};
+        if (EditPanelFunc.editItem.id) {
+            data.id = EditPanelFunc.editItem.id;
+        }
+        EditPanelFunc.pcTable.fieldCategories.column.forEach(function (f) {
+            if (f.name === 'n') return;
+
+            if (EditPanelFunc.editItem[f.name] && EditPanelFunc.isEditable(f)) {
+                data[f.name] = {};
+                if (EditPanelFunc.panelType === 'edit') {
+                    data[f.name].v = EditPanelFunc.editItem[f.name].v;
+                    if (f.code && !f.codeOnlyInAdd) {
+                        data[f.name].h = EditPanelFunc.editItem[f.name].h || false;
+                    }
+                    data[f.name].v = f.getPanelVal.call(f, data[f.name].v, EditPanelFunc.$panel.find('div.cell[data-field-name="' + f.name + '"]').data('input'));
+                } else {
+                    data[f.name] = EditPanelFunc.editItem[f.name].v;
+                    data[f.name] = f.getPanelVal.call(f, data[f.name], EditPanelFunc.$panel.find('div.cell[data-field-name="' + f.name + '"]').data('input'));
+                }
+
+            } else if (inData[f.name]) {
+                if (EditPanelFunc.panelType === 'insert') {
+                    data[f.name] = inData[f.name].v;
+                }
+            }
+        });
+        return data;
+    };
+    this.isEditable = function (field) {
+
+        if (!EditPanelFunc.pcTable.control.editing) return false;
+        let format = $.extend({}
+            , (EditPanelFunc.pcTable.f || {})
+            , (EditPanelFunc.editItem.f || {})
+            , (EditPanelFunc.editItem[field.name].f || {})
+        );
+
+        if (format.block === true) return false;
+        if (this.panelType === 'insert') return field.insertable;
+
+        return field.editable;
+    };
+
+    let focusTimer;
+
+    this.FocusIt = function (focusIndex) {
+
+        if (focusTimer) clearTimeout(focusTimer);
+        focusTimer = setTimeout(function () {
+
+            let isLastCell = true;
+
+            if (!EditPanelFunc.$panel || !EditPanelFunc.$panel.length) return false;
+
+            EditPanelFunc.pcTable.fieldCategories.column.forEach(function (field, index) {
+                if (field.name === 'n') return;
+
+                if (focusIndex === index) {
+                    if (!EditPanelFunc.isEditable(field)) {
+                        ++focusIndex;
+                        return;
+                    } else {
+                        let input = EditPanelFunc.$panel.find('.cell[data-name="' + field.name + '"]').data('input');
+                        if (input) {
+                            field.focusElement(input);
+                        }
+                    }
+                    isLastCell = false;
+                    return false;
+                }
+            });
+            if (isLastCell) {
+                let buttonSave = EditPanelFunc.bootstrapPanel.indexedButtons[Object.keys(EditPanelFunc.bootstrapPanel.indexedButtons)[0]];
+                buttonSave.focus();
+            }
+        }, 50);
+    };
+
+
+    if (typeof EditPanelFunc.pcTable !== 'object') {
+        App.getPcTableById(EditPanelFunc.pcTable).then(function (pcTable) {
+            EditPanelFunc.pcTable = pcTable;
+            EditPanelFunc.checkRow.call(EditPanelFunc, null, true);
+        });
+    } else if (EditPanelFunc.pcTable[0]) {
+        App.getPcTableById(EditPanelFunc.pcTable[0], {sess_hash: EditPanelFunc.pcTable[1]}).then(function (pcTable) {
+            pcTable.model.setDataRows(EditPanelFunc.pcTable[2]);
+            EditPanelFunc.pcTable = pcTable;
+            EditPanelFunc.checkRow.call(EditPanelFunc, null, true);
+        });
+    } else {
+        EditPanelFunc.checkRow.call(EditPanelFunc, null, true);
+    }
+
+    return $d.promise();
+};
+(function () {
+    let niceScrollOn = false;
+    let niceScollTimer;
+    $.extend(App.pcTableMain.prototype, {
+        switchContainerNideScroll: function (on_off) {
+            let pcTable = this;
+            if (niceScollTimer) clearTimeout(niceScollTimer);
+            niceScollTimer = setTimeout(() => {
+                if (on_off !== niceScrollOn) {
+                    if (on_off) {
+                        pcTable._container.niceScroll({
+                            cursorwidth: 7,
+                            mousescrollstep: 90,
+                            mousescroll: 190,
+                            autohidemode: false,
+                            enablekeyboard: false,
+                            cursoropacitymin: 1,
+                            railoffset: {left: -3}
+                        });
+                    } else {
+                        pcTable._container.getNiceScroll().remove();
+                    }
+                    niceScrollOn = on_off;
+                }
+            }, 100);
+        },
+        addScrollsRules: function () {
+            let pcTable = this;
+            this._innerContainer
+                .append(this._table);
+            if (!pcTable.isMobile) {
+                this._innerContainer.on('scroll', function () {
+                    "use strict";
+
+                    pcTable._removeEditCell();
+
+                });
+
+                if (!pcTable.withoutScrolls) {
+                    $(function () {
+                        pcTable.switchContainerNideScroll(true);
+                    });
+                }
+            }
+
+
+        },
+        Scroll: function () {
+            let pcTable = this;
+            let self = {};
+            let firstOffset = pcTable._content.offset().top;
+
+            self.table = undefined;
+
+            let heights = {
+                all: 0,
+                top: 0,
+                content: 0,
+                bottom: 0
+            };
+
+            let table;
+            let last_cluster = false,
+                scroll_debounce = 0,
+                pointer_events_set = false,//?
+                createTableHeadRow = function () {
+                    if (!self.table) {
+                        self.table = $('<table>').appendTo(pcTable._innerContainer);
+                        self.table.width(pcTable.tableWidth);
+                        self.table.append($('table.pcTable-table thead').clone(true)).attr('class', $('table.pcTable-table').attr('class'));
+
+                        self.table.find('th:not(.id) div, th:not(.id) .btn').remove();
+                        self.table.find('th.id .pcTable-filters button[data-action="checkbox"]').remove();
+                        self.table.find('th').removeClass('with-filter');
+                        let $topButton = $('<div class="btn btn-default btn-xxs "><i class="fa fa-arrow-up"></i></div>')
+                            .on('click', function () {
+                                pcTable._container.scrollTop(pcTable._filtersBlock.offset().top - pcTable.scrollWrapper.offset().top);
+                            });
+
+                        /* let orderButton = pcTable._innerContainer.find('th.id').find('.fa-sort').parent().clone(true).on('click', function () {
+                             setTimeout(function () {
+                                 table.remove();
+                                 table = undefined;
+                                 createTableHeadRow()
+                             }, 50);
+                         });*/
+
+                        self.table.find('th.id .pcTable-filters:first').append($topButton);
+
+                        if (self.table.find('th.n').length) {
+                            let saveButton = pcTable._innerContainer.find('th.n').find('i.fa-save').parent().clone(true);
+                            self.table.find('th.n').append($('<div class="pcTable-filters">').append(saveButton));
+                        }
+
+                    }
+                    self.table.css({
+                        position: 'absolute',
+                        top: parseInt($('#table').offset().top) - parseInt($('.innerContainer').offset().top)
+                    });
+
+                    /*pcTable._content.off('scroll');
+                    pcTable._content.on('refreshed.scroll', function () {
+                        if (refreshed) {
+                            clearTimeout(refreshed);
+                        }
+                        refreshed = setTimeout(createTableHeadRow, 20);
+                    })*/
+                },
+                scrollFunc = function () {
+
+
+                    /*  if (table) {
+                          table.remove();
+                          table = undefined;
+                      }*/
+
+
+                    let scrollTop = getScrollTop();
+                    if (last_cluster != (last_cluster = self.getClusterNum(scrollTop))) {
+                        self.insertToDOM(last_cluster);
+                    }
+
+                    let tableInner = $('table.pcTable-table');
+                    let tableInnerHead = tableInner.find('thead');
+                    if (tableInnerHead.height() + tableInner.offset().top - $('#table').offset().top <= 0) {
+                        if (!self.table) {
+
+
+                            createTableHeadRow();
+
+                        } else {
+                            self.table.css({top: parseInt($('#table').offset().top) - parseInt($('.innerContainer').offset().top)})
+                        }
+                    } else {
+                        if (self.table) {
+                            self.table.remove();
+                            self.table = undefined;
+                            pcTable._content.off('scroll')
+                        }
+                    }
+
+
+                },
+                getScrollTop = function () {
+                    try {
+                        return pcTable._content.offset().top;
+                    } catch (e) {
+                        return 0;
+                    }
+
+                };
+
+
+            pcTable._container.on('scroll', function () {
+                clearTimeout(scroll_debounce);
+                scroll_debounce = setTimeout(function () {
+                    scrollFunc.call(pcTable);
+                }, 50);
+            });
+            let cache = {
+                top_offset: 0,
+                bottom_offset: 0,
+                rows: $()
+            };
+            $.extend(self, {
+                rows_in_block: 4,
+                item_height: pcTABLE_ROW_HEIGHT,
+                getClusterNum: function (scrollTop) {
+                    let num;
+                    if (scrollTop >= 0) num = 0;
+                    else {
+                        num = Math.floor(-scrollTop / this.block_height)
+                    }
+
+                    return Math.max(num, 0);
+                },
+                reloadScrollHead: function () {
+                    if (self.table) {
+                        self.table.remove();
+                        self.table = undefined;
+                    }
+                    scrollFunc.call(pcTable);
+                },
+                generate: function (cluster_num) {
+                    let rows = pcTable.dataSortedVisible;
+                    let rows_len = rows.length;
+                    if (rows_len < this.rows_in_block) {
+                        return {
+                            top_offset: 0,
+                            bottom_offset: 0,
+                            rows: rows
+                        }
+                    }
+                    let items_start = Math.max((this.rows_in_block * cluster_num), 0),
+                        items_end = items_start + this.rows_in_cluster + 3 * this.rows_in_block,
+                        top_offset = Math.max(items_start * this.item_height, 0),
+                        bottom_offset = Math.max((rows_len - items_end) * this.item_height, 0),
+                        this_cluster_rows = [];
+
+
+                    for (let i = items_start; i < items_end; i++) {
+                        rows[i] && this_cluster_rows.push(rows[i]);
+                    }
+
+                    return {
+                        top_offset: top_offset,
+                        conteinerHeight: pcTable._content.height(),
+                        i_start: items_start,
+                        bottom_offset: bottom_offset,
+                        cluster_num: cluster_num,
+                        rows: this_cluster_rows
+                    }
+                },
+                getRowsHeight: function () {
+                    if (pcTable.dataSortedVisible.length === 0) return;
+                    this.block_height = this.item_height * this.rows_in_block;
+                    this.rows_in_cluster = Math.floor((window.innerHeight - pcTable._container.offset().top) / this.item_height);
+                },
+                insertToDOM: function (cluster, forceCheckTableHeight, forceRefreshData) {
+                    // explore row's height
+
+                    if (pcTable.isMobile) {
+                        this.setHtml(pcTable.dataSortedVisible, 0, 0, forceRefreshData);
+                    } else {
+                        if (!this.rows_in_cluster) {
+                            this.getRowsHeight();
+                        }
+
+                        if (!cluster) cluster = this.getClusterNum(getScrollTop());
+
+                        let data = this.generate(cluster),
+                            this_cluster_rows = data.rows.join(',');
+                        if (forceRefreshData || this.checkChanges('data', this_cluster_rows, cache)) {
+                            this.setHtml(data.rows, data.top_offset, data.bottom_offset, forceRefreshData);
+                        }
+                        if (forceCheckTableHeight && pcTable._container.getNiceScroll) {
+                            pcTable._container.getNiceScroll().resize();
+                        }
+                    }
+                },
+                setHtml: function (rows, top, bottom, forceRefreshData) {
+                    let height = 0;
+                    pcTable._content.find('.editing').each(function (element) {
+                        pcTable._removeEditing.call(pcTable, element);
+                    });
+                    let $trs = pcTable._content.empty().get(0);
+                    if (top) $trs.appendChild($('<tr style="height: ' + top + 'px;" class="loading-row"><td colspan="' + (pcTable.fieldCategories.column.length + 1) + '"></td></tr>').get(0));
+
+                    if (pcTable.dataSorted.length === 0) {
+                        $trs.appendChild(pcTable._createNoDataRow().get(0));
+                    } else if (pcTable.dataSortedVisible.length === 0) {
+                        $trs.appendChild(pcTable._createNoDataRow('По условиям фильтрации не выбрана ни одна строка').get(0));
+                    } else {
+                        for (let i in rows) {
+                            let id = rows[i];
+                            let item = pcTable.data[id];
+                            if (!item.$tr || forceRefreshData) {
+                                pcTable._createRow.call(pcTable, item);
+                            }
+                            item.$tr.data('item', item);
+                            $trs.appendChild(item.$tr.get(0));
+                        }
+                    }
+                    if (bottom) $trs.appendChild($('<tr style="height: ' + bottom + 'px;" class="loading-row"><td colspan="' + (pcTable.fieldCategories.column.length + 1) + '"></td></tr>').get(0));
+                },
+                checkChanges: function (type, value, cache) {
+                    let changed = value != cache[type];
+                    cache[type] = value;
+                    return changed;
+                }
+            });
+
+            return self;
+        }
+    });
+}());
+
+$.extend(App.pcTableMain.prototype, {
+    sort: function (field, sortDirection) {
+        let pcTable = this;
+        let fieldName = field.name;
+
+        let isNumber = field.type === 'number';
+        let data = pcTable.data;
+
+        if (!(pcTable.nSorted = field.name === 'n')) {
+            this._table.addClass('no-correct-n-filtered');
+        }
+
+        if (isNumber) {
+            pcTable.dataSorted = pcTable.dataSorted.sort(function (a, b) {
+                let a1 = data[a][fieldName].v;
+                let b1 = data[b][fieldName].v;
+
+                let _a1, _b1;
+                let r = 0;
+
+                if (a1===null) {
+                    if (b1===null) r = 0;
+                    else r = -sortDirection;
+                } else if (b1===null) {
+                    r = sortDirection;
+                } else {
+
+                    try {
+                        _a1 = Big(a1);
+                    } catch (e) {
+                        _a1 = Big(0);
+                    }
+                    try {
+                        _b1 = Big(b1);
+                    } catch (e) {
+                        _b1 = Big(0);
+                    }
+
+
+                    if (_a1.gt(_b1)) r = sortDirection;
+                    else if (_a1.eq(_b1)) r = 0;
+                    else r = -sortDirection;
+                }
+                return r;
+            });
+        } else if (field.type === 'select') {
+            pcTable.dataSorted = pcTable.dataSorted.sort(function (a, b) {
+                let a_, b_;
+
+                const getVal = function (a) {
+                    let a_;
+
+                    if (data[a][fieldName].v_) {
+                        if (field.multiple) {
+                            a_ = '';
+                            data[a][fieldName].v_.forEach(function (v_) {
+                                a_ += v_[0];
+                            })
+                        } else {
+                            a_ = data[a][fieldName].v_[0]
+                        }
+                    } else {
+                        a_ = data[a][fieldName].v;
+
+                    }
+                    return a_;
+                };
+
+                a_ = getVal(a);
+                b_ = getVal(b);
+
+                if (a_ === b_) return 0;
+                else if (a_ > b_) return sortDirection;
+                else return -sortDirection;
+            });
+        } else {
+            pcTable.dataSorted = pcTable.dataSorted.sort(function (a, b) {
+                let a_, b_;
+                a_ = data[a][fieldName].v || '';
+                b_ = data[b][fieldName].v || '';
+                if (a_ > b_) return sortDirection;
+                else if (a_ == b_) return 0;
+                else return -sortDirection;
+            });
+        }
+        this.dataSortedVisible = [];
+        pcTable.dataSorted.every(function (id) {
+            if (pcTable.data[id].$visible) pcTable.dataSortedVisible.push(id);
+            return true;
+        });
+
+        pcTable._refreshContentTable();
+    }
+});
+App.pcTableMain.prototype.isSelected = function (fieldName, itemId) {
+    if (this.selectedCells && this.selectedCells.ids[fieldName] && this.selectedCells.ids[fieldName].indexOf(itemId) !== -1) {
+        return true;
+    }
+    return false;
+};
+
+App.pcTableMain.prototype._addSelectable = function () {
+    var pcTable = this;
+    pcTable.selectedCells = {
+        fieldName: null,
+        ids: {},
+        notRowCell: null,
+        selectPanel: null,
+        lastSelected: null,
+        notRowCellEmpty: function () {
+            if (this.notRowCell) {
+                this.notRowCell.removeClass('selected');
+                let tr = this.notRowCell.closest('.DataRow');
+                if (tr.length === 1) {
+                    tr.removeClass('selected');
+                }
+                this.notRowCell = null;
+            }
+        },
+        empty: function () {
+            this.notRowCellEmpty();
+            let selected = this;
+            Object.keys(this.ids).forEach(function (fieldName) {
+                selected.ids[fieldName].forEach(function (id) {
+                    let item = pcTable._getItemById(id);
+                    if (item && item.$tr) {
+                        item.$tr.find('.selected').removeClass('selected');
+                        item.$tr.removeClass('selected');
+                    }
+                });
+
+            });
+            this.ids = {};
+            this.lastSelected = null;
+        },
+        getEditedData: function (val, fix) {
+            let editedData = {};
+            let isMulti = false;
+            if (Object.keys(pcTable.selectedCells.ids).length > 1) {
+                isMulti = true;
+            }
+
+            Object.keys(pcTable.selectedCells.ids).forEach(function (fieldName) {
+                pcTable.selectedCells.ids[fieldName].forEach(function (id) {
+
+                    let item = pcTable.data[id];
+                    let isFieldBlocked = item[fieldName].f ? item[fieldName].f.block : undefined;
+
+                    if ((item.f.block && isFieldBlocked !== false) || isFieldBlocked || !pcTable.fields[fieldName].editable || !pcTable.fields[fieldName].editGroup) return;
+                    if (isMulti && !pcTable.fields[fieldName].editGroupMultiColumns) return;
+
+                    if (!editedData[id]) editedData[id] = {};
+                    if (fix) {
+                        editedData[id][fieldName] = item[fieldName]['v'];
+                    } else {
+                        editedData[id][fieldName] = val;
+                    }
+
+                })
+            });
+            return editedData;
+        },
+        remove: function (id, fieldName) {
+            let selected = this;
+            if (!this.ids[fieldName]) return;
+
+            let removedIds = {};
+
+            this.ids[fieldName].some(function (iId, index) {
+                if (iId == id) {
+                    selected.ids[fieldName].splice(index, 1);
+                    if (selected.ids[fieldName].length === 0) {
+                        delete selected.ids[fieldName];
+
+                    }
+                    removedIds[id] = true;
+                    return true;
+                }
+            });
+
+            Object.keys(removedIds).forEach(function (rId) {
+                let isSelected = false;
+                Object.keys(selected.ids).some(function (fieldName) {
+                    if (selected.ids[fieldName].indexOf(parseInt(rId)) !== -1) {
+                        isSelected = true;
+                        return true;
+                    }
+                });
+                if (!isSelected) {
+                    if (pcTable.data[rId].$tr) {
+                        pcTable.data[rId].$tr.removeClass('selected');
+                    }
+                }
+            });
+        },
+        add: function (id, fieldName) {
+            if (!this.ids[fieldName]) {
+                this.ids[fieldName] = [];
+            }
+            this.ids[fieldName].push(id);
+            if (pcTable.data[id].$tr) {
+                pcTable.data[id].$tr.addClass('selected');
+            }
+        },
+        selectPanelDestroy: function () {
+            let panelObj = this;
+
+            if (panelObj.selectPanel) {
+                if (panelObj.selectPanel.attr('aria-describedby')) {
+                    panelObj.selectPanel.popover('destroy');
+                }
+                panelObj.selectPanel = null;
+            }
+            $('body').off('.selectPanelDestroy');
+        },
+        checkIfShowPanel: function (td) {
+            "use strict";
+
+            let selectObject = this;
+
+
+            let eventNameKeyUp = 'keyup.selectPanelDestroy';
+            let eventNameClick = 'click.selectPanelDestroy';
+
+            this.selectPanelDestroy();
+
+
+            if (td) {
+                let field = pcTable._getFieldBytd(td);
+
+                let $panel = $('<div id="selectPanel" class="text">');
+
+                let textDivHeight = 200;
+
+                let columnName = $('<div class="column-name"></div>').text(field.title);
+                if (field.unitType) {
+                    columnName.append(', ' + field.unitType);
+                }
+                $panel.append(columnName);
+
+                if (field.type === 'text') {
+                    columnName.append(', ' + field.textType);
+                }
+                $panel.append(columnName);
+
+                let item;
+                if (field.category === 'column') {
+                    item = pcTable._getItemBytd(td);
+                } else {
+                    item = pcTable.data_params;
+                }
+                let rowName = '';
+                if (field.category === 'column') {
+                    rowName = '[' + item.id + ']';
+                    if (pcTable.tableRow.main_field) {
+                        let mainField = pcTable.mainFieldName;
+                        if (item[mainField].v_ !== undefined) {
+                            if (typeof item[mainField].v_ === 'array') {
+                                item[mainField].v_.forEach(function (v_, i) {
+                                    let d = $('<span>').text(pcTable.fields[mainField].getElementString((item[mainField].v ? item[mainField].v[i] : null), v_));
+                                    if (v_[1]) {
+                                        d.addClass('deleted_value')
+                                    }
+                                    rowName += ' ' + d.html();
+                                })
+                            } else {
+                                rowName += ' ' + pcTable.fields[mainField].getElementString(item[mainField].v, item[mainField].v_);
+                            }
+                        } else {
+                            rowName += ' ' + item[mainField].v;
+                        }
+                    }
+                    let columnName = $('<div class="row-name"></div>').text(rowName);
+
+                    $panel.append(columnName);
+                }
+
+
+                let val = item[field.name];
+
+                let allTextData = $('<div>');
+                let textDiv = $('<div class="field-value"><div class="copytext"></div></div>').css('white-space', 'pre-wrap');
+                if (!pcTable.isMobile){
+                    textDiv.height(textDivHeight);
+                }else{
+                    textDiv.height('auto').css('min-height', 40).css('max-height', textDivHeight);
+                }
+
+                allTextData.append(textDiv).appendTo($panel);
+                if (field.unitType && (val.v) !== null) {
+                    textDiv.attr('data-unit', field.unitType);
+                }
+                let textInner = textDiv.find('.copytext');
+
+                if (val.f && val.f.text) {
+                    allTextData.append($('<div>').text(val.f.text));
+                }
+
+                if (val.h) {
+                    if(val.c !== undefined)
+                        allTextData.append($('<div><i class="fa fa-hand-paper-o"></i> Расчетное значение: </div>').append(val.c));
+                    else
+                        textDiv.prepend($('<i class="fa fa-hand-grab-o pull-left"></i>'));
+                }
+
+
+                let btnCopy;
+                let btns = $('<div class="buttons"></div>');
+                let mobileButtons=[];
+                //edit
+                if (td.is('.edt')) {
+                    mobileButtons.push({
+                        label: '<i class="fa fa-pencil-square-o"></i>',
+                        action: function (dialog) {
+                            dialog.close();
+                            td.dblclick();
+                        }
+                    });
+                    $('<button class="btn btn-sm btn-default"><i class="fa fa-pencil-square-o"></i></button>')
+                        .on('click', function () {
+                            td.dblclick();
+                            return false;
+                        })
+                        .appendTo(btns);
+                }
+                //copy
+                {
+                    btnCopy = $('<button class="btn btn-sm btn-default copy_me" disabled data-copied-text="Скопировано" title="Копировать "><i class="fa fa-copy"></i></button>');
+                    btnCopy.on('click', function () {
+                        if (textInner.data('text')) {
+                            App.copyMe(textInner.data('text'));
+                        } else {
+                            App.copyMe(textInner.text());
+                        }
+                        let button = $(this);
+                        button.width(button.width());
+                        button.button('copied');
+                        setTimeout(function () {
+                            button.button('reset');
+                        }, 1000);
+                        button.blur();
+                        return false;
+                    });
+
+                    btns.append(btnCopy);
+                }
+
+
+                //log
+                if (pcTable.tableRow.type !== 'tmp' && field.logButton) {
+                    mobileButtons.push({
+                        label: 'Лог',
+                        action: function (dialog) {
+                            let rowName;
+                            if (pcTable.mainFieldName && item.id) {
+                                rowName = item[pcTable.mainFieldName].v;
+                            }
+                            pcTable.model.getFieldLog(field['name'], item.id, rowName);
+                            dialog.close();
+                        }
+                    });
+
+                    $('<button class="btn btn-sm btn-default" title="Лог ручных изменений по полю">Лог</button>')
+                        .on('click', function () {
+                            let rowName;
+                            if (pcTable.mainFieldName && item.id) {
+                                rowName = item[pcTable.mainFieldName].v;
+                            }
+                            pcTable.model.getFieldLog(field['name'], item.id, rowName);
+                            let btn = $(this).addClass('disabled');
+                            setTimeout(function () {
+                                btn.removeClass('disabled');
+                            }, 1000);
+                            return false;
+                        })
+                        .appendTo(btns);
+                }
+
+                //filter
+
+                if (field.category === 'column' && field.filterable) {
+                    if (pcTable.isValInFilters.call(pcTable, field.name, val)) {
+                        mobileButtons.push({
+                            label: '<i class="fa fa-filter" style="color: #ffe486"></i>',
+                            action: function (dialog) {
+                                selectObject.selectPanelDestroy();
+                                pcTable.removeValueFromFilters.call(pcTable, field.name, val);
+                                dialog.close();
+                            }
+                        });
+
+                        $('<button class="btn btn-sm btn-warning" title="Удалить из фильтра"><i class="fa fa-filter"></i></button>')
+                            .on('click', function () {
+                                selectObject.selectPanelDestroy();
+                                pcTable.removeValueFromFilters.call(pcTable, field.name, val)
+                                return false;
+                            })
+                            .appendTo(btns);
+                    } else {
+                        mobileButtons.push({
+                            label: '<i class="fa fa-filter"></i>',
+                            action: function (dialog) {
+                                selectObject.selectPanelDestroy();
+                                pcTable.addValueToFilters.call(pcTable, field.name, val);
+                                pcTable._container.scrollTop(pcTable._filtersBlock.offset().top - pcTable.scrollWrapper.offset().top);
+                                pcTable.ScrollClasterized.insertToDOM.call(pcTable.ScrollClasterized, 0);
+                                dialog.close();
+                            }
+                        });
+
+                        $('<button class="btn btn-sm btn-default" title="Добавить в фильтр"><i class="fa fa-filter"></i></button>')
+                            .on('click', function () {
+                                selectObject.selectPanelDestroy();
+                                pcTable.addValueToFilters.call(pcTable, field.name, val);
+                                pcTable._container.scrollTop(pcTable._filtersBlock.offset().top - pcTable.scrollWrapper.offset().top);
+                                pcTable.ScrollClasterized.insertToDOM.call(pcTable.ScrollClasterized, 0);
+                                return false;
+                            })
+                            .appendTo(btns);
+
+                    }
+                }
+
+
+                if (!pcTable.isMobile) {
+                    //expand
+                    let btn = $('<button class="btn btn-sm btn-default"><i class="fa fa-expand" style="padding-top: 3px;" aria-hidden="true"></i></button>');
+                    btn.on('click', function () {
+                        window.top.BootstrapDialog.show({
+                            message: allTextData,
+                            type: null,
+                            title: columnName.text() + (rowName ? " / " + rowName : ''),
+                            cssClass: 'fieldparams-edit-panel',
+                            draggable: true,
+                            onshow: function (dialog) {
+                                dialog.$modalHeader.css('cursor', 'pointer');
+                                dialog.$modalContent.css({
+                                    width: "90vw",
+                                    minHeight: "90vh"
+                                });
+                                selectObject.selectPanelDestroy();
+                            },
+                            onshown: function (dialog) {
+                                dialog.$modalContent.position({
+                                    my: 'center top',
+                                    at: 'center top+30px',
+                                    of: window.top
+                                });
+                            }
+
+                        });
+                    });
+                    btns.append(btn);
+
+
+                    //close
+                    $('<button class="btn btn-sm btn-default" title="Закрыть панель"><i class="fa fa-times"></i></button>')
+                        .on('click', function () {
+                            selectObject.selectPanelDestroy();
+                            return false;
+                        })
+                        .appendTo(btns);
+                }
+
+                const applyText = function (text) {
+
+                    textInner.text(text);
+                    btnCopy.prop('disabled', false);
+                };
+                const apply$ = function ($html, text) {
+                    textInner.html($html);
+                    if ($html.data('text')) {
+                        textInner.data('text', $html.data('text'))
+                    } else {
+                        textInner.data('text', text);
+                    }
+                    btnCopy.prop('disabled', false);
+                };
+
+                let fieldText = field.getPanelText(val.v, $panel, item);
+                //if (fieldText === null || fieldText === '') return false;
+
+
+                if (pcTable.isCreatorView) {
+                    if (['select', 'tree', 'date'].indexOf(field.type) !== -1) {
+                        textDiv.after($('<div class="creator-select-val">' + JSON.stringify(val.v) + '</div>'));
+                    }
+                }
+
+                const __applyText = function (fieldText) {
+                    if (typeof fieldText === 'object' && fieldText !== null) {
+                        if (fieldText instanceof jQuery) {
+                            let text = '';
+                            if (fieldText.copyText) {
+                                apply$(fieldText, fieldText.copyText);
+                            } else {
+                                fieldText.each(function () {
+                                    if (text !== '') text += "\n";
+                                    text += $(this).text();
+                                });
+                                if (text === '') text = fieldText.text();
+                                apply$(fieldText, text);
+                            }
+                        } else if (fieldText.then) {
+                            fieldText.then(__applyText)
+                        } else {
+                            applyText(JSON.stringify(fieldText));
+                        }
+                    } else {
+                        applyText(fieldText);
+                    }
+                };
+                __applyText(fieldText);
+
+
+                //log
+                if (pcTable.isCreatorView) {
+
+                    let itemLog;
+                    if (pcTable.LOGS) {
+                        itemLog = pcTable.LOGS;
+                        if (item && item.id) {
+                            itemLog = pcTable.LOGS[item.id];
+                        }
+
+                        if (itemLog) {
+                            itemLog = itemLog[field.name];
+                        }
+                    }
+                    let logs = $('<div style="padding-top: 10px">');
+
+
+                    if (itemLog && itemLog.c) {
+                        let log = $('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> c</i></button>');
+                        log.on('click', function () {
+                            App.logOutput(itemLog.c);
+                        });
+                        logs.append(log);
+                    }
+
+
+                    if (itemLog && itemLog.s) {
+                        let log = $('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> s</i></button>');
+                        log.on('click', function () {
+                            App.logOutput(itemLog.s);
+                        });
+                        logs.append(log);
+                    }
+                    if (itemLog && itemLog.a) {
+                        let log = $('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> a</i></button>');
+                        log.on('click', function () {
+                            App.logOutput(itemLog.a);
+                        });
+                        logs.append(log);
+                    }
+                    if (itemLog && itemLog.f) {
+                        let log = $('<button class="btn btn-sm btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> f</i></button>');
+                        log.on('click', function () {
+                            App.logOutput(itemLog.f);
+                        });
+                        logs.append(log);
+                    }
+                    if (logs.children().length) {
+                        btns.append(logs);
+                    }
+                }
+                this.selectPanel = td.find('span:first');
+
+                if (!pcTable.isMobile)
+                    $panel.append(btns);
+
+                if (val.e) {
+                    $panel.append($('<div style="padding-top: 5px;">').html($('<span>').text(val.e).text().replace(/\[\[(.*?)\]\]/g, '<b>$1</b>')));
+                }
+
+                if (pcTable.isMobile) {
+                    App.mobilePanel("test", $panel, {buttons: mobileButtons})
+                } else {
+
+                    let placement = 'right';
+                    let spanOffsetLeft = this.selectPanel.offset().left,
+                        containerOffsetLeft = pcTable._container.offset().left,
+                        containerWidth = pcTable._container.width(),
+                        tdWidth = this.selectPanel.width(),
+                        panelWidth = $panel.is('.text') ? 340 : 240,
+                        placeToRight = (containerWidth - (spanOffsetLeft - containerOffsetLeft) - tdWidth);
+
+
+                    if (placeToRight < panelWidth) {
+                        placement = 'left';
+                    }
+
+                    let params = {
+                        'isParams': true,
+                        '$text': $panel,
+                        'element': this.selectPanel,
+                        'container': pcTable._container,
+                        'placement': placement,
+                        'trigger': 'manual'
+                    };
+                    App.popNotify(params);
+                }
+                if (field.type === 'select') {
+                    let _panel = $('<div class="previews">').appendTo($panel.find('.field-value'));
+                    field.loadPreviewPanel(_panel, field.name, item, val['v']);
+                }
+
+
+                $('body').on(eventNameClick, function (event) {
+                    if ($(event.target).closest('#selectPanel').length === 0) {
+                        selectObject.selectPanelDestroy();
+                    }
+                })
+                    .on(eventNameKeyUp, function (event) {
+                        if (event.which == 27) {
+                            selectObject.selectPanelDestroy();
+                        }
+                    });
+            }
+
+            return false;
+        },
+        copySepected: function (withNames, onDoneClbck) {
+            let pcTable = this;
+            let result = '';
+            let allIds = [];
+            let allFields = [];
+
+            let data = {};
+            let deffs = [];
+
+
+            Object.keys(pcTable.selectedCells.ids).forEach(function (field) {
+                let ids = pcTable.selectedCells.ids[field];
+                allIds = allIds.concat(ids);
+                allFields.push(field);
+
+                ids.forEach(function (id) {
+                    if (!data[id]) data[id] = {};
+
+                    let res = pcTable.fields[field].getCopyText.call(pcTable.fields[field], pcTable.data[id][field], pcTable.data[id]);
+                    if (typeof res === 'object') {
+                        deffs.push(res);
+                        res.done(function (resData) {
+
+                            data[id][field] = resData;
+                        })
+                    } else {
+                        data[id][field] = res;
+                    }
+                })
+            });
+            allIds = Array.from(new Set(allIds));
+            allIds = pcTable.dataSortedVisible.filter(id => allIds.indexOf(id) !== -1);
+            allFields = Array.from(new Set(allFields));
+            let fields = [];
+            pcTable.fieldCategories.visibleColumns.forEach(function (field) {
+                if (allFields.indexOf(field.name) !== -1) {
+                    fields.push(field.name)
+                }
+            });
+            allFields = fields;
+            const DELIM = "\t";
+
+            if (withNames) {
+                result += 'id';
+                allFields.forEach(function (field) {
+                    result += DELIM;
+
+                    result += pcTable.fields[field].title;
+                });
+            }
+
+            let onDoneClbck2 = onDoneClbck;
+
+            $.when(...deffs).done(function () {
+                allIds.forEach(function (id) {
+                    if (result !== '') result += "\n";
+                    let start = true;
+                    if (withNames) {
+                        result += id;
+                        start = false;
+                    }
+                    allFields.forEach(function (field) {
+                        if (start === true) start = false;
+                        else {
+                            result += DELIM;
+                        }
+                        let _str = data[id][field];
+
+                        if (typeof _str === "undefined") _str = "";
+
+                        if (typeof _str == 'string' && _str.replace(/\t/g, '').match(/[\s"]/)) {
+                            _str = '"' + _str.replace(/"/g, '""') + '"';
+                        }
+                        result += _str;
+                    });
+                });
+                console.log(result);
+                App.copyMe(result);
+                setTimeout(onDoneClbck2, 400);
+            });
+
+
+        },
+        click: function (td, event) {
+            let table = pcTable._table;
+
+            if (td.closest('table').is('.pcTable-filtersTable')) return false;
+
+
+            if (table.data('moved') === true) {
+                table.data('moved', false);
+                return false;
+            }
+
+
+            DoIt.call(this);
+
+            function DoIt() {
+
+                if (td.is('.val')/* || !td.is('.edt')*/) {
+                    if (this.notRowCell && this.notRowCell.index(td) !== -1) {
+                        pcTable.selectedCells.empty();
+                    } else {
+                        pcTable.selectedCells.empty();
+                        this.notRowCell = td;
+                        this.notRowCell.addClass('selected');
+                        let tr = this.notRowCell.closest('.DataRow');
+                        if (tr.length === 1) {
+                            tr.addClass('selected');
+                        }
+
+                    }
+                    $('table.pcTable-table').removeClass('selected-multi').removeClass('selected-column');
+
+                    return;
+                } else {
+                    this.notRowCellEmpty();
+                }
+
+
+                let tr = td.closest('tr');
+                let item = pcTable._getItemByTr(tr);
+                let field = pcTable._fieldByTd(td, tr);
+
+                let fieldName = field.name;
+
+                /*
+                   altKey
+                 */
+                if (event.altKey) {
+                    if (td.is('.selected')) {
+                        pcTable.selectedCells.remove(item.id, fieldName);
+                        td.removeClass('selected');
+                    } else {
+                        pcTable.selectedCells.add(item.id, fieldName);
+
+                        td.addClass('selected');
+                        this.lastSelected = [fieldName, item.id];
+                    }
+                }
+                /*
+                 shiftKey
+                 */
+                else if (event.shiftKey && Object.keys(pcTable.selectedCells.ids).length) {
+
+                    let selected = this;
+                    let ids = [];
+                    let step = 'before';
+
+                    pcTable.dataSortedVisible.some(function (_id) {
+                        if (step === 'before') {
+                            if (_id === item.id || _id === selected.lastSelected[1]) {
+                                step = 'doIt';
+                                ids.push(_id);
+
+                                if (item.id === selected.lastSelected[1]) return true;
+                            }
+                        } else if (step === 'doIt') {
+                            ids.push(_id);
+
+                            if (_id === item.id || _id === selected.lastSelected[1]) {
+                                return true;//stop
+                            }
+                        }
+                    });
+
+                    step = 'before';
+
+                    let selectIt = function (field) {
+                        ids.forEach(function (_id) {
+                            let table_item = pcTable.data[_id];
+                            if (!pcTable.isSelected(field.name, _id)) {
+                                selected.add(_id, field.name);
+                                if (table_item.$tr)
+                                    pcTable._getTdByFieldName(field.name, table_item.$tr).addClass('selected');
+                            }
+                        });
+                    };
+
+                    pcTable.fieldCategories.column.some(function (field) {
+                        if (field.showMeWidth > 0) {
+                            if (step === 'before') {
+                                if (field.name === fieldName || field.name === selected.lastSelected[0]) {
+                                    step = 'doIt';
+                                    selectIt(field);
+
+                                    if (fieldName === selected.lastSelected[0]) return true;
+                                }
+                            } else if (step === 'doIt') {
+
+                                selectIt(field);
+
+                                if (field.name === fieldName || field.name === selected.lastSelected[0]) {
+                                    return true;//stop
+                                }
+                            }
+                        }
+
+                    });
+                    this.lastSelected = [fieldName, item.id];
+                }
+                /*
+                 simple click
+                 */
+                else {
+                    let selected = pcTable.isSelected(field.name, item.id);
+
+                    pcTable.selectedCells.empty();
+                    if (!selected) {
+                        pcTable.selectedCells.add(item.id, fieldName);
+                        td.addClass('selected');
+                        this.lastSelected = [fieldName, item.id];
+                    }
+                }
+                let SelectedKeys = Object.keys(pcTable.selectedCells.ids);
+                if (SelectedKeys.length > 1) {
+                    $('table.pcTable-table').addClass('selected-multi');
+                } else if (SelectedKeys.length === 1 && Object.values(pcTable.selectedCells.ids)[0].length > 1) {
+                    $('table.pcTable-table').removeClass('selected-multi').addClass('selected-column');
+                } else {
+                    $('table.pcTable-table').removeClass('selected-multi').removeClass('selected-column');
+                }
+
+            }
+
+
+        }
+
+    };
+    this._container.on('contextmenu', '.DataRow td:not(.editing,.n,.id), td.val:not(.editing)', function () {
+        let element = $(this);
+
+        if (pcTable.selectedCells.selectPanel && pcTable.selectedCells.selectPanel.closest('td')[0] == element[0]) {
+            pcTable.selectedCells.selectPanelDestroy();
+        } else {
+            pcTable.selectedCells.selectPanelDestroy();
+            pcTable.selectedCells.empty();
+            pcTable.selectedCells.checkIfShowPanel(element);
+            pcTable.selectedCells.click(element, {});
+        }
+
+        return false;
+    });
+    this._container.on('click', '.DataRow td:not(.editing,.id,.n), td.val:not(.editing)', function (event) {
+
+        let element = $(this);
+        if (element.is('.cell-button')) {
+            let field = pcTable._getFieldBytd(element);
+            pcTable._buttonClick.call(pcTable, element, field);
+            return false;
+        }
+
+        if (element.data('clicked')) {
+            element.removeData('clicked');
+        } else {
+            element.data('clicked', 1);
+            setTimeout(function () {
+                if (element.data('clicked')) {
+                    element.removeData('clicked');
+                    pcTable.selectedCells.click(element, event);
+                }
+            }, 200);
+        }
+    });
+
+    this._container.on('click', 'th.id .for-selected button', function () {
+        let btn = $(this);
+        let html = btn.html();
+        btn.text('Скопировано');
+        pcTable.selectedCells.copySepected.call(pcTable, btn.data('names'), function () {
+            btn.html(html)
+        });
+    });
+
+};
+App.pcTableMain.prototype.filters = {};
+
+
+App.pcTableMain.prototype.__getFilterButton = function (fieldName) {
+    var colorClass = 'btn-default';
+    var isFilters = (this.filters[fieldName] && this.filters[fieldName].length) || this.filters[fieldName + "/h"];
+    if (isFilters) colorClass = 'btn-warning';
+    var btn = $('<button class="btn btn-xxs btn-filter"><span class="fa fa-filter"></span></button>').addClass(colorClass);
+
+    let pcTable = this;
+
+    return $('<span class="filter-in-head">').append(btn);
+};
+App.pcTableMain.prototype.filtersEmpty = function () {
+    this.filters = {};
+    this._refreshHead();
+    this.__applyFilters();
+};
+App.pcTableMain.prototype.sessionStorageFilters = {
+    url: location.protocol + '//' + location.host + location.pathname,
+    setFilters: function (filters) {
+        let sessionFilters = {};
+        filters = filters || {};
+        try {
+            sessionFilters = JSON.parse(sessionStorage.getItem('pcTableFilters')) || {};
+        } catch (error) {
+
+        }
+        sessionFilters[this.url] = filters;
+        sessionStorage.setItem('pcTableFilters', JSON.stringify(sessionFilters));
+    },
+    getFilters: function () {
+        let sessionFilters = {};
+
+        try {
+            sessionFilters = JSON.parse(sessionStorage.getItem('pcTableFilters'));
+            sessionFilters = sessionFilters[this.url] || {};
+        } catch (error) {
+
+        }
+        return sessionFilters;
+    }
+};
+let isFirstStart = true;
+App.pcTableMain.prototype.__applyFilters = function () {
+    let pcTable = this;
+    App.fullScreenProcesses.show();
+
+    if (this.filtersClearButton) {
+        if (pcTable.tableRow['type'] !== "tmp") {
+            this.sessionStorageFilters.setFilters(this.filters);
+        }
+        this.selectedCells.empty();
+
+        if (Object.equals(this.filters, {})) {
+            this.filtersClearButton.addClass('btn-default').removeClass('btn-warning').attr('disabled', true)
+        } else {
+            this.filtersClearButton.removeClass('btn-default').addClass('btn-warning').removeAttr('disabled');
+            if (isFirstStart) {
+                App.blink(pcTable.filtersClearButton, 8, '#fff');
+                isFirstStart = false;
+            }
+        }
+    }
+
+
+    let old = this.dataSortedVisible.slice();
+    let new_ = [];
+
+    for (let i = 0; i < this.dataSorted.length; i++) {
+        let id = this.dataSorted[i];
+        let item = this.data[id];
+        this.__applyFiltersToItem(item);
+        if (item.$visible) {
+            new_.push(id);
+        }
+    }
+
+    if (JSON.stringify(old) !== JSON.stringify(new_)) {
+        this.dataSortedVisible = new_;
+        this._refreshContentTable(false, true);
+        this._headCellIdButtonsState();
+    }
+    App.fullScreenProcesses.hide();
+};
+App.pcTableMain.prototype.__applyFiltersToItem = function (item, notAttachIt) {
+    let pcTable = this;
+    let visible = true;
+
+    for (let fieldName in pcTable.filters) {
+        if (!pcTable.filters[fieldName] || pcTable.filters[fieldName].length === 0) continue;
+
+        let filterVals = pcTable.filters[fieldName];
+        if (fieldName === 'id') {
+            if (filterVals.indexOf(item['id'].toString()) === -1) {
+                visible = false;
+            }
+        } else {
+            let lst = fieldName.toString().split("/");
+            fieldName = lst[0];
+
+            if (!pcTable.fields[fieldName]) continue;
+
+            let type = lst[1] || "v";
+            switch (type) {
+                case "v":
+                    let field = pcTable._getFieldbyName(fieldName);
+                    if (!field.checkIsFiltered(item[fieldName], filterVals)) {
+                        visible = false;
+                    }
+                    break;
+                case "h":
+                    switch (filterVals) {
+                        case 'h':
+                            if (item[fieldName].h !== true) {
+                                visible = false;
+                            }
+                            break;
+                        case 'n':
+                            if (item[fieldName].h === true) {
+                                visible = false;
+
+                            }
+                            break;
+                        case 'hf':
+                            if (!(item[fieldName].h === true
+                                && !item[fieldName].hasOwnProperty("c"))) {
+                                visible = false;
+                            }
+                            break;
+                        case 'hc':
+                            if (!(item[fieldName].h === true
+                                && item[fieldName].hasOwnProperty("c"))) {
+                                visible = false;
+                            }
+                            break;
+
+                    }
+            }
+        }
+        if (!visible) break;
+    }
+    if (!(item.$visible = visible)) {
+        this.row_actions_uncheck(item);
+    }
+};
+App.pcTableMain.prototype.addValueToFilters = function (fieldName, valObj) {
+    const pcTable = this;
+    if (!pcTable.filters[fieldName]) pcTable.filters[fieldName] = [];
+    let field = pcTable.fields[fieldName];
+    pcTable.filters[fieldName].push(field.getFilterDataByValue.call(field, valObj));
+    field.$th.find('.btn-filter').parent().replaceWith(pcTable.__getFilterButton.call(pcTable, fieldName));
+    pcTable.__applyFilters.call(pcTable);
+};
+App.pcTableMain.prototype.isValInFilters = function (fieldName, valObj) {
+    const pcTable = this;
+    if (!pcTable.filters[fieldName]) pcTable.filters[fieldName] = [];
+    let field = pcTable.fields[fieldName];
+    let val = field.getFilterDataByValue.call(field, valObj);
+    return pcTable.filters[fieldName].indexOf(val) !== -1;
+};
+App.pcTableMain.prototype.removeValueFromFilters = function (fieldName, valObj) {
+
+    const pcTable = this;
+    if (!pcTable.filters[fieldName]) pcTable.filters[fieldName] = [];
+    let field = pcTable.fields[fieldName];
+
+    let val = field.getFilterDataByValue.call(field, valObj), ax;
+    while ((ax = pcTable.filters[fieldName].indexOf(val)) !== -1) {
+        pcTable.filters[fieldName].splice(ax, 1);
+    }
+    if (pcTable.filters[fieldName].length === 0) {
+        delete pcTable.filters[fieldName];
+    }
+
+
+    field.$th.find('.btn-filter').parent().replaceWith(pcTable.__getFilterButton.call(pcTable, fieldName));
+    pcTable.__applyFilters.call(pcTable);
+
+};
+App.pcTableMain.prototype.__addFilterable = function () {
+    const pcTable = this;
+
+    var filters = {};
+    if (pcTable.tableRow['type'] != "tmp")
+        filters = pcTable.sessionStorageFilters.getFilters();
+    if (filters)
+        pcTable.filters = filters;
+    else pcTable.filters = {};
+
+    this._header.on('click', '.pcTable-filters > span button.btn-filter:not(#checkS)', function (event) {
+
+        let btn = $(this);
+        if (btn.attr('aria-describedby')) return true;
+
+        let th = btn.closest('th');
+        let fieldName = th.is('.id') ? 'id' : th.data('field');
+
+        let selectDiv = $('<div class="filter-div-button">');
+        let select = $('<select class="selectpicker" data-size="6" multiple title="Выберите значения" data-style="btn-sm btn-default" data-width="css-width" data-live-search="true" data-selected-text-format="count">').appendTo(selectDiv);
+
+        const popoverDestroy = function () {
+            try {
+                btn.popover('destroy');
+            } catch (e) {
+
+            }
+        };
+
+        const setSelectedFilters = function () {
+            popoverDestroy();
+            let j1 = JSON.stringify(pcTable.filters[fieldName] || []);
+            let j2 = JSON.stringify(select.selectpicker('val'));
+            if (j1 !== j2) {
+                pcTable.filters[fieldName] = select.selectpicker('val');
+                if (pcTable.filters[fieldName].length === 0) delete pcTable.filters[fieldName];
+                if (fieldName === 'id' && !btn.closest('.pcTable-table').is(".pcTable-table:first")) {
+                    pcTable._header.find('th.id .btn-filter').parent().replaceWith(pcTable.__getFilterButton.call(pcTable, fieldName));
+                }
+                btn.parent().replaceWith(pcTable.__getFilterButton.call(pcTable, fieldName));
+                pcTable.__applyFilters.call(pcTable);
+            }
+
+        };
+        const filterRemove = function () {
+            popoverDestroy();
+
+            delete pcTable.filters[fieldName];
+            btn.removeClass('btn-warning').addClass('btn-default');
+            pcTable.__applyFilters.call(pcTable);
+        };
+
+        let isDeleteAction = false;
+        let objTimeout;
+        const actionIt = function (actionName) {
+            if (objTimeout) clearTimeout(objTimeout);
+
+            if (isDeleteAction) return;
+            if (actionName === 'filterRemove') {
+                isDeleteAction = true;
+                filterRemove();
+                return;
+            }
+            if (actionName === 'setInvertFilters') {
+                let selected = Object.values(select.selectpicker('val'));
+                let newSelected = [];
+                $.each(select.data('options'), function (k, v) {
+                    if (selected.indexOf(v) === -1) {
+                        newSelected.push(v);
+                    }
+                });
+                select.selectpicker('val', newSelected);
+            }
+            objTimeout = setTimeout(function () {
+                setSelectedFilters();
+            }, 10);
+        };
+
+
+        selectDiv = $('<div class="pcTable-filter-select" style="height: 220px;">').append(selectDiv);
+        select.data('container', selectDiv);
+
+        var vals = {};
+        $.each(pcTable.data, function (_id, v) {
+            if (fieldName === 'id') {
+                vals[_id.toString()] = _id.toString();
+            } else {
+                pcTable.fields[fieldName].addDataToFilter(vals, v[fieldName]);
+            }
+        });
+
+
+        var filterOptions = {};
+
+        $.each(vals, function (k, v) {
+            filterOptions[v] = k;
+        });
+        filterOptions = App.ksort(filterOptions);
+
+
+        let optgroups = {};
+
+        let cutLength = 100;
+
+        let filterVal = pcTable.filters[fieldName] ? [...pcTable.filters[fieldName]] : [];
+
+        const randOptions = function (q) {
+            optgroups = {'Выбранное': $('<optgroup label="Выбранное">'), '': $('<optgroup label="">')};
+
+            let isLikedFunc = function () {
+                return true;
+            };
+            if (q && q !== '') {
+                let qs = q.toLowerCase().replace('ё', 'е').split(" ");
+                isLikedFunc = function (v) {
+                    let text = v !== null ? v.toString().toLowerCase().replace('ё', 'е') : "";
+                    return !qs.some(function (q) {
+                        return text.indexOf(q) === -1
+                    })
+                }
+            }
+            let isCutted = false;
+            let notChoised = 0;
+            let chousenVisible = 0;
+            $.each(filterOptions, function (k, v) {
+                if (k === 'null') k = 'null ';
+
+                if (filterVal.indexOf(v.toString()) !== -1) {
+                    let isVisible = isLikedFunc(k);
+                    optgroups['Выбранное'].append('<option data-content="' + k + '" ' + (isVisible ? '' : 'style="display: none"') + '>' + v + '</option>');
+                    chousenVisible += isVisible ? 1 : 0;
+                } else {
+                    if (!isLikedFunc(k)) return true;
+
+                    if (notChoised >= cutLength) {
+                        isCutted = true;
+                    } else {
+                        optgroups[''].append('<option data-content="' + k + ' ">' + v + '</option>');
+                        notChoised++;
+                    }
+                }
+            });
+            select.empty();
+            if (!chousenVisible) {
+                optgroups['Выбранное'].attr('label', '');
+            }
+            select.append(optgroups['Выбранное']);
+            select.append(optgroups['']);
+            if (isCutted) {
+                select.append('<option data-content="Данные не полны. Пользуйтесь поиском" disabled = disabled style="text-align: center; cursor: pointer">0</option>');
+            }
+            select.data('options', filterOptions);
+            select.selectpicker('val', filterVal);
+            select.selectpicker('refresh');
+        };
+
+        select.on('change.bs.select', function () {
+            filterVal = select.val();
+        });
+        randOptions();
+
+        let popover = btn.popover({
+            html: true,
+            content: selectDiv,
+            trigger: 'manual',
+            container: pcTable._container,
+            placement: 'auto bottom',
+            template: '<div class="popover" role="tooltip" style=""><div class="arrow" style="left: 50%;"></div><div class="popover-content" style=" padding: 3px 5px;"></div></div>'
+        });
+
+
+        select.selectpicker('render').selectpicker('toggle');
+
+
+        let $buttons = $('<div class="buttons" style="position: absolute; bottom: -4px; width: 100%; text-align: center">');
+
+        $('<span class="btn btn-default btn-xxs button-ok" style="margin-right: 4px; margin-top: 3px;">Прим.</span></span>').appendTo($buttons).on('click', function () {
+            actionIt('setSelectedFilters');
+        });
+        $('<span class="btn btn-default btn-xxs button-ok" style="margin-right: 4px; margin-top: 3px;">Инверт.</span></span>').appendTo($buttons).on('click', function () {
+            actionIt('setInvertFilters');
+        });
+        $('<span class="btn btn-default btn-xxs button-ok" style="margin-right: 4px; margin-top: 3px">Отмен.</span>').appendTo($buttons).on('click', function () {
+            actionIt('filterRemove');
+        });
+
+        if (pcTable.fields[fieldName] && pcTable.fields[fieldName].code && !pcTable.fields[fieldName].codeOnlyInAdd) {
+            let h_select = $('<select data-title="Все" data-dropup-auto="false" class="dropup" data-container=".popover" data-style="btn btn-xxs '
+                + (pcTable.filters[fieldName + "/h"] ? 'btn-warning' : 'btn-default') + ' ">' +
+                '<option value="">Все</option>' +
+                '<option value="n">Без руки</option>' +
+                '<option value="h">С рукой все</option>' +
+                '<option value="hf">С рукой как в расчете</option>' + //<i class="fa fa-hand-rock-o pull-right"></i>
+                '<option value="hc">С рукой отличающиеся</option>' + //<i class="fa fa-hand-paper-o pull-right"></i>
+                '</select>')
+                .appendTo($buttons)
+                .on('change', function () {
+                    pcTable.filters[fieldName + "/h"] = h_select.selectpicker('val');
+                    if (pcTable.filters[fieldName + "/h"] === "") {
+                        delete pcTable.filters[fieldName + "/h"];
+                    }
+                    popoverDestroy();
+                    btn.parent().replaceWith(pcTable.__getFilterButton.call(pcTable, fieldName));
+                    pcTable.__applyFilters.call(pcTable);
+                    return false;
+                })
+                .wrap('<span id="filterHand">');
+
+            setTimeout(function () {
+                h_select.selectpicker('render').selectpicker("val", pcTable.filters[fieldName + "/h"] || "");
+                try{
+                h_select.data('selectpicker').$menu.offset({bottom: 15, left: -90}).css('border', '1px solid grey');
+                }catch (e) {
+                    
+                }
+            }, 100)
+        }
+
+        $buttons.appendTo(selectDiv);
+
+        select.on('hidden.bs.select', function () {
+            actionIt('setSelectedFilters');
+        });
+
+        if (pcTable.filters[fieldName]) select.selectpicker('val', pcTable.filters[fieldName]);
+
+        setTimeout(function () {
+
+            if (popover && popover.length) {
+                popover.popover('show');
+                selectDiv.on('mouseenter', 'li', function () {
+                    let self = $(this);
+                    if (!self.attr('title')) {
+                        self.attr('title', self.text());
+                    }
+                });
+
+                if (fieldName === 'id') {
+                    $('#' + btn.attr('aria-describedby')).position({
+                        my: "left top",
+                        at: "left-3px bottom+10px",
+                        of: btn
+                    }).find('.arrow').css('left', '12px')
+                }
+                select.data('selectpicker')._searchStyle = function () {
+                    return 'multiincludes';
+                };
+
+                select.data('selectpicker').$searchbox.focus();
+
+                let searchTimeout;
+
+                select.data('selectpicker').$searchbox.off().on('click.dropdown.data-api focus.dropdown.data-api touchend.dropdown.data-api', function (e) {
+                    e.stopPropagation();
+                });
+
+                select.data('selectpicker').$searchbox.on('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        select.data('selectpicker').$button.click();
+                        return true;
+                    }
+                });
+                let Q = '';
+                select.data('selectpicker').$searchbox.on('keyup', function (e) {
+                    let q = $(this).val();
+                    if (Q !== q) {
+                        Q = q;
+                        if (searchTimeout) {
+                            clearTimeout(searchTimeout)
+                        }
+                        searchTimeout = setTimeout(function () {
+                            randOptions(Q);
+                        }, 750);
+                    }
+                });
+
+                pcTable._container.one('click.filter filterPressed.filter', function (e) {
+                    if ($(e.target).closest("#filterHand").length === 0 && (e.type === "filterPressed" || e.altKey !== undefined) && $('#' + btn.attr('aria-describedby')).is(':visible')) { //Это чтобы не отлавливать всякие технические события
+                        pcTable._container.off('.filter');
+                        actionIt('setSelectedFilters');
+                    }
+                });
+                pcTable._innerContainer.one('scroll.filter', function (e) {
+                    if ($('#' + btn.attr('aria-describedby')).is(':visible')) {
+                        pcTable._container.off('.filter');
+                        actionIt('setSelectedFilters');
+                    }
+                });
+            }
+        }, 50);
+        pcTable._container.trigger('filterPressed');
+    });
+
+};
+
+
+$.extend(App.pcTableMain.prototype, {
+    _addEditable: function () {
+        var pcTable = this;
+
+        let arias = this._container;
+
+
+        arias.on('dblclick', 'td.val:not(.editing), td.edt:not(.editing), .dataRows td:not(.editing,.id,.n)', function (event) {
+            let cell = $(this);
+
+            let tr = cell.closest('tr');
+            if (tr.length && tr.is('.InsertRow')) return false; // || tr.closest('.pcTable-filtersTable').length === 1
+
+            if (cell.is('.footer-name, .id, .footer-empty')) return false;
+
+            if (cell.is('.edt')) {
+                pcTable._createEditCell.call(pcTable, cell, true)
+            } else {
+                if (tr.is('.DataRow') && pcTable.tableRow.type === 'cycles' && pcTable.tableRow.__firstUserTable) {
+
+                    window.location.href = window.location.pathname + (window.location.pathname.substr(-1) === '/' ? '' : '/') + pcTable._getItemByTr(tr).id + '/' + pcTable.tableRow.__firstUserTable;
+                    return false;
+                }
+
+                let html = cell.html();
+                cell.html('Заблокировано');
+                setTimeout(function () {
+                    cell.html(html);
+                }, 500);
+            }
+
+        }).on('click', '.editCellsBlock .btn, td.edt .ttm-edit, td.edt .ttm-panel', function (event) {
+            if ($(this).is('.ttm-edit')) {
+                $(this).closest('td').trigger('dblclick');
+                return false;
+            }
+            if ($(this).is('.ttm-panel')) {
+                $(this).closest('td').trigger('contextmenu');
+                return false;
+            }
+            $(this).data('click')(event);
+        });
+
+    },
+    goToEditNextCell: function (goTo) {
+
+        return next;
+    },
+    _buttonClick: function ($td, field, item) {
+        if ($td.data('clicked')) return false;
+
+
+        const func = function () {
+            "use strict";
+
+            let id;
+            let editedData = {};
+            let tr = $td.parent();
+
+            $td.data('clicked', true);
+
+            if (field.category === 'column') {
+                item = item || pcTable._getItemBytd($td);
+                id = item.id;
+                editedData.item = id;
+                editedData.fieldName = field.name;
+            } else {
+                editedData.item = 'params';
+                editedData.fieldName = field.name;
+            }
+
+            editedData.checked_ids = pcTable.row_actions_get_checkedIds();
+            $td.height($td.height());
+            $td.find('button').hide();
+            let $spinner = $('<div class="text-center"><i class="fa fa-spinner"/></div>');
+            $td.append($spinner);
+
+            pcTable._saving = true;
+            pcTable.model.click(editedData)
+                .then(
+                    function (json) {
+                        pcTable.table_modify.call(pcTable, json);
+                        if ($td.length && $td.isAttached()) {
+                            $spinner.remove();
+                            $td.find('button').show();
+
+                        } else {
+                            if (field.category === 'column') {
+                                let tr = pcTable._getItemById(id).$tr;
+                                $td = pcTable._getTdByFieldName(field.name, tr);
+                            } else {
+                                $td = tr.find('[data-field="' + field.name + '"]');
+                            }
+                        }
+                        if (field.uncheckAfterClick) {
+                            pcTable.row_actions_uncheck_all();
+                        }
+                        if (field.closeIframeAfterClick && window.closeMe) {
+                            window.closeMe();
+                        }
+                        field.btnOK.call(field, $td);
+                    }
+                ).fail(function () {
+                if ($td.length && $td.isAttached()) {
+                    $spinner.remove();
+                    $td.find('button').show();
+                    $td.removeData('clicked');
+
+                }
+            }).always(function () {
+                pcTable._saving = false;
+            });
+        };
+
+        let pcTable = this;
+        if (field.warningEditPanel) {
+            let buttons =
+                {
+                    'Ок': function (panel) {
+                        panel.close();
+                        func();
+                    }, 'Отмена': function (panel) {
+                        panel.close();
+                    }
+                };
+
+            let dialog = App.confirmation((field.warningEditText || 'Точно изменить?'), buttons, 'Подтверждение');
+
+        } else {
+            func()
+        }
+
+    },
+    _saveEdited: function ($editObj, editedData, goTo) {
+        let pcTable = this;
+        if (pcTable._saving === true) return;
+        pcTable._saving = true;
+
+        this.model.save(editedData)
+            .then(
+                function (json) {
+
+                    pcTable.table_modify.call(pcTable, json, undefined, $editObj);
+                    if ($editObj.closest('table').length) {
+                        if ($editObj.is('tr.DataRow')) {
+                            pcTable.refreshRow($editObj);
+                        }
+                    }
+
+                    if (goTo) {
+                        goTo();
+                    }
+                }
+            ).always(function () {
+
+            pcTable._saving = false;
+
+            if ($editObj.is('tr.DataRow') && $editObj.closest('table').length === 1 && $editObj.find('.editing').length) $editObj.each(function () {
+                pcTable.refreshRow($(this))
+            });
+            else if ($editObj.is('td') && $editObj.find('.fa-spinner').length && $editObj.closest('table').length > 0) {
+                $editObj.each(function () {
+                    let $editObj = $(this);
+                    let item = pcTable._getItemBytd($editObj);
+                    let field = pcTable._getFieldBytd($editObj);
+                    let $cell = pcTable._createCell(item, field);
+                    if (field.type === 'button') {
+                        field.btnOK.call(field, $cell);
+                    }
+                    $editObj.replaceWith($cell);
+                })
+
+            }
+
+
+        });
+    },
+    _editFocusIndex: 0,
+    _editItem: null,
+    _editPanel: null,
+    _row_edit: function (checkedList) {
+        let pcTable = this;
+
+        if (checkedList.length === 0) {
+            return false;
+        }
+        let ItemId = checkedList.shift();
+
+        (new EditPanel(pcTable, BootstrapDialog.TYPE_PRIMARY, {id: ItemId}, (checkedList.length > 0))).then(function (json, isNextPressed) {
+            if (json || isNextPressed) {
+                if (json) {
+                    pcTable.table_modify.call(pcTable, json);
+                }
+                pcTable._row_edit.call(pcTable, checkedList);
+            }
+        }).then(function () {
+            if (checkedList.length === 0) {
+                pcTable.row_actions_uncheck_all();
+            }
+        });
+    },
+    _currentEditCellIndex: 0,
+    _removeEditing: function (td) {
+        if (!td) td = this._content.find('td.editing');
+        var td2 = this._createCell(this._getItemBytd(td), this._getFieldBytd(td));
+        let checkVar;
+        if (checkVar = td.attr('rowspan')) {
+            td2.attr('rowspan', checkVar)
+        }
+        if (checkVar = td.data('field')) {
+            td2.data('field', checkVar)
+        }
+        if (td.is('.val')) {
+            td2.addClass('val')
+        }
+        td.replaceWith(td2);
+        return td2;
+    },
+    _saveEditCell: function () {
+        if (this._editCell && this._editCell.isAttached()) {
+            if (this._editCell.is('.editCell') && this._editCell.data('SaveMe')) {
+                this._editCell.data('SaveMe')();
+            }
+        }
+    },
+    _removeEditCell: function () {
+        if (this._editCell && this._editCell.isAttached()) {
+            if (this._editCell.is('.editCell')) {
+                this._removeEditing(this._editCell);
+            }
+        }
+        this._editCell = null;
+    },
+    _setEditCell: function (td) {
+        this._saveEditCell();
+        this._editCell = td;
+        td.addClass('editCell');
+    },
+    _setTdSaving: function ($td) {
+        $td.html('<div class="text-center"><i class="fa fa-spinner"/></div>');
+    },
+    _createEditCell: function (td, editNow, item) {
+        let pcTable = this;
+
+        let field = this._getFieldBytd(td);
+
+        this._setEditCell(td);
+        td.height(td.height());
+
+        let tr = td.closest('tr');
+        let columnIndex = pcTable._getColumnIndexByTd(td, tr);
+        let goToFunc = function (direction) {
+            if (!direction) return false;
+
+            let next;
+            switch (direction) {
+                case 'right':
+                    next = pcTable._getTdByColumnIndex.call(pcTable, tr, ++columnIndex);
+                    while (next.length) {
+                        let field = pcTable._getFieldBytd.call(pcTable, next);
+                        if (field.editable === true) {
+                            next.trigger('dblclick');
+                            break;
+                        } else {
+                            next = next.next('td');
+                        }
+                    }
+                    break;
+                case 'down':
+                    next = tr.next('tr');
+                    while (next.length && next.is('.Blocked')) {
+                        next = next.next('tr');
+                    }
+                    pcTable._getTdByColumnIndex.call(pcTable, next, columnIndex).trigger('dblclick');
+            }
+        };
+
+        if (!field.editable) return false;
+
+        item = item || this._getItemBytd(td);
+        let itemId = item.id;
+        let editCellsBlock = $('<div class="editCellsBlock">');
+
+        td.addClass('editing');
+
+        let oldval = item[field.name];
+
+        let onAction = false;
+
+        let escClbck = function ($input, eventIN, tdIN) {
+
+            let td = tdIN || $input.closest('td');
+            let event = eventIN || {};
+
+            if (!td.length || !td.closest('tr').length) return false;
+            var tdNew = pcTable._removeEditing.call(pcTable, td);
+            pcTable._colorizeElement(tdNew, pcTable_COLORS.blured);
+            goToFunc(event.altKey ? 'right' : (event.shiftKey ? 'down' : false))
+        };
+        let revert = function (goTo) {
+            pcTable._removeEditing.call(pcTable, td);
+            goToFunc(goTo)
+        };
+
+        let isGroupSelected, isMultiGroupSelected;
+
+        if (pcTable.isSelected(field.name, item.id)) {
+            if (Object.keys(pcTable.selectedCells.ids).length > 1) {
+                isMultiGroupSelected = true;
+                isGroupSelected = true;
+            } else if (pcTable.selectedCells.ids[field.name].length > 1) {
+                isGroupSelected = true;
+            }
+        } else {
+            pcTable.selectedCells.empty();
+        }
+
+
+        let save = function (editVal, event, confirmed) {
+
+            if (!confirmed && (field.warningEditPanel) && field.checkEditRegExp.call(field, editVal)) {
+                App.confirmation((field.warningEditText || 'Точно изменить?'), {
+                    'ОК': function (dialog) {
+                        save(editVal, event, true);
+                        dialog.close();
+                    },
+                    'Отменить': function (dialog) {
+                        revert();
+                        dialog.close();
+                    }
+                }, 'Предупреждение при изменении');
+                return;
+            }
+
+            td.html('<div class="text-center"><i class="fa fa-spinner"/></div>');
+            let editedData = {};
+            editedData[field.name] = editVal;
+
+            let EdData = {};
+            if (!item.id) {
+                EdData['params'] = editedData;
+            } else {
+                EdData[item.id] = editedData;
+            }
+
+            if (false && field.category === 'filter') {
+                let filterData = {};
+                $.each(pcTable.fieldCategories.filter, function (k, v) {
+                    filterData[v.name] = pcTable.data_params[v.name].v;
+                });
+                filterData[field.name] = editVal;
+
+                pcTable.model.calculateFilters(filterData, field.name).then(function (json) {
+                    pcTable._refreshFiltersBlock.call(pcTable, json)
+                });
+            } else {
+                pcTable._saveEdited.call(pcTable, td, EdData, function () {
+                    goToFunc(event.altKey ? 'right' : (event.shiftKey ? 'down' : false))
+                });
+            }
+        };
+
+
+        let blurClbck = function ($input, event) {
+            setTimeout(function () {
+                if (onAction) {
+                    onAction = false;
+                    return false;
+                }
+                saveClbck($input, event);
+
+            }, 150)
+        };
+
+        let saveClbck = function ($input, event, isFromButton) {
+
+            onAction = true;
+
+            isFromButton = isFromButton || false;
+            if (!isFromButton && isGroupSelected) return false;
+
+            let td = $input.closest('td');
+            let editVal;
+            try {
+                editVal = field.getEditVal(input);
+            } catch (error) {
+                let notify = $('#' + App.popNotify(error, td, 'default'));
+                notify.css('z-index', 1000);
+                onAction = false;
+                return;
+            }
+
+            let item = pcTable._getItemBytd(td);
+
+            let goTo = event.altKey ? 'right' : (event.shiftKey ? 'down' : false);
+
+            if (!field.isDataModified(editVal, item[field.name].v)) {
+                revert(goTo);
+            } else {
+                save(editVal, event);
+
+            }
+
+        };
+
+
+        var input = field.getEditElement(undefined, oldval, item, saveClbck, escClbck, blurClbck, null, editNow);
+        td.html(input);
+        td.data('SaveMe', function (event) {
+            event = event || {};
+            saveClbck(input, event);
+        });
+
+        td.data('input', input);
+
+        var cdiv = $('<div class="cdiv">').css({height: 0, width: '100%', 'position': 'absolute', bottom: '0px'});
+        td.append(cdiv);
+
+
+//Сохранить
+        var $btn = $('<button class="btn btn-sm btn-default" data-save="true" data-name="Сохранить"><i class="fa fa-save"/></button>')
+            .data('click', function (event) {
+                onAction = true;
+                saveClbck(input, event, true);
+            });
+
+        editCellsBlock.append($btn)
+        //Отменить
+        var $btn = $('<button class="btn btn-sm btn-default" data-name="Закрыть"><i class="fa fa-undo"/></button>')
+            .data('click', function (event) {
+                onAction = true;
+                let goTo = event.altKey ? 'right' : (event.shiftKey ? 'down' : false);
+                revert(goTo)
+            });
+
+        editCellsBlock.append($btn);
+
+        if (isGroupSelected && (isMultiGroupSelected ? field.editGroupMultiColumns : field.editGroup)) {
+
+
+            $btn = $('<button class="btn btn-sm btn-warning" data-save="true" data-name="Применить к выделенным"><i class="fa fa-database" title="Применить к выделенным"/></button>');
+
+            let comboSave = function () {
+
+                onAction = true;
+                let editVal;
+                try {
+                    editVal = field.getEditVal(input);
+                } catch (error) {
+                    App.popNotify(error, td, 'default');
+                    return;
+                }
+                let selectedTd = pcTable._container.find('td.selected');
+                pcTable._setTdSaving(selectedTd);
+                let editedData = pcTable.selectedCells.getEditedData(editVal);
+                pcTable._saveEdited.call(pcTable, selectedTd, editedData, false);
+            };
+
+
+            $btn.data('click', function () {
+
+                if (field.warningEditPanel) {
+                    App.confirmation(field.warningEditText, {
+                        'ОК': function (dialog) {
+                            comboSave();
+                            dialog.close();
+                        },
+                        'Отменить': function (dialog) {
+                            revert();
+                            dialog.close();
+                        }
+                    }, 'Предупреждение при изменении');
+                    return;
+                }
+                comboSave();
+
+            });
+            editCellsBlock.append($btn);
+
+            if (field.code && !field.codeOnlyInAdd) {
+
+                $btn = $('<button class="btn btn-sm btn-warning" data-name="Фиксировать выделенные"><i class="fa fa-hand-rock-o" title="Фиксировать"/></button>');
+                $btn.data('click', function () {
+                    onAction = true;
+                    let selectedTd = pcTable._container.find('td.selected');
+                    pcTable._setTdSaving(selectedTd);
+                    let editedData = pcTable.selectedCells.getEditedData(null, true);
+                    pcTable._saveEdited.call(pcTable, selectedTd.closest('tr'), editedData, false);
+                });
+                editCellsBlock.append($btn);
+
+                $btn = $('<button class="btn btn-sm btn-danger" data-name="Сбросить ручные"><i class="fa fa-eraser" title="Сбросить ручные"/></button>');
+                $btn.data('click', function () {
+                    onAction = true;
+                    let selectedTd = pcTable._container.find('td.selected');
+                    pcTable._setTdSaving(selectedTd);
+                    let editedData = pcTable.selectedCells.getEditedData('NULL');
+                    editedData['setValuesToDefaults'] = true;
+                    pcTable._saveEdited.call(pcTable, selectedTd.closest('tr'), editedData, false);
+                });
+                editCellsBlock.append($btn)
+
+            }
+
+        } else if (item[field.name] && item[field.name].h == true) {
+            $btn = $('<button class="btn btn-sm btn-danger" data-name="Сбросить ручное"><i class="fa fa-eraser" title="Сбросить ручное"/></button>');
+            $btn.data('click', function () {
+                onAction = true;
+                td.html('<div class="text-center"><i class="fa fa-spinner"/></div>');
+                let editedData = {};
+                if (!parseInt(itemId)) itemId = 'params';
+                editedData[itemId] = {};
+                editedData[itemId][field.name] = 'NULL';
+
+                editedData['setValuesToDefaults'] = true;
+                pcTable._saveEdited.call(pcTable, td, editedData, false);
+            });
+            editCellsBlock.append($btn)
+        } else if (field.code && !field.codeOnlyInAdd) {
+            $btn = $('<button class="btn btn-sm btn-default" data-name="Фиксировать"><i class="fa fa-hand-rock-o" title="Фиксировать"/></button>');
+            $btn.data('click', function () {
+                onAction = true;
+                td.html('<div class="text-center"><i class="fa fa-spinner"/></div>');
+                let editedData = {};
+                if (!parseInt(itemId)) itemId = 'params';
+                editedData[itemId] = {};
+                editedData[itemId][field.name] = itemId === 'params' ? pcTable.data_params[field.name]['v'] : pcTable.data[itemId][field.name]['v'];
+
+                pcTable._saveEdited.call(pcTable, td, editedData, false);
+            });
+            editCellsBlock.append($btn)
+        }
+
+        if (field.changeSelectTable) {
+
+            let sourseBtnClick = function () {
+                onAction = true;
+                let ee = {};
+                $.each(item, function (k, v) {
+                    if (k.substring(0, 1) !== '$') {
+                        ee[k] = v;
+                    }
+                });
+                let isAdd = $(this).data('add-button');
+                if (isAdd) {
+                    ee[field.name] = null;
+                }
+                let opened = 0;
+                $(window.top.document.body)
+                    .on('pctable-opened.select-' + field.name, function () {
+                        opened++;
+                    })
+                    .on('pctable-closed.select-' + field.name, function (event, data) {
+                        opened--;
+                        let isAdded = (data /*&& data.tableId === field.selectTableId*/ && data.method === 'insert' && data.json && data.json.chdata && data.json.chdata.rows);
+                        const refreshInputAndPage = function () {
+                            if (opened === 0 || isAdded) {
+                                let inputOld = input;
+                                delete field.list;
+                                if (inputOld.data('input').data('LISTs')) {
+                                    inputOld.data('input').data('LISTs').isListForLoad = true;
+                                }
+                                item = $.extend(true, {}, item);
+                                if (isAdded) {
+
+                                    if (field.multiple) {
+                                        item[field.name].v.push(Object.keys(data.json.chdata.rows)[0]);
+                                    } else {
+                                        item[field.name].v = Object.keys(data.json.chdata.rows)[0];
+                                    }
+
+                                }
+
+                                if (!isAdded && field.category === 'column') {
+                                    pcTable.model.refresh(function (json) {
+                                        pcTable.table_modify.call(pcTable, json);
+                                    });
+                                }
+                                item[field.name].replaceViewValue = function (viewArray) {
+                                    if (field.category != 'column') {
+                                        pcTable.data_params[field.name].v_ = viewArray;
+                                    }
+                                };
+                                inputOld.replaceWith(input = field.getEditElement(inputOld, item[field.name], item, saveClbck, escClbck, blurClbck));
+
+                                $('body').off('.select-' + field.name);
+                            }
+                        };
+                        setTimeout(refreshInputAndPage, 100);//Чтобы успело открыться окошко слещующей панели, если оно есть
+                    });
+                pcTable.model.selectSourceTableAction(field.name, ee);
+                return false;
+            };
+
+
+            $btn = $('<button class="btn btn-sm btn-primary"><i class="fa fa-edit" title="Изменить в таблице-источнике"/></button>');
+            $btn.on('click', sourseBtnClick);
+            editCellsBlock.append($btn);
+            if (field.changeSelectTable === 2) {
+                $btn = $('<button class="btn btn-sm btn-primary" data-add-button="true"><i class="fa fa-plus" title="Добавить в таблицу-источник"/></button>');
+                editCellsBlock.append($btn);
+                $btn.on('click', sourseBtnClick);
+            }
+        }
+        let btnCount = editCellsBlock.find('button').length;
+        editCellsBlock.width(btnCount * 31);
+
+
+        //  let element = $('#' + App.popNotify(editCellsBlock, cdiv, null, this._container));
+        let element = $('#' + App.popNotify({
+            $text: editCellsBlock,
+            element: cdiv,
+            container: this._container,
+            isParams: true,
+            placement: 'bottom'
+        }));
+
+        let top = parseInt(element.css('top')) - 4;
+        element.css('top', -10000000);
+        setTimeout(function () {
+            if (element.length && element.isAttached()) {
+                element.css('top', top);
+            }
+        }, 3);
+        field.focusElement(input);
+    }
+});
+(function (window, $) {
+    $.extend(App.pcTableMain.prototype, {
+        _orderSaveBtn: undefined,
+        row_actions_add: function () {
+            let pcTable = this;
+
+            pcTable._table.on('click', '.DataRow .id', function () {
+                if (pcTable.isMobile) {
+                    pcTable.row_actions_panel_show.call(pcTable, $(this))
+                }
+            });
+
+            pcTable._table.on('click', '.DataRow .id button.dropdown', function () {
+                pcTable.row_dropdown.call(pcTable, $(this))
+            });
+            pcTable._table.on('click', '.DataRow .id .btn.chbox', function (event) {
+                pcTable._row_actions_checkbox_click.call(pcTable, $(this).closest('tr'), event.shiftKey);
+                return false;
+            });
+            pcTable._table.on('mouseleave', function () {
+                $(this).blur();
+                return false;
+            });
+            pcTable._table.on('click', '.DataRow .id button.edit', function () {
+                pcTable.rows_edit.call(pcTable, $(this).closest('tr'))
+            });
+
+            /*dropdown Панель на id строки*/
+
+            pcTable._container.on('click', '.row_delete, .row_duplicate, .row_refresh, .cycle_refresh', function () {
+                let self = $(this);
+                if (self.is('.row_delete'))
+                    pcTable.rows_delete.call(pcTable, $(this).data('tr'));
+                else if (self.is('.row_duplicate'))
+                    pcTable.row_duplicate.call(pcTable, $(this).data('tr'));
+                else if (self.is('.row_refresh'))
+                    pcTable.row_refresh.call(pcTable, $(this).data('tr'));
+                else if (self.is('.cycle_refresh') && pcTable.isCreatorView && pcTable.tableRow.type === 'cycles') {
+                    pcTable.cycle_refresh.call(pcTable, $(this).data('tr'))
+                }
+            });
+
+        },
+        _idCheckButton: $('<button class="btn btn-xxs chbox btn-default" data-action="checkbox"><span class="fa fa-square-o"></span></button>')
+        ,
+        _checkStatusBar: $('<div class="check-status-bar"><span class="check-mark">✓ </span><span data-name="count_checked_rows">0</span><span class="from-mark"> из </span><span data-name="count_visible_rows">0</span></div>')
+        ,
+        _headCellIdButtonsState: function () {
+            "use strict";
+            let pcTable = this;
+
+            let checkedRows = this.row_actions_get_checkedIds();
+
+            if (checkedRows.length > 0) {
+                $('table.pcTable-table').addClass('with-checks')
+            } else {
+                $('table.pcTable-table').removeClass('with-checks');
+            }
+
+            if (this.dataSortedVisible.length !== this.__checkedRows.length) {
+                pcTable._idCheckButton.html('<span class="fa fa-square-o"></span>');
+            } else {
+                pcTable._idCheckButton.html('<span class="fa fa-check"></span>');
+            }
+
+            this._refreshCheckedStatus();
+            pcTable.ScrollClasterized.reloadScrollHead.call(pcTable.ScrollClasterized)
+        }
+        ,
+        _addCellId: function (item, $row) {
+            let $tdId = $('<td class="id"><span class="nm">' + item['id'] + '</span></td>');
+            $tdId.appendTo($row);
+            this.row_actions_icons_add($tdId);
+
+            if (item.$checked === true) {
+                // this.row_actions_icons_add($tdId);
+                this.row_actions_check(item, true);
+            }
+            return $tdId;
+        },
+        _addCellNo: function (item, $row) {
+            let $tdNo = $('<td class="No">--</td>');
+            $tdNo.appendTo($row);
+            return $tdNo;
+        }
+        ,
+        row_actions_uncheck_all: function () {
+            "use strict";
+            let pcTable = this;
+
+            let checkedIds = this.row_actions_get_checkedIds();
+            for (let i = 0; i < checkedIds.length; i++) {
+                let item = pcTable._getItemById(checkedIds[i]);
+                pcTable.row_actions_uncheck.call(pcTable, item, true);
+            }
+            this.__checkedRows = [];
+
+            this._headCellIdButtonsState();
+        }
+        ,
+        _refreshCheckedStatus: function () {
+            this._checkStatusBar.find('[data-name="count_checked_rows"]:first').text(this.__checkedRows.length);
+            this._checkStatusBar.find('[data-name="count_visible_rows"]:first').text(this.dataSortedVisible.length);
+        }
+        ,
+
+        _row_actions_checkbox_click: function ($tdId, shiftKey) {
+            let pcTable = this;
+            let $tr = $tdId.closest('tr');
+            let item = this._getItemByTr($tr);
+            let LastCheckAction = $.extend({}, (pcTable._lastcheckAction || {}));
+            pcTable._lastcheckAction = {id: item.id, isCheck: !item.$checked};
+
+
+            if (shiftKey) {
+                let idsToCheck = [];
+
+                let lastInd;
+
+                if (LastCheckAction.id && (!item.$checked) === LastCheckAction.isCheck && (lastInd = pcTable.dataSortedVisible.indexOf(LastCheckAction.id)) !== -1) {
+                    let nowInd = pcTable.dataSortedVisible.indexOf(item.id);
+                    if (lastInd < nowInd) {
+                        idsToCheck = pcTable.dataSortedVisible.slice(lastInd + 1, nowInd + 1);
+                    } else {
+                        idsToCheck = pcTable.dataSortedVisible.slice(nowInd, lastInd);
+                    }
+
+
+                } else {
+                    pcTable.dataSortedVisible.some(function (id) {
+                        if (pcTable.data[id].$checked) idsToCheck = [];
+                        else {
+                            idsToCheck.push(id);
+                        }
+                        if (id === item.id) {
+                            return true;
+                        }
+                    });
+                }
+                if (!item.$checked) {
+
+                    idsToCheck.forEach(function (id) {
+                        pcTable.__checkedRows.push(id);
+                        pcTable.row_actions_check(pcTable.data[id], true);
+                    });
+                } else {
+                    idsToCheck.forEach(function (id) {
+                        pcTable.__checkedRows.splice(pcTable.__checkedRows.indexOf(id), 1);
+                        pcTable.row_actions_uncheck(pcTable.data[id], true);
+                    });
+                }
+                this._headCellIdButtonsState();
+
+            } else {
+                if (!item.$checked)
+                    this.row_actions_check(item);
+                else
+                    this.row_actions_uncheck(item);
+            }
+
+
+        }
+        ,
+        row_actions_get_checkedIds: function () {
+
+            return this.__checkedRows;
+        }
+        ,
+        row_actions_check: function (item, isGroupAction) {
+
+            item.$checked = true;
+
+            if (item.$tr) {
+                let $tdId = item.$tr.find('.id:first');
+                /*if ($tdId.find('button:first').length === 0) {
+                    this.row_actions_icons_add($tdId);
+                }
+                $tdId.find('.chbox').html('<i class="fa fa-check"/>');
+                if (!$tdId.is(':hover')) {
+                    this.row_actions_icons_hide(item.$tr);
+                }*/
+                $tdId.addClass('checked');
+
+            }
+
+            if (!isGroupAction) {
+                this.__checkedRows.push(item.id);
+                this._headCellIdButtonsState();
+            }
+
+        }
+        ,
+        row_actions_uncheck: function (item, $isGroupOperation) {
+            if (!item.$checked) return;
+
+            item.$checked = false;
+            if (item.$tr) {
+                $tdId = item.$tr.find('.id');
+                $tdId.removeClass('checked');
+                $tdId.find('.chbox i').attr('class', 'fa fa-square-o');
+            }
+
+            if (!$isGroupOperation) {
+                this.__checkedRows.splice(this.__checkedRows.indexOf(item.id), 1);
+                this._headCellIdButtonsState();
+            }
+        }
+        ,
+        row_actions_icons_add: function ($tdId) {
+            "use strict";
+            let $editButton, $dropDownButton;
+            let pcTable = this;
+
+
+            if (this.tableRow.panel) {
+                $editButton = $('<button class="btn btn-default edit"><i class="fa fa-th-large"/></button>')
+                    .on('mouseleave', function () {
+                        $(this).blur();
+                        return false;
+                    }).css('margin-left', 2);
+            } else {
+                $editButton = $();
+            }
+
+            if (this.control.editing) {
+                $dropDownButton = $('<button class="btn btn-default btn-xxs dropdown"  tabindex="-1" style=" margin-left: 2px;">' +
+                    '<i class="fa fa-caret-down" style="font-size: 10px; width: 7px;"/></button>');
+
+            }
+            let $checkbox = $('<button class="btn btn-default btn-xxs chbox"><i class="fa fa-square-o"/></button>')
+
+            let $btngroup = $('<span class="btn-group-xxs">');
+            $tdId.append($btngroup)
+                .append(' ')
+                .append($checkbox);
+
+            if ($dropDownButton) {
+                $btngroup
+                    .append($dropDownButton)
+            }
+            if ($editButton) {
+                $btngroup
+                    .append($editButton)
+            }
+
+        }
+        ,
+        row_actions_panel_show: function ($tdId) {
+            let $tr = $tdId.closest('tr');
+            let item = this._getItemByTr($tr);
+            let trId = item['id'];
+            const pcTable = this;
+
+            let text = $('<div id="row-mobile-panel"></div>');
+
+            if (this.tableRow.panel !== true) {
+                text.append($('<div class="menu-item"><i class="fa fa-th-large"/> Открыть панель</div>').css('color', 'gray'));
+            } else {
+                text.append($('<div class="menu-item row_panel"><i class="fa fa-th-large"/> Открыть панель</div>').attr('data-tr', trId));
+            }
+
+            if (this.control.duplicating !== true || this.f.blockduplicate || item.f.blockduplicate) {
+                text.append($('<div class="menu-item"><i class="fa fa-clone"/> Дублировать</div>').css('color', 'gray'));
+            } else {
+                text.append($('<div class="menu-item row_duplicate"><i class="fa fa-clone"/> Дублировать</div>').attr('data-tr', trId));
+            }
+
+            if (['calcs', 'globcalcs'].indexOf(this.tableRow.type) !== -1) {
+                text.append($('<div class="menu-item"><i class="fa fa-refresh"/> Пересчитать</div>').css('color', 'gray'));
+            } else {
+                text.append($('<div class="menu-item row_refresh"><i class="fa fa-refresh"/> Пересчитать</div>').attr('data-tr', trId));
+            }
+
+            if (!this.control.deleting || this.f.blockdelete || (item.f && (item.f.block || item.f.blockdelete))) {
+                text.append($('<div class="menu-item"><i class="fa fa-times"/> Удалить</div>').css('color', 'gray'));
+            } else {
+                text.append($('<div class="menu-item row_delete"><i class="fa fa-times"/> Удалить</div>').attr('data-tr', trId));
+            }
+
+            let dialog = App.mobilePanel(item[this.mainFieldName].v || 'id: ' + trId, text);
+
+            text.on('click', '.row_delete, .row_duplicate, .row_refresh, .row_panel', function () {
+                let self = $(this);
+                if (self.is('.row_delete'))
+                    pcTable.rows_delete.call(pcTable, trId);
+                else if (self.is('.row_duplicate'))
+                    pcTable.row_duplicate.call(pcTable, trId);
+                else if (self.is('.row_refresh'))
+                    pcTable.row_refresh.call(pcTable, trId);
+                else if (self.is('.row_panel'))
+                    pcTable.rows_edit.call(pcTable, $tr);
+                dialog.close();
+            });
+        }
+        ,
+
+        table_modify: function (json, $trIdBefore, editedObj) {//$trIdBefore - это для вставки дублированных строк
+            "use strict";
+            let pcTable = this;
+            let insertIndex = 0;
+            let insertVisibleIndex = 0;
+            let editFieldName = editedObj ? editedObj.data('field') : undefined;
+
+            if ($trIdBefore) {
+                insertIndex = pcTable.dataSorted.indexOf($trIdBefore) + 1;
+                insertVisibleIndex = pcTable.dataSortedVisible.indexOf($trIdBefore) + 1;
+
+            }
+
+            if (json.chdata) {
+                let deleted = json.chdata.deleted || [];
+                let addedRows = [];
+
+                if (json.chdata.rows) {
+
+
+                    if (json.refresh && json.chdata.rows) {
+                        Object.keys(pcTable.data).forEach(function (id) {
+                            if (json.chdata.rows[id] === undefined) {
+                                deleted.push(parseInt(id));
+                            }
+                        });
+                    }
+
+
+                    $.each(json.chdata.rows, function (k, v) {
+                        let item = pcTable._getItemById(v.id);
+                        if (item === undefined) {
+                            addedRows.push(v);
+                        } else {
+                            pcTable.refreshRow(item.$tr, item, v);
+                        }
+                    });
+                    if (addedRows.length) {
+                        if (App.isEmpty(pcTable.data) && pcTable._content) {
+                            pcTable._content.find('.pcTable-noDataRow').remove();
+                        }
+                        $.each(addedRows, function (k, v) {
+                            v.$visible = true;
+
+                            v.$checked = false;
+                            if (!insertIndex && pcTable.tableRow.with_order_field && !pcTable.tableRow.new_row_in_sort) {
+                                v.__inserted = true;
+                            }
+                            pcTable.data[v.id] = v;
+
+                            let nowInsertInsex = insertIndex;
+                            let nowInsertVisibleIndex = insertVisibleIndex;
+
+                            if (v.__after && (!$trIdBefore || $trIdBefore.id !== v.__after)) {
+                                nowInsertInsex = pcTable.dataSorted.indexOf(v.__after) + 1;
+                                nowInsertVisibleIndex = pcTable.dataSortedVisible.indexOf(v.__after) + 1;
+                            }
+
+                            pcTable.dataSorted.splice(nowInsertInsex, 0, v.id);
+                            pcTable.dataSortedVisible.splice(nowInsertVisibleIndex, 0, v.id);
+
+                            insertIndex++;
+                            insertVisibleIndex++;
+
+                        });
+
+
+                        if ($trIdBefore && !pcTable.isMobile) {
+                            setTimeout(function () {
+                                $.each(addedRows, function (k, v) {
+                                    pcTable.row_actions_check(pcTable.data[v.id]);
+                                })
+                            }, 50);
+
+                        }
+                    }
+                }
+
+
+                if (deleted.length) {
+                    $.each(deleted, function (k, v) {
+                        pcTable._deleteItemById.call(pcTable, v);
+                    });
+                    if (App.isEmpty(pcTable.data) && pcTable._content && pcTable._content.find('.' + this.noDataRowClass).length === 0) {
+                        pcTable._content.append(pcTable._createNoDataRow());
+                    }
+
+                }
+
+                if (deleted.length || addedRows.length || (json.chdata.nsorted_ids && pcTable.nSorted && !Object.equals(json.chdata.nsorted_ids, pcTable.dataSorted))) {
+
+                    if (json.chdata.nsorted_ids && pcTable.nSorted) {
+                        let oldVisible = pcTable.dataSortedVisible;
+                        pcTable.dataSorted = json.chdata.nsorted_ids;
+
+                        if (oldVisible.length === pcTable.dataSorted.length)
+                            pcTable.dataSortedVisible = pcTable.dataSorted
+                        else {
+                            pcTable.dataSortedVisible = [];
+                            pcTable.dataSorted.forEach(function (id) {
+                                if (oldVisible.indexOf(id) !== -1)
+                                    pcTable.dataSortedVisible.push(id)
+                            })
+                        }
+                    }
+
+
+                    this.ScrollClasterized.insertToDOM(undefined, true);
+                }
+
+                let paramsChanges = {};
+                if (json.chdata.params) {
+                    $.each(json.chdata.params, function (k, v) {
+                        ['v', 'v_', 'f', 'e', 'h', 'c'].forEach(function (part) {
+                            if (v[part] !== undefined || pcTable.data_params[k][part]) {
+                                if (!Object.equals(pcTable.data_params[k][part], v[part]) || k === editFieldName) {
+                                    paramsChanges[k] = true;
+                                    pcTable.data_params[k][part] = v[part];
+                                }
+                            }
+                        });
+                    });
+                }
+
+                if (json.chdata.fields) {
+                    $.each(json.chdata.fields, function (k, v) {
+                        if (v.list && !Object.equals(pcTable.fields[k].list, v.list)) {
+                            paramsChanges[k] = true;
+                            $.extend(pcTable.fields[k], v);
+                        }
+                    });
+                }
+                if (json.chdata.params || json.chdata.fields) {
+                    pcTable._refreshParamsBlock(paramsChanges, true);
+                    pcTable._refreshFootersBlock(paramsChanges, true);
+                }
+                if (json.chdata.f) {
+                    let newf = json.chdata.f;
+                    ['blockadd', 'blockdelete', 'blockorder', 'background', 'blockduplicate', 'block', 'tabletitle', 'rowstitle', 'fieldtitle'].forEach(function (k) {
+                        if (newf[k] || pcTable.f[k]) {
+                            if (typeof newf[k] == "object") {
+                                if (!Object.equals(newf[k], pcTable.f[k])) {
+                                    let old = Object.assign({}, pcTable.f[k]);
+                                    pcTable.f[k] = newf[k];
+                                    if (pcTable.__formatFunctions[k]) {
+                                        pcTable.__formatFunctions[k].call(pcTable, newf[k], old);
+                                    }
+                                }
+                            } else if (newf[k] !== pcTable.f[k]) {
+                                pcTable.f[k] = newf[k];
+                                if (pcTable.__formatFunctions[k]) {
+                                    pcTable.__formatFunctions[k].call(pcTable, newf[k]);
+                                }
+                            }
+                        }
+                    })
+                }
+                if (App.isEmpty(pcTable.data) && pcTable._content) {
+                    pcTable._content.empty().append(this._createNoDataRow());
+                }
+            }
+            if (json.updated) {
+                pcTable.model.tableData.updated = JSON.parse(json.updated)
+                pcTable._refreshTitle();
+            }
+            if (json.filtersString) {
+                pcTable._refreshFiltersBlock.call(pcTable, json)
+            }
+            pcTable._headCellIdButtonsState();
+        }
+        ,
+        rows_edit: function ($tr) {
+            "use strict";
+            let pcTable = this;
+            let checkedRows = this.row_actions_get_checkedIds();
+
+            if ($tr && (checkedRows.indexOf(pcTable._getItemByTr($tr).id) === -1)) {
+                this.row_actions_check(pcTable._getItemByTr($tr));
+                checkedRows = this.row_actions_get_checkedIds();
+            }
+            pcTable._row_edit.call(pcTable, checkedRows.slice());
+            return false;
+        }
+        ,
+        row_dropdown: function ($dropDownButton) {
+            "use strict";
+
+            let pcTable = this;
+            let text = $('<div>');
+            let item = pcTable._getItemByTr($dropDownButton.closest('tr'));
+            let trId = item.id;
+
+
+            if (this.control.duplicating !== true || pcTable.f.blockduplicate || item.f.blockduplicate) {
+                text.append($('<div class="menu-item"><i class="fa fa-clone"/> Дублировать</div>').css('color', 'gray'));
+            } else {
+                text.append($('<div class="menu-item row_duplicate"><i class="fa fa-clone"/> Дублировать</div>').attr('data-tr', trId));
+            }
+
+            if (['calcs', 'globcalcs'].indexOf(pcTable.tableRow.type) !== -1) {
+                text.append($('<div class="menu-item"><i class="fa fa-refresh"/> Пересчитать</div>').css('color', 'gray'));
+            } else {
+                text.append($('<div class="menu-item row_refresh"><i class="fa fa-refresh"/> Пересчитать</div>').attr('data-tr', trId));
+            }
+
+            if (pcTable.isCreatorView && pcTable.tableRow.type === 'cycles') {
+                text.append($('<div class="menu-item cycle_refresh color-danger"><i class="fa fa-refresh"/> Пересчитать цикл</div>').attr('data-tr', trId));
+            }
+
+
+            if (!this.control.deleting || this.f.blockdelete || (item.f && (item.f.block || item.f.blockdelete))) {
+                text.append($('<div class="menu-item"><i class="fa fa-times"/> Удалить</div>').css('color', 'gray'));
+            } else {
+                text.append($('<div class="menu-item row_delete"><i class="fa fa-times"/> Удалить</div>').attr('data-tr', trId));
+            }
+
+            let popoverId = App.popNotify({
+                isParams: true,
+                $text: text,
+                element: $dropDownButton,
+                container: this._container,
+                trigger: 'manual',
+                placement: 'bottom'
+            });
+
+            $('#' + popoverId).position({
+                my: "left top",
+                at: "left-3px bottom+10px",
+                of: $dropDownButton
+            }).off().on('mouseleave', function () {
+                text.remove();
+            }).find('.arrow').css('left', '11px').end()
+                .find('.popover-content').css('padding', '5px');
+
+
+            return false;
+        }
+        ,
+        __getCheckedRowsIds: function (trId, checkBlockedRows, elseblockparam) {
+            "use strict";
+            let pcTable = this;
+            let checkedRows = this.row_actions_get_checkedIds();
+            if (trId && (checkedRows.indexOf(trId) === -1)) {
+                let item = pcTable.data[trId];
+                this.row_actions_check(item);
+                checkedRows = this.row_actions_get_checkedIds();
+            }
+            if (checkBlockedRows) {
+                let isBlockedRow = false;
+                checkedRows.some(function (id) {
+                    if (pcTable.data[id].f && (pcTable.data[id].f.block || pcTable.data[id].f[elseblockparam])) {
+                        isBlockedRow = pcTable.data[id];
+                        return true;
+                    }
+                });
+
+                if (isBlockedRow) {
+                    let mainBlockField = '';
+
+                    if (pcTable.mainFieldName !== 'id') {
+                        if (isBlockedRow[pcTable.mainFieldName]._v) {
+                            mainBlockField = isBlockedRow[pcTable.mainFieldName]._v;
+                        } else {
+                            mainBlockField = isBlockedRow[pcTable.mainFieldName].v;
+                        }
+                        mainBlockField = ' "' + mainBlockField + '"';
+                    }
+                    let $ntf = $("<span>").html('Строка <b>id ' + isBlockedRow.id + '</b>');
+                    if (mainBlockField !== '') {
+                        let b = $ntf.find('b');
+                        b.text(b.text() + mainBlockField);
+                    }
+                    $ntf.append(' заблокирована');
+                    App.notify($ntf, 'Действие не выполнено');
+
+                    return false;
+                }
+            }
+            return checkedRows;
+
+        }
+        ,
+        row_refresh: function (trId) {
+            "use strict";
+            let pcTable = this;
+            let checkedRows = this.__getCheckedRowsIds(trId, false);
+            let checkedOneId = checkedRows.length === 1 ? checkedRows[0] : null;
+            if (checkedRows && checkedRows.length) {
+                let buttons = [
+                    {
+                        label: 'Пересчитать',
+                        action: function (dialogRef) {
+                            pcTable.model.refresh_rows(checkedRows).then(function (json) {
+                                pcTable.table_modify.call(pcTable, json);
+                                dialogRef.close();
+                                pcTable.row_actions_uncheck_all();
+                            });
+
+                        }
+                    },
+                    {
+                        label: 'Отмена',
+                        action: function (dialogRef) {
+                            dialogRef.close();
+                        }
+
+                    }
+                ];
+
+                BootstrapDialog.show({
+                    message: 'Точно пересчитать ' + checkedRows.length + ' строк?',
+                    title: 'Пересчет',
+                    buttons: buttons,
+                    onhidden: function () {
+                        if (checkedRows.length === 1 && checkedRows[0] == checkedOneId) {
+                            pcTable.row_actions_uncheck_all();
+                        }
+                    },
+                    draggable: true
+                })
+            }
+        },
+        cycle_refresh: function (trId) {
+            "use strict";
+            let pcTable = this;
+            let checkedRows = this.__getCheckedRowsIds(trId, false);
+            if (checkedRows && checkedRows.length) {
+                let buttons = [
+                    {
+                        label: 'Пересчитать',
+                        action: function (dialogRef) {
+                            pcTable.model.refresh_cycles(checkedRows).then(function (json) {
+                                pcTable.table_modify.call(pcTable, json);
+                                dialogRef.close();
+                                pcTable.row_actions_uncheck_all();
+                            });
+
+                        }
+                    },
+                    {
+                        label: 'Отмена',
+                        action: function (dialogRef) {
+                            dialogRef.close();
+                        }
+
+                    }
+                ];
+
+                BootstrapDialog.show({
+                    message: 'Точно пересчитать ' + checkedRows.length + ' циклов?',
+                    title: 'Пересчет',
+                    buttons: buttons,
+                    draggable: true
+                })
+            }
+        }
+        ,
+        row_duplicate: function (trId) {
+            "use strict";
+
+            let pcTable = this;
+            let checkedRows = this.__getCheckedRowsIds(trId, false);
+            if (checkedRows && checkedRows.length) {
+                let buttons = [
+                    {
+                        label: 'Дублировать',
+                        cssClass: 'btn-danger',
+                        action: function (dialogRef_main) {
+                            let unic_replaces = {};
+                            let unic_fields = [];
+
+                            let newCheckedRows = [];
+                            pcTable.dataSortedVisible.forEach(function (id) {
+                                if (checkedRows.indexOf(id) !== -1) {
+                                    newCheckedRows.push(id);
+                                }
+                            });
+                            checkedRows = newCheckedRows;
+
+                            const duplicate = function (dialogRef) {
+                                pcTable.model.duplicate(checkedRows, unic_replaces, trId).then(function (json) {
+                                    pcTable.table_modify.call(pcTable, json, trId);
+                                    if (dialogRef)
+                                        dialogRef.close();
+                                    dialogRef_main.close();
+                                    pcTable.row_actions_uncheck_all();
+                                });
+                            };
+
+                            for (let i in pcTable.fieldCategories.column) {
+                                let field = pcTable.fieldCategories.column[i];
+                                if (field.type === 'unic') {
+                                    unic_fields.push(field.name);
+                                }
+                            }
+
+                            //Замена значений уникальных полей
+                            if (unic_fields.length) {
+                                let $uniqTable = $('<table class="simpleTable"><thead><tr><td class="id">id</td></tr></thead><tbody></tbody></table>');
+                                let $head = $uniqTable.find('thead tr');
+                                let $body = $uniqTable.find('tbody');
+                                let mainField;
+                                if (pcTable.mainFieldName !== 'id') {
+                                    mainField = pcTable.fields[pcTable.mainFieldName];
+                                    if (mainField.type !== 'unic') {
+                                        $head.append($('<td></td>').text(mainField.title));
+                                    } else {
+                                        mainField = null;
+                                    }
+                                }
+                                for (let i in unic_fields) {
+                                    let field = pcTable.fields[unic_fields[i]];
+                                    $head.append($('<td></td>').text(field.title));
+                                }
+
+                                for (let i in checkedRows) {
+                                    let id = checkedRows[i];
+                                    let row = pcTable.data[id];
+                                    let tr = $('<tr>');
+
+                                    unic_replaces[id] = {};
+
+                                    tr.append($('<td class="id"></td>').text(id));
+                                    if (mainField) {
+                                        tr.append($('<td></td>').text(row[mainField.name]['v']));
+                                    }
+                                    for (let i in unic_fields) {
+                                        let field = pcTable.fields[unic_fields[i]];
+                                        let tdInput = $('<td class="input"></td>');
+                                        let input = $('<input>').val(row[field.name].v);
+                                        unic_replaces[id][field.name] = row[field.name].v;
+                                        let timeoutObject;
+
+                                        input.on('keyup', function () {
+                                            let val = $(this).val();
+
+                                            unic_replaces[id][field.name] = val;
+
+                                            if (timeoutObject) {
+                                                clearTimeout(timeoutObject);
+                                                timeoutObject = null;
+                                            }
+
+                                            if (val === '') {
+                                                if (field.required) {
+                                                    tdInput.removeClass('ok');
+                                                } else {
+                                                    tdInput.addClass('ok');
+                                                }
+                                                return;
+                                            } else {
+                                                timeoutObject = setTimeout(function () {
+                                                    pcTable.model.checkUnic(field.name, val).then(function (json) {
+                                                        if (json.ok) tdInput.addClass('ok');
+                                                        else {
+                                                            tdInput.removeClass('ok');
+                                                        }
+                                                    });
+                                                }, 300)
+                                            }
+
+                                        });
+
+                                        tdInput.html(input);
+                                        tr.append(tdInput);
+                                    }
+                                    $body.append(tr);
+                                }
+
+
+                                let buttons = [
+                                    {
+                                        label: 'Дублировать',
+                                        cssClass: 'btn-m btn-warning',
+                                        action: function (dialogRef) {
+                                            duplicate(dialogRef);
+                                        }
+                                    },
+                                    {
+                                        label: 'Отмена',
+                                        action: function (dialog2) {
+                                            dialog2.close();
+                                            dialogRef_main.close();
+                                        }
+                                    }
+                                ];
+
+
+                                BootstrapDialog.show({
+                                    message: $uniqTable,
+                                    title: 'Заполните значения для уникальных полей',
+                                    buttons: buttons,
+                                    draggable: true
+                                })
+                            } else {
+                                duplicate();
+                            }
+                        }
+                    }, {
+                        label: 'Отмена',
+                        action: function (dialogRef) {
+                            dialogRef.close();
+                        }
+
+                    }
+                ];
+
+                BootstrapDialog.show({
+                    message: 'Точно дублировать ' + checkedRows.length + ' строк?',
+                    title: 'Дублирование',
+                    buttons: buttons,
+                    draggable: true
+                })
+            }
+        }
+        ,
+        rows_delete: function (trId) {
+            let pcTable = this;
+            let checkedRows = this.__getCheckedRowsIds(trId, true, 'blockdelete');
+            let checkedOneId = checkedRows.length === 1 ? checkedRows[0] : null;
+            if (checkedRows && checkedRows.length) {
+
+                let $message = 'Точно удалить ' + checkedRows.length + ' строк?';
+                let $messageTimer = 'Удаление ' + checkedRows.length + ' строк?';
+                if (checkedRows.length == 1) {
+                    let item = 'id-' + checkedRows[0];
+                    if (pcTable.mainFieldName != 'id') {
+                        item = pcTable.data[checkedRows[0]][pcTable.mainFieldName];
+                        item = 'id-' + checkedRows[0] + ' "' + (item.v_ && item.v_[0] ? item.v_[0] : item.v) + '"';
+                    }
+                    $message = 'Точно удалить строку ' + item + '?';
+                    $messageTimer = 'Удаление строки ' + item + '?';
+                }
+
+
+                let buttons = [
+                    {
+                        label: 'Удалить',
+                        cssClass: 'btn-danger',
+                        action: function (dialogRef) {
+                            dialogRef.close();
+
+                            const deleteIt = function () {
+                                pcTable.model.delete(checkedRows).then(function (json) {
+                                    pcTable.table_modify.call(pcTable, json);
+                                });
+                            };
+                            if (pcTable.tableRow.delete_timer > 0) {
+                                App.panelTimer($messageTimer, pcTable.tableRow.delete_timer, deleteIt)
+                            } else {
+                                deleteIt();
+                            }
+                        }
+                    }, {
+                        label: 'Отмена',
+                        action: function (dialogRef) {
+                            dialogRef.close();
+                        }
+
+                    }
+                ];
+
+
+                BootstrapDialog.show({
+                    message: $message,
+                    title: 'Удаление',
+                    buttons: buttons,
+                    onhidden: function () {
+                        if (checkedRows.length === 1 && checkedRows[0] == checkedOneId) {
+                            pcTable.row_actions_uncheck_all();
+                        }
+                    },
+                    draggable: true
+                })
+            }
+        }
+    });
+})
+(window, jQuery);
+
+$.extend(App.pcTableMain.prototype, {
+    _insertItem: null,
+    _insertRow: null,
+    _insertButtons: null,
+    _currentInsertCellIndex: 0,
+    _addInsert: function (addVars) {
+        var pcTable = this;
+        if (this.control.adding) {
+            if (!this._insertRow || !this._insertRow.length) {
+                if (addVars) {
+                    this._insertItem = {};
+
+                    this.fieldCategories.column.forEach(function (field) {
+                        if (addVars[field.name]) {
+                            pcTable._insertItem[field.name] = {v: addVars[field.name]};
+                        }
+                    })
+
+                }
+
+                this._insertRow = this._createInsertRow(null, 0);
+                this._insertButtonsChangeStatuses();
+
+                this._beforebody.prepend(this._insertRow);
+                this._table.addClass('with-adding-row');
+            }
+        }
+    },
+    _insertButtonsChangeStatuses: function () {
+        if (this._insertRow) {
+            this._insertButtons.find('[data-action="add"]').removeClass('btn-warning').addClass('btn-default').attr('disabled', 'disabled');
+            if (this.dataSortedVisible.length === 0) {
+                this._table.find('.pcTable-noDataRow button').removeClass('btn-warning').addClass('btn-default').attr('disabled', 'disabled');
+            }
+        } else {
+            this._insertButtons.find('[data-action="add"]').addClass('btn-warning').removeClass('btn-default').removeAttr('disabled')
+            if (this.dataSortedVisible.length === 0) {
+                this._table.find('.pcTable-noDataRow button').addClass('btn-warning').removeClass('btn-default').removeAttr('disabled');
+            }
+        }
+    },
+    _InsertAddInsertBtnsPanel: function ($row) {
+        let pcTable = this;
+        let panel;
+
+        let btns = {};
+        btns[('<span id="saveInsertRow" tabindex="' + (pcTable.fieldCategories.column.length) + '">Сохранить</span>')] =
+            function () {
+                panel.addClass('onSaving');
+
+                pcTable.__insertRowActions('saveInsertRow', function () {
+                    pcTable._saveInsertRow.call(pcTable, 'close').always(function () {
+                        panel.removeClass('onSaving');
+                    });
+                });
+
+            };
+        btns[('<i class="fa fa-save"  tabindex="' + (pcTable.fieldCategories.column.length + 1) + '"/>')] =
+            function () {
+                panel.addClass('onSaving');
+                pcTable.__insertRowActions('saveInsertRow', function () {
+                    pcTable._saveInsertRow.call(pcTable).then(function () {
+                        panel.removeClass('onSaving');
+                    });
+                });
+
+            };
+        btns[('<i class="fa fa-paste"  tabindex="' + (pcTable.fieldCategories.column.length + 2) + '"/>')] =
+            function () {
+                panel.addClass('onSaving');
+                pcTable.__insertRowActions('saveInsertRow', function () {
+                    pcTable._saveInsertRow.call(pcTable, 'notClean').then(function () {
+                        panel.removeClass('onSaving');
+                    });
+                });
+
+            };
+        btns['<i class="fa fa-times" tabindex="' + (pcTable.fieldCategories.column.length + 3) + '"/>'] = function () {
+            pcTable._closeInsertRow.call(pcTable, $(this).closest('#' + pcTable_PANNEL_IDS.insert));
+
+        };
+
+        panel = this._addRowPanel(pcTable_PANNEL_IDS.insert, $row, btns);
+    },
+    __insertRowActionsStack: [],
+    __insertRowActions: function (actionName, actionFunction) {
+        "use strict";
+        let pcTable = this;
+
+        if (['saveInsertRow', 'clickSourceButton'].indexOf(actionName) !== -1) {
+            setTimeout(function () {
+                let $d;
+                if ($d = pcTable.model.getDefferedProcess()) {
+                    $d.then(actionFunction);
+                } else actionFunction();
+            }, 450)
+        }
+
+    },
+    _saveInsertRow: function (isNotClean) {
+        let pcTable = this;
+        let data = {};
+        let $d = $.Deferred();
+        let doIt = function () {
+            $.each(pcTable._insertItem, function (k, v) {
+                if (k !== 'n') data[k] = v.v;
+            });
+
+            pcTable.model.add(data).then(function (json) {
+                pcTable.table_modify.call(pcTable, json);
+
+                pcTable._currentInsertCellIndex = 0;
+                switch (isNotClean) {
+                    case 'notClean':
+                        break;
+                    case 'close':
+                        pcTable._closeInsertRow();
+                        break;
+                    default:
+                        pcTable._insertItem = null;
+                        pcTable._insertRow.html('<td class="id"></td>');
+                        pcTable._createInsertRow(pcTable._insertRow, 0);
+                }
+
+
+            }).always(function () {
+                $d.resolve();
+            });
+        };
+        pcTable.model.doAfterProcesses(doIt);
+        return $d.promise();
+    },
+    _addInsertRow: function () {
+        let pcTable = this;
+        if (this.tableRow['type'] === 'cycles') {
+            pcTable.model.add({}).then(function (json) {
+                if (json.firstTableId) {
+                    window.location.href = window.location.pathname + '/' + json.chdata.rows[0].id + '/' + json.firstTableId;
+                } else {
+                    pcTable.table_modify(json);
+                }
+            });
+        } else {
+            if (pcTable.isMobile)
+                pcTable._addInsertWithPanel();
+            else
+                pcTable._addInsert()
+        }
+    },
+    _getInsertButtons: function () {
+        let pcTable = this;
+        let AddWithRow, AddWithPanel;
+
+        if (this.tableRow['type'] === 'cycles') {
+            AddWithPanel = AddWithRow = function () {
+                pcTable.model.add({}).then(function (json) {
+                    if (json.firstTableId) {
+                        window.location.href = window.location.pathname + '/' + json.chdata.rows[0].id + '/' + json.firstTableId;
+                    } else {
+                        pcTable.table_modify(json);
+                    }
+                });
+            }
+        } else {
+            AddWithRow = function () {
+                if (pcTable.isMobile)
+                    pcTable._addInsertWithPanel();
+                else
+                    pcTable._addInsert()
+            };
+            AddWithPanel = function () {
+                pcTable._addInsertWithPanel()
+            }
+        }
+        this._insertButtons = $('<span>');
+        $('<button data-action="add" class="btn btn-sm btn-warning">Добавить</button>')
+            .width(80)
+            .on('click', AddWithRow)
+            .appendTo(this._insertButtons);
+        if (!pcTable.isMobile && this.tableRow.panel) {
+            $('<button class="btn btn-warning btn-sm"><i class="fa fa-th-large"/></button>')
+                .on('click', AddWithPanel).appendTo(this._insertButtons)
+                .css('margin-left', 5);
+        }
+
+        return this._insertButtons;
+    },
+    _addInsertWithPanel: function () {
+        let pcTable = this;
+        new EditPanel(pcTable, BootstrapDialog.TYPE_PRIMARY, {}).then(function (json) {
+            if (json) {
+                pcTable.table_modify.call(pcTable, json);
+            }
+        });
+    },
+    _closeInsertRow: function () {
+        if (!this._insertPanel) {
+            this._insertRow.find('td').each(function () {
+                $(this).remove();
+            });
+            this._insertRow.remove();
+            this._insertRow = null;
+
+
+        } else {
+            this._insertPanel = null;
+        }
+        this._insertItem = null;
+        this._insertButtonsChangeStatuses();
+
+        this._currentInsertCellIndex = 0;
+        this._table.removeClass('with-adding-row');
+    },
+    _createInsertRow: function ($row, focusIt, savedFieldName) {
+        var pcTable = this;
+        var item = pcTable._insertItem || (pcTable._insertItem = {});
+
+        if (!$row) {
+            this.insertRow = $row = $('<tr class="InsertRow" style="height: 35px;"><td class="id"></td></tr>');
+            this._InsertAddInsertBtnsPanel($row);
+        }
+
+        if (!pcTable._currentInsertCellIndex) pcTable._currentInsertCellIndex = 0;
+        let data = {};
+        $.each(pcTable._insertItem, function (k, v) {
+            if (k !== 'n') data[k] = v.v;
+        });
+
+        let visibleColumnsIndexes = [];
+        pcTable.fieldCategories.visibleColumns.forEach(function (field) {
+            visibleColumnsIndexes.push(field.name);
+        });
+
+        pcTable.model.checkInsertRow(data, savedFieldName).then(function (json) {
+
+            item = json.row;
+
+            $.each(pcTable.fieldCategories.column, function (ind, field) {
+
+                if (!field.showMeWidth) {
+                    pcTable._insertItem[field.name] = item[field.name];
+                    return;
+                }
+
+                let index = visibleColumnsIndexes.indexOf(field.name);
+
+
+                var td = $row.find('td:eq(' + (index + 1) + ')');
+                let Oldval = pcTable._insertItem[field.name];
+                let isForce = pcTable._insertItem[field.name] && pcTable._insertItem[field.name].force;
+
+                pcTable._insertItem[field.name] = item[field.name];
+
+                if (td.length) {
+
+                    let isBlockedField = field.name === 'n' || pcTable._insertItem[field.name].f && pcTable._insertItem[field.name].f.block === true;
+
+                    if (td.data('input') && !isBlockedField) {
+
+                        let name = field.name;
+                        let isEqual = false;
+
+                        if (isForce) {
+                            isEqual = false;
+                        } else if (item[field.name].v === null && Oldval.v == '') {
+                            isEqual = true;
+                        } else {
+                            isEqual = Object.equals(item[field.name].v, Oldval.v) && !field.codeSelectIndividual;
+                        }
+
+                        if ((Oldval === undefined || !isEqual || field.name == 'data_src' || field.type == 'comments')) {
+                            pcTable._createInsertCell.call(pcTable, td, field, $row, index, 'td', pcTable._createInsertRow);
+                            if (savedFieldName === field.name) {
+                                pcTable._colorizeElement(td, pcTable_COLORS.saved);
+                            }
+                        }
+                    } else {
+                        td.replaceWith(pcTable._createInsertCell.call(pcTable, null, field, $row, index, 'td', pcTable._createInsertRow));
+                    }
+                } else {
+                    $row.append(td = pcTable._createInsertCell.call(pcTable, null, field, $row, index, 'td', pcTable._createInsertRow));
+                }
+
+            });
+            pcTable._insertFocusIt.call(pcTable);
+        });
+
+
+        return $row;
+    },
+    _createInsertCell: function (td, field, row, index, nodeName, parentFunction) {
+
+
+        nodeName = nodeName || 'td';
+        var td = td || $("<" + nodeName + ">");
+        var pcTable = this;
+
+        if (field.code) {
+            td.addClass('with-code');
+        }
+
+
+        if (pcTable._insertItem[field.name] === undefined) {
+            pcTable._insertItem[field.name] = null;
+        }
+
+        if (!field.insertable || (pcTable._insertItem[field.name].f && pcTable._insertItem[field.name].f.block == true)) {
+            let val = pcTable._insertItem[field.name];
+            if (val) val = val.v;
+            td.empty().append(field.getCellText(val, td, pcTable._insertItem));
+            return td;
+        }
+
+        if (field.help) {
+            td.on('focus', 'input,button,select', function (event) {
+                let i = pcTable._table.find('thead th #field-help-' + field.name);
+                let element = $(event.target);
+                setTimeout(function () {
+                    i.trigger('open');
+                    element.one('blur remove', function () {
+                        i.trigger('close');
+                    });
+                }, 120);
+            })
+        }
+
+
+        var getEditVal = function ($input) {
+
+            var editVal;
+            try {
+                editVal = field.getEditVal($input);
+            } catch (error) {
+                App.popNotify(error, $input, 'default');
+                return null;
+            }
+
+            return editVal;
+        };
+
+
+        var saveClbck = function ($input, event) {
+            var editValResult = getEditVal($input);
+            if (editValResult === null) {
+                pcTable._insertFocusIt.call(pcTable)
+            } else {
+                pcTable._currentInsertCellIndex = index + 1;
+                if (field.isDataModified(editValResult, pcTable._insertItem[field.name].v)) {
+                    pcTable._insertItem[field.name].v = editValResult;
+                    if (field.isPanelField === true) {
+                        pcTable._createInsertCell.call(pcTable, td, field, row, index, nodeName, parentFunction);
+                    }
+                    parentFunction.call(pcTable, row, pcTable._currentInsertCellIndex, field.name);
+                } else {
+                    pcTable._insertFocusIt.call(pcTable)
+                }
+            }
+
+        };
+        var blurClbck = function ($input, event) {
+            setTimeout(function () {
+
+                let td = $input.closest('td');
+                if (!td.length || !td.closest('tr').length) return false;
+
+                let editValResult = getEditVal($input);
+                if (editValResult === null) {
+                    pcTable._insertFocusIt.call(pcTable)
+                } else {
+
+                    if (field.isDataModified(editValResult, pcTable._insertItem[field.name].v)) {
+                        pcTable._insertItem[field.name].v = editValResult;
+                        if (field.isPanelField === true) {
+                            pcTable._createInsertCell.call(pcTable, td, field, row, index, nodeName, parentFunction);
+                        }
+                        parentFunction.call(pcTable, row, pcTable._currentInsertCellIndex, field.name);
+                    }
+                }
+            }, 150)
+        };
+        var escClbck = function ($input, event) {
+            let td = $input.closest('td');
+            if (!td.length || !td.closest('tr').length) return false;
+
+            let editVal = getEditVal($input);
+            let itemVal = pcTable._insertItem[field.name].v + "";
+
+            if (field.isDataModified(editVal, itemVal)) {
+                pcTable._createInsertCell(td, field, row, index, nodeName, parentFunction);
+                pcTable._colorizeElement(td, pcTable_COLORS.blured);
+            }
+        };
+
+        let input = field.getEditElement(td.data('input'), pcTable._insertItem[field.name], pcTable._insertItem, saveClbck, escClbck, blurClbck);
+
+
+        td.on('click focus', 'input,button,select', function (event) {
+            pcTable._currentInsertCellIndex = index;
+        });
+
+
+        td.on('click focus', function () {
+            pcTable._currentInsertCellIndex = index;
+        });
+
+        if (!input.isAttached()) {
+            td.html(input).data('input', input);
+        }
+
+        if (field['type'] === 'select' && field.changeSelectTable === 2) {
+            td.addClass('with-source-add-button');
+            let btn = $('<button class="btn btn-default btn-sm source-add" tabindex="-1"><i class="fa fa-plus"></i></button>');
+
+            td.prepend(btn);
+            let clickSourceButton = function () {
+                let ee = {};
+                let item = pcTable._insertItem;
+
+                $.each(item, function (k, v) {
+                    if (k.substring(0, 1) !== '$') {
+                        ee[k] = v;
+                    }
+                });
+                let isAdd = true;
+                if (isAdd) {
+                    ee[field.name] = null;
+                }
+                let opened = 0;
+                $(window.top.document.body)
+                    .on('pctable-opened.select-add-' + field.name, function () {
+                        opened++;
+                    })
+                    .on('pctable-closed.select-add-' + field.name, function (event, data) {
+                        opened--;
+                        let isAdded = (data /*&& data.tableId === field.selectTableId*/ && data.method === 'insert' && data.json && data.json.chdata && data.json.chdata.rows);
+                        if (opened === 0 || isAdded) {
+                            let inputOld = input;
+                            delete field.list;
+                            if (inputOld.data('input').data('LISTs')) {
+                                inputOld.data('input').data('LISTs').isListForLoad = true;
+                            }
+                            if (isAdded) {
+                                if (field.multiple) {
+                                    item[field.name].v.push(Object.keys(data.json.chdata.rows)[0]);
+                                } else {
+                                    item[field.name].v = Object.keys(data.json.chdata.rows)[0];
+                                }
+                            }
+                            inputOld.replaceWith(input = field.getEditElement(inputOld, item[field.name], item, saveClbck, escClbck, blurClbck));
+                            $('body').off('.select-add-' + field.name);
+                            td.data('input', input);
+                            parentFunction.call(pcTable, row, pcTable._currentInsertCellIndex, field.name);
+
+                        }
+                    });
+                pcTable.model.selectSourceTableAction(field.name, ee);
+                return false;
+            };
+            btn.on('click', function () {
+                pcTable.__insertRowActions('clickSourceButton', clickSourceButton);
+            });
+        }
+
+        return td;
+    },
+    _insertFocusIt: function (outTimed) {
+        let pcTable = this;
+        if (!outTimed) {
+            setTimeout(function () {
+                pcTable._insertFocusIt.call(pcTable, 1);
+            }, 10);
+            return false;
+        }
+
+
+        let isLastCell = true;
+        let isPanel = this._insertPanel ? true : false;
+        let $row = this.insertRow;
+        if (isPanel) {
+            if (pcTable._insertPanel) {
+                $row = pcTable._insertPanel.$modalBody;
+            } else {
+                return false;
+            }
+        }
+
+        if (!$row || !$row.length) return false;
+
+        $.each(pcTable.fieldCategories.visibleColumns, function (index, field) {
+            if (pcTable._currentInsertCellIndex == index) {
+                if (!field.insertable || (pcTable._insertItem && pcTable._insertItem[field.name] && pcTable._insertItem[field.name].f && pcTable._insertItem[field.name].f.block === true)) {
+                    pcTable._currentInsertCellIndex++;
+                    return;
+                } else {
+                    if (isPanel) {
+                        field.focusElement($row.find('.cell:eq(' + index + ')').data('input'));
+                    } else {
+                        field.focusElement(pcTable._getTdByColumnIndex($row, index + 1).data('input'));
+                    }
+                }
+                isLastCell = false;
+                return false;
+            }
+        });
+        if (isLastCell) {
+            if (isPanel) {
+                let buttonSave = pcTable._insertPanel.indexedButtons[Object.keys(pcTable._insertPanel.indexedButtons)[0]];
+                buttonSave.focus();
+            } else {
+                $('#saveInsertRow').parent().focus();
+            }
+        }
+    }
+});
+(function () {
+    let pcTableContainerFieldHelpEvent = false;
+
+    $.extend(App.pcTableMain.prototype, {
+        _rerenderColumnsFooter: function () {
+            let footers = this._createFootersBlock();
+            this._footersBlock.replaceWith(footers[0]);
+            this._footersBlock = footers[0];
+        },
+        _rerendParamsblock: function () {
+            this._paramsBlock.replaceWith($block = this._createParamsBlock());
+            this._paramsBlock = $block;
+            this._refreshParamsBlock();
+        },
+        _rerendFiltersBlock: function () {
+            this._filtersBlock.replaceWith($block = this._createFiltersBlock());
+            this._filtersBlock = $block;
+
+            this._refreshFiltersBlock(this.data_params);
+        },
+        _rerendFooters: function () {
+            let footers = this._createFootersBlock();
+            this._footersSubTable.replaceWith(footers[1]);
+            this._footersSubTable = footers[1];
+            this._footersBlock.replaceWith(footers[0]);
+            this._footersBlock = footers[0];
+
+            this._refreshFootersBlock();
+        },
+        _renderTable: function () {
+            let pcTable = this;
+
+            //Предотвращение автозаполнения в хроме
+            /* $('body').append('<input style="opacity: 0;position: absolute; top:0">\n' +
+                 '<input type="password" style="opacity: 0;position: absolute; top:0">\n');
+     */
+
+            this._table = $("<table>")
+                .addClass(this.tableClass);
+
+            if (this.notCorrectOrder) {
+                this._table.addClass('no-correct-n-filtered')
+            }
+
+            this._table.append(this._createHead())
+                .append(this._createFirstBody())
+                .append(this._createBody())
+                .append(this._createAfterBody())
+
+            let footers = this._createFootersBlock();
+            this._footersBlock = footers[0];
+            this._footersSubTable = footers[1];
+
+            this._table.append(this._footersBlock);
+            this._popovers = $('<div class="popovers">');
+
+
+            if (this.fieldCategories.column.length === 1) {
+                pcTable._container.addClass('no-fields');
+            }
+
+            let scrollWrapper = this.scrollWrapper = this._container.append('<div class="pcTable-scrollwrapper">').find('.pcTable-scrollwrapper');
+            scrollWrapper
+                .append(this._createBeforeSpace())
+                .append(this._createTableText());
+            if (this.isCreatorView) {
+                scrollWrapper
+                    .append(this._refreshHiddenFieldsBlock())
+            }
+            scrollWrapper
+                .append(this._paramsBlock = this._createParamsBlock());
+            let rowsParent = $('<div>').appendTo(scrollWrapper);
+
+            rowsParent
+                .append(this._createRowsTitle(rowsParent))
+                .append(this._createFiltersBlock())
+                .append(this._rowsButtons())
+                .append(this._innerContainer);
+
+            scrollWrapper
+                .append(this._footersSubTable)
+                .append(this._popovers);
+
+            pcTable._container.height(window.innerHeight - pcTable._container.offset().top - 20);
+
+            this.addScrollsRules();
+
+            this._seeCalcucatedValData();
+            this._seeSelectPreview();
+            this._clickstoCopyMe();
+
+            if (this.isCreatorView) {
+                this._hideHell_storage.checkIssetFields.call(this)
+            }
+
+        },
+        _refreshHiddenFieldsBlock: function () {
+
+            let newBlock = this._hiddenFieldsBlock();
+            if (this.HiddenFieldsBlock) {
+                this.HiddenFieldsBlock.replaceWith(newBlock);
+            }
+            this.HiddenFieldsBlock = newBlock;
+            return this.HiddenFieldsBlock;
+        },
+        _hiddenFieldsBlock: function () {
+            let pcTable = this, countFields = 0;
+
+            let block = $('<div class="pcTable-hiddenFieldsTables">'), width = 0, $table, $thead, $tbody;
+
+            if (this.beforeSpaceHide || !this._hideHell_storage.getOpened.call(this)) return block;
+
+            let ContainerWidth = this._container.width() - 100;
+            $.each(pcTable.hidden_fields || [], function (k, field) {
+                countFields++;
+
+                let fWidth = field.width > 0 ? field.width : 100;
+                if (width === 0 || (ContainerWidth < (width + fWidth))) {
+                    if ($table) $table.width(width);
+
+                    $table = $("<table class='pcTable-hiddenFieldsTable'><thead><tr></tr></thead></table>\"");
+                    block.append($table);
+                    width = 0;
+                    $thead = $table.find('thead tr');
+                }
+                $thead.append(pcTable._createHeadCell(k, field));
+                width += field.width;
+            });
+
+            if (pcTable.isCreatorView) {
+                Object.keys(pcTable.fields).forEach(function (fieldName, k) {
+                    let field = pcTable.fields[fieldName];
+                    if (field.showInWeb && field.showMeWidth < 1 && field.name !== 'n') {
+                        countFields++;
+
+                        let fWidth = field.width > 0 ? field.width : 100;
+                        if (width === 0 || (ContainerWidth < (width + fWidth))) {
+                            if ($table) $table.width(width);
+
+                            $table = $("<table class='pcTable-hiddenFieldsTable'><thead><tr></tr></thead></table>\"");
+                            block.append($table);
+                            width = 0;
+                            $thead = $table.find('thead tr');
+                        }
+                        $thead.append(pcTable._createHeadCell(k, field));
+                        width += field.width;
+                    }
+                });
+            }
+
+            if ($table) $table.width(width);
+            if (countFields) return block;
+
+            return $('<div class="pcTable-hiddenFieldsTables">');
+        },
+        _clickstoCopyMe: function () {
+            this._container.on('click', '.copy_me', function () {
+                let button = $(this);
+
+                if (button.data('clicked')) return false;
+
+                button.data('clicked', true);
+
+                button.width(button.width());
+
+                if (button.data('text')) {
+                    App.copyMe(button.data('text'));
+                } else {
+                    App.copyMe(button.text());
+                }
+                button.button('copied');
+                setTimeout(function () {
+                    button.button('reset');
+                    button.removeData('clicked');
+                }, BUTTONS_TIMEOUT);
+                button.blur();
+                return false;
+            })
+        },
+        _clicksToCodeView: function () {
+            let pcTable = this;
+            this._container.on('click', 'th .roles', function () {
+                    let img = $(this);
+                    if (img.hasClass('.fa-sun-o') || img.hasClass('fa-certificate')) {
+
+                        let field = pcTable._getFieldBytd(img.closest('th'));
+
+                        let newCodemirrorDiv = $('<div class="HTMLEditor" id="bigOneCodemirror" style="height: 100%;"></div>');
+
+                        let editorMax;
+
+                        BootstrapDialog.show({
+                            message: newCodemirrorDiv,
+                            type: null,
+                            title: 'Просмотр кода поля ' + field.title,
+
+                            cssClass: 'fieldparams-edit-panel',
+                            draggable: true,
+                            onhide: function (event) {
+                                mirror.setValue(editorMax.getValue());
+                            },
+
+                            onshow: function (dialog) {
+                                dialog.$modalHeader.css('cursor', 'pointer');
+                                dialog.$modalContent.css({
+                                    width: "90vw",
+                                    minHeight: "90vh"
+                                });
+
+                            },
+                            onshown: function (dialog) {
+                                editorMax = CodeMirror(newCodemirrorDiv.get(0), {
+                                    mode: 'totum',
+                                    value: field.code[0],
+                                    theme: 'eclipse',
+                                    lineNumbers: true,
+                                    indentWithTabs: true,
+                                    autoCloseTags: true,
+                                    bigOneDialog: dialog,
+                                    readOnly: true
+                                });
+
+                                if (mirror.table) editorMax.table = mirror.table;
+
+                                let minheight = Math.round(dialog.$modalContent.height() - dialog.$modalHeader.outerHeight() - 40);
+                                editorMax.getScrollerElement().style.minHeight = minheight + 'px';
+                                newCodemirrorDiv.find('.CodeMirror').css('min-heught', minheight);
+                                editorMax.focus();
+                                dialog.$modalContent.position({
+                                    my: 'center top',
+                                    at: 'center top+30px',
+                                    of: window
+                                });
+                            }
+                        })
+                    }
+                }
+            )
+        },
+        _seeCalcucatedValData: function () {
+            var pcTable = this;
+            this._container.on('mouseover', 'td .fa-hand-paper-o', function () {
+                if (!pcTable.isMobile) {
+                    var hand = $(this);
+                    var td = hand.closest('td');
+                    var item = pcTable._getItemBytd(td);
+                    var field = pcTable._getFieldBytd(td);
+
+                    var notify = $('<div>');
+                    let cellText = '';
+                    if (item[field.name].c === null || item[field.name].c === '' || item[field.name].c === undefined) {
+                        cellText = '';
+                    } else {
+                        if (field.type === 'select') {
+                            if (field.multiple) {
+                                $.each(item[field.name].c, function (k, v_) {
+                                    if (cellText !== '') cellText += ', ';
+                                    cellText += field.getElementString(item[field.name].c[k], item[field.name].c_[k]);
+                                })
+                            } else {
+                                cellText = field.getElementString(item[field.name].c, item[field.name].c_);
+                            }
+
+                        } else {
+                            cellText = field.getCellText(item[field.name].c, null, item, pcTable);
+                            if (typeof cellText === 'object') cellText = cellText.text();
+                        }
+                    }
+                    notify.append($('<div>Расчетное значение: </div>').append($('<code>').text(cellText)));
+
+                    hand.one('mouseout', function () {
+                        if (notify.length) {
+                            notify.remove();
+                            notify = null;
+                        }
+                    });
+                    setTimeout(
+                        function () {
+                            if (notify && notify.length) {
+                                App.popNotify(notify, hand);
+                            }
+                        }, 500
+                    )
+                }
+            })
+        },
+        _seeSelectPreview: function () {
+            var pcTable = this;
+            this._container.on('mouseover', '.select-with-preview li', function (event) {
+                let element = $(this);
+                let timeObject = setTimeout(function () {
+                    if (element.is(':hover')) {
+                        let span = element.find('span.select-with-preview');
+                        if (pcTable.fields[span.data('field')]) {
+                            pcTable.fields[span.data('field')].previewPanel.call(pcTable.fields[span.data('field')], span, element);
+                        }
+                    }
+                }, 300);
+                element.one('mouseout', function () {
+                    if (timeObject) clearTimeout(timeObject);
+                });
+            })
+        },
+        _getFavoriteStar: function () {
+            let isInFaves = this.tableRow.__is_in_favorites = this.tableRow.__is_in_favorites || false; /*TEST*/
+            let btn = $('#favorite-start');
+            let pcTable = this;
+            if (isInFaves === null) return $();
+
+            if (btn.length === 0) {
+                btn = $('<button class="btn btn-default btn-sm" id="favorite-start"></button>')
+                    .on('click', function () {
+                        pcTable.model.setTableFavorite(!btn.is('.stared')).then(function (json) {
+                            pcTable.tableRow.__is_in_favorites = json.status;
+                            pcTable._getFavoriteStar.call(pcTable);
+                        })
+
+                    });
+            }
+            if (isInFaves) {
+                btn.addClass('stared').text('★');
+            } else {
+                btn.removeClass('stared').text('☆');
+            }
+
+            return btn;
+        },
+        _createBeforeSpace: function () {
+            let pcTable = this;
+            if (pcTable.beforeSpaceHide) {
+                return this._beforeSpace = $('<span></span>');
+            }
+            this._beforeSpace = $('<div class="pcTable-beforeSpace">');
+            pcTable.LogButton = $();
+
+            let topButtons = $('<div class="pcTable-topButtons">');
+
+            let $TOTUM_FOOTER = $('#TOTUM_FOOTER');
+            if ($TOTUM_FOOTER.length) {
+                topButtons.append($TOTUM_FOOTER);
+            }
+            if (pcTable.isCreatorView) {
+                let LogButtons = $('<div class="creator-log-buttons">');
+
+                let btn = $('<button class="btn btn-danger btn-sm"><i class="fa" style="width: 12px"></i> Показать логи</button>')
+                    .appendTo(LogButtons)
+                    .on('click', function () {
+                        let $div;
+
+                        const apply = function () {
+                            let codes = [];
+                            $div.find('input:checked').each(function (i, input) {
+                                codes.push($(input).attr('name'));
+                            });
+                            if (codes.length > 0) {
+                                btn.find('i').attr('class', 'fa fa-check-square-o')
+                            } else {
+                                btn.find('i').attr('class', 'fa fa-square-o')
+                            }
+                            $.cookie('pcTableLogs', JSON.stringify(codes), {path: '/'});
+
+                            pcTable.FullLOGS = [];
+                            pcTable.LOGS = {};
+
+                            btn.popover('destroy');
+                        };
+                        if (btn.is('[aria-describedby]')) {
+                            $div = $('#' + btn.attr('aria-describedby'));
+                            apply();
+                        } else {
+                            let codes = $.cookie('pcTableLogs') || '[]';
+                            codes = JSON.parse(codes);
+                            $div = $('<div>');
+                            $div.append('<div><input type="checkbox" name="c"/> Код</div>');
+                            $div.append('<div><input type="checkbox" name="a"/> Код-действия</div>');
+                            $div.append('<div><input type="checkbox" name="s"/> Селекты</div>');
+                            $div.append('<div><input type="checkbox" name="f"/> Форматирование</div>');
+                            $div.append('<div><input type="checkbox" name="recalcs"/> Пересчеты и селекты</div>');
+
+                            let $calcFieldsLogBtn = $('<button class="btn btn-xs"><i class="fa fa-table"></i></button>').on('click', function () {
+                                if (!pcTable.FieldLOGS) App.notify('Лог расчета полей пуст');
+                                else {
+                                    pcTable.model.calcFieldsLog(JSON.stringify(pcTable.FieldLOGS), pcTable.FieldLOGSName || "Расчет вывода таблицы");
+                                }
+                            });
+                            $div.append($('<div><input type="checkbox" name="flds"/> Время расчета полей </div>').append($calcFieldsLogBtn));
+
+
+                            $div.append('<div style="padding-top: 10px;"><button class="btn btn-sm btn-default">Применить</button></div>');
+                            $div.find('input').each(function (i, input) {
+                                input = $(input);
+                                if (codes.indexOf(input.attr('name')) !== -1) {
+                                    input.prop('checked', 'checked');
+                                }
+                            });
+
+                            $div.on('click', 'button', function () {
+                                apply()
+                            });
+                            btn.popover({
+                                trigger: "manual",
+                                placement: "bottom",
+                                content: $div,
+                                html: true,
+                                animation: false,
+                                container: pcTable._container,
+                                onhide: function () {
+
+                                }
+                            }).popover('show');
+                        }
+                    });
+
+                let img = btn.find('i');
+                let codes = $.cookie('pcTableLogs') || '[]';
+                codes = JSON.parse(codes);
+
+                if (codes.length > 0) img.addClass('fa-check-square-o'); else img.addClass('fa-square-o');
+
+                let btnLog = $('<button class="btn btn-danger btn-sm">Лог</button>').appendTo(LogButtons);
+                pcTable.LogButton = btnLog;
+                btnLog.on('click', function () {
+                    if (!pcTable.FullLOGS || pcTable.FullLOGS.length === 0) {
+                        App.logOutput('Лог пуст. Включите логирование и перегрузите страницу');
+                    } else {
+                        App.logOutput(pcTable.FullLOGS);
+                    }
+                });
+
+
+                if ($TOTUM_FOOTER.length) {
+                    $TOTUM_FOOTER.append(LogButtons);
+                } else {
+                    LogButtons.appendTo(topButtons);
+                }
+
+                $('<button class="btn btn-danger btn-sm"><i class="fa fa-eraser" style="width: 13px"></i></button>')
+                    .on('click', function () {
+                        pcTable.FullLOGS = [];
+                        pcTable.LOGS = {};
+                    }).appendTo(LogButtons);
+            }
+
+            let csv = $('<span class="common-table-title">');
+
+
+            if (!pcTable.isMobile) {
+                csv.append(this.fieldsHiddingGetButton(true));
+
+                //Печать
+                {
+                    let btn = $('<button class="btn btn-default btn-sm"><i class="fa fa-print"></i></button>')
+                        .on('click', function () {
+                            pcTable._print.call(pcTable)
+                        }).appendTo(csv);
+                }
+
+                if (pcTable.withCsvButtons) {
+                    let btn = $('<button class="btn btn-default btn-sm">CSV-экспорт</button>')
+                        .on('click', function () {
+                            pcTable._csvExport.call(pcTable)
+                        });
+                    csv.append(btn);
+                }
+                if (pcTable.withCsvEditButtons && this.control.editing) {
+                    let btn = $('<button class="btn btn-default btn-sm">CSV-импорт</button>')
+                        .on('click', function () {
+                            pcTable._csvImportClick.call(pcTable);
+                        });
+                    csv.append(btn);
+                }
+            }
+            if (!this.isAnonim)
+                csv.append(this._getFavoriteStar());
+
+
+            if (this.isCreatorView && this.isMain) {
+                let creatorPart = $('<div class="creator-buttons">');
+                $('<button class="btn btn-default btn-xxs field_name copy_me" data-copied-text="Скопировано"/>').text(this.tableRow.name).appendTo(creatorPart);
+
+
+                $('<button class="btn btn-danger btn-xxs" title="Редактировать настройки таблицы"/>').html('<i class="fa fa-pencil-square-o"/>').on('click', function () {
+                    (new EditPanel(1, BootstrapDialog.TYPE_DANGER, {id: pcTable.tableRow.id})).then(function (json) {
+                        if (json) window.location.reload(true);
+                    });
+                }).appendTo(creatorPart);
+
+
+                let filters = {'fl_name': [this.tableRow.id]};
+                $('<a href="/Table/' + this.Tables.branchId + '/' + this.Tables.id + '/?' + $.param({f: filters}) + '" target="_blank" class="btn btn-danger btn-xxs" title="Открыть список таблиц"/>').html('<i class="fa fa-external-link"/>').appendTo(creatorPart);
+
+
+                filters = {'f_table_categories': this.tableRow.category, 'f_table': this.tableRow.id};
+                if (this.tableRow.__version) {
+                    filters.fl_version = this.tableRow.__version
+                }
+                $('<a href="/Table/' + this.Tables.branchId + '/' + this.TableFields.id + '/?' + $.param({f: filters}) + '" target="_blank" class="btn btn-danger btn-xxs" title="Открыть состав таблиц"/>').html('<i class="fa fa-external-link-square"/>').appendTo(creatorPart);
+
+
+                if (this.tableRow.type === "calcs") {
+                    creatorPart.append(' ');
+                    let btnCopyTable = $('<a href="/Table/' + this.TablesVersions.branchId + '/' + this.TablesVersions.id + '/?'
+                        + $.param({f: this.TablesVersions.version_filters}) + '" target="_blank" class="btn btn-danger btn-xxs" title="Создание версий таблиц"><i class="fa fa-code-fork"></i></a>');
+                    creatorPart.append(btnCopyTable);
+
+                    creatorPart.append(' ');
+                    btnCopyTable = $('<a href="/Table/' + this.TablesCyclesVersions.branchId + '/' + this.TablesCyclesVersions.id + '/?'
+                        + $.param({f: this.TablesCyclesVersions.version_filters}) + '" target="_blank" class="btn btn-danger btn-xxs" title="Изменение версий таблиц цикла"><i class="fa fa-random"></i></a>');
+                    creatorPart.append(btnCopyTable);
+
+
+                }
+                let type = $('<div class="color-danger creator-table-title">' +
+                    +this.tableRow.sort + ' <i class="' + App.tableTypes[this.tableRow.type].icon + '"/> '
+                    + App.tableTypes[this.tableRow.type].title + '</div>');
+                creatorPart.append(type);
+
+
+                if (this.tableRow.type === "calcs") {
+                    type.append(' / Версия ' + this.tableRow.__version + ' / Цикл ' + this.cycle)
+                }
+
+                let btnHideAdd = $('<button class="btn btn-danger btn-sm" id="hide-hell" disabled><i class="fa fa-times"></i></span></button>')
+                    .on('click', function () {
+                        pcTable._hideHell_storage.switchOpened.call(pcTable)
+                    }).appendTo(creatorPart);
+
+                creatorPart.appendTo(topButtons);
+
+                let btnAdd = $('<button class="btn btn-danger btn-sm">Добавить поле</span></button>').width(113)
+                    .on('click', function () {
+                        let data = {table_id: {v: pcTable.tableRow.id}};
+                        if (pcTable.tableRow.__version) {
+                            data['version'] = {v: pcTable.tableRow.__version};
+                        }
+                        (new EditPanel(2, BootstrapDialog.TYPE_DANGER, data)).then(function (json) {
+                            if (json) {
+
+                                window.location.reload(true);
+                            }
+                        })
+                    }).appendTo(creatorPart);
+
+                creatorPart.appendTo(topButtons);
+            }
+
+            this._beforeSpace.append(topButtons);
+            this._beforeSpace_title = $('<div class="pcTable-title"><span class="title"/><span class="bttns"/><div class="updated"/></div>').prependTo(this._beforeSpace);
+
+            this._beforeSpace_title.find('.bttns').append(csv);
+
+            if (this.tableRow.description) {
+                let btnAdd = $('<a class="btn btn-default btn-sm"><i class="fa fa-info"/></a>');
+                let $description = $('<div class="table-description"/>').html(this.tableRow.description);
+                btnAdd.appendTo(csv);
+                let storageKey = 'table_description_switcher' + this.tableRow.id;
+                let switcher = localStorage.getItem(storageKey) || localStorage.setItem(storageKey, '1') || localStorage.getItem(storageKey);
+
+                const handleSwitcher = (switch_) => {
+                    if (switch_) {
+                        switcher = switcher === '1' ? '0' : '1';
+                    }
+
+                    switch (switcher) {
+                        case '1':
+                            $description.show();
+                            btnAdd.removeClass('btn-warning').addClass('btn-default');
+                            break;
+                        default:
+                            $description.hide();
+                            btnAdd.addClass('btn-warning').removeClass('btn-default');
+                    }
+                    localStorage.setItem(storageKey, switcher);
+                    if (switch_) {
+                        this.ScrollClasterized.insertToDOM(0, true);
+                    }
+                };
+                handleSwitcher();
+
+                btnAdd.on('click', handleSwitcher);
+
+                this._beforeSpace.append($description);
+            }
+
+
+            return this._beforeSpace;
+        },
+        __$rowsButtons: null,
+        _rowsButtons: function () {
+            let pcTable = this;
+
+            let buttons;
+            if (!this.__$rowsButtons) {
+                buttons = $('<div class="pcTable-buttons">');
+                this.__$rowsButtons = buttons;
+            } else {
+                buttons = this.__$rowsButtons.empty();
+            }
+
+
+            if (this.fieldCategories.column.length) {
+
+                if (this.control.adding && !this.f.blockadd) {
+                    let insButtons = pcTable._getInsertButtons();
+                    buttons.append(insButtons);
+                }
+
+                let btnAdd = $('<button class="btn btn-default btn-sm" style="margin-left: 5px;" disabled>Сбросить <span class="fa fa-filter"></span></button>').width(82)
+                    .on('click', function () {
+                        setTimeout(function () {
+                            pcTable.filtersEmpty.call(pcTable)
+                        }, 50)
+
+                    });
+                buttons.append(btnAdd);
+                this.filtersClearButton = btnAdd;
+            }
+
+            if (this.f.tablecomment) {
+                let comment = $('<div class="pcTable-tableComment">').on('click', function () {
+                    App.panel('Комментарий строчной части таблицы', pcTable.f.tablecomment)
+                });
+                buttons.prepend(comment.text(this.f.tablecomment));
+                setTimeout(function () {
+                    let btnsWidth = 0;
+                    btnsWidth += comment.parent().find('>span').width() || 0;
+                    btnsWidth += 90;
+                    comment.css('width', 'calc(100% - ' + (btnsWidth) + 'px)');
+
+                }, 1);
+            }
+
+            return buttons;
+        },
+        _refreshContentTable: function (forceRecreateRows, forceCheckHeights) {
+            let pcTable = this;
+            let $content = this._content;
+            forceCheckHeights = forceCheckHeights || false;
+
+            $content.data('state', 'refreshing');
+            let uin = App.fullScreenProcesses.showCog();
+
+
+            if (0 && App.isEmpty(this.data)) {
+                if ($content.find('.' + this.noDataRowClass).length == 0) {
+                    $content.append(this._createNoDataRow());
+                }
+            } else {
+                this.ScrollClasterized.insertToDOM(0, forceCheckHeights, forceRecreateRows);
+            }
+            App.fullScreenProcesses.hideCog();
+
+            $content.data('state', 'ready');
+            $content.trigger('refreshed');
+            this._popovers.empty();
+
+        },
+        _refreshTitle: function () {
+            if (this.beforeSpaceHide) return;
+            this._beforeSpace_title.find('.title').text(this.f.tabletitle || this.tableRow.title);
+
+            if (this.model.tableData && this.model.tableData.updated) {
+                let dt;
+                if (!this.isAnonim)
+                    dt = moment(this.model.tableData.updated.dt, 'YYY-MM-DD HH:mm').format('DD.MM HH:mm') + ' (code: ' + this.model.tableData.updated.code + ')';
+                let updatedDiv = $('<div class="small">').text(dt);
+                if (this.tableRow["__blocked"]) {
+                    updatedDiv.append('<div class="">Блокирована' + (this.tableRow["license_error"] ? ': ' + this.tableRow["license_error"] : '') + '</div>');
+                } else if (this.control.editing === false) {
+                    updatedDiv.append('<div class="">Только чтение</div>');
+                }
+                this._beforeSpace_title.find('.updated').html(updatedDiv);
+            }
+
+        },
+        _createTableText: function () {
+            this.tableText = $('<div class="pcTable-tableText"></div>').text(this.f.tabletext);
+            return this.tableText;
+        },
+        _refreshTableText: function () {
+            this.tableText.text(this.f.tabletext);
+        },
+        _createRowsTitle: function (parent) {
+            let pcTable = this;
+            pcTable.__sectionsCloses = pcTable.__sectionsCloses || JSON.parse(localStorage.getItem('sectionCloses') || '{}');
+            let storageKey = pcTable.tableRow.id + '/' + (pcTable.tableRow.__version || 0) + '/rows';
+
+
+            let rowsTitle = $('<div class="pcTable-rowsTitle"></div>').on('click', function () {
+                let parent = $(this).parent();
+                if (parent.is('.pcTable-rowsClose')) {
+                    parent.removeClass('pcTable-rowsClose');
+                    delete pcTable.__sectionsCloses[storageKey];
+                } else {
+                    parent.addClass('pcTable-rowsClose');
+                    pcTable.__sectionsCloses[storageKey] = 1;
+                }
+                pcTable.ScrollClasterized.insertToDOM(0, true);
+                localStorage.setItem('sectionCloses', JSON.stringify(pcTable.__sectionsCloses));
+            });
+            if (parent.is('.pcTable-rowsClose') && !pcTable.__sectionsCloses[storageKey]) {
+                parent.removeClass('pcTable-rowsClose')
+            } else if (!parent.is('.pcTable-rowsClose') && pcTable.__sectionsCloses[storageKey]) {
+                parent.addClass('pcTable-rowsClose')
+            }
+
+
+            if (this.f.rowstitle) {
+                rowsTitle.text(this.f.rowstitle).prepend('<i class="fa">');
+            } else {
+                rowsTitle.text();
+            }
+            return rowsTitle;
+        },
+        _createFiltersBlock: function () {
+            let pcTable = this,
+                wrapper = $('<div>');
+            this._filtersBlock = $('<div>');
+
+            this._filtersBlock.addClass('pcTable-filtersTables pcTable-section');
+
+            if (pcTable.fieldCategories.filter.length) {
+
+                this.___createClosedSection(this._filtersBlock, $('<div class="pcTable-sectionTitle">Фильтры</div>').appendTo(this._filtersBlock), 'flt');
+
+                this._filtersBlock.addClass('pcTable-filtersTables');
+
+                let $table, $thead, $tbody;
+                let width = 0;
+                let ContainerWidth = this._container.width() - 100;
+                let panelColor;
+
+                const addGoButtons = function () {
+                    if ($table) {
+                        const btnGO = function () {
+                            let href;
+                            if ($(this).is('.eraser')) {
+                                href = '?';
+                            } else {
+                                href = '?' + $.param({'f': pcTable._filtersBlock.data('cryptoFilters') || pcTable.filterDataCrypted});
+                            }
+                            if (pcTable.isMobile) {
+                                href += '#go-buttons';
+                            }
+
+                            const goFunc = function () {
+                                window.location.href = href;
+                            };
+                            setTimeout(function () {
+                                pcTable.model.doAfterProcesses(goFunc)
+                            }, 500);
+
+                            return true;
+                        };
+
+                        if (pcTable.isMobile) {
+                            $table.after($('<table class="pcTable-filtersTable" id="go-buttons"><tr><td><button class="btn btn-default btn-xs button-go">GO</button> ' +
+                                '<button class="btn btn-default btn-xs eraser button-go "><i class="fa fa-eraser"></i></button>' +
+                                '</td></tr></td></table>').on('click', '.button-go', btnGO))
+                        } else {
+                            $thead.append('<th style="width: 69px;"></th>');
+                            let $ButtonsGo = $('<td class="buttons-go">').html('<button class="btn btn-default btn-xs button-go">GO</button> <button class="btn btn-default btn-xs eraser button-go"><i class="fa fa-eraser"></i></button>').appendTo($tbody);
+                            $table.width(width + 69);
+                            $ButtonsGo.on('click', '.button-go', btnGO);
+                        }
+                    }
+                };
+                const addFilterCells = (k, v) => {
+
+                    if (v.hidden) return;
+
+                    if (pcTable.isMobile || width === 0 || (ContainerWidth < (width + v.width)) || v.tableBreakBefore) {
+                        if (!pcTable.isMobile)
+                            addGoButtons();
+
+
+                        $table = $("<table class='pcTable-filtersTable'><thead><tr></tr></thead><tbody><tr></tr></tbody></table>")
+                            .appendTo(this._filtersBlock);
+
+                        width = 0;
+                        $thead = $table.find('thead tr');
+                        $tbody = $table.find('tbody tr');
+                    }
+
+                    if (v.panelColor !== undefined) {
+                        panelColor = v.panelColor;
+                    }
+
+                    $thead.append(pcTable._createHeadCell(k, v, panelColor));
+                    $('<td>').attr('data-field', v.name).appendTo($tbody);
+                    width += v.width;
+                };
+
+                $.each(pcTable.fieldCategories.filter, addFilterCells);
+                addGoButtons();
+            }
+            return this._filtersBlock;
+        },
+        _refreshFiltersBlock: function (newFilters) {
+            let pcTable = this;
+            newFilters = newFilters || {};
+
+            if (newFilters.params) {
+                $.each(pcTable.fieldCategories.filter, function (k, v) {
+                    pcTable.data_params[v.name] = newFilters.params[v.name];
+                });
+                pcTable._filtersBlock.data('cryptoFilters', newFilters.filtersString)
+
+            } else if (!pcTable.filterData) {
+                pcTable.filterData = {};
+                $.each(pcTable.fieldCategories.filter, function (k, v) {
+                    pcTable.filterData[v.name] = $.extend(true, {}, pcTable.data_params[v.name]);
+                });
+
+                pcTable.model.addFiltersData({'filters': pcTable.filterDataCrypted});
+            }
+
+            let changed = [];
+            let blocked = [];
+
+            $.each(pcTable.fieldCategories.filter, function (k, v) {
+
+                if (v.hidden) return;
+
+                let cell = pcTable._createCell(pcTable.data_params, v);
+                /*if (v.insertable === true) {
+                    v.editable = true;
+                    cell.addClass('edt');
+                }*/
+                pcTable._filtersBlock.find('td[data-field="' + v.name + '"]').replaceWith(cell);
+                if (!Object.equals(pcTable.data_params[v.name].v, pcTable.filterData[v.name].v)) {
+                    changed.push(cell);
+                }
+                if (v.type === 'select' && pcTable.data_params[v.name].v && (pcTable.data_params[v.name].v === '*NONE*' || pcTable.data_params[v.name].v[0] === '*NONE*')) {
+                    blocked.push(cell);
+                }
+            });
+
+            if (changed.length > 0) {
+                changed.forEach(function ($td) {
+                    $td.addClass('warning-backg');
+                });
+                pcTable._filtersBlock.removeClass('with_danger').addClass('with_changed')
+            } else if (blocked.length > 0) {
+                blocked.forEach(function ($td) {
+                    $td.addClass('danger-backg');
+                });
+                pcTable._filtersBlock.removeClass('with_changed').addClass('with_danger')
+            } else {
+                pcTable._filtersBlock.removeClass('with_danger, with_changed');
+                pcTable._filtersBlock.find('.danger-backg, .warning-backg').removeClass('danger-backg, warning-backg');
+            }
+            return this._filtersBlock;
+        },
+        _createParamsBlock: function () {
+            let $paramsBlock = $('<div>');
+
+            let pcTable = this;
+            if (pcTable.fieldCategories.param) {
+                $paramsBlock.addClass('pcTable-paramsTables');
+
+                let $table, $thead, $tbody;
+                let width = 0;
+                let ContainerWidth = this._container.width() - 100;
+                let panelColor;
+                let sectionTitle = '';
+
+                let sectionDiv;
+                let sectionId = 0;
+                $.each(pcTable.fieldCategories.param, function (k, field) {
+
+                    if (field.panelColor !== undefined) {
+                        panelColor = field.panelColor;
+                    }
+                    if (field.sectionTitle !== undefined) {
+                        sectionTitle = field.sectionTitle;
+                    }
+
+                    if (!field.showMeWidth) return;
+
+                    if (pcTable.isMobile || width === 0 || (ContainerWidth < (width + field.showMeWidth)) || field.tableBreakBefore) {
+                        if ($table && !pcTable.isMobile) $table.width(width);
+
+                        $table = $("<table class='pcTable-paramsTable'><thead><tr></tr></thead><tbody><tr></tr></tbody></table>");
+                        if (pcTable.isMobile && field.type === 'button') {
+                            $table = $("<table class='pcTable-paramsTable'><tbody><tr></tr></tbody></table>");
+                        }
+
+                        if (!sectionDiv || sectionTitle) {
+                            sectionDiv = $('<div class="pcTable-section">').appendTo($paramsBlock);
+                            if (sectionTitle) {
+                                pcTable.___createClosedSection(sectionDiv, $('<div class="pcTable-sectionTitle"></div>').text(sectionTitle).appendTo(sectionDiv), 'p');
+                            }
+                        }
+                        sectionTitle = '';
+
+                        sectionDiv.append($table);
+
+                        width = 0;
+                        $thead = $table.find('thead tr');
+                        $tbody = $table.find('tbody tr');
+                    }
+
+                    $thead.append(pcTable._createHeadCell(k, field, panelColor));
+                    $tbody.append('<td data-field="' + field.name + '">');
+                    width += field.showMeWidth;
+                });
+                if ($table && !pcTable.isMobile) {
+                    $table.width(width);
+
+                }
+
+            }
+            return $paramsBlock;
+        },
+        _refreshParamsBlock: function (paramsChanges, colorizeIt) {
+            var pcTable = this;
+            if (pcTable.fieldCategories.param) {
+
+                $.each(pcTable.fieldCategories.param, function (k, v) {
+                    if (!v.showMeWidth || paramsChanges && paramsChanges[v.name] !== true) return true;
+
+                    let cell = pcTable._createCell(pcTable.data_params, v);
+                    pcTable._paramsBlock.find('td[data-field="' + v.name + '"]').replaceWith(cell);
+                    if (colorizeIt) {
+                        pcTable._colorizeElement(cell, pcTable_COLORS.saved);
+                    }
+                })
+            }
+            return this._paramsBlock;
+        },
+        _createFootersBlock: function () {
+            let pcTable = this;
+            let _footersBlock;
+            let _footersSubTable;
+            if (pcTable.fieldCategories['footer']) {
+
+                _footersBlock = $("<tbody class='pcTable-footers'></tbody>");
+                _footersSubTable = $("<div>");
+
+                pcTable.columnsFooters = {};
+                var maxInColumn = 0;
+
+                $.each(pcTable.fieldCategories['footer'], function (k, field) {
+                    if (field.showMeWidth) {
+                        if (!field.column) field.column = '';
+
+                        if (!pcTable.columnsFooters[field.column]) pcTable.columnsFooters[field.column] = [];
+                        pcTable.columnsFooters[field.column].push(field);
+                        if (field.column) {
+                            if (maxInColumn < pcTable.columnsFooters[field.column].length) maxInColumn = pcTable.columnsFooters[field.column].length;
+                        }
+                    }
+                });
+
+                var NewFooters = $();
+                var footerVarNum = 0;
+                var footerLastMaxNum = maxInColumn - 1;
+                var trIndex = 0;
+                while (footerVarNum < maxInColumn) {
+
+
+                    var trHead = $('<tr><td class="id"></td></tr>');
+
+                    var trVal = $('<tr><td class="id"></td></tr>').data(pcTable_ROW_ItemId_KEY, 'footers').data(pcTable_DATA_INDEX, 'footers' + (trIndex++));
+
+                    $.each(pcTable.fieldCategories['column'], function (k, field) {
+                        if (field.showMeWidth) {
+                            let td = $('<td>');
+                            if (!pcTable.columnsFooters[field.name] || !pcTable.columnsFooters[field.name][footerVarNum]) {
+                                td.attr('rowspan', 2);
+                                trHead.append(td);
+                                td.addClass('footer-empty');
+                                return;
+
+                            } else {
+                                td = pcTable._createHeadCell(k, pcTable.columnsFooters[field.name][footerVarNum], pcTable.columnsFooters[field.name][footerVarNum].panelColor).addClass('footer-name');
+                                trHead.append(td);
+                            }
+
+                            if (pcTable.columnsFooters[field.name] && pcTable.columnsFooters[field.name][footerVarNum]) {
+
+                                let footerField = pcTable.columnsFooters[field.name][footerVarNum];
+                                let td = pcTable._createCell(pcTable.data_params, footerField);
+                                td.attr('data-field', footerField.name);
+                                trVal.append(td);
+                            }
+                        }
+
+                    });
+
+
+                    NewFooters = NewFooters.add(trHead);
+                    NewFooters = NewFooters.add(trVal);
+
+                    footerVarNum++;
+                }
+                _footersBlock.html(NewFooters);
+
+                let width = 0, $table, $thead, $tbody;
+                let ContainerWidth = this._container.width() - 100;
+                let panelColor;
+                let sectionTitle = '';
+                let sectionDiv;
+                $.each(pcTable.columnsFooters[''], function (k, field) {
+                    if (field.panelColor !== undefined) {
+                        panelColor = field.panelColor;
+                    }
+                    if (field.sectionTitle !== undefined) {
+                        sectionTitle = field.sectionTitle;
+                    }
+
+                    if (field.showMeWidth) {
+                        if (pcTable.isMobile || width === 0 || (ContainerWidth < (width + field.showMeWidth)) || field.tableBreakBefore) {
+                            if ($table && !pcTable.isMobile) $table.width(width);
+
+                            $table = $("<table class='pcTable-footersTable'><thead><tr></tr></thead><tbody><tr></tr></tbody></table>");
+                            if (pcTable.isMobile && field.type === 'button') {
+                                $table = $("<table class='pcTable-paramsTable'><tbody><tr></tr></tbody></table>");
+                            }
+
+                            if (!sectionDiv || sectionTitle) {
+                                sectionDiv = $('<div class="pcTable-section">').appendTo(_footersSubTable);
+                                if (sectionTitle) {
+                                    pcTable.___createClosedSection(sectionDiv, $('<div class="pcTable-sectionTitle"></div>').text(sectionTitle).appendTo(sectionDiv), 'f');
+                                }
+                            }
+                            sectionTitle = '';
+                            sectionDiv.append($table);
+                            width = 0;
+                            $thead = $table.find('thead tr');
+                            $tbody = $table.find('tbody tr');
+                        }
+
+                        $thead.append(pcTable._createHeadCell(k, field, panelColor));
+                        $tbody.append('<td data-field="' + field.name + '">');
+                        width += field.showMeWidth;
+                    }
+                });
+                if ($table && !pcTable.isMobile) $table.width(width);
+
+            }
+            return [_footersBlock, _footersSubTable];
+        },
+        ___createClosedSection(sectionDiv, title, placement) {
+            const pcTable = this;
+            let sectionId = sectionDiv.parent().find('div').index(sectionDiv) + 2;
+            let storageKey = pcTable.tableRow.id + '/' + (pcTable.tableRow.__version || 0) + '/' + placement + '/' + sectionId;
+            pcTable.__sectionsCloses = pcTable.__sectionsCloses || JSON.parse(localStorage.getItem('sectionCloses') || '{}');
+
+            if (pcTable.__sectionsCloses[storageKey]) sectionDiv.addClass('closed');
+
+            $('<span class="btn-i"><i class="fa"></i></span>')
+                .prependTo(title);
+            title.on('click', function () {
+                let sectionDiv = $(this).closest('.pcTable-section');
+                if (sectionDiv.is('.closed')) {
+                    sectionDiv.removeClass('closed');
+                    delete pcTable.__sectionsCloses[storageKey];
+                } else {
+                    sectionDiv.addClass('closed');
+                    pcTable.__sectionsCloses[storageKey] = 1;
+                }
+                localStorage.setItem('sectionCloses', JSON.stringify(pcTable.__sectionsCloses));
+            });
+        },
+        _refreshFootersBlock: function (paramsChanges, colorizeIt) {
+            let pcTable = this;
+            let footers = pcTable._footersBlock.add(pcTable._footersSubTable)
+
+            if (pcTable.fieldCategories.footer) {
+                $.each(pcTable.fieldCategories.footer, function (k, v) {
+                    if (!v.showMeWidth || paramsChanges && paramsChanges[v.name] !== true) return true;
+
+                    let cell = pcTable._createCell(pcTable.data_params, v);
+                    cell.attr('data-field', v.name);
+                    footers.find('td[data-field="' + v.name + '"]').replaceWith(cell);
+
+                    if (colorizeIt) {
+                        pcTable._colorizeElement(cell, pcTable_COLORS.saved);
+                    }
+                })
+            }
+            return this._paramsBlock;
+
+
+        },
+        _createHead: function () {
+            this._header = $("<thead>").append(this._createHeadRow());
+            return this._header;
+        },
+        _refreshHead: function () {
+            this._header.empty().append(this._createHeadRow());
+            return this._header;
+        },
+        _createFirstBody: function () {
+            this._beforebody = $("<tbody class='beforeRows'>").append('<tr class="extra-clasters">');
+            this.extraClastersTop = this._beforebody.find('.extra-clasters');
+            return this._beforebody;
+        },
+        _createAfterBody: function () {
+            this._afterbody = $("<tbody class='afterRows'>").append('<tr class="extra-clasters">');
+            this.extraClastersBottom = this._afterbody.find('.extra-clasters');
+            return this._afterbody;
+        },
+        _createBody: function () {
+            this._content = $("<tbody class='dataRows'>");
+
+            return this._content;
+        },
+        _createHeadRow: function () {
+            let pcTable = this;
+            let $row = $("<tr>");
+
+
+            pcTable._createHeadCellId().appendTo($row);
+            let $width = $row.find('.id').width();
+
+            let panelColor;
+            $.each(this.fieldCategories.visibleColumns, function (index, field) {
+                if (field.panelColor !== undefined) {
+                    panelColor = field.panelColor;
+                }
+                let $th;
+                if (field.name === 'n') {
+                    $th = pcTable._createHeadCellNo();
+                } else {
+                    $th = pcTable._createHeadCell(index, field, panelColor);
+                }
+                $th.appendTo($row);
+                $width += parseInt(field.showMeWidth);
+            });
+
+            this.tableWidth = $width;
+
+            this._table.width(this.tableWidth);
+
+            return $row;
+        },
+        _createHeadCellId: function () {
+            let pcTable = this;
+            let $th = $('<th class="id"><span>id</span></th>');
+
+            if (pcTable.tableRow.order_field === null || pcTable.tableRow.order_field === 'id') {
+                let span = $th.find('span').css('font-weight', 'bold');
+                if (pcTable.isCreatorView) {
+                    if (pcTable.tableRow.order_desc === true) {
+                        span.append(' <i class="fa fa-sort-amount-desc roles"></i>');
+                    } else {
+                        span.append(' <i class="fa fa-sort-amount-asc roles"></i>');
+                    }
+                }
+            }
+
+            let panel = $('<div class="pcTable-filters"></div>');
+
+
+            /*******Кнопка показать поле n*****/
+            let OrderClass = 'btn-warning';
+
+            let $btnNHiding = $('<button class="btn btn-default btn-xxs"><i class="fa fa-sort"></i></button>')
+                .on('click', function () {
+                    if (!pcTable.fieldCategories.visibleColumns.some(function (field) {
+                        return field.name === 'n';
+                    })) {
+                        pcTable.fieldsHiddingHide.call(pcTable, 'n', true);
+                        $btnNHiding.addClass(OrderClass)
+                    } else {
+                        pcTable.fieldsHiddingHide.call(pcTable, 'n');
+                        $btnNHiding.removeClass(OrderClass)
+                    }
+                });
+            if (pcTable.fieldCategories.visibleColumns.some(function (field) {
+                return field.name === 'n';
+            })) {
+                $btnNHiding.addClass(OrderClass)
+            }
+            /*******Кнопка показать поле n*****/
+
+
+            if (pcTable.isMobile) {
+
+            } else {
+                let filterButton = this._getIdFilterButton();
+
+                panel.append($btnNHiding)
+                    .append(' ')
+                    .append(filterButton)
+                    .append(' ')
+                    .append(pcTable._idCheckButton);
+            }
+            $th.append(this._checkStatusBar);
+            $th.append(panel);
+
+            pcTable._idCheckButton.off().on('click', function () {
+                if (pcTable._idCheckButton.find('span').is('.fa-check')) {
+                    pcTable.row_actions_uncheck_all.call(pcTable);
+                    pcTable.__checkedRows = [];
+                } else {
+                    for (let i = 0; i < pcTable.dataSortedVisible.length; i++) {
+                        let id = pcTable.dataSortedVisible[i];
+                        let item = pcTable._getItemById(id);
+                        pcTable.row_actions_check.call(pcTable, item, true);
+                    }
+                    pcTable.__checkedRows = pcTable.dataSortedVisible.slice();
+                }
+                pcTable._headCellIdButtonsState();
+            });
+
+            panel = $('<div class="pcTable-filters for-selected"><button class="btn btn-default btn-xxs"><i class="fa fa-copy"/></button> <button class="btn btn-default btn-xxs" data-names="true"><i class="fa fa-clone"/></button></div>');
+            $th.append(panel);
+
+            this._refreshCheckedStatus();
+
+            return $th;
+        },
+        _getIdFilterButton: function () {
+            let pcTable = this;
+            let filterButton;
+            let span = $('<span>');
+
+            filterButton = $('<button class="btn btn-xxs btn-filter" id="checkS"><span class="fa fa-circle-o"></span></button>').on('click', function () {
+                if (filterButton.is('.btn-warning')) {
+                    filterButton.addClass('btn-default').removeClass('btn-warning').find('span').removeClass('fa-circle').addClass('fa-circle-o');
+
+                    delete pcTable.filters['id'];
+                    span.find('.btn-filter:not(#checkS)').parent().replaceWith(pcTable.__getFilterButton('id'))
+                } else {
+                    filterButton.removeClass('btn-default').addClass('btn-warning').find('span').removeClass('fa-circle-o').addClass('fa-circle');
+                    pcTable.filters['id'] = pcTable.__checkedRows.slice().map(function (v) {
+                        return v.toString()
+                    });
+
+                }
+                pcTable.__applyFilters();
+                pcTable._headCellIdButtonsState();
+            });
+            if (pcTable.filters.id && pcTable.filters.id.length) {
+                filterButton.addClass('btn-warning').removeClass('btn-default');
+            } else {
+                filterButton.addClass('btn-default').removeClass('btn-warning');
+            }
+
+            span.append(filterButton);
+            span.append(pcTable.__getFilterButton('id'));
+
+            return span;
+        },
+        _createHeadCellNo: function () {
+            let pcTable = this;
+            let field = pcTable.fields['n'];
+            let spanTitle = $('<span class="cell-title">')
+                .text(field.title ? field.title : field.name)
+                .attr('title', field.title);
+            let btn = $('<button class="btn btn-default btn-xxs" style="width: 45px"><i class="fa fa-save"></i></button>');
+
+            let $th = $('<th class="n">').width(field.userWidth || field.width).append(spanTitle);
+
+            if (pcTable.isCreatorView) {
+                if (pcTable.tableRow.order_field === 'n') {
+                    if (pcTable.tableRow.order_desc === true) {
+                        spanTitle.before('<i class="fa fa-sort-amount-desc roles"></i>');
+                    } else {
+                        spanTitle.before('<i class="fa fa-sort-amount-asc roles"></i>');
+                    }
+                }
+                spanTitle.before('<br/>');
+            }
+
+
+            pcTable._orderSaveBtn = btn;
+            if (pcTable.tableRow.with_order_field && !pcTable.f.blockorder && !pcTable.tableRow['__blocked']) {
+                btn.on('click', function () {
+                    pcTable.reOrderRowsSave.call(pcTable);
+                })
+            } else {
+                btn.prop('disabled', true);
+                this._table.addClass('no-correct-n-filtered');
+            }
+            return $th.append($('<div class="pcTable-filters">').append(btn));
+        }
+        ,
+        _createHeadCell: function (index, field, panelColor) {
+            let pcTable = this;
+
+            let width = field.showMeWidth || field.width || 100;
+            if (field.category !== 'column' && width && pcTable.isMobile) {
+                width = 100;
+            }
+
+            let $th = $('<th>')
+                .data('field', field.name);
+            if (pcTable.isMobile) {
+                if (field.category === 'column' && field.editable) {
+                    width += 20;
+                }
+                width += 20;
+            }
+            if (width)
+                $th.width(width);
+
+            if (pcTable.fields[field.name]) {
+                pcTable.fields[field.name].$th = $th;
+            }
+
+            if (panelColor !== undefined && panelColor !== '') {
+                $th.css('background-color', panelColor);
+            }
+            if (field.webRoles && field.webRoles.length === 1 && field.webRoles[0] === "1") {
+                $th.addClass('admin-see');
+            }
+
+            if (field['type'] === 'footer' && field['column']) {
+                $th = $('<td>');
+            }
+
+            let title = Object.getPath(pcTable.f, ['fieldtitle', field.name], field.title ? field.title : field.name);
+
+            let spanTitle = $('<span class="cell-title">')
+                .text(title)
+                .attr('title', title).appendTo($th);
+
+            if (pcTable.isCreatorView) {
+
+                const getCategoryIcon = function (category) {
+                    let placeIcon = '';
+                    switch (category) {
+                        case 'param':
+                            placeIcon = 'fa-hand-o-up';
+                            break;
+                        case 'column':
+                            placeIcon = 'fa-hand-o-right';
+                            break;
+                        case 'filter':
+                            placeIcon = 'fa-hand-o-left';
+                            break;
+                        case 'footer':
+                            placeIcon = 'fa-hand-o-down';
+                            break;
+                    }
+                    return placeIcon;
+                };
+
+                if (field.isHiddenField || !field.showMeWidth) {
+                    spanTitle.before('<i class="fa ' + getCategoryIcon(field.category) + ' roles"></i>');
+                }
+
+                if (field.showInWeb && !field.isHiddenField && !field.showMeWidth) {
+                    $th.addClass('eye-hidden');
+                }
+
+                if (field.linkTableName) {
+                    spanTitle.before('<i class="fa fa-chain roles"></i>');
+                }
+                spanTitle.before('<i class="fa ' + field.icon + ' roles"></i>');
+                let $ord = $('<i class="roles">' + (field._ord || field.ord) + '</i>');
+                spanTitle.before($ord);
+                if (field._ord) {
+                    $ord.addClass('reordered');
+                    $ord.before('<i class="roles">' + (field.ord) + '</i>')
+                }
+                if (field._category) {
+                    $ord.before('<i class="fa ' + getCategoryIcon(field._category) + ' roles reordered fa-bold"></i>')
+                }
+
+
+                if (field.category === 'column' && pcTable.tableRow.order_field === field.name) {
+                    $ord.css('font-weight', 'bold');
+                    if (pcTable.tableRow.order_desc === true) {
+                        spanTitle.before('<i class="fa fa-sort-amount-desc roles"></i>');
+                    } else {
+                        spanTitle.before('<i class="fa fa-sort-amount-asc roles"></i>');
+                    }
+                }
+
+                if (field.codeAction) {
+                    let star = $('<i class="fa fa-star roles"></i>');
+                    spanTitle.before(star);
+                    let title = '';
+                    if (field.CodeActionOnAdd) {
+                        if (title !== '') title += "\n";
+                        title += 'При добавлении';
+                    }
+                    if (field.CodeActionOnChange) {
+                        if (title !== '') title += "\n";
+                        title += 'При изменении';
+                    }
+                    if (field.CodeActionOnDelete) {
+                        if (title !== '') title += "\n";
+                        title += 'При удалении';
+                    }
+                    if (field.type === 'button') {
+                        if (title !== '') title += "\n";
+                        title += 'При клике';
+                    }
+                    if (title === "") {
+                        star.removeClass('fa-star').addClass('fa-star-o');
+                    }
+                    star.attr('title', title);
+                }
+                if (field.code) {
+                    if (field.codeOnlyInAdd) {
+                        spanTitle.before('<i class="fa fa-cog-o roles"></i>');
+                    } else {
+                        spanTitle.before('<i class="fa fa-cogs roles"></i>');
+                    }
+                }
+
+                const getRoles = function (rolesList) {
+                    let roles = '';
+                    rolesList.forEach(function (r) {
+                        if (roles !== '') roles += "\n";
+                        roles += pcTable.ROLESLIST[r.toString()]
+                    });
+                    return roles;
+                };
+
+                if (field.webRoles) {
+                    spanTitle.before($('<i class="fa fa-eye roles"></i>').attr('title', getRoles(field.webRoles)));
+                }
+                if (field.type !== "button") {
+                    let lockInHead = false;
+                    if (field.addRoles) {
+                        spanTitle.before($('<i class="fa fa-plus roles"></i>').attr('title', getRoles(field.addRoles)));
+                    } else if (!field.insertable) {
+                        if (field.category === "column") {
+                            if (!field.editable) {
+                                spanTitle.before($('<i class="fa fa-lock roles"></i>').attr('title', 'Добавление и редактирование запрещено'));
+                                lockInHead = true;
+                            } else {
+                                spanTitle.before($('<i class="fa fa-plus roles"></i>').attr('title', 'Добавление запрещено'));
+                            }
+                        } else if (!field.editable) {
+                            spanTitle.before($('<i class="fa fa-lock roles"></i>').attr('title', 'Редактирование запрещено'));
+                            lockInHead = true;
+                        }
+                    }
+
+                    if (field.editRoles) {
+                        spanTitle.before($('<i class="fa fa-pencil roles"></i>').attr('title', getRoles(field.editRoles)));
+                    } else if (!field.editable && !lockInHead) {
+                        spanTitle.before($('<i class="fa fa-pencil roles"></i>').attr('title', 'Редактирование запрещено'));
+                    }
+
+                    if (field.logRoles) {
+                        spanTitle.before($('<i class="fa fa-archive roles"></i>').attr('title', getRoles(field.logRoles)));
+                    }
+                }
+                if (field.showInXml) {
+                    let roles = '';
+                    if (field.xmlRoles) {
+                        roles = getRoles(field.xmlRoles)
+                    }
+                    spanTitle.before($('<i class="fa fa-exchange roles"></i>').attr('title', roles));
+                }
+
+
+                spanTitle.before('<br/>');
+            }
+
+            if (field.unitType) {
+                spanTitle.append(', ' + field.unitType);
+            }
+
+
+            let filterBlock = $('<div class="pcTable-filters">');
+
+            //i
+            let span_help;
+            if (field.help && field.help.length) {
+                span_help = $('<span class="btn btn-xxs btn-default cell-help" tabindex="-1" id="field-help-' + field.name + '"><i class="fa fa-info"/></span>');
+
+                if (pcTable.isCreatorView && /^\s*<admin>.*?<\/admin>\s*$/s.test(field.help)) {
+                    span_help.addClass('danger-backg');
+                }
+
+                span_help.appendTo(filterBlock);
+                let i_content = $('<div class="i-inner-div">').html(field.help).width(230);
+                let closeLimit;
+                if (pcTable.isMobile) {
+                    span_help.on('click', function () {
+                        App.mobilePanel('Поле ' + field.title, field.help);
+                    })
+                } else
+                    span_help.on('click open close', function (event) {
+                        let btn = $(this);
+
+                        if (!btn.data('bs.popover')) {
+                            if (event.type !== "close") {
+                                span_help.popover(
+                                    {
+                                        trigger: "manual",
+                                        content: i_content,
+                                        html: true,
+                                        placement: () => {
+                                            let placement = 'bottom';
+                                            let height = 300;
+                                            let container = pcTable._container;
+                                            let heightOffset = btn.offset().top - container.offset().top;
+
+                                            //Определить где больше места - сверху или снизу
+                                            if ((field.category === "column" && pcTable.insertRow) || heightOffset > container.height() / 2) {
+                                                placement = 'top';
+                                                height = heightOffset - 40;
+                                            } else {
+                                                height = container.height() - heightOffset - 70;
+                                            }
+                                            i_content.css('max-height', height);
+                                            return placement;
+                                        },
+                                        container: pcTable.scrollWrapper
+                                    }
+                                );
+                                btn.popover('show');
+                            }
+                        } else if (event.type !== "open") {
+                            if (closeLimit) clearTimeout(closeLimit);
+                            closeLimit = setTimeout(() => {
+                                if (btn.attr('aria-describedby') && $('#' + btn.attr('aria-describedby').length)) {
+                                    btn.popover('destroy')
+                                }
+                            }, 120);
+                        }
+                    });
+
+
+                if (!pcTableContainerFieldHelpEvent) {
+                    pcTableContainerFieldHelpEvent = true;
+                    pcTable._container.on('click escPressed', function (event) {
+                        pcTable._container.find('[id^="field-help"][aria-describedby^="popover"]').each(function () {
+                            if ($(this).attr('id') !== event.target.id && !$(event.target).closest('#' + $(this).attr('id')).length) {
+                                $(this).trigger('close');
+                            }
+                        });
+
+                    });
+                }
+
+            }
+
+
+            if (field.category === 'column') {
+
+                if (field.filterable && field.showMeWidth > 0) {
+                    $th.addClass('with-filter2');
+                    this.__getFilterButton(field.name).appendTo(filterBlock);
+                }
+            }
+
+            //Стрелочка с выпадающим меню
+            if (pcTable.isCreatorView || ((field.dropdownView !== false && (field.linkToSelectTable || field.category !== 'filter') && (!pcTable.isMobile || field.category == "column")))) {
+                $th.addClass('with-filter');
+
+                (function () {
+                    let $divPopoverArrowDown = $('<div class="cell-header-dropdown">');
+                    let btnDropDown = $('<button class="btn btn-default btn-xxs"  tabindex="-1">' +
+                        '<i class="fa fa-caret-down"/></button>');
+
+                    if (!field.pcTable) {
+                        btnDropDown.addClass('field_name')
+                    } else if (field.dropdownView === false) {
+                        btnDropDown.addClass('field_name')
+                    }
+
+                    const funcOnTableChanged = function (json) {
+                        if (json) {
+
+                            window.location.reload();
+                        }
+                    };
+
+                    if (pcTable.isCreatorView) {
+                        let btn = $('<div class="menu-item color-danger">');
+                        btn.append('<i class="fa fa-pencil-square-o"/> Изменить');
+                        $divPopoverArrowDown.append(btn);
+                        const contextmenu = function () {
+                            (new EditPanel(2, BootstrapDialog.TYPE_DANGER, {id: field.id})).then(funcOnTableChanged);
+                            return false;
+                        };
+
+                        btn.on('click', contextmenu);
+                        btnDropDown.on('contextmenu', contextmenu);
+
+
+                        btn = $('<div class="menu-item color-danger">');
+                        btn.append('<i class="fa fa-clone"/> Дублировать');
+                        $divPopoverArrowDown.append(btn);
+                        btn.on('click', function () {
+
+                            App.getPcTableById(2).then(function (pcTableTablesFields) {
+                                pcTableTablesFields.model.checkEditRow({id: field.id}).then(function (json) {
+                                    let ee = {};
+                                    $.each(json.row, function (k, v) {
+                                        if (typeof v === 'object') {
+                                            ee[k] = v;
+                                        }
+                                    });
+
+                                    (new EditPanel(2, BootstrapDialog.TYPE_DANGER, ee)).then(funcOnTableChanged);
+                                });
+                            })
+
+
+                        });
+
+                        btn = $('<div class="menu-item color-danger">');
+                        btn.append('<i class="fa fa-plus"/> Вставить после');
+                        $divPopoverArrowDown.append(btn);
+                        btn.on('click', function () {
+                            App.getPcTableById(2, {afterField: field.ord}).then(function (pcTableTable) {
+                                let ee = {};
+                                ee.ord = {'v': field.ord + 10};
+                                ee.category = {v: field.category};
+                                ee.table_id = {v: pcTable.tableRow.id};
+                                if (pcTable.tableRow.__version) {
+                                    ee.version = {v: pcTable.tableRow.__version};
+                                }
+                                (new EditPanel(pcTableTable, BootstrapDialog.TYPE_DANGER, ee)).then(funcOnTableChanged);
+                            })
+                        });
+                        btn = $('<div class="menu-item color-danger">');
+                        btn.append('<i class="fa fa-refresh"/> Изменить NAME');
+                        $divPopoverArrowDown.append(btn);
+                        btn.on('click', function () {
+                            pcTable.model.renameField(field.name);
+                        });
+
+
+                        btn = $('<div class="menu-item color-danger">');
+                        btn.append('<i class="fa fa-times"/> Удалить');
+                        $divPopoverArrowDown.append(btn);
+                        btn.on('click', function () {
+
+
+                            let title = field.title;
+
+                            BootstrapDialog.show({
+                                type: BootstrapDialog.TYPE_DANGER,
+                                title: 'Удалить поле ' + title + ' из таблицы ' + pcTable.tableRow.title + '?',
+                                buttons: [
+                                    {
+                                        action: function (panel, event) {
+                                            "use strict";
+                                            panel.close();
+                                            App.getPcTableById(2).then(function (pcTableFields) {
+                                                App.panelTimer('Удаление поля ' + title + ' из таблицы ' + pcTable.tableRow.title, pcTableFields.tableRow.delete_timer, function () {
+                                                    pcTableFields.model.delete(field.id).then(function () {
+                                                        window.location.reload(true);
+                                                    })
+                                                });
+                                            });
+                                        },
+                                        cssClass: 'btn-warning',
+                                        label: 'Удалить'
+                                    },
+                                    {
+                                        action: function (panel) {
+                                            panel.close();
+                                        },
+                                        label: 'Отмена'
+                                    }
+                                ],
+                                draggable: true
+                            })
+                        });
+
+                    }
+
+                    if (field.category !== 'filter' && field.pcTable) {
+
+                        //Скрыть
+                        if (!pcTable.isMobile) {
+                            let btn = $('<div class="menu-item">');
+                            btn.append('<i class="fa fa-eye-slash"/> Скрыть');
+                            btn.on('click', function () {
+                                btnDropDown.popover('hide');
+                                pcTable.fieldsHiddingHide.call(pcTable, field.name);
+                            });
+                            btn.appendTo($divPopoverArrowDown);
+
+
+                            //ширина
+                            btn = $('<div class="menu-item">');
+                            btn.append('<i class="fa fa-arrows-h"/> Ширина поля');
+                            btn.on('click', function () {
+                                btnDropDown.popover('hide');
+                                let div = $('<div><input type="number" class="form-control" value="' + field.showMeWidth + '" style="padding-left: 2px;"/></div>');
+                                BootstrapDialog.show({
+                                    message: div,
+                                    /*cssClass: 'edit-row-panel',*/
+                                    title: 'Ширина поля ' + field.title,
+                                    onshown: function (dialog) {
+                                        let inp = div.find('input');
+                                        inp.focus();
+                                        inp.on('keydown', function (event) {
+                                            if (event.keyCode === 13) {
+                                                field.pcTable.setColumnWidth.call(field.pcTable, field.name, parseInt(div.find('input').val()));
+                                                dialog.close()
+                                            }
+                                        });
+                                        dialog.$modalDialog.width(500);
+                                    },
+                                    buttons: [
+                                        {
+                                            label: 'Применить',
+                                            action: function (dialog) {
+                                                let width = parseInt(div.find('input').val());
+                                                dialog.close();
+                                                field.pcTable.setColumnWidth.call(field.pcTable, field.name, width);
+
+                                            }
+                                        },
+                                        {
+                                            label: 'Отмена',
+                                            action: function (dialog) {
+                                                dialog.close()
+                                            }
+                                        }
+                                    ],
+                                    draggable: true
+                                })
+
+                            });
+                            btn.appendTo($divPopoverArrowDown);
+                        }
+
+                    }
+                    if (field.showMeWidth > 0 && field.category === 'column') {
+                        //sort a-z
+                        {
+                            let btn = $('<div class="menu-item">');
+                            btn.append('<i class="fa fa-sort-alpha-asc"/> Сортировать А-Я');
+                            $divPopoverArrowDown.append(btn)
+                            btn.on('click', function () {
+                                pcTable.sort(field, 1);
+                            })
+                        }
+                        //sort z-a
+                        {
+                            let btn = $('<div class="menu-item">');
+                            btn.append('<i class="fa fa-sort-alpha-desc"/> Сортировать Я-А');
+                            $divPopoverArrowDown.append(btn);
+                            btn.on('click', function () {
+                                pcTable.sort(field, -1);
+                            })
+                        }
+                        //Математические операции
+                        if (field.category === 'column' && field.type === 'number') {
+                            let btn = $('<div class="menu-item">');
+                            btn.append('<i class="fa fa-diamond"/> Математические операции');
+                            $divPopoverArrowDown.append(btn);
+                            btn.on('click', function () {
+                                let $div = $('<div>');
+
+                                let summ = 0, count = 0, max = null, min = null, notNumber = 0;
+                                let error = false;
+                                pcTable.dataSortedVisible.some(function (id) {
+                                    try {
+                                        let BigVal = Big(pcTable.data[id][field.name].v);
+
+                                        summ = Big(summ).plus(BigVal);
+                                        ++count;
+                                        if (max === null) max = BigVal;
+                                        else {
+                                            if (BigVal.gt(max)) max = BigVal;
+                                        }
+                                        if (min === null) min = BigVal;
+                                        else {
+                                            if (BigVal.lt(min)) min = BigVal;
+                                        }
+                                    } catch (e) {
+                                        ++notNumber;
+                                    }
+                                });
+
+
+                                let table = $('<table class="totum-math-operations"><thead><tr><th>Операция</th><th>Значение</th></tr></thead>').appendTo($div),
+                                    tbody = $('<tbody>').appendTo(table);
+
+                                let format = function (num, notUnit) {
+                                    let unit = '';
+                                    notUnit = notUnit || false;
+                                    if (field.unitType && !notUnit) {
+                                        unit = ' ' + field.unitType;
+                                    }
+                                    if (field.currency) {
+                                        let options = {};
+                                        if (field.dectimalPlaces) {
+                                            options.minimumFractionDigits = field.dectimalPlaces;
+                                        }
+                                        return parseFloat(num).toLocaleString('ru-RU', options) + unit;
+                                    }
+                                    return num + unit;
+                                };
+
+                                $('<tr><td>Сумма</td><td>' + format(summ) + '</td></tr>').appendTo(tbody);
+                                $('<tr><td>Кол-во чисел</td><td>' + format(count, true) + '</td></tr>').appendTo(tbody);
+                                $('<tr><td>Среднее</td><td>' + format(Big(summ).div(count).round(field.dectimalPlaces || 0)) + '</td></tr>').appendTo(tbody);
+                                $('<tr><td>Максимальное</td><td>' + format(max) + '</td></tr>').appendTo(tbody);
+                                $('<tr><td>Минимальное</td><td>' + format(min) + '</td></tr>').appendTo(tbody);
+                                $('<tr><td>Нечисл. элементов</td><td>' + format(notNumber, true) + '</td></tr>').appendTo(tbody);
+
+
+                                let title = field.title + (field.unitType ? ', ' + field.unitType : '');
+                                if (pcTable.isMobile) {
+                                    App.mobilePanel(title, $div)
+                                } else {
+                                    BootstrapDialog.show({
+                                        title: title,
+                                        type: 'edit',
+                                        message: $div,
+                                        draggable: true,
+                                        onshown: function (dialog) {
+                                            dialog.$modalDialog.width(400);
+                                        },
+                                        buttons: [
+                                            {
+                                                action: function (dialog) {
+                                                    dialog.close();
+                                                },
+                                                label: 'Закрыть'
+                                            }
+                                        ]
+                                    });
+                                }
+                            })
+                        }
+
+                    }
+
+                    //linkToSelectTable
+                    if (field.linkToSelectTable) {
+                        let table = field.linkToSelectTable;
+                        let btn = $('<div class="menu-item color-primary">');
+                        btn.append('<i class="fa fa-external-link"/> ' + table['title']);
+                        $divPopoverArrowDown.append(btn);
+                        btn.on('click', function () {
+                            window.open(table.link, '_blank').focus()
+                            return false;
+                        })
+                    }
+
+
+                    btnDropDown.popover({
+                        html: true,
+                        content: $divPopoverArrowDown,
+                        trigger: 'manual',
+                        container: pcTable._container,
+                        placement: 'auto bottom'
+                    });
+
+                    btnDropDown.on('click', function () {
+                        let btn = $(this);
+
+                        if (!btn.data('bs.popover').tip().hasClass('in')) {
+                            btn.popover('show');
+                            setTimeout(function () {
+                                pcTable._container.one('click', function () {
+                                    btn.popover('hide');
+                                });
+                            }, 20);
+                        }
+                    });
+                    return btnDropDown;
+
+                })().appendTo(filterBlock);
+            }
+
+            filterBlock.appendTo($th);
+            let filterBlockWidth = filterBlock.find('.btn').length * 20 + 5;
+
+            if (this.isCreatorView) {
+                let pcTableCreatorButtonsBlock = $('<div class="th-left-bottom-buttons">').appendTo($th);
+                if (field.category === 'footer' && field.column && this.fields[field.column] && !pcTable.hidden_fields[field.name]) {
+                    width = this.fields[field.column].width;
+                }
+                let btn = $('<div class="btn  btn-xxs field_name copy_me"  tabindex="-1" data-copied-text="Скопировано">')
+                    .text(field.name).appendTo(pcTableCreatorButtonsBlock).css('max-width', width - filterBlockWidth);
+            }
+            if (pcTable.isMobile) {
+                spanTitle.css('max-width', width - filterBlockWidth - 5)
+            }
+
+
+            return $th;
+        },
+        _createNoDataRow: function (text) {
+            var amountOfFields = 0;
+            $.each(this.fields, function (index, field) {
+                amountOfFields++;
+            });
+            let pcTable = this;
+
+            let $addBtn = $();
+            if (this.control.adding && !this.f.blockadd) {
+                $addBtn = $('<button class="btn btn-warning btn-xxs">Добавить строку</button>').width(120)
+                    .on('click', function () {
+                        pcTable._addInsertRow()
+                    });
+            }
+
+            text = text || 'Таблица пуста ';
+
+            return $("<tr>").addClass(this.noDataRowClass)
+                .append('<td class="id">')
+                .append($("<td>").attr("colspan", amountOfFields).append(text).append($addBtn));
+        },
+        _createRow: function (item, chData) {
+            chData = chData || [];
+            let pcTable = this;
+
+            if (!item.$tr) {
+                item.$tr = $("<tr>");
+                item.$tr.height(pcTABLE_ROW_HEIGHT);
+                /* перенос в css сглючивает прокрутку*/
+                item.$tr.data('item', item);
+            }
+
+            let $row = item.$tr.empty();
+            $row.attr('class', 'DataRow');
+            $row.attr('data-' + pcTable_ROW_ItemId_KEY, item['id']);
+
+            if (item.e_data && item.e_data.b == true) {
+                $row.addClass('BlockedRow');
+            }
+
+            if (item['InsDel']) {
+                $row.addClass('insDeleted');
+            }
+            this._addCellId(item, $row);
+            // this._addCellNo(item, $row);
+
+            let i = 0;
+            let len = this.fieldCategories.visibleColumns.length;
+            if (this.fieldCategories.visibleColumns[i] && this.fieldCategories.visibleColumns[i].name === 'n') {
+                let field = this.fieldCategories.visibleColumns[i];
+                let td = $('<td>');
+                $row.append(td.append('<span class="cell-value">').append(field.getCellText(null, td, item)));
+                ++i;
+            }
+
+            for (i; i < len; ++i) {
+                let field = this.fieldCategories.visibleColumns[i];
+                let td;
+
+                $row.append(td = pcTable._createCell(item, field));
+                if (chData.indexOf(field.name) > -1) {
+                    pcTable._colorizeElement(td, pcTable_COLORS.saved);
+                }
+            }
+
+        },
+        refreshRow: function (tr, item, newData) {
+            if ((tr && tr.is('.DataRow')) || item) {
+
+                if (!item) {
+                    item = this._getItemByTr(tr);
+                }
+
+                let chData = [];
+                if (newData) {
+                    for (var k in newData) {
+                        if (newData[k] !== null && typeof newData[k] == 'object') {
+                            if (newData[k].changed) {
+                                chData.push(k);
+                                delete newData[k].changed;
+                            } else if (!Object.equals(newData[k], item[k])) {
+                                chData.push(k);
+                            }
+                        } else if (newData[k] != item[k]) {
+                            chData.push(k);
+                        }
+                        item[k] = newData[k];
+                    }
+
+                    $.extend(item, newData);
+                }
+
+                if (tr) this._createRow(item, chData);
+            } else if (this._isParamsArea(tr)) {
+                this._refreshParamsBlock();
+            } else if (this._isFootersArea(tr)) {
+                this._refreshFootersBlock();
+            }
+
+        },
+
+        _createCell: function (item, field) {
+            let pcTable = this;
+            var td = $("<td>");
+            let format, editbutton = '';
+
+            if (!item[field.name]) {
+                console.log('Не найдено поле ' + field.name);
+                console.log(item);
+            }
+
+            try {
+                format = $.extend({}, (pcTable.f || {}), (item.f || {}), (item[field.name].f || {}));
+            } catch (e) {
+                console.log(e, item, field.name);
+                format = {};
+            }
+
+
+            if (field.editable && (this.control.editing || field.category === 'filter') && !format.block) {
+                td.addClass('edt');
+                if (field.editGroup) {
+
+                    if (field.editGroupMultiColumns) {
+                        td.addClass('e-gm').addClass('e-g');
+                    } else {
+                        td.addClass('e-g');
+                    }
+                }
+                if ((['button', 'fieldParams'].indexOf(field.type) === -1) && (pcTable.isMobile || format.editbutton)) {
+                    editbutton = '<i class="fa fa-edit pull-right ttm-edit ibtn"></i>'
+                }
+                if (pcTable.isMobile) {
+                    editbutton = '<i class="fa fa-ellipsis-h ttm-panel pull-right ibtn"></i>' + editbutton;
+                }
+            }
+
+
+            if (format.block) {
+                td.addClass('blocked');
+            }
+
+            if (field.category !== 'column') {
+                td.attr('data-field', field.name);
+            }
+
+            var span = $('<span class="cell-value">')
+            var val = item[field.name];
+
+            if (field.code && !field.codeOnlyInAdd) {
+                td.addClass('with-code');
+            }
+
+            if (field.category !== 'column') {
+                td.data('field', field.name).addClass('val')
+            }
+            let isErrorVal;
+            let $hand;
+            if (val) {
+
+                isErrorVal = val.e;
+
+                if (val.h) {
+                    if (val.c !== undefined && val.v != val.c) {
+                        $hand = $('<i class="fa fa-hand-paper-o pull-right" aria-hidden="true"></i>');
+                    } else {
+                        $hand = $('<i class="fa fa-hand-rock-o pull-right" aria-hidden="true"></i>');
+                    }
+
+                    if (pcTable.isMobile) {
+                        $hand.addClass('ttm-panel');
+                    }
+                }
+                if (val.d) {
+                    td.addClass('deleted_value');
+                }
+
+
+                if (val.e) {
+                    if (field.errorText) {
+                        span.text(field.errorText);
+                    } else {
+                        let e = $('<i class="fa fa-exclamation-triangle pull-right" aria-hidden="true"></i>');
+                        if (pcTable.isMobile) {
+                            e.addClass('ttm-panel');
+                        } else {
+                            e.attr('title', val.e)
+                        }
+                        td.append(e);
+                    }
+                }
+
+                if (format.text && field.type != "button") {
+                    span.text(format.text);
+                } else if (!val.e || !field.errorText) {
+                    var cellInner = field.getCellText.call(field, val.v, td, item, pcTable);
+                    if (typeof cellInner === 'object') {
+                        span.html(cellInner)
+                    } else span.text(cellInner);
+                }
+            }
+
+
+            if ($hand)
+                td.append($hand);
+            if (editbutton) {
+                td.append(editbutton);
+            }
+            span.appendTo(td);
+
+            if (!format.text && field.unitType && !isErrorVal && val.v !== null) {
+                span.attr('data-unit-type', ' ' + field.unitType);
+            }
+
+            //td.width(field.width);
+
+            if (field.css) {
+                td.addClass(field.css)
+            }
+            if (this.isSelected(field.name, item.id)) {
+                td.addClass('selected');
+            }
+            if (format.background) {
+                td.css('background-color', format.background);
+            }
+
+
+            if (format.color) td.css('color', format.color);
+            if (format.bold) td.css('font-weight', 'bold');
+
+            if (format.align) {
+                td.css('text-align', format.align);
+            } else if (format.tab) {
+                td.css('padding-left', format.tab + "px");
+            }
+
+            if (format.decoration) td.css('text-decoration', format.decoration);
+            if (format.italic) td.css('font-style', 'italic');
+
+            if (field.type !== "button") {
+                if (format.comment) {
+                    let i;
+                    i = $('<i class="cell-icon fa fa-info"></i>');
+                    td.prepend(i);
+                    i.attr('title', format.comment)
+                } else if (format.icon) {
+                    td.prepend('<i class="cell-icon fa fa-' + format.icon + '"></i>');
+                }
+            }
+
+            if (format.progress && format.progresscolor) {
+                let addProgress = function () {
+                    if (!span.isAttached()) {
+                        setTimeout(addProgress, 50);
+                    } else {
+                        let progress = Math.round(span.width() * parseInt(format.progress) / 100);
+                        span.css('box-shadow', 'inset ' + progress.toString() + 'px 0px 0 0 ' + format.progresscolor);
+                    }
+                };
+                addProgress();
+            }
+
+            return td;
+        },
+        _getLoadingSpinner: function () {
+            return $('<div class="text-center"><i class="fa fa-spinner"/></div>');
+        },
+        _colorizeElement: function (td, color, repeated) {
+            let i = 10;
+
+            let colorize = function () {
+                if (i === 0) {
+                    td.css('box-shadow', '');
+                } else {
+                    td.css('box-shadow', 'inset 0 0 100px 100px ' + App.hexToRGB(color, i / 10));
+                    i--;
+                    setTimeout(colorize, 50);
+                }
+            };
+
+            colorize();
+
+            return;
+
+
+            var toColor = td.css('background-color');
+            if (toColor === '') {
+                var repeated = repeated || 0;
+                if (repeated < 5) {
+                    var pcTable = this;
+                    setTimeout(function () {
+                        pcTable._colorizeElement(td, color, repeated + 1)
+                    }, 50);
+                }
+                return;
+            }
+            if (toColor.substr(0, 1) != '#') {
+                toColor = App.rgb2hex(toColor);
+            }
+            var parent = td;
+            while (toColor == '#000000') {
+                parent = parent.parent();
+                toColor = parent.css('background-color');
+                if (toColor.substr(0, 1) != '#') {
+                    toColor = App.rgb2hex(toColor);
+                }
+            }
+
+            if (/(background\-color:[^;"]+;?)/.test(td.attr('style'))) {
+                td.data('backgroundcolor', true);
+            }
+
+            this._TmpColorize(td, color, toColor);
+        },
+        _TmpColorize: function ($element, color, toColor) {
+
+            var pcTable = this;
+            var i = 0;
+            var color = color || '#ff0000';
+            var toColor = toColor || '#ffffff';
+            var color2;
+
+            if (toColor.substr(0, 1) != '#') {
+                toColor = App.rgb2hex(toColor);
+            }
+
+            var shadeColor = function (color, percent, toColor) {
+                var f = parseInt(color.slice(1), 16),
+                    toColor = parseInt(toColor.slice(1), 16),
+                    t1 = percent < 0 ? 0 : toColor >> 16,
+                    t2 = percent < 0 ? 0 : toColor >> 8 & 0x00FF,
+                    t3 = percent < 0 ? 0 : toColor & 0x0000FF,
+                    p = percent < 0 ? percent * -1 : percent,
+                    R = f >> 16,
+                    G = f >> 8 & 0x00FF,
+                    B = f & 0x0000FF;
+                return "#" + (0x1000000 + (Math.round((t1 - R) * p) + R) * 0x10000 + (Math.round((t2 - G) * p) + G) * 0x100 + (Math.round((t3 - B) * p) + B)).toString(16).slice(1);
+            }
+
+            i++;
+            if (i == 10) {
+                color2 = toColor;
+            } else {
+                color2 = shadeColor(color, 0.1, toColor);
+                if (color2 == color) color2 = toColor;
+            }
+
+
+            $element.css('background-color', color2);
+            if (color2 != toColor) {
+                setTimeout(function () {
+                    pcTable._TmpColorize($element, color2, toColor);
+                }, 50)
+            } else if (!$element.data('backgroundcolor')) {
+                $element.attr('style', $element.attr('style').replace(/(background\-color:[^;"]+;?)/, ''));
+            }
+
+        }
+
+    });
+})();
+$.extend(App.pcTableMain.prototype, {
+    _addHorizontalDraggable: function () {
+        this._innerContainer.off('mousedown.HorizontalDraggable mouseout').on('mousedown.HorizontalDraggable', function (event) {
+
+
+            var originalEvent = event;
+            while (originalEvent) {
+                if ($(event.target).is('input')) return true;
+                if (originalEvent == event.originalEvent)
+                    break;
+                originalEvent = event.originalEvent;
+            }
+
+            $(this)
+                .data('x', event.clientX)
+                .data('scrollLeft', this.scrollLeft);
+            return false;
+        }).on('mousemove', function (event) {
+            if ($(event.target).closest('.InsertRow').length===0 && event.target.tagName!=="INPUT" && event.buttons===1 && event.button === 0) {
+                if (Math.abs($(this).data('x') - event.clientX) > 20) {
+                    $(this).data('moved', true);
+                    let timeout;
+                    if (timeout) {
+                        clearTimeout(timeout)
+                    }
+                    timeout = setTimeout(function () {
+                        $(this).data('moved', false);
+                    }, 200);
+
+                    this.scrollLeft = $(this).data('scrollLeft') + $(this).data('x') - event.clientX;
+                }
+            }
+        })
+    }
+});
+App.pcTableMain.prototype._addRowPanel = function (panelId, row, buttons) {
+    var panel = $('<div style="width: 165px;"><div class="buttons"></div></div>');
+    if (buttons !== undefined) {
+        var buttonsDiv = panel.find('.buttons').empty();
+        $.each(buttons, function (text, $var) {
+            if (typeof $var == 'function') {
+                var btn = $('<button class="btn btn-sm btn-default">')
+                    .html(text)
+                    .on('click', $var);
+            } else {
+                if (typeof $var == 'object') {
+                    if ($var.type == 'checkbox') {
+                        btn = $('<input type="checkbox">');
+                        if ($var.id) {
+                            btn.attr('id', $var.id);
+                        }
+                        if ($var.func) {
+                            btn.on('change', $var.func);
+                        }
+                        btn=btn.wrap('<span style="font-size: 10px; padding-left: 8px;" >').parent().append(' <span style="padding-top: 2px;">'+text+'</span>');
+                    }
+                }
+            }
+            buttonsDiv.append(' ');
+            buttonsDiv.append(btn)
+        })
+    }
+    row.on('remove', function () {
+        panel.remove();
+    });
+
+    let pcTable = this;
+    setTimeout(function () {
+        let params = {
+            'isParams': true,
+            '$text': panel,
+            'element': row,
+            'container': pcTable._container,
+            'placement': 'bottom',
+            'trigger': 'manual'
+        };
+        App.popNotify(params);
+        let popoverId = row.attr('aria-describedby');
+        let popover = $('#' + popoverId).addClass('warning-bg');
+        popover.find('.arrow').css('left', '80%');
+        pcTable._positionPanel.call(pcTable, popover, row);
+        panel.show()
+    }, 50);
+
+    return panel;
+
+};
+App.pcTableMain.prototype._positionPanel = function (panel, row) {
+    var p = row.position();
+    let left = this.tableWidth+10;
+    if (this._innerContainer.width()>this.tableWidth){
+        return panel.position({
+            my: "right top",
+            at: "right+2px bottom+"+12+"px",
+            of: row
+        })
+    }else{
+        return panel.position({
+            my: "right top",
+            at: "right+2px top+"+(p.top+47)+"px ",
+            of: this._innerContainer
+        })
+    }
+
+};
+$.extend(App.pcTableMain.prototype, {
+    _csvExport: function () {
+        "use strict";
+        let pcTable = this;
+        this.model.csvExport(pcTable.dataSortedVisible, Object.keys(App.filter(pcTable.fields, (x, field) => !!field.showMeWidth))).then(function (json) {
+            if (json.csv) {
+                let blob = new Blob([json.csv], {type: "text/csv;charset=utf-8"});
+                saveAs(blob, pcTable.tableRow.title + '.' + pcTable.model.tableData.updated.dt + '.csv');
+            }
+        })
+    },
+    _csvImportClick: function () {
+        let pcTable = this;
+        $('<input type="file" accept="text/csv">').on('change', function () {
+            if (this.files && this.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let csv = e.target.result;
+                    pcTable._csvImportUpload.call(pcTable, csv);
+                };
+                reader.onerror = function (evt) {
+                    console.log(evt.target.error);
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+
+        }).click();
+    },
+    _csvImportUpload: function (csv) {
+        let pcTable = this;
+        let answers = {};
+
+        let csvImport = function () {
+            pcTable.model.csvImport(csv, answers).then(function (json) {
+                if (json.question) {
+                    App.modal(json.question[1], 'Вопрос про csv-загрузку', {
+                        'Отменить': 'close',
+                        'Загружаем': function (block) {
+                            "use strict";
+                            block.modal('hide')
+                            answers[json.question[0]] = 1;
+                            csvImport();
+                        }
+                    })
+                } else if (json.ok) {
+                    pcTable.table_modify.call(pcTable, json)
+                }
+            })
+        }
+        csvImport();
+    }
+})
+;(function () {
+    
+    $.extend(App.pcTableMain.prototype, {
+    ___fieldsHiddingShowAllButton: null,
+    _hideHell_storage: {
+        isset_fields: false,
+        opened: null,
+        blinkIt: false,
+        getOpened: function(){
+            if(this._hideHell_storage.opened===null){
+                this._hideHell_storage.opened=hiddingHellStorage.getSavedOpenedVal(this.tableRow)
+                if(this._hideHell_storage.opened===false){
+                    this._hideHell_storage.blinkIt=true;
+                }
+            }
+            return this._hideHell_storage.opened;
+        },
+        checkIssetFields: function (force) {
+            if (this.isCreatorView && this._beforeSpace) {
+                let isset_fields = this._hideHell_storage.isset_fields;
+                this._hideHell_storage.isset_fields = (Object.keys(this.hidden_fields).length || Object.keys(this.fields).some((field) => field!=='n' && (!this.fields[field].showMeWidth || this.fields[field].showMeWidth < 1)));
+
+
+
+                if (force || isset_fields !== this._hideHell_storage.isset_fields) {
+                    let hh=this._beforeSpace.find('#hide-hell').removeClass('btn-contour');
+                    if(this._hideHell_storage.isset_fields){
+                        hh.removeAttr('disabled');
+                        if (this._hideHell_storage.opened) {
+                            hh.find('i').addClass('fa-arrow-up').removeClass('fa-arrow-down').removeClass('fa-times')
+                            hh.addClass('btn-contour');
+                        } else {
+                            hh.find('i').removeClass('fa-arrow-up').addClass('fa-arrow-down').removeClass('fa-times');
+
+                            if(this._hideHell_storage.blinkIt){
+                                App.blink(hh, 8, '#fff');
+                                this._hideHell_storage.blinkIt=false;
+                            }
+                        }
+                    }else {
+                        hh.attr('disabled', 'disabled');
+                        hh.find('i').addClass('fa-times').removeClass('fa-arrow-up').removeClass('fa-arrow-down')
+                    }
+
+
+                }
+            }
+        },
+
+        switchOpened: function () {
+            this._hideHell_storage.opened=!this._hideHell_storage.opened;
+            this._hideHell_storage.checkIssetFields.call(this, true);
+            hiddingHellStorage.saveOpenedVal(this.tableRow, this._hideHell_storage.opened);
+            this._refreshHiddenFieldsBlock();
+        }
+    },
+    fieldsHiddingHide: function (fieldName, showMe) {
+        let visibleFields = hiddingStorage.get(this.tableRow) || {};
+        if (showMe) {
+            visibleFields[fieldName] = this.fields[fieldName].width;
+        } else {
+            delete visibleFields[fieldName];
+        }
+        this.setVisibleFields(visibleFields);
+    },
+    setVisibleColumns: function () {
+        let pcTable = this;
+        this.fieldCategories.visibleColumns = [];
+        this.fieldCategories.column.forEach(function (field) {
+            if (field.showMeWidth) {
+                pcTable.fieldCategories.visibleColumns.push(field);
+            }
+        });
+
+    },
+    setColumnWidth: function (name, width) {
+        let visibleFields = hiddingStorage.get(this.tableRow) || {};
+        visibleFields[name] = width;
+        this.setVisibleFields(visibleFields);
+    },
+    loadVisibleFields: function () {
+        let visibleFields = {};
+        let storageDate = hiddingStorage.getDate(this.tableRow);
+        if (!storageDate || (this.tableRow.fields_actuality != '' && this.tableRow.fields_actuality > storageDate)) {
+            //Тут будет табличка про обновление настроек - когда-нибудь
+            console.log('visibleFields updated');
+            this.setVisibleFields(visibleFields, true, moment().format(App.dateTimeFormats.db));
+        } else {
+            visibleFields = hiddingStorage.get(this.tableRow) || {};
+            this.setVisibleFields(visibleFields, true);
+        }
+    },
+    setVisibleFields: function (visibleFields, isFromLoad, updatedDate) {
+        let pcTable = this;
+        if (visibleFields && Object.keys(visibleFields).length === 0) {
+            visibleFields = {};
+            Object.values(pcTable.fields).forEach(function (field) {
+                pcTable.fields[field.name].showMeWidth = field.hidden ? 0 : field.width;
+                visibleFields[field.name] = pcTable.fields[field.name].showMeWidth;
+            });
+        } else {
+            Object.values(pcTable.fields).forEach(function (field) {
+                if (field.category === 'filter') {
+                    pcTable.fields[field.name].showMeWidth = field.width;
+                } else if (visibleFields[field.name] !== undefined) {
+                    pcTable.fields[field.name].showMeWidth = parseInt(visibleFields[field.name]);
+                } else {
+                    pcTable.fields[field.name].showMeWidth = isFromLoad && !field.hidden ? field.width : 0;
+                }
+                visibleFields[field.name] = pcTable.fields[field.name].showMeWidth;
+            });
+        }
+        hiddingStorage.set(visibleFields, this.tableRow, updatedDate);
+        /*
+                let onlyVisibleFields = [];
+                Object.keys(visibleFields).forEach(function (fieldName) {
+                    if (visibleFields[fieldName] > 0) {
+                        onlyVisibleFields.push(fieldName)
+                    }
+                });
+                  $.cookie("tableViewFields" + this.tableRow.id, null, '/');
+                  $.cookie("tableViewFields" + this.tableRow.id, null, {path: window.location.pathname});
+          */
+
+        this.setVisibleColumns();
+
+        $.each(this.data, function (id, v) {
+            delete pcTable.data[id].$tr;
+        });
+
+        if (this._header) {
+            /*window.location.reload();
+            return;*/
+
+            this._refreshHead();
+            this._refreshContentTable(true);
+            this._rerenderColumnsFooter();
+            this.fieldsHiddingGetButton();
+            if (this.isCreatorView) {
+                this._hideHell_storage.checkIssetFields.call(pcTable);
+                this._refreshHiddenFieldsBlock();
+            }
+            this.setWidthes();
+
+            this.ScrollClasterized.insertToDOM(null, true);
+        }
+
+        if (this._insertRow) this._closeInsertRow();
+
+
+
+    }, hideAdminViewFields: function () {
+        let pcTable = this;
+        let visibleFields = hiddingStorage.get(this.tableRow) || {};
+        Object.keys(visibleFields).forEach(function (fieldName) {
+            let fieldWidth = visibleFields[fieldName];
+            if (fieldWidth > 0) {
+                let field = pcTable.fields[fieldName];
+                if (!field || field.webRoles && field.webRoles.length === 1 && field.webRoles[0] == "1") {
+                    delete visibleFields[fieldName];
+                }
+            }
+        });
+        this.setVisibleFields(visibleFields);
+    },
+    setDefaultVisibleFields: function () {
+        let fields = {};
+        let pcTable = this;
+        Object.values(pcTable.fields).forEach(function (field) {
+            if (!field.hidden) {
+                fields[field.name] = field.width;
+            } else {
+                fields[field.name] = 0;
+            }
+        });
+        pcTable.setVisibleFields.call(pcTable, fields);
+    },
+    fieldsHiddingShowPanel: function () {
+        let pcTable = this;
+        let $fieldsDiv = $('<div class="hidding-form">');
+        let lastCheck, dialog;
+
+        const refreshDefaultEyeGroups = function (setsDiv) {
+
+            setsDiv = setsDiv || $('#defaultEyeGroups'),
+                sets = pcTable.tableRow.fields_sets || [];
+
+            setsDiv.empty().append('<b>Наборы по умолчанию:</b> ');
+
+            sets.forEach(function (set, i) {
+                let link = $('<a href="#">').text(set.name).data('index', i);
+                setsDiv.append(link.wrap('<span>').parent());
+                if (pcTable.isCreatorView) {
+                    if (i > 0) {
+                        link.parent().append($('<button class="btn btn-xxs field_name"><i class="fa fa-arrow-left"></i></button>').data('index', i));
+                    }
+                    link.parent().append($('<button class="btn btn-xxs field_name"><i class="fa fa-remove"></i></button>').data('index', i));
+                }
+            });
+            setsDiv.off();
+            if (pcTable.isCreatorView) {
+                setsDiv.on('click', '.btn', function () {
+                    let i = $(this).find('i');
+                    if (i.is('.fa-remove')) {
+                        let remove = $(this);
+                        pcTable.model.removeEyeGroupSet(remove.data('index')).then(function (json) {
+                            pcTable.tableRow.fields_sets = json.sets;
+                            refreshDefaultEyeGroups();
+                        })
+                    } else {
+                        let leftMe = $(this);
+                        pcTable.model.leftEyeGroupSet(leftMe.data('index')).then(function (json) {
+                            pcTable.tableRow.fields_sets = json.sets;
+                            refreshDefaultEyeGroups();
+                        })
+                    }
+                });
+            }
+            setsDiv.on('click', 'a', function () {
+                let index = $(this).data('index');
+                let fields = sets[index]['fields'];
+                if (Array.isArray(fields)) {
+                    let _fields = {};
+                    fields.forEach(function (fName) {
+                        if (pcTable.fields[fName]) {
+                            _fields[fName] = pcTable.fields[fName].width;
+                        }
+                    });
+                    fields = _fields;
+                }
+                pcTable.setVisibleFields.call(pcTable, fields);
+                dialog.close();
+            });
+        };
+
+        let sets = hiddingSetsStorage.getNames(pcTable.tableRow);
+        if (sets && sets.length) {
+            let setsDiv = $('<div class="fieldsHiddenSets">').appendTo($fieldsDiv);
+
+            setsDiv.append('<b>Наборы:</b> ');
+
+            sets.forEach(function (name) {
+                let link = $('<a href="#">').text(name).data('name', name);
+                setsDiv.append(link.wrap('<span>').parent());
+                let span = link.parent();
+                span.append($('<button class="btn btn-xxs" data-action="remove"><i class="fa fa-remove"></i></button>').data('name', name));
+                if (pcTable.isCreatorView) {
+                    span.append($('<button class="btn btn-xxs field_name" data-action="addDefaultSet" title="Сохранить как набор по умолчанию"><i class="fa fa-save"></i></button>').data('name', name));
+                }
+            });
+            setsDiv.on('click', '.btn', function () {
+                let remove = $(this),
+                    name = remove.data('name');
+
+                if (pcTable.isCreatorView && $(this).data('action') === 'addDefaultSet') {
+                    let fields = hiddingSetsStorage.get(pcTable.tableRow, name) || [];
+                    pcTable.model.AddEyeGroupSet(name, fields).then(function (json) {
+                        pcTable.tableRow.fields_sets = json.sets;
+                        refreshDefaultEyeGroups();
+                        hiddingSetsStorage.remove(pcTable.tableRow, name);
+                        remove.parent().remove();
+                    });
+                    return;
+                }
+                hiddingSetsStorage.remove(pcTable.tableRow, name);
+                remove.parent().remove();
+            });
+
+
+            setsDiv.on('click', 'a', function () {
+                let a = $(this);
+                let name = a.data('name');
+                let fields = hiddingSetsStorage.get(pcTable.tableRow, name) || [];
+                pcTable.setVisibleFields.call(pcTable, fields);
+                dialog.close();
+            });
+        }
+
+        sets = pcTable.tableRow.fields_sets || [];
+
+        let setsDiv = $('<div class="fieldsHiddenSets" id="defaultEyeGroups">').appendTo($fieldsDiv);
+
+        if (sets && sets.length) {
+            refreshDefaultEyeGroups(setsDiv);
+        }
+
+
+        $fieldsDiv.on('click', 'input[type="checkbox"]', function (event) {
+            let input = $(this);
+            let formDiv = input.closest('.hidding-form');
+            if (event.shiftKey) {
+                let index = formDiv.find('input').index(input);
+                let _i = formDiv.find('input').index($(this));
+
+                formDiv.find('input').each(function (i) {
+                    if ((_i <= i && i < lastCheck) || (_i >= i && i > lastCheck)) {
+                        $(this).prop('checked', input.is(':checked') ? 'checked' : false).trigger('change');
+                    }
+                });
+
+            } else {
+                lastCheck = formDiv.find('input').index($(this));
+            }
+        });
+
+        let buttons = [
+            {
+                label: 'Применить',
+                action: function (dialogRef) {
+                    let fields = {};
+                    $fieldsDiv.find('input:checked').each(function () {
+                        let input = $(this);
+                        fields[input.attr('name')] = parseInt(input.closest('div').find('input[type="number"]').val()) || null;
+                    });
+                    pcTable.setVisibleFields.call(pcTable, fields);
+                    dialogRef.close();
+
+                }
+            },
+            {
+                label: 'По умолчанию',
+                action: function (dialogRef) {
+                    dialogRef.close();
+                    pcTable.setDefaultVisibleFields.call(pcTable);
+
+                }
+            },
+            {
+                label: 'Показать все',
+                action: function (dialogRef) {
+                    dialogRef.close();
+                    let fields = {};
+                    Object.values(pcTable.fields).forEach(function (field) {
+                        fields[field.name] = field.width;
+                    });
+                    pcTable.setVisibleFields.call(pcTable, fields);
+                }
+            },
+            {
+                label: 'Создать набор',
+                action: function (dialogRef) {
+
+                    let fields = {};
+                    $fieldsDiv.find('input:checked').each(function () {
+                        let input = $(this);
+                        fields[input.attr('name')] = parseInt(input.closest('div').find('input[type="number"]').val()) || null;
+                    });
+                    pcTable.setVisibleFields.call(pcTable, fields);
+                    dialogRef.close();
+
+                    let $divSetName = $('<div></div>');
+                    $divSetName.append('<div style="padding-top: 10px;"><label>Название набора</label><input type="text" id="fieldsSetName" class="form-control"/></div>');
+                    BootstrapDialog.show({
+                        message: $divSetName,
+                        title: 'Сохранить набор полей',
+                        buttons: [
+                            {
+                                label: 'Сохранить',
+                                action: function (dialog) {
+                                    let $input = $divSetName.find('#fieldsSetName');
+                                    if ($input.val().trim() === '') {
+                                        $input.addClass('error');
+                                    } else {
+                                        hiddingSetsStorage.set(pcTable.tableRow, fields, $input.val().trim());
+                                        dialog.close();
+                                    }
+                                }
+                            },
+                            {
+                                label: 'Закрыть',
+                                action: function (dialog) {
+                                    dialog.close();
+                                }
+                            }
+                        ],
+                        draggable: true
+                    })
+                }
+
+            },
+            {
+                label: 'Отмена',
+                action: function (dialogRef) {
+                    dialogRef.close();
+                }
+            }
+
+        ];
+
+        if (pcTable.isCreatorView) {
+            buttons[1].label = "C админ полями";
+            buttons[1].icon = "fa fa-angle-right";
+            buttons.splice(1, 0, {
+                label: 'Без админ полей',
+                icon: "fa fa-angle-double-right",
+                action: function (dialogRef) {
+                    dialogRef.close();
+                    pcTable.hideAdminViewFields.call(pcTable);
+
+                }
+            })
+        }
+
+        let categories = {'param': 'Хэдер', 'column': 'Колонки', 'footer': 'Футер'};
+        Object.keys(categories).forEach(function (category) {
+
+            if (pcTable.fieldCategories[category] && pcTable.fieldCategories[category].length) {
+
+                $fieldsDiv.append('<div class="category-name">' + categories[category] + '</div>');
+                $.each(pcTable.fieldCategories[category], function (k, field) {
+                    let hidden = '';
+                    if (field.hidden) {
+                        hidden = ' (Скрыто по умолчанию)';
+                    }
+                    let fCheckbox = $('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="' + field.name + '" class="form-check-input"> ' + field.title + hidden + '</label> <input type="number" placeholder="' + field.width + '" value="' + (field.showMeWidth && field.showMeWidth !== field.width ? field.showMeWidth : field.width) + '"/></div>');
+                    if (field.showMeWidth) {
+                        fCheckbox.find('input').prop('checked', true);
+                        fCheckbox.attr('data-checked', true);
+                    }
+                    fCheckbox.appendTo($fieldsDiv);
+                });
+
+            }
+        });
+
+        $fieldsDiv.on('change', 'input[type="checkbox"]', function () {
+            let div = $(this).closest('div');
+            if ($(this).is(':checked')) {
+                div.attr('data-checked', true);
+            } else {
+                div.removeAttr('data-checked');
+            }
+        });
+
+
+        dialog = BootstrapDialog.show({
+            message: $fieldsDiv,
+            title: 'Видимость полей',
+            buttons: buttons,
+            draggable: true,
+            onshow: function (dialog) {
+                if (pcTable.isCreatorView) {
+                    dialog.$modalContent.css({
+                        width: "800px",
+                    });
+                }
+            },
+        })
+    },
+    fieldsHiddingGetButton: function (blinkMe) {
+        "use strict";
+
+        let pcTable = this;
+
+        if (!this.___fieldsHiddingShowAllButton) {
+
+            let timeout;
+
+            this.___fieldsHiddingShowAllButton = $('<button class="btn btn-sm"><span class="fa fa-eye-slash"></span></button>')
+                .on('click', function () {
+                    pcTable.fieldsHiddingShowPanel.call(pcTable)
+                }).on('contextmenu', function () {
+                    if (!pcTable.isCreatorView) {
+                        pcTable.setDefaultVisibleFields.call(pcTable);
+                    } else if (timeout) {
+                        clearTimeout(timeout);
+                        timeout = null;
+                        pcTable.hideAdminViewFields.call(pcTable, true);
+                    } else {
+                        timeout = setTimeout(function () {
+                            pcTable.setDefaultVisibleFields.call(pcTable);
+                            timeout = null;
+                        }, 500);
+                    }
+                    return false;
+                });
+        }
+
+        let isHidedExtraFields = Object.values(pcTable.fields).some(function (field) {
+            if (field.showInWeb && !field.hidden && !field.showMeWidth) return true;
+        });
+
+        if (!isHidedExtraFields) {
+            this.___fieldsHiddingShowAllButton.addClass('btn-default');
+            this.___fieldsHiddingShowAllButton.removeClass('btn-warning');
+
+        } else {
+            this.___fieldsHiddingShowAllButton.addClass('btn-warning');
+            this.___fieldsHiddingShowAllButton.removeClass('btn-default');
+            if (blinkMe) {
+                App.blink(this.___fieldsHiddingShowAllButton, 8, '#fff');
+            }
+        }
+        return this.___fieldsHiddingShowAllButton;
+    }
+});
+
+    let storageName = 'pcTableShowFieldsWithDates';
+    let getTableId = function (tableRow) {
+        let tableId = tableRow.id;
+        if (tableRow.type === 'calcs') {
+            tableId += '$' + tableRow.__version
+        }
+        return tableId;
+    };
+    let hiddingHellStorage = {
+        saveOpenedVal: function(tableRow, opened){
+            localStorage.setItem(this.getKeyString(tableRow), opened.toString());
+        },
+        getKeyString: function(tableRow){
+            return tableRow.id+'/'+tableRow.__version
+        },
+        getSavedOpenedVal: function(tableRow){
+            let json= localStorage.getItem(this.getKeyString(tableRow));
+            if(json){
+                return JSON.parse(json)
+            }
+            return  true;
+        }
+    };
+
+    let hiddingStorage = {
+        set: function (fields, tableRow, dt) {
+
+            let tableId = getTableId(tableRow);
+
+            let sessionFilters = {};
+            let filters = fields || {};
+            try {
+                sessionFilters = JSON.parse(localStorage.getItem(storageName)) || {};
+            } catch (error) {
+
+            }
+            if (dt || !sessionFilters[tableId]) {
+                sessionFilters[tableId] = [filters, dt];
+            } else {
+                sessionFilters[tableId][0] = filters;
+            }
+            localStorage.setItem(storageName, JSON.stringify(sessionFilters));
+        },
+        get: function (tableRow) {
+            let tableId = getTableId(tableRow);
+            return hiddingStorage.getInner(tableId)[0];
+        },
+        getDate: function (tableRow) {
+            let tableId = getTableId(tableRow);
+            return hiddingStorage.getInner(tableId)[1];
+        },
+        getInner: function (tableId) {
+            let session, fields, date;
+            try {
+                session = JSON.parse(localStorage.getItem(storageName)) || {};
+            } catch (error) {
+                session = {};
+            }
+            return session[tableId] || []
+        }
+    };
+    let hiddingSetsStorage = {
+        set: function (tableRow, fields, name) {
+            let tableId = getTableId(tableRow);
+
+            let SetsFoFields = [];
+            let storageName = 'pcTableShowFieldsSets' + tableId;
+
+            let filters = fields || [];
+            try {
+                SetsFoFields = JSON.parse(localStorage.getItem(storageName)) || {};
+            } catch (error) {
+
+            }
+            SetsFoFields[name] = filters;
+            localStorage.setItem(storageName, JSON.stringify(SetsFoFields));
+        },
+        get: function (tableRow, name) {
+            let tableId = getTableId(tableRow);
+            let setFields;
+            let storageName = 'pcTableShowFieldsSets' + tableId;
+            try {
+                setFields = JSON.parse(localStorage.getItem(storageName));
+                setFields = setFields[name];
+            } catch (error) {
+            }
+
+            if (setFields === null || setFields === undefined) setFields = undefined;
+            return setFields;
+        },
+        getNames: function (tableRow) {
+            let tableId = getTableId(tableRow);
+
+            let setFields;
+            let storageName = 'pcTableShowFieldsSets' + tableId;
+            try {
+                setFields = JSON.parse(localStorage.getItem(storageName));
+                return Object.keys(setFields);
+            } catch (error) {
+            }
+            if (setFields === null || setFields === undefined) setFields = undefined;
+            return setFields;
+        },
+        remove: function (tableRow, name) {
+            let tableId = getTableId(tableRow);
+            let setFields;
+            let storageName = 'pcTableShowFieldsSets' + tableId;
+            try {
+                setFields = JSON.parse(localStorage.getItem(storageName));
+                delete setFields[name];
+                localStorage.setItem(storageName, JSON.stringify(setFields));
+            } catch (error) {
+            }
+        }
+    };
+})();
+App.pcTableMain.prototype._print = function () {
+    "use strict";
+    let $printSettings = $('<div class="hidding-form">');
+
+    const isAnyPrinfField = function (field) {
+        if (field.showMeWidth) return true;
+    };
+
+    if (this.fieldCategories.param.length && this.fieldCategories.param.some(isAnyPrinfField)) {
+        $printSettings.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="params" class="form-check-input" checked="checked"> Параметры</label></div>');
+    }
+    if (this.fieldCategories.filter.length)
+        $printSettings.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="filters" class="form-check-input" checked="checked"> Фильтры</label></div>');
+    if (this.fieldCategories.column.length && this.fieldCategories.column.some(isAnyPrinfField) && this.dataSortedVisible.length) {
+        $printSettings.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="rows" class="form-check-input" checked="checked"> Строчную часть</label></div>');
+        $printSettings.append('<div class="form-check no-bold" style="padding-left: 20px;"><label class="form-check-label"><input type="checkbox" name="with-id" class="form-check-input"> с id</label></div>');
+    }
+
+    if (this._footersBlock.find('.val').length) {
+        $printSettings.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="column-footers" class="form-check-input" checked="checked"> Футеры колонок</label></div>');
+    }
+    if (this._footersSubTable.find('.val').length) {
+        $printSettings.append('<div class="form-check no-bold"><label class="form-check-label"><input type="checkbox" name="other-footers" class="form-check-input" checked="checked"> Футеры вне колонок</label></div>');
+    }
+
+    let pcTable = this;
+    let buttons = [
+        {
+            label: 'Печать',
+            action: function (dialogRef) {
+                let settings = [];
+                $printSettings.find('input:checked').each(function () {
+                    settings.push($(this).attr('name'));
+                });
+                dialogRef.close();
+                pcTable._printTable.call(pcTable, settings);
+            }
+        },
+        {
+            label: 'Отмена',
+            action: function (dialogRef) {
+                dialogRef.close();
+            }
+        }
+    ];
+
+    BootstrapDialog.show({
+        message: $printSettings,
+        title: 'Печать',
+        buttons: buttons,
+        draggable: true
+    })
+};
+App.pcTableMain.prototype._printTable = function (settings){
+
+    let pcTable = this;
+    let settingsObject = {
+        fields: {}
+    };
+    if (settings.indexOf('with-id') !== -1)
+        settingsObject.fields.id = 50;
+
+    let categories = {
+        params: pcTable.fieldCategories.param,
+        filters: pcTable.fieldCategories.filter,
+        rows: pcTable.fieldCategories.column,
+        "column-footers": pcTable.fieldCategories.footer.filter(function (field) {
+            return field.column!=="";
+        }),
+        "other-footers": pcTable.fieldCategories.footer.filter(function (field) {
+            return field.column==="";
+        }),
+
+    };
+    Object.keys(categories).forEach(function (category) {
+        if (settings.indexOf(category) !== -1) {
+            categories[category].forEach(function (field) {
+                if (field.type === 'button' || field.showMeWidth<1 || !field.showMeWidth) return;
+                settingsObject.fields[field.name] = field.showMeWidth;
+            })
+        }
+    });
+
+    if (settings.indexOf('rows') !== -1){
+        settingsObject.ids = pcTable.dataSortedVisible;
+    }
+    settingsObject.sosiskaMaxWidth = 1100;
+
+    pcTable.model.printTable(settingsObject);
+
+};
+
+
+App.pcTableMain.prototype.reOrderRows = function (btnId, $direction) {
+    let pcTable = this;
+    if (pcTable.tableRow.with_order_field && !pcTable.nSorted) {
+        App.notify('Для работы поля порядок перезагрузите таблицу');
+        return false;
+    }
+
+
+    let indBtn;
+    let orderingRowIds = [];
+    if (this.row_actions_get_checkedIds().length === 0) {
+        orderingRowIds.push(btnId);
+        indBtn = this.dataSorted.indexOf(btnId) + ($direction === 'after' ? 1 : -1);
+        if (indBtn < 0) return;
+    } else {
+        if (pcTable.row_actions_get_checkedIds().indexOf(btnId) !== -1) {
+            App.notify('В качестве якоря для перемещения нужно выбрать не отмеченную строку');
+            return false;
+        }
+        let idsLength = this.row_actions_get_checkedIds().length;
+        this.dataSorted.some(function (id, ind) {
+            if (idsLength === 0) return true;
+            if (pcTable.data[id].$checked) {
+                orderingRowIds.push(id);
+                --idsLength;
+            }
+        });
+    }
+
+    orderingRowIds.forEach(function (id) {
+        pcTable.dataSorted.splice(pcTable.dataSorted.indexOf(id), 1);
+    });
+
+    let idInd;
+    if (indBtn !== undefined) {
+        idInd = indBtn;
+    } else {
+        idInd = this.dataSorted.indexOf(btnId) + ($direction === 'after' ? 1 : 0)
+    }
+
+    pcTable.dataSorted.splice(idInd, 0, ...orderingRowIds);
+
+    this.dataSortedVisible = [];
+    pcTable.dataSorted.forEach(function (id) {
+        if (pcTable.data[id].$visible) pcTable.dataSortedVisible.push(id);
+    });
+
+    pcTable._refreshContentTable();
+
+    if (pcTable.tableRow.with_order_field) {
+        $('table.pcTable-table').addClass('reordered');
+       // pcTable._table.addClass('reordered');
+    }
+    pcTable.row_actions_uncheck_all();
+};
+App.pcTableMain.prototype.reOrderRowsSave = function () {
+    let pcTable = this;
+    /*if (pcTable.notCorrectOrder) {
+        App.notify('Поля выбраны с промежутками - выберите корректный фильтр');
+        return;
+    }*/
+    pcTable._orderSaveBtn.prop('disabled', true).find('i').attr('class', 'fa fa-cog');
+
+
+    this.model.saveOrder(this.dataSorted)
+        .then(function (json) {
+            pcTable.table_modify(json);
+            pcTable._orderSaveBtn.prop('disabled', false).find('i').attr('class', 'fa fa-save');
+            $('table.pcTable-table').removeClass('reordered');
+            //pcTable._table.removeClass('reordered');
+
+        });
+
+};
+App.pcTableMain.prototype.addReOrderRowBind = function () {
+
+    let pcTable = this;
+    pcTable._innerContainer.on('click', 'td.n button', function (event) {
+        let btn = $(this);
+
+        if (!pcTable.tableRow.with_order_field || pcTable.__getCheckedRowsIds(undefined, true, 'blockorder')) {
+
+            pcTable.reOrderRows.call(pcTable, pcTable._getItemByTr.call(pcTable, btn.closest('tr')).id, btn.find('.fa-angle-up').length === 1 ? 'before' : 'after');
+        }
+    });
+};
+
+App.pcTableMain.prototype.__formatFunctions = {
+    blockadd: function () {
+        this._rowsButtons();
+    },
+    tablecomment: function () {
+        this._rowsButtons();
+    },
+    blockorder: function () {
+        this._refreshHead();
+    },
+    block: function () {
+        this._refreshParamsBlock();
+        this._refreshContentTable(true);
+        this._refreshFootersBlock();
+    }, tabletitle: function () {
+        this._refreshTitle();
+    }
+    , text: function () {
+        this._refreshTableText();
+    }
+    , rowstitle: function () {
+        this._container.find('.pcTable-rowsTitle:first').replaceWith(this._createRowsTitle());
+    }, fieldtitle: function (newvals, oldVals) {
+        let categories = {};
+
+        for (const fieldName in newvals) {
+            if (this.fields[fieldName] && newvals[fieldName] !== oldVals[fieldName]) {
+                categories[this.fields[fieldName].category] = true;
+            }
+        }
+        for (const fieldName in oldVals) {
+            if (this.fields[fieldName] && newvals[fieldName] !== oldVals[fieldName]) {
+                categories[this.fields[fieldName].category] = true;
+            }
+        }
+        for (const category in categories) {
+            switch (category) {
+                case 'param':
+                    this._rerendParamsblock();
+                    break;
+                case 'filter':
+                    this._rerendFiltersBlock();
+                    break;
+                case 'column':
+                    this._refreshHead();
+                    break;
+                case 'footer':
+                    this._rerendFooters();
+                    break;
+            }
+        }
+    },
+};
+
+
+    $.extend(App.pcTableMain.prototype, {
+
+            setWidthes: function () {
+                "use strict";
+                let TreeWidth;
+
+                if (this.isMobile) {
+                    TreeWidth = 5;
+                    this.switchContainerNideScroll(false)
+                } else {
+                    TreeWidth = $('body>.page_content:first').is('.tree-minifyed') ? 5 : 300;
+                    this.switchContainerNideScroll(true)
+                }
+
+
+                this.width = $('body').width() - TreeWidth;
+                this._container.width(this.width);
+                if (!this.isMobile)
+                    this._innerContainer.width(this.width - 80);
+                else {
+                    this._innerContainer.width('auto');
+                }
+
+                let $block;
+
+                this._rerendParamsblock();
+                this._rerendFiltersBlock();
+                this._refreshHead();
+                this._rerendFooters();
+
+                if (this.tableWidth < this._innerContainer.width()) {
+                    if (this.isMobile) {
+                        this.__$rowsButtons.width(this._table.width());
+                    } else {
+                        this.__$rowsButtons.width(this._table.width() - 70);
+                    }
+                } else {
+                    if (!this.isMobile) {
+                        this.__$rowsButtons.width(this._innerContainer.width() - 5)
+                    }else{
+                        this.__$rowsButtons.width(this._innerContainer.width() + 60).css('padding-right', '5px')
+                    }
+                }
+
+                if (this._container.width() < this._table.width()) {
+                    this._addHorizontalDraggable();
+                }
+                this._container.height(window.innerHeight - this._container.offset().top - 20);
+            },
+            initForPanel: function (config) {
+                $.extend(true, this, config);
+                this.refreshArraysFieldCategories(false);
+                let data = {};
+                this.__checkedRows = [];
+                this.data.map(function (item) {
+                    this.dataSorted.push(item.id);
+                    this.dataSortedVisible.push(item.id);
+                    data[item.id] = item;
+                    data[item.id].$checked = -1 !== this.__checkedRows.indexOf(item.id) ? true : false;
+                }, this);
+                this.data = data;
+                this.model.setDataRows(this.data);
+            },
+            _init: function () {
+                let pcTable = this;
+
+                this._container.addClass(this.contanerClass).addClass('pcTable-type-' + this.tableRow.type);
+
+                let navTopLine = $('#nav-top-line');
+                navTopLine.addClass('pcTable-type-' + this.tableRow.type);
+                if (this.tableRow.type === 'tmp') {
+                    navTopLine.text('Будьте внимательны - это временная таблица');
+                }
+
+                this._innerContainer = $('<div class="innerContainer">');
+
+
+                $('body').on('keyup', function (event) {
+                    if (event.which === 27) {
+                        pcTable._container.trigger('escPressed');
+                    }
+                });
+
+                this._container.append(this._innerContainer);
+                this.addReOrderRowBind();
+
+                let data = {};
+                this.__checkedRows = [];
+
+                this.data.map(function (item) {
+                    this.dataSorted.push(item.id);
+                    this.dataSortedVisible.push(item.id);
+                    data[item.id] = item;
+                    data[item.id].$checked = -1 !== this.__checkedRows.indexOf(item.id) ? true : false;
+                }, this);
+                this.data = data;
+
+
+                this.model.setDataRows(this.data);
+                let timeoutResize;
+                $(window).resize(function () {
+                    if (timeoutResize) clearTimeout(timeoutResize);
+                    timeoutResize = setTimeout(function () {
+                        pcTable.setWidthes();
+                    }, 500);
+                });
+
+            },
+            refreshArraysFieldCategories: function (forTable) {
+                "use strict";
+                forTable = forTable || false;
+
+                let pcTable = this;
+                pcTable.hidden_fields = pcTable.hidden_fields || {};
+
+                $.each(pcTable.hidden_fields, function (k, field) {
+                    pcTable.hidden_fields[k] = $.extend({}, field, fieldTypes[field.type], field);
+                    pcTable.hidden_fields[k].isHiddenField = true;
+                });
+
+                pcTable.mainFieldName = 'id';
+
+                pcTable.fieldCategories = {};
+
+                ['param', 'column', 'filter', 'footer'].forEach(function (category) {
+                    pcTable.fieldCategories[category] = [];
+                });
+
+                let withoutCategories = [];
+                try {
+                    withoutCategories = JSON.parse(decodeURIComponent(window.location.hash.substring(1)) || '[]');
+                    if (!withoutCategories || !withoutCategories.wc) {
+                        withoutCategories = [];
+                    } else {
+                        withoutCategories = withoutCategories.wc;
+                    }
+                } catch (e) {
+                }
+
+                let reorderedFields = false;
+
+                const initField = function (name, field) {
+                    field.pcTable = pcTable;
+
+                    if (withoutCategories.indexOf(field.category) !== -1) return;
+
+                    if (fieldTypes[field.type]) {
+                        field = $.extend({}, defaultField, fieldTypes[field.type], field);
+                    } else {
+                        field = $.extend({}, defaultField, field);
+                    }
+
+                    if (field.showInWebOtherOrd) {
+                        field._ord = field.ord;
+                        field.ord = field.showInWebOtherOrd;
+                        reorderedFields = true;
+                    }
+                    if (field.showInWebOtherPlacement) {
+                        field._category = field.category;
+                        field.category = field.showInWebOtherPlacement;
+                        reorderedFields = true;
+                    }
+
+
+                    pcTable.fields[name] = field;
+
+                    if (field.showInWeb) {
+                        pcTable.fieldCategories[field.category].push(field);
+                    } else if (field.name) {
+                        pcTable.hidden_fields[field.name] = field;
+                    }
+                };
+
+                if (forTable) {
+                    let n = {type: "n"};
+                    initField('n', n);
+                    let _fields = $.extend({}, this.fields);
+                    delete _fields.n;
+                    $.each(_fields, initField);
+                } else {
+                    $.each(this.fields, initField);
+                }
+
+                if (reorderedFields) {
+                    ['param', 'column', 'filter', 'footer'].forEach(function (category) {
+                        pcTable.fieldCategories[category].sort(function (field_a, field_b) {
+                            return field_a.ord - field_b.ord;
+                        })
+                    });
+                }
+
+                if (this.tableRow.main_field && this.fields[this.tableRow.main_field]) {
+                    pcTable.mainFieldName = this.tableRow.main_field;
+                }
+
+            },
+            render: function (addVars) {
+                let pcTable = this;
+
+                this.loadVisibleFields();
+
+
+                this._renderTable();
+
+
+                if (this._sorting.addSortable) {
+                    this._sorting.addSortable(this);
+                }
+                this._addSelectable();
+                this._addEditable();
+                this._addSave();
+
+                this.row_actions_add();
+
+                this.setWidthes();
+
+                this.__addFilterable();
+                this._refreshHead();
+
+
+                this.ScrollClasterized = this.Scroll();
+
+                if (pcTable.checkIsUpdated > 0) {
+                    let timeout = parseInt(pcTable.checkIsUpdated) * 2000;
+                    setTimeout(function () {
+                        pcTable.checkTableIsChanged.call(pcTable, timeout)
+                    }, timeout);
+                }
+
+
+                this.refresh();
+                this.__applyFilters();
+                if (addVars) {
+                    pcTable._addInsert(addVars);
+                }
+
+            },
+            _addSave: function () {
+                $('body').on('keyup', function (event) {
+                    if (event.ctrlKey || event.metaKey) {
+                        if (String.fromCharCode(event.which).toLowerCase() === 's' && $('#bigOneCodemirror').length === 0) {
+                            $('body').trigger('ctrlS')
+                        }
+                    }
+                });
+
+            },
+
+            reloaded: function () {
+
+                let notify = $('#refresh-notify');
+                if (notify.length) {
+                    notify.closest('.alert').remove();
+                    this.checkTableIsChanged(parseInt(this.checkIsUpdated) * 2000);
+                }
+            },
+            checkTableIsChanged: function (timeout) {
+                let pcTable = this;
+
+                if (document.hidden) {
+                    setTimeout(function () {
+                        pcTable.checkTableIsChanged.call(pcTable, timeout);
+                    }, 1000);
+                } else {
+                    pcTable.model.checkTableIsChanged.call(pcTable.model).then(function (json) {
+                        if (json.no || pcTable.model.tableData.updated.code === json.code) {
+                            pcTable.checkTableIsChanged.call(pcTable, timeout);
+
+                        } else {
+                            let checkIsNotAlreadyChanged = function () {
+                                if (pcTable.model.tableData.updated.code === json.code) {
+                                    pcTable.checkTableIsChanged.call(pcTable, timeout);
+                                } else {
+
+                                    $.notify({
+                                        message: '<div id="refresh-notify"><button class="btn btn-warning btn-sm" style="margin-right: 20px;">' +
+                                            'Обновить</button> <span>Таблица была изменена пользователем <b>' +
+                                            json.username + '</b> в <b>' + App.dateFormats.covert(json.dt, 'YY-MM-DD HH:mm', 'HH:mm DD.MM')
+                                            + '</b> </span></div>'
+                                    }, {
+                                        type: 'warning',
+                                        allow_dismiss: false,
+                                        delay: 0
+                                    });
+
+                                    $('#refresh-notify button').on('click', function () {
+                                        pcTable.model.refresh()
+                                    });
+                                }
+                            };
+                            pcTable.model.doAfterProcesses(
+                                function () {
+                                    setTimeout(checkIsNotAlreadyChanged, 200)
+                                }
+                            )
+
+                        }
+                    });
+                }
+
+            }
+            ,
+            _getTableMainFieldName: function (fields, mainFieldId) {
+                let fieldName;
+                Object.keys(fields).some(function (f) {
+                    let field = fields[f];
+                    if (field.id == mainFieldId) {
+                        fieldName = field.name;
+                        return true;
+                    }
+                });
+                return fieldName;
+            },
+            _getFieldbyName: function (fieldName) {
+                return this.fields[fieldName];
+            },
+            _getColumnIndexByTd: function (td, tr) {
+                var tr = tr || td.closest('tr');
+                return tr.find('td').index(td);
+            },
+            _fieldByTd: function (td, tr) {
+                let cIndex = this._getColumnIndexByTd(td, tr);
+                return this.fieldCategories.visibleColumns[cIndex - 1];
+            },
+            _getRowIndexById: function (id) {
+                var index = null;
+                let p = this;
+                for (let i in p.data) {
+                    if (p.data[i].id == id) {
+                        return i;
+                        break;
+                    }
+                }
+                return null;
+            },
+            _getFieldBytd: function (td) {
+                if (!td.closest('tr').is('.DataRow')) {
+                    return this.fields[td.data('field')]
+                } else {
+                    return this.fieldCategories.visibleColumns[td.closest('tr').find(td.prop('tagName')).index(td) - 1]
+                }
+
+            },
+            _isParamsArea: function ($obj) {
+                return $obj.closest('table').is('.pcTable-paramsTable')
+            },
+            _isFootersArea: function ($obj) {
+                return $obj.closest('tbody').is('.pcTable-footers')
+            },
+            _getItemBytd: function (td) {
+                let tr = td.closest('tr');
+                return this._getItemByTr(tr);
+            },
+            _getItemByTr: function (tr) {
+                if (!tr.is('.DataRow')) {
+                    return this.data_params;
+                }
+                return this.data[tr.data(pcTable_ROW_ItemId_KEY)];
+            },
+            _getItemById: function (id) {
+                return this.data[id];
+            },
+            _deleteItemById: function (id) {
+                let item = this._getItemById(id);
+                if (item && item.$tr) {
+                    item.$tr.remove();
+                }
+                ['dataSorted', 'dataSortedVisible', '__checkedRows'].some(function (array) {
+                    let ind = this[array].indexOf(id);
+                    if (ind !== -1) {
+                        this[array].splice(ind, 1);
+                    }
+                }, this);
+                delete this.data[id];
+            },
+            _getTdByFieldName: function (fieldName, tr) {
+                let fieldIndex = 0;
+                this.fieldCategories.visibleColumns.every(function (field, index) {
+                    if (fieldName == field.name) {
+                        fieldIndex = index;
+                        return false;
+                    }
+                    return true;
+                });
+                return this._getTdByColumnIndex(tr, fieldIndex + 1);
+            },
+            _getTdByColumnIndex: function (tr, index) {
+                return tr.find('td:eq(' + index + ')');
+            },
+            refresh: function () {
+                this._refreshTitle();
+                this._refreshParamsBlock();
+                this._refreshFiltersBlock(this.data_params);
+                this._refreshFootersBlock();
+
+                this._refreshContentTable();
+
+            }
+
+        }
+    );
+
+
+})(window, jQuery);
+(function () {
+    if (!App.models)
+        App.models = {};
+
+    App.models.table = function (url, tableData, extraData) {
+        let inProcess = false;
+        let iframeNum = 0;
+        let dataRows;
+        let pcTable;
+        let startedQuery = null;
+
+        const getFilteredItem = function (item) {
+            let itemTmp = {};
+            Object.keys(item).forEach(function (k) {
+                //Фильтруем jquery-объекты из item
+                if (!/^\$/.test(k)) {
+                    if (k === 'id') {
+                        itemTmp[k] = item[k];
+                    } else {
+                        if (item[k] !== null && typeof item[k] === 'object' && Object.keys(item[k]).indexOf('v') !== -1) {
+                            itemTmp[k] = item[k]['v'];
+                        } else {
+                            itemTmp[k] = item[k];
+                        }
+                    }
+                }
+            });
+            return itemTmp;
+        };
+
+
+        extraData = extraData || {};
+        var obj = {
+            setDataRows: function (data) {
+                dataRows = data;
+            },
+            addFiltersData: function (filters) {
+                "use strict";
+                extraData = $.extend(true, {}, extraData, filters);
+            },
+            tableData: tableData,
+            url: url,
+            isInProcess: function () {
+                return inProcess;
+            },
+            doAfterProcesses: function (func) {
+                let model = this;
+                setTimeout(function () {
+                    let def;
+                    if (def = model.getDefferedProcess()) {
+                        def.then(func);
+                    } else func();
+                }, 50);
+            },
+            getDefferedProcess: function () {
+                if (!inProcess) return false;
+                let def = $.Deferred();
+
+                const checkInProcess = function () {
+                    if (inProcess) {
+                        setTimeout(checkInProcess, 50);
+                    } else {
+                        def.resolve();
+                    }
+                };
+
+                checkInProcess();
+                return def.promise();
+
+            },
+            showLinks: function (json) {
+                App.showLInks(json.links, pcTable.model);
+                delete json.links;
+            }, shoInterfaceDatas: function (json) {
+                App.showDatas.call(pcTable.model, json.interfaceDatas);
+                delete json.interfaceDatas;
+            }, showPanels: function (json) {
+                App.showPanels(json.panels);
+                delete json.panels;
+            },
+            addPcTable: function (pcTableIn) {
+                pcTable = pcTableIn;
+            },
+            __ajax: function ($method, $data, RequestObject, withoutLoading, filters) {
+                "use strict";
+                let url = this.url;
+
+                let $d = $.Deferred();
+                filters = filters || {};
+                let isDone = false;
+                let isShownCog = false;
+
+                let data_tmp = $.extend(true, {}, $data, {tableData: tableData, ajax: true}, extraData, filters);
+
+                if ($data.method === 'checkTableIsChanged' || $data.method === 'checkForNotifications') {
+                    if ($data.method === 'checkForNotifications') {
+                        url = '/nobuffer/index.php';
+                    } else {
+                        data_tmp = $.extend({}, $data, {code: tableData.updated.code, ajax: true}, extraData);
+                        if (tableData.sess_hash) {
+                            data_tmp.tableData = {sess_hash: tableData.sess_hash};
+                        }
+                    }
+                } else {
+                    inProcess = true;
+                    if (!withoutLoading)
+                        setTimeout(function () {
+                            if (!isDone) {
+                                App.fullScreenProcesses.showCog();
+                                isShownCog = true;
+                            }
+                        }, 1000);
+
+                }
+                if (data_tmp.data !== undefined && typeof data_tmp.data === 'object') {
+                    data_tmp.data = JSON.stringify(data_tmp.data);
+                }
+                if (dataRows) {
+                    data_tmp.ids = JSON.stringify(Object.keys(dataRows));
+                }
+
+                let Model = this;
+                let success = function (json) {
+
+                    let methods = {
+                        'edit': 'Изменение',
+                        'checkInsertRow': 'Предварительное добавление',
+                        'duplicate': 'Дублирование',
+                        'refresh_rows': 'Пересчет строк',
+
+                        'getTableData': 'Загрузка информации о таблице',
+                        'refresh': 'Обновление данных таблицы',
+                        'checkEditRow': 'Предварительный расчет панели',
+                        'saveEditRow': 'Сохранение панели',
+                        'save': 'Изменение поля',
+                        'click': 'Нажатие кнопки',
+                        'selectSourceTableAction': 'Вызов панели',
+                        'add': 'Добавление строки',
+                        'getEditSelect': 'Загрузка селекта',
+                        'delete': 'Удаление'
+                    };
+
+                    let pcTableObj = $('#table').data('pctable');
+                    if (pcTableObj) {
+                        if (json.LOGS) {
+                            if (!pcTableObj.LOGS) pcTableObj.LOGS = {};
+                            pcTableObj.LOGS = $.extend(pcTableObj.LOGS, json.LOGS);
+                        }
+                        if (json.FullLOGS) {
+                            if (!pcTableObj.FullLOGS) pcTableObj.FullLOGS = [];
+
+                            let logs = {'text': (methods[data_tmp['method']] || data_tmp['method'])};
+                            logs.children = json.FullLOGS;
+                            if (json.FullLOGS.length) {
+                                pcTableObj.FullLOGS.push(logs);
+                                App.blink(pcTableObj.LogButton, 8, '#fff');
+                            }
+                        }
+                        if (json.FieldLogs) {
+                            pcTableObj.FieldLOGSName = methods[data_tmp['method']] || data_tmp['method'];
+                            pcTableObj.FieldLOGS = json.FieldLogs;
+                        }
+                    }
+
+
+                    if (!json.error) {
+                        if (json.reload) window.location.href = window.location.href;
+                        else {
+                            if (json.links && json.links.length > 0) Model.showLinks(json);
+                            if (json.interfaceDatas && json.interfaceDatas.length > 0) Model.shoInterfaceDatas(json);
+                            if (json.panels && json.panels.length > 0) Model.showPanels(json);
+                        }
+                        $d.resolve(json);
+                    } else {
+                        var errorText = $('<div>').html(json.error.replace(/\[\[(.*?)\]\]/g, '<b>$1</b>'));
+
+                        if (json.log) {
+                            let btn = $('<button class="btn btn-xxs btn-danger"><i class="fa fa-info" style="padding-top: 3px;" aria-hidden="true"> c</i></button>');
+                            btn.on('click', function () {
+                                BootstrapDialog.show({
+                                    message: $('<pre style="max-height: ' + ($('body').height() - 200) + 'px; overflow: scroll">').css('font-size', '11px').text(JSON.stringify(json.log, null, 1)),
+                                    type: BootstrapDialog.TYPE_DANGER,
+                                    title: 'Лог расчета',
+                                    buttons: [{
+                                        'label': "Закрыть",
+                                        cssClass: 'btn-m btn-default',
+                                        'action': function (dialog) {
+                                            dialog.close();
+                                        }
+                                    }],
+                                    draggable: true,
+                                    onshown: function (dialog) {
+                                        dialog.$modalContent.position({
+                                            of: window
+                                        })
+                                    },
+                                    onshow: function (dialog) {
+                                        dialog.$modalHeader.css('cursor', 'pointer')
+                                        dialog.$modalContent.css({
+                                            width: 1200
+                                        });
+                                    }
+
+                                });
+
+                            });
+                            errorText.append(' ');
+                            errorText.append(btn)
+                        }
+                        App.notify(errorText)
+                        $d.reject(json);
+                    }
+                }, fail = function (obj) {
+                    let error, timeout;
+                    if (obj && obj.status === 200) {
+                        if (obj.responseJSON && obj.responseJSON.error) error = obj.responseJSON.error;
+                        else {
+                            error = $('<div>Ошибка выполнения операции  </div>');
+                            if (pcTable && pcTable.isCreatorView) {
+                                error.append('<button class="btn danger-backg btn-xs" data-toggle="collapse" data-target="#notify-texh"><i class="fa fa-angle-down"></i><i class="fa fa-angle-up"></i></button>');
+                                error.append($('<div id="notify-texh" class="collapse">').append($('<code>').text(obj.responseText)));
+                            }
+                        }
+                    } else {
+
+                        if (!RequestObject && obj && obj.statusText != "abort" && obj.statusText != "error") {
+                            error = obj.statusText;
+                            timeout = 200;
+
+                        } else if (RequestObject && RequestObject.jqXHR) {
+                            if (RequestObject.jqXHR.statusText !== "abort") {
+                                error = 'Нет соединения с сервером';
+                                timeout = 200;
+                            }
+                        }
+                    }
+
+                    if (error) {
+                        if (timeout) {
+                            setTimeout(function () {
+                                App.notify(error);
+                            }, timeout)
+                        } else {
+                            App.notify(error);
+                        }
+                        if (!obj.responseText) {
+                            console.log(obj, RequestObject);
+
+                        }
+                    }
+
+                    $d.reject(obj);
+                };
+
+
+                let ajax = function () {
+
+                    //Чтобы не блокировала защищенная подсеть
+                    if (!(/^\/nobuffer/).test(url)) {
+                        if (((new Date()).getTime() - startedQuery) < 150) {
+                            setTimeout(ajax, 50);
+                            return;
+                        }
+                        startedQuery = (new Date()).getTime();
+                        if (/\?/.test(url)) {
+                            url += '&';
+                        } else url += '?';
+                        url += 'rn=' + Math.round(Math.random() * 100000) + (data_tmp['method'] || '');
+                    }
+                    $.ajax({
+                        url: url,
+                        method: $method,
+                        data: data_tmp,
+                        dataType: 'json',
+                        beforeSend: function (jqXHR, settings) {
+                            if (RequestObject) {
+                                RequestObject.jqXHR = jqXHR;
+                            }
+
+                        }
+                    }).then(success).fail(fail)
+                };
+                ajax();
+
+
+                let cleanProcess = function () {
+
+                    inProcess = false;
+                    isDone = true;
+                    if (isShownCog) {
+                        App.fullScreenProcesses.hideCog();
+                    }
+                };
+
+                $d.always(function () {
+                    setTimeout(cleanProcess, 100);
+                });
+
+                return $d.promise();
+
+            },
+            delete: function (ids) {
+                if (ids.length === 0)
+                    return false;
+
+                return this.__ajax('post', {delete_ids: JSON.stringify(ids), method: 'delete'});
+            },
+            duplicate: function (ids, unic_replaces, insertAfter) {
+                if (ids.length === 0)
+                    return false;
+
+                return this.__ajax('post', {
+                    duplicate_ids: JSON.stringify(ids),
+                    data: unic_replaces,
+                    insertAfter: insertAfter,
+                    method: 'duplicate'
+                });
+            },
+            getFieldLog: function (fieldName, rowId, rowName) {
+                return this.__ajax('post', {field: fieldName, id: rowId, method: 'getFieldLog', rowName: rowName});
+            },
+            refresh_rows: function (ids) {
+                if (ids.length === 0)
+                    return false;
+
+                return this.__ajax('post', {refreash_ids: JSON.stringify(ids), method: 'refresh_rows'});
+            },
+            refresh_cycles: function (ids) {
+                if (ids.length === 0)
+                    return false;
+
+                return this.__ajax('post', {refreash_ids: JSON.stringify(ids), method: 'refresh_cycles'});
+            },
+            checkUnic: function (fieldName, val) {
+                "use strict";
+                return this.__ajax('post', {fieldName: fieldName, fieldVal: val, method: 'checkUnic'});
+            },
+            add: function (data) {
+                return this.__ajax('post', {data: data, method: 'add'});
+            },
+            getValue: function (data, table_id) {
+                return this.__ajax('post', {data: data, method: 'getValue', table_id: table_id});
+            },
+            getNotificationsTable: function () {
+                return this.__ajax('post', {method: "getNotificationsTable"});
+            },
+            __setInProcess: function (inp) {
+                inProcess = inp
+            },
+            get: function (id) {
+                return this.__ajax('get', {id: id});
+            },
+            setTableFavorite: function (status) {
+                return this.__ajax('post', {status: status, method: 'setTableFavorite'});
+            },
+            checkInsertRow: function (data, savedFieldName) {
+                var sendData = {};
+                $.each(data, function (k, v) {
+                    if (v != undefined) {
+                        sendData[k] = v;
+                    }
+                });
+                return this.__ajax('post', {data: sendData, savedFieldName: savedFieldName, method: 'checkInsertRow'});
+            },
+            checkEditRow: function (data) {
+                var sendData = {};
+                $.each(data, function (k, v) {
+                    if (v != undefined) {
+                        sendData[k] = v;
+                    }
+                });
+                return this.__ajax('post', {data: sendData, method: 'checkEditRow'});
+            },
+            checkTableIsChanged: function () {
+                return this.__ajax('post', {
+                    method: 'checkTableIsChanged',
+                    table_id: pcTable.tableRow.id,
+                    cycle_id: pcTable.tableRow.cycle_id
+                });
+            },
+            checkForNotifications: function (periodicity, activeNotifications, RequestObject) {
+                return this.__ajax('post', {
+                    method: 'checkForNotifications',
+                    periodicity: periodicity,
+                    activeIds: activeNotifications,
+                }, RequestObject);
+            }
+            , notificationUpdate: function (id, type) {
+                return this.__ajax('post', {
+                    method: 'notificationUpdate',
+                    id: id,
+                    type: type,
+                });
+            },
+            selectSourceTableAction: function (field_name, data) {
+                return this.__ajax('post', {
+                    field_name: field_name,
+                    data: data,
+                    method: 'selectSourceTableAction'
+                });
+            },
+            saveEditRow: function (data) {
+                var sendData = {};
+                $.each(data, function (k, v) {
+                    if (v !== undefined) {
+                        sendData[k] = v;
+                    }
+                });
+                return this.__ajax('post', {data: sendData, method: 'saveEditRow'});
+            },
+            getEditSelect: function (item, fieldName, q, parentid, withLoading) {
+                var sendData = {};
+                return this.__ajax('post', {
+                    data: {item: item, field: fieldName},
+                    q: q,
+                    parentId: parentid,
+                    method: 'getEditSelect'
+                }, undefined, !withLoading);
+            },
+            loadPreviewHtml: function (fieldName, item, val) {
+                return this.__ajax('post', {
+                    data: {item: getFilteredItem(item), field: fieldName, val: val},
+                    method: 'loadPreviewHtml'
+                }, null, true);
+            },
+            save: function (data) {
+                let _filters = {};
+                if (data.params) {
+                    Object.keys(data.params).some(function (fName) {
+                        if (pcTable.fields[fName].category === 'filter') {
+                            if (pcTable._filtersBlock.data('cryptoFilters')) {
+                                _filters.filters = pcTable._filtersBlock.data('cryptoFilters');
+                            }
+                            return true;
+                        }
+                    });
+                }
+                return this.__ajax('post', {data: data, method: 'edit'}, null, null, _filters);
+            },
+            click: function (data) {
+                return this.__ajax('post', {data: data, method: 'click'});
+            },
+            csvExport: function (idsVisibleSorted, visibleFields) {
+                return this.__ajax('post', {
+                    method: 'csvExport',
+                    sorted_ids: JSON.stringify(idsVisibleSorted),
+                    visibleFields: JSON.stringify(visibleFields)
+                });
+            },
+            csvImport: function (csv, answers) {
+                return this.__ajax('post', {csv: csv, answers: answers, method: 'csvImport'});
+            },
+            getTableData: function (sess_hash) {
+                return this.__ajax('post', {method: 'getTableData', tableData: {sess_hash: sess_hash}});
+            },
+            refresh: function (func) {
+
+                func = func || function (json) {
+                    pcTable.table_modify.call(pcTable, json);
+                    pcTable.reloaded.call(pcTable);
+                };
+                this.__ajax('post', {method: 'refresh'}).then(func)
+            },
+            saveOrder: function (ids) {
+                return this.__ajax('post', {method: 'saveOrder', orderedIds: JSON.stringify(ids)});
+            },
+            setCommentsViewed: function (nums, field_name, id) {
+                return this.__ajax('post', {method: 'setCommentsViewed', nums: nums, field_name: field_name, id: id});
+            },
+            AddEyeGroupSet: function (name, fields) {
+                return this.__ajax('post', {method: 'addEyeGroupSet', name: name, fields: fields});
+            },
+            removeEyeGroupSet: function (index) {
+                return this.__ajax('post', {method: 'removeEyeGroupSet', index: index});
+            },
+            leftEyeGroupSet: function (index) {
+                return this.__ajax('post', {method: 'leftEyeGroupSet', index: index});
+            },
+            reUser: function (userId) {
+                return this.__ajax('post', {method: 'reuser', userId: userId});
+            },
+            printTable: function (settings) {
+                return this.__ajax('post', {method: 'printTable', settings: JSON.stringify(settings)});
+            }
+            ,
+            getAllTables: function () {
+                return this.__ajax('post', {method: 'getAllTables'});
+            },
+            calcFieldsLog: function (data, name) {
+                return this.__ajax('post', {method: 'calcFieldsLog', calc_fields_data: data, name: name})
+            },
+            renameField: function (name) {
+                return this.__ajax('post', {method: 'renameField', name: name})
+            }
+
+        };
+        return obj
+    }
+})();
+(function () {
+        addTree = function (prefix, data, isCreatorView) {
+            let $pageContent = $('div.page_content');
+            if (!App.isTopWindow()) {
+                $pageContent.addClass('tree-minifyed iframed');
+                return false;
+            }
+            let isMobile = screen.width <= window.MOBILE_MAX_WIDTH;
+            const miniSize = 660;
+            if (isMobile) {
+                isCreatorView = false
+            } else {
+                $(window).on('resize', function () {
+                    if (window.innerWidth <= miniSize && !$pageContent.is('.tree-minifyed')) {
+                        changeTreeSize(true);
+                    }
+                })
+            }
+
+            $.jstree.defaults.core.dblclick_toggle = false;
+            $.jstree.defaults.core.expand_selected_onload = true;
+            $.jstree.defaults.core.force_text = true;
+            $.jstree.link_prefix = prefix;
+
+
+            let treeStorage = localStorage.getItem('tree') || '{}';
+            treeStorage = JSON.parse(treeStorage);
+
+            $.each(data, function (k, v) {
+                data[k]['data'] = {'type': v.type}
+                if (v.state && v.state.selected) {
+                    data[k]["li_attr"] = {"class": "jstree-selected"}
+                }
+                if (treeStorage[v.id]) {
+                    if (!data[k].state) data[k].state = {};
+                    data[k].state.opened = true;
+                }
+                if (v.href) {
+                    data[k]["a_attr"] = {"href": $.jstree.link_prefix + v.href}
+                } else if (v.link) {
+                    data[k]["a_attr"] = {"href": v.link}
+                }
+                if (isCreatorView) {
+                    switch (v.type) {
+                        case 'folder':
+                            data.push({
+                                type: 'plus'
+                                , id: 'plus-table' + v.id.substring(4)
+                                , text: 'Таблицу'
+                                , parent: v.id
+                                , li_attr: {class: "jstree-creatorView"}
+                            });
+                            data.push({
+                                type: 'plus'
+                                , id: 'plus-folder' + v.id.substring(4)
+                                , text: 'Папку/Ссылку'
+                                , parent: v.id
+                                , li_attr: {class: "jstree-creatorView"}
+                            });
+
+                            break;
+                        case 'cycle_name':
+                            data.push({
+                                type: 'plus'
+                                , id: 'plus-calcs' + v.parent.substring(4)
+                                , text: 'Таблицу'
+                                , parent: v.id
+                                , li_attr: {class: "jstree-creatorView"}
+                            });
+                            break;
+                    }
+                }
+            });
+
+
+            let $leftTree = $('#leftTree');
+            let $scrollTreeBlock = $('#LeftTree');
+
+            const createJstree = function () {
+                $leftTree.jstree({
+                    "state": {"key": "leftTree"},
+                    'core': {
+                        'check_callback': true,
+                        'expand_selected_onload': true,
+                        "open_parents": true,
+                        'data': data,
+                        themes: {
+                            'name': 'default-dark'
+                        }
+                    },
+                    "types": {
+                        "folder": {},
+                        "plus": {"icon": "fa fa-plus"},
+                        "cycle_name": {"icon": "fa fa-dot-circle-o"},
+                        "text": {"icon": "jstree-file"},
+                        "table": {"icon": "jstree-file"},
+                        "table_simple": App.tableTypes.simple,
+                        "table_version": App.tableTypes.version,
+                        "table_calcs": App.tableTypes.calcs,
+                        "table_tmp": App.tableTypes.tmp,
+                        "table_globcalcs": App.tableTypes.globcalcs,
+                        "table_cycles": App.tableTypes.cycles,
+                        "table_data": {"icon": "jstree-file"},
+                    },
+                    "plugins": ["types", "themes"]
+                });
+            };
+
+            $leftTree.on('loaded.jstree after_open.jstree', function (event) {
+                let treeWidth = $leftTree.width();
+                $leftTree.find('a.jstree-anchor').each(function () {
+                    let a = $(this);
+                    let offsetleft = a.offset().left;
+                    a.width(treeWidth - offsetleft);
+                });
+                if (event.type === 'loaded') {
+                    let scrollSaved = localStorage.getItem(treeScrollPath);
+                    if (scrollSaved) {
+                        $scrollTreeBlock.scrollTop(scrollSaved);
+                    }
+                }
+
+            });
+
+
+            $leftTree.on('select_node.jstree', function (event, d) {
+
+                switch ((d.node.data ? d.node.data.type : null) || d.node.type) {
+                    case 'plus':
+                        let subj = d.node.id.substring(5, 10);
+
+                        if (subj === 'calcs') {
+                            let parentId = d.node.id.substring(11);
+                            let cycleId = d.node.parent.substring(5);
+                            (new EditPanel(1, BootstrapDialog.TYPE_DANGER, {
+                                tree_node_id: {v: parentId},
+                                type: {v: "calcs"}
+                            })).then(function (json) {
+                                if (json) window.location.reload(true);
+                            })
+                        } else if (subj === 'table') {
+                            let parentId = d.node.id.length > 10 ? d.node.id.substring(10) : window.location.pathname.match(/^\/.*\/(\d+)\//)[1];
+                            (new EditPanel(1, BootstrapDialog.TYPE_DANGER, {tree_node_id: {v: parentId}})).then(function (json) {
+                                if (json) window.location.reload(true);
+                            })
+                        } else {
+                            let parentId = d.node.id.length > 11 ? d.node.id.substring(11) : window.location.pathname.match(/^\/.*\/(\d+)\//)[1];
+                            (new EditPanel(window.TREE_TABLE_ID, BootstrapDialog.TYPE_DANGER, {parent_id: {v: parentId}})).then(function (json) {
+                                if (json) window.location.reload(true);
+                            })
+                        }
+                        return false;
+                        break;
+                    case 'link':
+                        window.location.href = d.node.a_attr.href;
+                    case 'folder':
+                    case 'project':
+                        if (d.node.state.opened) {
+                            $('#leftTree').jstree('close_node', d.node);
+                            if (treeStorage[d.node.id]) {
+                                delete treeStorage[d.node.id]
+                                localStorage.setItem('tree', JSON.stringify(treeStorage))
+                            }
+                        } else {
+                            $('#leftTree').jstree('open_node', d.node);
+                            treeStorage[d.node.id] = true;
+                            localStorage.setItem('tree', JSON.stringify(treeStorage))
+                        }
+                        return false;
+                        break;
+                    default:
+                        if (d.node.original.parent == '#')
+                            window.location.href = d.node.original.href;
+                        else
+                            window.location.href = $.jstree.link_prefix + d.node.original.href;
+                }
+                return false;
+            });
+
+            let treeScrollPath = 'tree_scroll_part_' + (window.location.pathname.match(/\/Table\/(\d+)/) || {1: 0})[1];
+            const niceScrollResize = function () {
+                setTimeout(function () {
+                    $scrollTreeBlock.getNiceScroll().resize();
+                    localStorage.setItem(treeScrollPath, $scrollTreeBlock.scrollTop())
+                }, 250)
+            };
+
+            $scrollTreeBlock.on('scroll', function () {
+                localStorage.setItem(treeScrollPath, $scrollTreeBlock.scrollTop())
+            });
+
+
+            $leftTree.on('open_node.jstree', function (event, d) {
+                treeStorage[d.node.id] = true;
+                localStorage.setItem('tree', JSON.stringify(treeStorage));
+                niceScrollResize();
+            });
+            $leftTree.on('close_node.jstree', function (event, d) {
+                if (treeStorage[d.node.id]) {
+                    delete treeStorage[d.node.id];
+                    localStorage.setItem('tree', JSON.stringify(treeStorage))
+                }
+                niceScrollResize();
+            });
+
+
+            let TreeMinimizerStorage = localStorage.getItem('TreeMinimizer') || "false";
+            TreeMinimizerStorage = JSON.parse(TreeMinimizerStorage);
+
+            let changeTreeSize = function ($setMini) {
+                TreeMinimizerStorage = $setMini;
+                const $mainPage = $('#page-tree');
+
+                if ($setMini) {
+                    $('body>.page_content').addClass('tree-minifyed');
+                    $('#LeftTree').getNiceScroll().resize();
+                    if ($mainPage.length) {
+                        $mainPage.append($leftTree);
+                        $leftTree.trigger('after_open')
+                    }
+                } else {
+                    $('body>.page_content').removeClass('tree-minifyed');
+                    if ($mainPage.length) {
+                        $('.TreeContainer').append($leftTree);
+                        $leftTree.trigger('after_open');
+                    }
+                }
+                if ($('#table').data('pctable')) {
+                    $('#table').data('pctable').setWidthes();
+                }
+                createJstree();
+                localStorage.setItem('TreeMinimizer', JSON.stringify(TreeMinimizerStorage));
+                niceScrollResize();
+            };
+
+            if (!isMobile) {
+                $scrollTreeBlock.niceScroll({
+                    cursorwidth: 7,
+                    mousescrollstep: 190,
+                    mousescroll: 190,
+                    autohidemode: false,
+                    enablekeyboard: false,
+                    cursoropacitymin: 1,
+                    railoffset: {left: 4}
+                });
+            }
+
+
+            $('#TreeMaximizer').on('click', function () {
+
+
+                if (isMobile || window.innerWidth <= miniSize) {
+                    App.mobilePanel('<a class="totum-brand" href="/"><span>' + $('.totum-brand span:first').text() + '</span></a>', $('#leftTree'), {
+                        onhide: function () {
+                            const $mainPage = $('#page-tree');
+                            if ($mainPage.length === 1) {
+                                $leftTree.appendTo($mainPage);
+                                createJstree();
+                            } else {
+                                $leftTree.appendTo('.TreeContainer');
+                                createJstree();
+                            }
+                        }, cssClass: 'mobile-panel mobile-menu'
+                    });
+                    $leftTree.trigger('after_open')
+                } else {
+                    changeTreeSize(false);
+                }
+
+            });
+            $('#TreeMinimizer').on('click', function () {
+                changeTreeSize(true);
+            });
+
+            if (TreeMinimizerStorage === true) {
+                setTimeout(function () {
+                    changeTreeSize(TreeMinimizerStorage);
+                }, 1);
+
+            } else if (isMobile) {
+                setTimeout(function () {
+                    if ($('#page-tree').length === 1) {
+                        $leftTree.appendTo($('#page-tree'));
+                    }
+                    createJstree();
+                }, 10);
+            } else {
+                createJstree();
+            }
+
+        }
+
+    }
+)();

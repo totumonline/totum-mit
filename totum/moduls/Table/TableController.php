@@ -12,7 +12,6 @@ namespace totum\moduls\Table;
 use totum\common\aLog;
 use totum\common\Calculate;
 use totum\common\CalculateAction;
-use totum\common\CalculateActionUpdates;
 use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;

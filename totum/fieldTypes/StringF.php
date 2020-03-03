@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 
@@ -32,6 +33,6 @@ class StringF extends Field
                     '//',
                     $this->data['regexp']) . "/",
                 $val)
-        ) throw new errorException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"');
+        ) throw new criticalErrorException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"');
     }
 }

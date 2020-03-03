@@ -41,6 +41,15 @@ class Comments extends Field
         throw new errorException('Нельзя заливать comments');
     }
 
+    function modify($channel, $changeFlag, $newVal, $oldRow, $row = [], $oldTbl = [], $tbl = [], $isCheck = false)
+    {
+        if ($channel == 'web') {
+            $newVal = strval($newVal);
+        }
+        return parent::modify($channel, $changeFlag, $newVal, $oldRow, $row, $oldTbl, $tbl, $isCheck);
+
+    }
+
     function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
@@ -49,16 +58,17 @@ class Comments extends Field
 
         switch ($viewType) {
             case 'print':
-                $func = function ($array) use(&$func){
+                $func = function ($array) use (&$func) {
                     if (!$array) return '';
                     $v = $this->prepareComment($array[0], false, $isCuted);
-                  return '<div><span>'.$v[0].'</span><span>'.$v[1].'</span><span>'.htmlspecialchars($v[2]).'</span></div>'.$func(array_slice($array, 1));
+                    return '<div><span>' . $v[0] . '</span><span>' . $v[1] . '</span><span>' . htmlspecialchars($v[2]) . '</span></div>' . $func(array_slice($array,
+                            1));
                 };
 
                 if ($this->data['printTextfull'] ?? false) {
-                    $valArray['v']=$func($valArray['v']);
+                    $valArray['v'] = $func($valArray['v']);
                 } else {
-                    $valArray['v']=$func($valArray['v'][count($valArray['v']) - 1]);
+                    $valArray['v'] = $func($valArray['v'][count($valArray['v']) - 1]);
                 }
                 break;
             case 'web':
@@ -80,9 +90,12 @@ class Comments extends Field
                 break;
             case 'edit':
                 $n = count($valArray['v']);
-                foreach ($valArray['v'] ?? [] as &$comment) {
-                    $c = $comment;
-                    $comment = $this->prepareComment($comment, false, $n);
+                if ($valArray['v']) {
+                    foreach ($valArray['v'] as &$comment) {
+                        $c = $comment;
+                        $comment = $this->prepareComment($comment, false, $n);
+                    }
+                    unset($comment);
                 }
                 if (!empty($c) && $c[1] !== Auth::getUserId()) {
                     $valArray['notViewed'] = $n - $this->getViewed($row['id'] ?? null);
@@ -142,10 +155,12 @@ class Comments extends Field
         $oldVal = $oldVal ?? [];
 
         if (is_string($modifyVal)) {
-            $oldVal[] = [date('Y-m-d H:i'), Auth::$aUser->getId(), $modifyVal];
+            if ($modifyVal!=='')
+                $oldVal[] = [date('Y-m-d H:i'), Auth::$aUser->getId(), $modifyVal];
         } else if (is_array($modifyVal)) {
             try {
                 $this->checkValByType($modifyVal, []);
+
                 return $modifyVal;
             } catch (errorException $e) {
 
@@ -160,7 +175,6 @@ class Comments extends Field
     private function prepareComment($commentArray, $textCut, &$isCuted)
     {
         if (!is_array($commentArray)) return [];
-
         $commentArray[0] = $this->getDateFormated(Calculate::getDateObject($commentArray[0]));
 
         if ($textCut) {

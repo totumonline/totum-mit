@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\tableTypes\aTable;
@@ -139,7 +140,7 @@ class Number extends Field
                     '//',
                     $this->data['regexp']) . "/",
                 $val)
-        ) throw new errorException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"');
+        ) throw new criticalErrorException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"');
 
 
         $func = 'round';

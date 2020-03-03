@@ -9,6 +9,7 @@
 namespace totum\common;
 
 
+use totum\common\criticalErrorException;
 use totum\fieldTypes\Checkbox;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Date;
@@ -27,6 +28,8 @@ use totum\fieldTypes\Unic;
 use totum\models\Table;
 use totum\tableTypes\_Table;
 use totum\tableTypes\aTable;
+use totum\tableTypes\calcsTable;
+use totum\tableTypes\globcalcsTable;
 use totum\tableTypes\JsonTables;
 
 class Field
@@ -243,7 +246,8 @@ class Field
     {
         if (!empty($this->data['codeAction'])) {
 
-            $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
+
+                $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
 
             try {
 
@@ -665,9 +669,8 @@ class Field
 
         $val = &$newVal['v'];
 
-        if (!$isCheck && !empty($this->data['required']) && $val === '') {
-
-            throw new errorException('Поле [[' . $this->data['title'] . ']] таблицы [[' . $this->table->getTableRow()['title'] . ']] должно быть заполнено');
+        if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val===null)) {
+            throw new criticalErrorException('Поле [[' . $this->data['title'] . ']] таблицы [[' . $this->table->getTableRow()['title'] . ']] должно быть заполнено');
         }
 
         if (!in_array($this->data['type'], ['string', 'text']) && $val === '' && $this->data['category'] !== 'filter') {

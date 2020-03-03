@@ -1,6 +1,7 @@
 <?
 
 use \totum\common\Auth;
+use totum\models\Table;
 use \totum\models\Tree;
 use totum\models\User;
 use totum\tableTypes\tableTypes;
@@ -63,3 +64,6 @@ if (!Auth::isAuthorized()) {
     </div><!-- /.container-fluid -->
 </nav>
 <div id="nav-top-line"></div>
+<?php if(Auth::isCreator()){?>
+    <script>window.TREE_TABLE_ID =  <?=Table::getTableRowByName('tree')['id'];?>;</script>
+<?php }?>

@@ -4,16 +4,19 @@ use totum\models\Table;
 
 if (empty($table)) {
     if (empty($error)) {
-        if (!empty($html)) echo '<div style="padding:40px; font-family: \'Open Sans\', sans-serif" id="text_main_page">'.$html.'</div>';
+        if (!empty($html)) echo '<div style="padding:40px; font-family: \'Open Sans\', sans-serif" id="text_main_page">' . $html . '</div>';
         else {
             ?>
+
             <div class="panel panel-default">
                 <div class="panel-body">
                     Выберите таблицу
                 </div>
             </div>
+
             <?
         }
+        echo '<div id="page-tree"></div>';
     }
     return;
 } ?>

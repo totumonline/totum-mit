@@ -7,8 +7,8 @@
     <script src="/js/libs.js?v=40c5077"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=72ccf98">
-    <script src="/js/main.js?v=c6f789a"></script>
+          href="/css/main.css?v=e8e3261">
+    <script src="/js/main.js?v=239fc29"></script>
 
     <link rel="shortcut icon" type="image/png" href="/fls/297_favicon.png"/>
 
@@ -16,7 +16,7 @@
     <?
     $host = 'http'.(!empty($_SERVER['HTTPS'])?'s':'').'://'.$_SERVER['HTTP_HOST'].'/';
     ?>
-    <meta name="viewport" content="width=900, user-scalable=no">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
     <meta property="og:image" content="<?=$host?>imgs/hand.png" />
     <meta property="og:url" content="<?=$host?>" />
     <meta property="og:title" content="TOTUM — платформа для любой автоматизации в малом бизнесе" />

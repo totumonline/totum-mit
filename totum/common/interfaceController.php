@@ -1,4 +1,5 @@
 <?php
+
 namespace totum\common;
 /*
  * TODO Вынести лишние данные из сессии и закрывать блокировку сессии сразу после проверки UserID, подумать про AuthController
@@ -14,12 +15,12 @@ use totum\tableTypes\tableTypes;
 
 abstract class interfaceController extends Controller
 {
-    static $pageTemplate='page_template.php';
+    static $pageTemplate = 'page_template.php';
     static $contentTemplate = '';
     protected $answerVars = [];
     static $actionTemplate = '';
     protected static $withAuth = true;
-    
+
 
     protected $isAjax = false, $folder = '', $inModuleUri;
 
@@ -27,13 +28,13 @@ abstract class interfaceController extends Controller
     {
         parent::__construct();
 
-        $this->inModuleUri=$inModuleUri;
-        if(static::__isAuthNeeded){
+        $this->inModuleUri = $inModuleUri;
+        if (static::__isAuthNeeded) {
             Auth::webInterfaceSessionStart();
         }
 
         $this->folder = dirname((new \ReflectionClass(get_called_class()))->getFileName());
-        static::$pageTemplate = AutoloadAndErrorHandlers::getTemplatesDir().'/'.static::$pageTemplate;
+        static::$pageTemplate = AutoloadAndErrorHandlers::getTemplatesDir() . '/' . static::$pageTemplate;
 
         if (!empty($_REQUEST['ajax'])) {
             $this->isAjax = true;
@@ -48,10 +49,10 @@ abstract class interfaceController extends Controller
     {
         if (!Auth::isAuthorized()) {
 
-            if (empty($_POST['ajax'])){
-            $this->location('/Auth/Login/');
-            }else{
-                echo json_encode(['error'=>'Потеряна авторизация. Обновите страницу']);
+            if (empty($_POST['ajax'])) {
+                $this->location('/Auth/Login/');
+            } else {
+                echo json_encode(['error' => 'Потеряна авторизация. Обновите страницу']);
             }
             die;
         } else {
@@ -59,50 +60,50 @@ abstract class interfaceController extends Controller
         }
     }
 
-    protected function errorAnswer($error){
+    protected function errorAnswer($error)
+    {
         extract($this->answerVars);
         include static::$pageTemplate;
     }
 
     function doIt($inAction)
     {
-        $action=$inAction;
+        $action = $inAction;
         static::$actionTemplate = $action;
 
 
         if ($this->isAjax) $action = 'Ajax' . $action;
 
-        try{
+        try {
             $this->__run($action);
-        }
-        catch (tableSaveException $e){
+        } catch (tableSaveException $e) {
 
             unset($this->Table);
 
-            tableTypes::$tables=[];
+            tableTypes::$tables = [];
             Table::$tableRowsByName = [];
             Table::$tableRowsById = [];
             aTable::$recalcLogPointer = null;
             aTable::$isActionRecalculateDone = false;
 
-            Controller::$interfaceData=null;
-            Controller::$linksData=null;
-            Controller::$linksPanel=null;
-            Controller::$FullLogs=null;
-            Controller::$Logs=null;
-            Controller::$FullLogsSize=0;
-            Controller::$FullLogsTablesIndex=null;
+            Controller::$interfaceData = null;
+            Controller::$linksData = null;
+            Controller::$linksPanel = null;
+            Controller::$FullLogs = null;
+            Controller::$Logs = null;
+            Controller::$FullLogsSize = 0;
+            Controller::$FullLogsTablesIndex = null;
 
-            Field::$fields=[];
+            Field::$fields = [];
 
-            reCalcLogItem::$topObject=null;
+            reCalcLogItem::$topObject = null;
 
 
             UserV::clear();
 
-            Calculate::$calcLog=[];
+            Calculate::$calcLog = [];
 
-            static::$FullLogs=static::$Logs=[];
+            static::$FullLogs = static::$Logs = [];
 
 
             Sql::clear();
@@ -111,8 +112,7 @@ abstract class interfaceController extends Controller
 
             $this->doIt($inAction);
             return;
-        }
-        catch (\Exception $e){
+        } catch (\Exception $e) {
             $this->__addAnswerVar('error', $e->getMessage());
         }
 
@@ -122,23 +122,24 @@ abstract class interfaceController extends Controller
                 $this->answerVars['error'] = 'Ошибка обработки запроса.';
             }
 
-            $data= json_encode($this->answerVars, JSON_UNESCAPED_UNICODE);
-            if($this->answerVars && !$data){
+            $data = json_encode($this->answerVars, JSON_UNESCAPED_UNICODE);
+            if ($this->answerVars && !$data) {
                 $data['error'] = 'Ошибка обработки запроса.';
-                if(Auth::isCreator()){
-                    $data['error'] = 'Ошибка вывода не utf-содержимого или слишком большого пакета данных. '.(array_key_exists('FullLO GS', $this->answerVars)?'Попробуйте отключить вывод логов':'');
-                 //   var_dump($this->answerVars); die;
+                if (Auth::isCreator()) {
+                    $data['error'] = 'Ошибка вывода не utf-содержимого или слишком большого пакета данных. ' . (array_key_exists('FullLO GS',
+                            $this->answerVars) ? 'Попробуйте отключить вывод логов' : '');
+                    //   var_dump($this->answerVars); die;
                     //$data['error'].=;
                 }
-                $data= json_encode($data, JSON_UNESCAPED_UNICODE);
+                $data = json_encode($data, JSON_UNESCAPED_UNICODE);
             }
-            if(empty($data)){
-                $data='["error":"Пустой ответ сервера"]';
+            if (empty($data)) {
+                $data = '["error":"Пустой ответ сервера"]';
             }
             echo $data;
             die;
         } else {
-            if (isset($this->Table)){
+            if (isset($this->Table)) {
                 $this->__addAnswerVar('title', $this->Table->getTableRow()['title']);
             }
             if (!static::$contentTemplate) {
@@ -150,6 +151,7 @@ abstract class interfaceController extends Controller
             include static::$pageTemplate;
         }
     }
+
     function getFieldsForClient($fields)
     {
         foreach ($fields as &$field) {
@@ -163,6 +165,7 @@ abstract class interfaceController extends Controller
                 unset($field['logging']);
                 unset($field['showInXml']);
                 unset($field['copyOnDuplicate']);
+                $field['help'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $field['help']);
             }
         }
         unset($field);
@@ -171,17 +174,37 @@ abstract class interfaceController extends Controller
 
     function getTableRowForClient($tableRow)
     {
-        $fields = ['title', 'updated', 'type', 'id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field', 'order_desc', 'fields_actuality','with_order_field','main_field', 'delete_timer'];
+        $fields = ['title', 'updated', 'type', 'id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field', 'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer'];
         if (Auth::isCreator()) {
             $fields = array_merge($fields,
                 [
                     'name', 'sort', '__version'
                 ]);
 
+        } else {
+            $tableRow['description'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $tableRow['description']);
         }
-        return array_intersect_key($tableRow, array_flip($fields));
+        $_tableRow = array_intersect_key($tableRow, array_flip($fields));
+        if ($tableRow['type'] === 'cycles') {
+            try {
+                $_tableRow['__firstUserTable'] =
+                    tableTypes::getTableByName('tables')->getByParams(
+                        ['where' => [
+                            ['field'=>'type', 'operator'=>'=', 'value'=>'calcs'],
+                            ['field'=>'tree_node_id', 'operator'=>'=', 'value'=>$tableRow['id']],
+                            ['field'=>'id', 'operator'=>'=', 'value'=>array_keys(Auth::$aUser->getTables())],
+                            ],
+                            'order' => [['field' => 'sort', 'ad' => 'desc']], 'field' => 'id'],
+                        'field');
+            } catch (errorException $e) {
+                var_dump($e->getMessage());
+            }
+        }
+        return $_tableRow;
     }
-    function location($to='/Main/'){
-        header('location: '.$to);
+
+    function location($to = '/Main/')
+    {
+        header('location: ' . $to);
     }
 }

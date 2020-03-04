@@ -418,8 +418,8 @@ class Calculate
                     '|(!==|==|(>=)|(<=)|>|<|=|\!=)' .       //7,8,9
                     //  '|(\'[^\']*\')' .   //10
                     '|(false|true)' .   //10
-                    '|(((\$\$|\$\#?|\#(?i:(?:old|s|h|c)\.)?\$?)([a-zA-Z0-9_]+(?:{[0-9]*})?))((?:\[\$?\#?[a-zA-Z0-9_"]+\])*))' . //11,12,13,14,15
-                    '|(@([a-zA-Z0-9_]{3,})\.([a-zA-Z0-9_]{2,})((?:\[\$?\#?[a-zA-Z0-9_"]+\])*))`',//16,17, 18,19
+                    '|(((\$\$|\$\#?|\#(?i:(?:old|s|h|c)\.)?\$?)([a-zA-Z0-9_]+(?:{[0-9]*})?))((?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //11,12,13,14,15
+                    '|(@([a-zA-Z0-9_]{3,})\.([a-zA-Z0-9_]{2,})((?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',//16,17, 18,19
 
                     function ($matches) use (&$done, &$code) {
 
@@ -1437,38 +1437,63 @@ class Calculate
                     }
             }
 
+
+            $paramName = $param;
+            if (!empty($paramArray['items'])) {
+                $itemsNames = '';
+
+                if (preg_match_all('/\[(.*?)(?:\]\]|\])/', $paramArray['items'], $items)) {
+                    foreach ($items[0] as $_item) {
+                        $_item = substr($_item, 1, -1);
+                        $isSection = $_item{0} == '[' && substr($_item, -1, 1) == ']';
+                        if ($isSection) {
+                            $_item = substr($_item, 1, -1);
+                        }
+                        $item = $this->getParam($_item, ['type' => 'param', 'param' => $_item]);
+                        $itemsNames .= "[$item]";
+
+                        if (is_numeric($item)) $item = (string)$item;
+
+                        if ($isSection) {
+
+                            if (is_array($r)) {
+                                $r = array_map(function ($_ri) use ($item) {
+                                    if (!is_array($_ri) || !key_exists($item,
+                                            $_ri)) {
+                                        throw new errorException('Ключ [[' . $item . ']] не обнаружен в одном из элементов массива');
+                                    }
+                                    return $_ri[$item];
+                                },
+                                    $r);
+                            } else {
+                                $itemsNames .= '...';
+                                $r = null;
+                                break;
+                            }
+
+                        } else {
+                            if (is_array($r) && array_key_exists($item, $r)) {
+                                $r = $r[$item];
+                            } else {
+                                $itemsNames .= '...';
+                                $r = null;
+                                break;
+                            }
+                        }
+                    }
+                }
+                $paramName = $param . $itemsNames;
+            }
+
+            if ($isHashtag) $this->addInNewLogVar('param', $paramName, $r);
+            return $r;
+
         } catch (errorException $e) {
             $this->addInNewLogVar('error',
                 $param,
                 'Ошибка вычисления параметра [[' . $param . ']] - ' . $e->getMessage());
             throw $e;
         }
-
-        $paramName = $param;
-        if (!empty($paramArray['items'])) {
-            $itemsNames = '';
-
-            if (preg_match_all('/\[(.*?)\]/', $paramArray['items'], $items)) {
-
-                foreach ($items[1] as $_item) {
-                    $item = $this->getParam($_item, ['type' => 'param', 'param' => $_item]);
-                    $itemsNames .= "[$item]";
-
-                    if (is_numeric($item)) $item = (string)$item;
-
-                    if (is_array($r) && array_key_exists($item, $r)) {
-                        $r = $r[$item];
-                    } else {
-                        $itemsNames .= '...';
-                        $r = null;
-                        break;
-                    }
-                }
-            }
-            $paramName = $param . $itemsNames;
-        }
-        if ($isHashtag) $this->addInNewLogVar('param', $paramName, $r);
-        return $r;
     }
 
     protected function funcNumRand($params)
@@ -3177,15 +3202,14 @@ class Calculate
     }
 
     protected
-    function addInNewLogVar($type, $name, $val, $valIsLog=false)
+    function addInNewLogVar($type, $name, $val, $valIsLog = false)
     {
         if (static::$logsOn) {
             $logCode = ['type' => $type];
-            if($valIsLog){
-                $logCode['text'] = $name ;
+            if ($valIsLog) {
+                $logCode['text'] = $name;
                 $logCode['children'][] = $val;
-            }
-            elseif (is_array($val)) {
+            } elseif (is_array($val)) {
                 $logCode['text'] = $name . ': list из ' . count($val) . ' значений';
                 $logCode['children'] = [];
                 foreach ($val as $k => $v) {

@@ -707,7 +707,7 @@ abstract class aTable extends _Table
         $params['sfield'] = (array)($params['sfield'] ?? []);
         $params['pfield'] = (array)($params['pfield'] ?? []);
 
-        $Field = $params['field'][0] ?? $params['sfield'][0];
+        $Field = $params['field'][0] ?? $params['sfield'][0] ?? null;
         if (empty($Field)) throw new errorException('Не указано поле для выборки');
 
         if (in_array($returnType, ['list', 'field']) && count($params['field']) > 1) {

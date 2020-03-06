@@ -179,7 +179,7 @@ class TableController extends interfaceController
 
         try {
             if ($this->onlyRead && !in_array($method,
-                    ['setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+                    ['linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
 
             if (!empty($_POST['data']) && is_string($_POST['data'])) $_POST['data'] = json_decode($_POST['data'], true);
 
@@ -190,6 +190,37 @@ class TableController extends interfaceController
             $this->Table->setFilters($_POST['filters'] ?? '');
 
             switch ($method) {
+                case 'linkButtonsClick':
+                    $model = Model::initService('_tmp_tables');
+                    $key = ['table_name' => '_linkToButtons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
+                    if ($data = $model->getField( 'tbl', $key)) {
+                        $data = json_decode($data, true);
+                        if ($data['buttons'][$_POST['index']] ?? null) {
+                            $CA = new CalculateAction($data['buttons'][$_POST['index']]['code']);
+                            try {
+                                $CA->execAction('CODE',
+                                    [],
+                                    [],
+                                    $this->Table->getTbl(),
+                                    $this->Table->getTbl(),
+                                    $this->Table,
+                                    $data['buttons'][$_POST['index']]['vars'] ?? []);
+                                static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
+                            } catch (errorException $e) {
+                                static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
+                                throw $e;
+                            }
+
+
+                        } else {
+                            throw new errorException('Ошибка интерфейса - выбрана несуществующая кнопка');
+                        }
+                    } else {
+                        throw new errorException('Предложенный выбор устарел.');
+                    }
+
+
+                    break;
                 case 'setTableFavorite':
                     if ($_POST['status']) {
                         $_POST['status'] = json_decode($_POST['status'], true);
@@ -210,6 +241,7 @@ class TableController extends interfaceController
                         $result = ['status' => $_POST['status']];
                     }
                     break;
+
                 case 'getAllTables':
                     if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
                     $tables = [];

@@ -135,10 +135,15 @@ class Select extends Field
         $Calc = new CalculateSelectPreview($this->data['codeSelect']);
         $row = $Calc->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
         $htmls = [];
-        foreach ($row['__fields'] as $field) {
+        foreach ($row['__fields'] as $name=>$field) {
             $format = 'string';
             $elseData = [];
-            $val = $row[$field['name']];
+            $val = $row[$name];
+
+            if($name==='id'){
+                $field=['title'=>'id'];
+            }
+
             switch ($field['type']) {
                 case 'string':
                     if ($field['url'] ?? false) $format = 'url';

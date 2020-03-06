@@ -744,7 +744,10 @@ abstract class aTable extends _Table
                 }
 
                 //sfield
-                if (in_array($fName, $params['sfield'])) {
+                if (Model::isServiceField($fName)) {
+                    $rowReturn[$fName] = $row[$fName];
+                } //field
+                else if (in_array($fName, $params['sfield'])) {
 
                     $Field = Field::init($this->fields[$fName], $this);
                     $selectValue = $Field->getSelectValue($row[$fName]['v'] ?? null,
@@ -752,9 +755,6 @@ abstract class aTable extends _Table
                         $this->tbl);
                     $rowReturn[$fName] = $selectValue;
                 } //id||n||is_del
-                else if (Model::isServiceField($fName)) {
-                    $rowReturn[$fName] = $row[$fName];
-                } //field
                 else
                     $rowReturn[$fName] = $row[$fName]['v'];
             }

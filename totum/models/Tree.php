@@ -51,14 +51,14 @@ class Tree extends Model
         if (empty($tables)) $tables = [0];
         $rolesSql = '';
         if (!empty($roles)) {
-            foreach ($roles as &$role) $role=strval($role);
+            foreach ($roles as &$role) $role=Sql::quote(strval($role));
             unset($role);
-            $roles = Sql::quote(json_encode($roles, JSON_UNESCAPED_UNICODE));
+            $roles = implode(',', $roles);
             $rolesSql = <<<SQL
  UNION 
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
-    WHERE type='link' AND (roles::jsonb @> {$roles}::jsonb OR roles='[]')
+    WHERE type='link' AND (ARRAY(SELECT * FROM   jsonb_array_elements_text(roles::jsonb) elem ) && ARRAY[{$roles}] OR roles='[]')
 SQL;
         }
 

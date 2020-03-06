@@ -117,6 +117,43 @@ class CalculateAction extends Calculate
         return $r;
     }
 
+    protected function funcLinkToButtons($params)
+    {
+        $params = $this->getParamsArray($params);
+        if (empty($params['title'])) throw new errorException('Заполните параметр [[title]]');
+        if (empty($params['buttons'])) throw new errorException('Заполните параметр [[buttons]]');
+        if (!is_array($params['buttons'])) throw new errorException('Параметр [[buttons]] должен содержать массив');
+
+        $requiredByttonParams = ['text', 'code'];
+        $buttons = [];
+        foreach ($params['buttons'] as $btn) {
+            foreach ($requiredByttonParams as $req) {
+                if (empty($btn[$req])) throw new errorException('Каждая кнопка должна содержать [[' . $req . ']]');
+            }
+            unset($btn['code']);
+            unset($btn['vars']);
+            $buttons[] = $btn;
+        }
+
+        $model = Model::initService('_tmp_tables');
+
+        do {
+            $hash = md5(microtime(true) . '__linktobuttons_' . mt_srand());
+            $key = ['table_name' => '_linkToButtons', 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+        } while ($model->getField('user_id', $key));
+
+        $vars = array_merge(['tbl' => json_encode($params,
+            JSON_UNESCAPED_UNICODE),
+            'touched' => date('Y-m-d H:i')],
+            $key);
+        $model->insert($vars,
+            false);
+        $params['hash']=$hash;
+        Controller::addToInterfaceDatas('buttons', $params);
+
+
+    }
+
     protected
     function __getActionTable($params, $funcName)
     {
@@ -1201,7 +1238,10 @@ class CalculateAction extends Calculate
                         $table->getTbl(),
                         $table->getTbl(),
                         $table);
-                    $this->addInNewLogVar('cogs', 'Выполнение кода действия '.$field['name'].' id:'.$row['id'], $CA->getLogVar(), true);
+                    $this->addInNewLogVar('cogs',
+                        'Выполнение кода действия ' . $field['name'] . ' id:' . $row['id'],
+                        $CA->getLogVar(),
+                        true);
                 }
 
             } else {
@@ -1211,12 +1251,12 @@ class CalculateAction extends Calculate
                     $table->getTbl(),
                     $table->getTbl(),
                     $table);
-                $this->addInNewLogVar('cogs', 'Выполнение кода действия '.$field['name'], $CA->getLogVar(), true);
+                $this->addInNewLogVar('cogs', 'Выполнение кода действия ' . $field['name'], $CA->getLogVar(), true);
             }
 
 
         } catch (errorException $e) {
-            $this->addInNewLogVar('cogs', 'Выполнение кода действия '.$field['name'], $CA->getLogVar(), true);
+            $this->addInNewLogVar('cogs', 'Выполнение кода действия ' . $field['name'], $CA->getLogVar(), true);
             throw $e;
         }
     }

@@ -187,14 +187,14 @@ abstract class interfaceController extends Controller
         $_tableRow = array_intersect_key($tableRow, array_flip($fields));
         if ($tableRow['type'] === 'cycles') {
             try {
-                $_tableRow['__firstUserTable'] =
+                    $_tableRow['__firstUserTable'] =
                     tableTypes::getTableByName('tables')->getByParams(
                         ['where' => [
                             ['field'=>'type', 'operator'=>'=', 'value'=>'calcs'],
                             ['field'=>'tree_node_id', 'operator'=>'=', 'value'=>$tableRow['id']],
-                            ['field'=>'id', 'operator'=>'=', 'value'=>array_keys(Auth::$aUser->getTables())],
+                            ['field'=>'id', 'operator'=>'=', 'value'=>array_keys(Auth::$aUser->getTreeTables())],
                             ],
-                            'order' => [['field' => 'sort', 'ad' => 'desc']], 'field' => 'id'],
+                            'order' => [['field' => 'sort', 'ad' => 'asc']], 'field' => 'id'],
                         'field');
             } catch (errorException $e) {
                 var_dump($e->getMessage());

@@ -10,6 +10,18 @@ class AutoloadAndErrorHandlers
 {
     static $errors = [];
 
+    static function connectExtClasses()
+    {
+        if (file_exists($fName = dirname(__FILE__) . DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR . 'CalculateExtentions.php')) {
+            include($fName);
+            $GLOBALS['CalculateExtentions'] = $CalculateExtentions ?? new \stdClass();
+        }
+        if (file_exists($fName = dirname(__FILE__) . DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR . 'CalculateActionExtentions.php')) {
+            include($fName);
+            $GLOBALS['CalculateActionExtentions'] = $CalculateActionExtentions ?? new \stdClass();
+        }
+    }
+
     public static function autoload($class_name)
     {
         if ($class_name[0] == '\\') {
@@ -88,3 +100,4 @@ register_shutdown_function(['totum\main\AutoloadAndErrorHandlers', 'shutdown']);
 if (file_exists('Conf.php')) {
     set_error_handler(['totum\main\AutoloadAndErrorHandlers', 'error_handler']);
 }
+AutoloadAndErrorHandlers::connectExtClasses();

@@ -111,6 +111,7 @@ class TablesFields extends Model
                         }
 
                         $fields[$f['name']] = array_merge($fields[$f['name']], $fieldFromLinkParams);
+
                     }
                     else
                         $fields[$f['name']]['linkFieldError'] = true;
@@ -119,6 +120,9 @@ class TablesFields extends Model
                     $fields[$f['name']]['linkFieldError'] = true;
                 }
                 $fields[$f['name']]['code'] = 'Код селекта';
+                if($fields[$f['name']]['type']=='link')
+                    $fields[$f['name']]['type'] = 'string';
+
             }
 
             foreach ($fields as &$f) {

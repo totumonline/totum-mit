@@ -431,7 +431,7 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
                 case 'checkInsertRow':
                     $result = $this->Table->checkInsertRowForClient($_POST['data'] ?? [],
                         $_POST['tableData'] ?? [],
-                        $_POST['savedFieldName'] ?? null);
+                        $_POST['editedFields'] ?? []);
                     break;
                 case 'checkEditRow':
                     $result = $this->Table->checkEditRow($_POST['data'] ?? [], $_POST['tableData'] ?? []);

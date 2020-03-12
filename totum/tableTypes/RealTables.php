@@ -396,7 +396,7 @@ abstract class RealTables extends aTable
         return $r;
     }
 
-    function checkInsertRow($addData, $savedFieldName = null)
+    function checkInsertRow($addData, $editedFields = null)
     {
         $filteredColumns = [];
         foreach ($this->sortedFields['filter'] as $k => $f) {
@@ -404,9 +404,6 @@ abstract class RealTables extends aTable
                 $filteredColumns[$f['column']] = $k;
             }
         }
-
-        $afterSavedField = false;
-
         foreach ($this->sortedVisibleFields['column'] as $v) {
 
             $filtered = null;
@@ -421,12 +418,10 @@ abstract class RealTables extends aTable
             if (is_null($addData[$v['name']] ?? null) && !empty($filtered))
                 $addData[$v['name']] = $filtered;
 
-            if ($afterSavedField && !empty($v['code'])) {
+            if (!in_array($v['name'], $editedFields) && !empty($v['code'])) {
                 unset($addData[$v['name']]);
             }
-            if ($savedFieldName == $v['name']) {
-                $afterSavedField = true;
-            }
+
         }
         $this->reCalculate(['channel' => 'web', 'add' => [$addData], 'modify' => ['params' => $this->filtersFromUser], 'isCheck' => true]);
         return $this->tbl['rowInsered'];

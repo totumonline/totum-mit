@@ -74,14 +74,12 @@ abstract class JsonTables extends aTable
         throw new errorException('Для расчетных таблиц не предусмотрено построчное обновление. Они пересчитываются целиком');
     }
 
-    function checkInsertRow($addData, $savedFieldName = null)
+    function checkInsertRow($addData, $editedFields = [])
     {
         $filteredColumns = [];
         foreach ($this->sortedFields['filter'] as $k => $f) {
             $filteredColumns[$f['column']] = $k;
         }
-
-        $afterSavedField = false;
 
         foreach ($this->sortedVisibleFields['column'] as $v) {
 
@@ -97,12 +95,10 @@ abstract class JsonTables extends aTable
             if (is_null($addData[$v['name']] ?? null) && !empty($filtered))
                 $addData[$v['name']] = $filtered;
 
-            if ($afterSavedField && !empty($v['code'])) {
+            if (!in_array($v['name'], $editedFields) && !empty($v['code'])) {
                 unset($addData[$v['name']]);
             }
-            if ($savedFieldName == $v['name']) {
-                $afterSavedField = true;
-            }
+
         }
 
         $this->reCalculate(['channel' => 'web', 'add' => [$addData], 'modify' => ['params' => $this->filtersFromUser], 'isCheck' => true]);

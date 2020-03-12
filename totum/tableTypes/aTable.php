@@ -786,98 +786,6 @@ abstract class aTable extends _Table
         return $r;
     }
 
-    function removeFieldFormTable($fieldName)
-    {
-        if (!Auth::isCreator()) {
-            throw new errorException('У вас нет доступа на изменение полей таблиц');
-        }
-        $Table = tableTypes::getTable(Table::getTableRowById(TablesFields::TableId), null);
-        $id = $Table->getByParams(['where' => [
-            ['field' => 'name', 'operator' => '=', 'value' => $fieldName]
-            , ['field' => 'table_id', 'operator' => '=', 'value' => $this->getTableRow()['id']]
-        ], 'field' => 'id']);
-        $Table->modify(null, ['remove' => [$id]]);
-        Controller::addLinkLocation($_SERVER['REQUEST_URI'], 'self', 'Перезагрузка');
-        return ['ok' => 1];
-    }
-
-    function editFieldRow($field_name, $data, $isCheck, $isFirstQuery, $afterFieldName, $savedFieldName)
-    {
-        if (!Auth::isCreator()) {
-            throw new errorException('У вас нет доступа на изменение полей таблиц');
-        }
-
-        if ($field = $this->fields[$field_name] ?? null) {
-            $data['id'] = $this->fields[$field_name]['id'];
-            $data['name'] = $field_name;
-        }
-        if (!empty($afterFieldName)) {
-            $prevField = $this->fields[$afterFieldName];
-            if (empty(empty($data['category']))) $data['category'] = $prevField['category'];
-            if (empty(empty($data['ord']))) $data['ord'] = $prevField['ord'] + 10;
-        }
-        if (empty($data['table_id'])) {
-            $data['table_id'] = $this->tableRow['id'];
-        }
-
-        $sourceTableRow = Table::getTableRowById(TablesFields::TableId);
-
-        $Table = tableTypes::getTable($sourceTableRow, $extraData ?? null);
-
-        if ($isCheck) {
-            if (!empty($data['id'])) {
-                $return = $Table->checkEditRow($data);
-            } else {
-                $return = $Table->checkInsertRowForClient($data, null, $savedFieldName);
-            }
-
-            if ($isFirstQuery) {
-                $return['tableRow'] = $sourceTableRow;
-                $return['fields'] = $Table->columnVisibleFields;
-// $Table->addSelectsInField($return['fields']);
-                $Table->getValuesAndFormatsForClient($return['row'], 'web');
-                $return['fields'] = array_values($return['fields']);
-            }
-        } else {
-            $return = ['ok' => true];
-            if (!empty($data['id'])) {
-                $Table->modify(null, ['modify' => [$data['id'] => $data]]);
-            } else {
-                if (!empty($afterFieldName)) {
-                    TablesFields::init()->update([
-                        'ord=concat(\'{"v":"\',  ((ord->>\'v\')::integer+10)::text , \'"}\')::jsonb'
-                    ],
-                        [
-                            'table_id' => (int)$data['table_id']
-                            , 'category' => $data['category']
-                            , '(ord->>\'v\')::integer>' . (int)$prevField['ord']
-                        ]);
-                }
-                $Table->modify(null, ['add' => $data]);
-            }
-        }
-
-        return $return;
-    }
-
-    function editTreeRow($data, $isCheck, $isFirstQuery)
-    {
-        $sourceTableRow = Table::getTableRowByName('tree');
-        $Table = tableTypes::getTable($sourceTableRow, $extraData ?? null);
-
-        return static::__editOtherTableRow($Table, $data, $isCheck, $isFirstQuery);
-    }
-
-    function editTableFromTreeRow($data, $isCheck, $isFirstQuery, $cycleId = null)
-    {
-        $sourceTableRow = Table::getTableRowById(Table::$TableId);
-        $Table = tableTypes::getTable($sourceTableRow, $extraData ?? null);
-
-        $data = static::__editOtherTableRow($Table, $data, $isCheck, $isFirstQuery);
-        return $data;
-    }
-
-
     function __call($name, $arguments)
     {
         throw new errorException('Функция ' . $name . ' не предусмотрена для этого типа таблиц');
@@ -1457,12 +1365,12 @@ abstract class aTable extends _Table
         return $this->cachedSelects[$hash];
     }
 
-    function checkInsertRowForClient($addData, $tableData = null, $savedFieldName = null)
+    function checkInsertRowForClient($addData, $tableData = null, $editedFields = [])
     {
         if ($tableData) {
             $this->checkTableUpdated($tableData);
         }
-        $data = ['rows' => [$this->checkInsertRow($addData, $savedFieldName)]];
+        $data = ['rows' => [$this->checkInsertRow($addData, $editedFields)]];
 
         $data = $this->getValuesAndFormatsForClient($data, 'edit');
         $changedData = $data['rows'][0];
@@ -2130,44 +2038,6 @@ abstract class aTable extends _Table
         return $setValuesToDefaults;
     }
 
-    protected function __editOtherTableRow(aTable $Table, $data, $isCheck, $isFirstQuery)
-    {
-        if (!Auth::isCreator()) {
-            throw new errorException('У вас нет доступа на изменение свойств таблицы');
-        }
-
-        $sourceTableRow = $Table->getTableRow();
-
-
-        if ($isCheck) {
-            if (!empty($data['id'])) {
-                $return = $Table->checkEditRow($data);
-            } else {
-                $return = $Table->checkInsertRowForClient($data, null, $_POST['savedFieldName'] ?? null);
-            }
-
-            if ($isFirstQuery) {
-                $return['tableRow'] = $sourceTableRow;
-                $return['fields'] = $Table->columnVisibleFields;
-// $Table->addSelectsInField($return['fields']);
-
-                $Table->getValuesAndFormatsForClient($return['row'], 'edit');
-                $return['fields'] = array_values($return['fields']);
-            }
-        } else {
-            $return = ['ok' => true];
-            if (!empty($data['id'])) {
-                $r = $Table->modify(null, ['modify' => [$data['id'] => $data]]);
-            } else {
-                $r = $Table->modify(null, ['add' => $data]);
-                $Table->getValuesAndFormatsForClient($r['chdata'], 'web'); //работает ли??
-                $return['row'] = $r['chdata']['rows'][array_keys($r['chdata']['rows'])[0]];
-            }
-
-        }
-
-        return $return;
-    }
 
     protected function getStructureUpdatedJSON()
     {

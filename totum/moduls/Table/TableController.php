@@ -431,7 +431,7 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
                 case 'checkInsertRow':
                     $result = $this->Table->checkInsertRowForClient($_POST['data'] ?? [],
                         $_POST['tableData'] ?? [],
-                        $_POST['editedFields'] ?? []);
+                        json_decode($_POST['editedFields'] ?? '[]', true));
                     break;
                 case 'checkEditRow':
                     $result = $this->Table->checkEditRow($_POST['data'] ?? [], $_POST['tableData'] ?? []);

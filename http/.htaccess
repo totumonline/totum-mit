@@ -1,21 +1,14 @@
 Options -Indexes
 DirectoryIndex index.php
 
-php_flag session.auto_start off
-php_value upload_max_filesize 5M
-
 RewriteEngine On
-
 
 RewriteCond %{REQUEST_FILENAME} !(.ico)
 RewriteCond %{REQUEST_FILENAME} !(/js/)
 RewriteCond %{REQUEST_FILENAME} !(/css/)
 RewriteCond %{REQUEST_FILENAME} !(/imgs/)
 RewriteCond %{REQUEST_FILENAME} !(/fonts/)
-#RewriteCond %{REQUEST_FILENAME} !(/calc)
-#RewriteCond %{REQUEST_FILENAME} !(/html.html)
 RewriteCond %{REQUEST_FILENAME} !(/fls)
-#RewriteCond %{REQUEST_FILENAME} !(/nobuffer)
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

@@ -933,6 +933,7 @@ row: rowCreate(field: "data" = $#DATA)');
     protected
     function checkTableByUri()
     {
+
         if (empty($this->inModuleUri) || !preg_match('/^(\d+)\//', $this->inModuleUri, $branchMatches)) {
             $this->location();
             die;

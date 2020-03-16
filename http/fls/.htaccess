@@ -11,11 +11,11 @@ RewriteCond %{REQUEST_FILENAME} !(no-img.jpg)
 RewriteRule ^([^/]+)$ /fls/%2/$1
 
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_URI} (297_main_img.png)$
+RewriteCond %{REQUEST_URI} (6_main_img.png)$
 RewriteRule ^([^/]+)/([^/]+)$ hand.png?nr=1 [QSA]
 
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_URI} (297_favicon.png)$
+RewriteCond %{REQUEST_URI} (6_favicon.png)$
 RewriteRule ^([^/]+)/([^/]+)$ hand_favicon.png?nr=1 [QSA]
 
 RewriteCond %{REQUEST_FILENAME} !-f

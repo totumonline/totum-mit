@@ -586,7 +586,7 @@ row: rowCreate(field: "data" = $#DATA)');
 
 
         } catch (errorException $exception) {
-            $return = ['error' => $exception->getMessage() . "<br/>" . $exception->getPathMess()];
+            $return = ['error' => $exception->getMessage().(Auth::isCreator()? "<br/>" . $exception->getPathMess():'')];
 
             $result['FullLOGS'] = [];
             if (static::$FullLogs || static::$Logs) {

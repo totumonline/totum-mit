@@ -1,2 +1,5 @@
 http/fls/*/
 .DS_Store
+Conf.php
+myLogs/
+totumTmpfiles/

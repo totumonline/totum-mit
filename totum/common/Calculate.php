@@ -85,7 +85,7 @@ class Calculate
                 }
 
 
-                $line = preg_replace_callback('/(?|(")([^"]*)"|(\')([^\']*)\')/',
+                $line = preg_replace_callback('/(?|(")([^"]*)"|(\')([^\']*)\'|(math|json)`([^`]*)`)/',
                     function ($matches) use (&$strings) {
                         if ($matches[1] == "") return '""';
                         $stringNum = count($strings);
@@ -411,28 +411,27 @@ class Calculate
                 $done = 0;
                 $i++;
                 $string = preg_replace_callback(
-                    '`(([a-zA-Z]{2,}\d*)*\(([^)]*)\))' . //1,2,3
-                    '|(\-?[\d.,]+\%?)' .                      //4
-                    '|(\+|\-|\*|/)' .       //5
-                    '|("[^"]*")' . //6
-                    '|(!==|==|(>=)|(<=)|>|<|=|\!=)' .       //7,8,9
-                    //  '|(\'[^\']*\')' .   //10
-                    '|(false|true)' .   //10
-                    '|(((\$\$|\$\#?|\#(?i:(?:old|s|h|c)\.)?\$?)([a-zA-Z0-9_]+(?:{[0-9]*})?))((?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //11,12,13,14,15
-                    '|(@([a-zA-Z0-9_]{3,})\.([a-zA-Z0-9_]{2,})((?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',//16,17, 18,19
+                    '`(?<func>(?<func_name>[a-zA-Z]{2,}\d*)*\((?<func_params>[^)]*)\))' . //func,func_name,func_params
+                    '|(?<num>\-?[\d.,]+\%?)' .                      //num
+                    '|(?<operator>\+|\-|\*|/)' .       //operator
+                    '|(?<string>"[^"]*")' .            //string
+                    '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
+                    '|(?<bool>false|true)' .   //10
+                    '|(?<param>(?<param_name>(?:\$\$|\$\#?|\#(?i:(?:old|s|h|c)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
+                    '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',
+                    //dog,dog_table, dog_field,dog_items
 
                     function ($matches) use (&$done, &$code) {
-
                         if ($matches[0] !== '') {
-                            if ($matches[1] && ($funcName = $matches[2])) {
+                            if ($matches['func'] && ($funcName = $matches['func_name'])) {
                                 $code[] = [
                                     'type' => 'func',
                                     'func' => $funcName,
-                                    'params' => $matches[3]
+                                    'params' => $matches['func_params']
                                 ];
 
-                            } elseif ($matches[4] !== '') {
-                                $number = $matches[4];
+                            } elseif ($matches['num'] !== '') {
+                                $number = $matches['num'];
                                 $cn = [
                                     'type' => 'string',
                                     'string' => $number
@@ -448,13 +447,12 @@ class Calculate
                                 //$code[] = $number;
                                 $code[] = $cn;
 
-                            } elseif ($operator = $matches[5]) {
+                            } elseif ($operator = $matches['operator']) {
                                 $code[] = [
                                     'type' => 'operator',
                                     'operator' => $operator
                                 ];
-                            } elseif ($param = $matches[6]) {
-
+                            } elseif ($param = $matches['string']) {
                                 if (strlen(substr($param, 1, -1)) > 0) {
                                     $code[] = [
                                         'type' => 'stringParam',
@@ -466,36 +464,31 @@ class Calculate
                                         'string' => ""
                                     ];
                                 }
-                            } elseif ($comparison = $matches[7]) {
+                            } elseif ($comparison = $matches['comparison']) {
                                 if (array_key_exists('comparison', $code))
                                     throw new errorException('Оператор сравнения может быть только один в строке' . print_r($matches,
                                             1));
 
                                 $code['comparison'] = $comparison;
 
-                            }/* elseif ($param = $matches[10]) {
-                                $code[] = [
-                                    'type' => 'string',
-                                    'string' => substr($param, 1, -1)
-                                ];
-                            }*/ elseif ($param = $matches[10]) {
+                            } elseif ($param = $matches['bool']) {
                                 $code[] = [
                                     'type' => 'boolean',
                                     'boolean' => $param
                                 ];
-                            } elseif ($param = $matches[11]) {
+                            } elseif ($param = $matches['param']) {
                                 $code[] = [
                                     'type' => 'param',
-                                    'param' => $matches[12],
-                                    'items' => $matches[15]
+                                    'param' => $matches['param_name'],
+                                    'items' => $matches['param_items']
                                 ];
-                            } elseif ($param = $matches[16]) {
+                            } elseif ($param = $matches['dog']) {
                                 $code[] = [
                                     'type' => 'param',
                                     'param' => $param,
-                                    'table' => $matches[17],
-                                    'field' => $matches[18],
-                                    'items' => $matches[19]
+                                    'table' => $matches['dog_table'],
+                                    'field' => $matches['dog_field'],
+                                    'items' => $matches['dog_items']
                                 ];
 
                             }
@@ -668,6 +661,9 @@ class Calculate
             case '*':
                 $result = $left * $right;
                 break;
+            case '^':
+                $result = pow($left, $right);
+                break;
             case '/':
                 if ($right == 0) {
                     throw new errorException('Деление на ноль');
@@ -770,6 +766,9 @@ class Calculate
             } elseif (is_string($r)) $rTmp = $r;
             else {
                 switch ($r['type']) {
+                    case 'spec_math':
+                        $rTmp = $this->getMathFromString($r['string']);
+                        break;
                     case 'operator':
                         $operator = $r['operator'];
                         continue 2;
@@ -819,7 +818,21 @@ class Calculate
                         $rTmp = $this->getParam($r['param'], $r);
                         break;
                     case 'stringParam':
-                        $rTmp = substr($this->CodeStrings[$r['string']], 1);
+                        $spec = substr($this->CodeStrings[$r['string']], 0, 4);
+                        switch ($spec) {
+                            case 'math':
+                                $rTmp = $this->getMathFromString(substr($this->CodeStrings[$r['string']], 4));
+                                break;
+                            case 'json':
+                                $rTmp = json_decode(substr($this->CodeStrings[$r['string']], 4), true);
+                                if (json_last_error() && ($error = json_last_error_msg())) {
+                                    throw new errorException($error);
+                                }
+                                break;
+                            default:
+                                $rTmp = substr($this->CodeStrings[$r['string']], 1);
+                        }
+
                         break;
                     case 'string':
                         $rTmp = $r['string'];
@@ -828,7 +841,7 @@ class Calculate
                         $rTmp = $r['boolean'] === 'true' ? true : false;
                         break;
                     default:
-                        throw  new  errorException('Ошибка кода операции [[' . $r . ']]');
+                        throw  new  errorException('Ошибка кода операции [[' . print_r($r, 1) . ']]');
                 }
             }
 
@@ -3234,5 +3247,131 @@ class Calculate
     {
         if ($this->aTable->getTableRow()['type'] != 'tmp') throw new errorException('Hash можно запросить только у Временной таблицы');
         return $this->aTable->getTableRow()['sess_hash'];
+    }
+
+    protected function getMathFromString($string)
+    {
+        $actions = preg_split('`((?<=[^(+\-\^*/])[()+\-\^*/]|[(])`',
+            $string,
+            null,
+            PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+
+        $pack_Sc = function ($actions) {
+            $sc = 0;
+            $interval_start = null;
+            $i = 0;
+            while ($i < count($actions)) {
+                if (trim($actions[$i]) === "") {
+                    array_splice($actions, $i, 1);
+                    continue;
+                }
+                switch ($actions[$i]) {
+                    case '(':
+                        if ($sc++ == 0)
+                            $interval_start = $i;
+                        break;
+                    case ')':
+                        if ($sc < 1) {
+                            throw new errorException('Непарная закрывающая скобка');
+                        }
+                        if (--$sc == 0) {
+                            $interval = ['type' => 'interval', 'data' => array_slice($actions,
+                                $interval_start + 1,
+                                $i - $interval_start - 1)];
+                            if (key_exists($interval_start - 1, $actions) && $actions[$interval_start - 1] === '-') {
+                                $interval['minus'] = true;
+                                $interval_start--;
+                                $interval['data'] = array_slice($actions,
+                                    $interval_start + 1,
+                                    $i - $interval_start - 1);
+                            }
+                            array_splice($actions,
+                                $interval_start,
+                                $i + 1 - $interval_start,
+                                [
+                                    $interval
+                                ]);
+                            $i = $interval_start - 1;
+                        }
+                        break;
+                }
+                $i++;
+            }
+
+            return $actions;
+        };
+
+        $checkValue = function ($in) use (&$calcIt) {
+            $var = $in;
+            if (is_string($var)) {
+                if (!is_numeric($var)) {
+                    $var = $this->execSubCode($var, 'MathCode');
+                }
+            } else if (is_array($var)) {
+                if (($var['type'] ?? '') !== 'interval') {
+                    throw new errorException('Не корректное значение в math ');
+                }
+                $val = $calcIt($var['data']);
+                $var = ($var['minus'] ?? false ? -1 : 1) * $val;
+            }
+            return $var;
+        };
+
+        $calcIt = function ($actions) use ($pack_Sc, $checkValue, $string) {
+            $actions_next = $pack_Sc($actions);
+
+            $i = 0;
+            while ($i < count($actions_next)) {
+                switch ($actions_next[$i]) {
+                    case '^':
+                        $left = $checkValue($actions_next[$i - 1]);
+                        $right = $checkValue($actions_next[$i + 1]);
+                        $val = $this->operatorExec($actions_next[$i], $left, $right);
+                        array_splice($actions_next, $i - 1, 3, $val);
+                        $i--;
+
+                }
+                $i++;
+            }
+
+            $i = 0;
+            while ($i < count($actions_next)) {
+                switch ($actions_next[$i]) {
+                    case '/':
+                    case '*':
+                        $left = $checkValue($actions_next[$i - 1]);
+                        $right = $checkValue($actions_next[$i + 1]);
+
+
+                        $val = $this->operatorExec($actions_next[$i], $left, $right);
+                        array_splice($actions_next, $i - 1, 3, $val);
+                        $i--;
+
+                }
+                $i++;
+            }
+
+            $i = 0;
+            while ($i < count($actions_next)) {
+                switch ($actions_next[$i]) {
+                    case '+':
+                    case '-':
+                        $left = $checkValue($actions_next[$i - 1]);
+                        $right = $checkValue($actions_next[$i + 1]);
+
+                        $val = $this->operatorExec($actions_next[$i], $left, $right);
+                        array_splice($actions_next, $i - 1, 3, $val);
+                        $i--;
+
+                }
+                $i++;
+            }
+            if (count($actions_next) !== 1 || !is_numeric((string)$actions_next[0])) {
+                throw new errorException('Ошибка вычисления математической формулы:' . $string);
+            }
+            return $actions_next[0];
+        };
+
+        return $calcIt($actions);
     }
 }

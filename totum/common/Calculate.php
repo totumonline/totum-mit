@@ -85,7 +85,7 @@ class Calculate
                 }
 
 
-                $line = preg_replace_callback('/(?|(")([^"]*)"|(\')([^\']*)\'|(math|json)`([^`]*)`)/',
+                $line = preg_replace_callback('/(?|(math|json)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
                     function ($matches) use (&$strings) {
                         if ($matches[1] == "") return '""';
                         $stringNum = count($strings);
@@ -422,6 +422,7 @@ class Calculate
                     //dog,dog_table, dog_field,dog_items
 
                     function ($matches) use (&$done, &$code) {
+
                         if ($matches[0] !== '') {
                             if ($matches['func'] && ($funcName = $matches['func_name'])) {
                                 $code[] = [
@@ -694,7 +695,16 @@ class Calculate
             function ($m) {
                 if ($m[1] === "") return '""';
                 $qoute = $this->CodeStrings[$m[1]]{0};
-                return $qoute . substr($this->CodeStrings[$m[1]], 1) . $qoute;
+                switch ($qoute) {
+                    case '"':
+                    case "'":
+                        return $qoute . substr($this->CodeStrings[$m[1]], 1) . $qoute;
+                        break;
+                    default:
+                        return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr($this->CodeStrings[$m[1]],
+                                4) . '`';
+                }
+
             },
             $code);
         return $code;
@@ -819,6 +829,7 @@ class Calculate
                         break;
                     case 'stringParam':
                         $spec = substr($this->CodeStrings[$r['string']], 0, 4);
+
                         switch ($spec) {
                             case 'math':
                                 $rTmp = $this->getMathFromString(substr($this->CodeStrings[$r['string']], 4));
@@ -2954,7 +2965,22 @@ class Calculate
             case 'string':
                 return $paramArray['string'];
             case 'stringParam':
-                return substr($this->CodeStrings[$paramArray['string']], 1);
+                $spec = substr($this->CodeStrings[$paramArray['string']], 0, 4);
+
+                switch ($spec) {
+                    case 'math':
+                        return $this->getMathFromString(substr($this->CodeStrings[$paramArray['string']], 4));
+                        break;
+                    case 'json':
+                        $rTmp = json_decode(substr($this->CodeStrings[$paramArray['string']], 4), true);
+                        if (json_last_error() && ($error = json_last_error_msg())) {
+                            throw new errorException($error);
+                        }
+                        return $rTmp;
+                        break;
+                    default:
+                        return substr($this->CodeStrings[$paramArray['string']], 1);
+                }
             case 'boolean':
                 return $paramArray['boolean'] == 'false' ? false : true;
             default:

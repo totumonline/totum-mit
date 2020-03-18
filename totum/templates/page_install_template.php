@@ -7,7 +7,7 @@
     <script src="/js/libs.js?v=40c5077"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=e9cbf0d">
+          href="/css/main.css?v=d477027">
 
     <?if(\totum\common\Auth::isCreator()){?>
         <script src="/js/functions.json?v=3f8bced"></script>
@@ -16,7 +16,7 @@
         }?>
     <?}?>
 
-    <script src="/js/main.js?v=605db42"></script>
+    <script src="/js/main.js?v=ac529cf"></script>
 
 
 

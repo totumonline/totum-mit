@@ -4,7 +4,7 @@ use totum\models\Table;
 
 if (empty($table)) {
     if (empty($error)) {
-        if (!empty($html)) echo '<div style="padding:40px; font-family: \'Open Sans\', sans-serif" id="text_main_page">'.$html.'</div>';
+        if (!empty($html)) echo '<div style="padding:40px; font-family: \'Open Sans\', sans-serif" id="text_main_page">' . $html . '</div>';
         else {
             ?>
             <div class="panel panel-default">
@@ -17,8 +17,13 @@ if (empty($table)) {
     }
     return;
 } ?>
-<div id="table" style="padding-top: 50px"></div>
+<div id="table" style=""></div>
 <script>
+    if (window.parent == window) {
+        $('#table').css('padding-top', 50);
+    }else{
+        $('head').append('<style>.pcTable-beforeSpace{padding-bottom: 15px; margin-left: 56px;}</style>');
+    }
     var TableModel = App.models.table(window.location.href, {'updated': <?=($table['updated'])?><?=($this->Table->getTableRow()['sess_hash'] ?? null) ? ', sess_hash: "' . $this->Table->getTableRow()['sess_hash'] . '"' : ''?>})
 </script>
 <?

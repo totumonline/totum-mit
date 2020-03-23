@@ -933,7 +933,6 @@ row: rowCreate(field: "data" = $#DATA)');
     protected
     function checkTableByUri()
     {
-
         if (empty($this->inModuleUri) || !preg_match('/^(\d+)\//', $this->inModuleUri, $branchMatches)) {
             $this->location();
             die;
@@ -1095,43 +1094,6 @@ row: rowCreate(field: "data" = $#DATA)');
 
         Sql::transactionCommit();
         return $refresh;
-    }
-
-    private
-    function getPreviewHtml($data)
-    {
-        $fields = $this->Table->getFields();
-
-        if (!($field = $fields[$data['field']] ?? null))
-            throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
-
-        if (!in_array($field['type'], ['select'])) throw new errorException('Ошибка - поле не типа select');
-
-        $this->Table->loadDataRow();
-        $row = $data['item'];
-
-        if ($field['category'] == 'column' && !isset($row['id'])) {
-            $row['id'] = null;
-        }
-        foreach ($row as $k => &$v) {
-            if ($k != 'id') {
-                if ($fields[$k]['type'] === 'date' && $v && $v = Calculate::getDateObject($v)) {
-                    if (!empty($fields[$k]['dateTime'])) {
-                        $v = $v->format('Y-m-d H:i');
-                    } else {
-                        $v = $v->format('Y-m-d');
-                    }
-                }
-                $v = ['v' => $v];
-            }
-        }
-
-
-        /** @var Select $Field */
-        $Field = Field::init($field, $this->Table);
-
-        return ['previews' => $Field->getPreviewHtml($data['val'], $row, $this->Table->getTbl())];
-
     }
 
     private

@@ -145,19 +145,25 @@ abstract class JsonTables extends aTable
 
     }
 
-    public function getChildrenIds($id, $parentField)
+    public function getChildrenIds($id, $parentField, $bfield)
     {
 
         if ($id) {
             $children = [];
 //DOTO упростить функцию - выкинуть лишний перебор
             foreach ($this->tbl['rows'] as $row) {
-                if (!array_key_exists($row['id'], $children)) {
-                    $children[$row['id']] = [];
+
+                if($bfield=='id')
+                    $bval=(string)$row['id'];
+                else
+                    $bval=(string)$row[$bfield]['v'];
+
+                if (!array_key_exists($bval, $children)) {
+                    $children[$bval] = [];
                 }
-                if ($parent = (int)$row[$parentField]['v']) {
+                if ($parent = (string)$row[$parentField]['v']) {
                     if (!array_key_exists($parent, $children)) $children[$parent] = [];
-                    $children[$parent][$row['id']] = &$children[$row['id']];
+                    $children[$parent][$bval] = &$children[$bval];
                 }
             }
 

@@ -28,20 +28,23 @@ abstract class RealTables extends aTable
     protected $header = [];
     protected $cachedUpdate, $caches = [], $nTailLength;
 
-    public function getChildrenIds($id, $parentField)
+    public function getChildrenIds($id, $parentField, $bfield)
     {
         if (!array_key_exists($parentField, $this->fields) || $this->fields[$parentField]['category'] != 'column') {
             throw new errorException('Поле [' . $parentField . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
         }
+        if($bfield!=='id' && !key_exists($bfield, $this->fields)){
+            throw new errorException('Поле [' . $bfield . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
+        }
 
         return Sql::getFieldArray('WITH RECURSIVE cte_name (id) AS ( select
-                                                    id
+                                                    ('.($bfield=='id'?'id':$bfield.'->>\'v\'').'):: text as id
                                                   from ' . $this->tableRow['name'] . '
-                                                  where is_del = false AND (' . $parentField . ' ->> \'v\') :: int=' . (int)$id . '
+                                                  where is_del = false AND (' . $parentField . ' ->> \'v\') :: text=' . Sql::quote((string)$id) . '
                                                   UNION select
-                                                          tp.id
+                                                         ( '.($bfield=='id'?'tp.id':'tp.'.$bfield.'->>\'v\'').'):: text as id
                                                         from ' . $this->tableRow['name'] . ' tp
-                                                          JOIN cte_name c ON (tp.' . $parentField . ' ->> \'v\') :: int = c.id AND
+                                                          JOIN cte_name c ON (tp.' . $parentField . ' ->> \'v\') :: text = c.id AND
                                                                              tp.is_del = false ) SELECT id
                                                                                                 FROM cte_name');
 

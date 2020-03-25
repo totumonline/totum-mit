@@ -121,7 +121,9 @@ class CalculateSelect extends Calculate
 
         $params2 = $params;
 
-        $params2['field'] = [$params['field'], 'id', 'is_del'];
+        $params['bfield']=$params['bfield']??'id';
+
+        $params2['field'] = [$params['field'], $params['bfield'], 'is_del'];
         $params2['sfield'] = [];
 
         if (empty($params['parent'])) throw new errorException('Параметр parent должен быть заполнен');
@@ -178,13 +180,13 @@ class CalculateSelect extends Calculate
         }
 
         foreach ($rows as $row) {
-            $r = ['value' => $row['id']
+            $r = ['value' => $row[$params['bfield']]
                 , 'is_del' => $row['is_del']
                 , 'title' => $row[$params['field']]];
 
             $r['parent'] = ($row[$params['parent']] ?? null) ? $treeListPrep . $row[$params['parent']] : null;
 
-            if (key_exists($row['id'], $disabled)) {
+            if (key_exists($row[$params['bfield']], $disabled)) {
                 $r['disabled'] = true;
             }
             $treeRows[] = $r;

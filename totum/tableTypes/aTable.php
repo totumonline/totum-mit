@@ -1338,7 +1338,7 @@ abstract class aTable extends _Table
 
             static::$recalcLogPointer->addSelects($this, $SourceTable);
 
-            return $SourceTable->getChildrenIds($params['id'], $params['parent']);
+            return $SourceTable->getChildrenIds($params['id'], $params['parent'], $params['bfield']??'id');
         } else {
 
             return $SourceTable->getByParamsCached($params, $returnType, $this);
@@ -1472,7 +1472,7 @@ abstract class aTable extends _Table
 
     }
 
-    abstract function getChildrenIds($id, $parentField);
+    abstract function getChildrenIds($id, $parentField, $bfield);
 
     public function getTbl()
     {

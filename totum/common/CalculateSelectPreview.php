@@ -38,7 +38,7 @@ class CalculateSelectPreview extends CalculateSelect
         $params = $this->getParamsArray($params, ['where', 'order']);
         $params2 = $params;
 
-        $baseField = 'id';
+        $baseField = $params['bfield']??'id';
 
         $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal];
 

@@ -7,30 +7,27 @@
     <script src="/js/libs.js?v=40c5077"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=da43bca">
+          href="/css/main.css?v=8407b30">
 
-    <?if(\totum\common\Auth::isCreator()){?>
-        <script src="/js/functions.json?v=3f8bced"></script>
-        <? if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'], 'jsTemplates')){
-           echo '<script>App.functions=App.functions.concat('.$GLOBALS['CalculateExtentions']->jsTemplates.')</script>';
-        }?>
-    <?}?>
+    <? if (\totum\common\Auth::isCreator()) { ?>
+        <script src="/js/functions.json?v=047a3c8"></script>
+        <? if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'],
+                'jsTemplates')) {
+            echo '<script>App.functions=App.functions.concat(' . $GLOBALS['CalculateExtentions']->jsTemplates . ')</script>';
+        } ?>
+    <? } ?>
 
-    <script src="/js/main.js?v=c8f1be4"></script>
-
+    <script src="/js/main.js?v=1a5f196"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 
-    <title><?=!empty($title) ? $title . ' — ' : '' ?>Totum</title>
     <?
-    $host = 'http'.(!empty($_SERVER['HTTPS'])?'s':'').'://'.$_SERVER['HTTP_HOST'].'/';
+    include dirname(__FILE__) . DIRECTORY_SEPARATOR . '__titles_descriptions.php';
+
     ?>
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
-    <meta property="og:image" content="<?=$host?>imgs/hand.png" />
-    <meta property="og:url" content="<?=$host?>" />
-    <meta property="og:title" content="TOTUM — платформа для любой автоматизации в малом бизнесе" />
-    <meta property="og:description" content="На ней можно собирать заточенные под клиента базы данных, специальные CRM, склады, расчеты, формы, калькуляторы и любой другой учет." />
+
 </head>
 <body id="pk"
       class="lock">
@@ -39,21 +36,23 @@
 </noscript>
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <script>
-    App.fullScreenProcesses.showCog();
+    $(function () {
+        App.fullScreenProcesses.showCog();
+    })
 </script>
 <div class="page_content">
-    <?php  include dirname(__FILE__).'/__tree.php'; ?>
-    <?php include dirname(__FILE__).'/__header.php' ?>
+    <?php include dirname(__FILE__) . '/__tree.php'; ?>
+    <?php include dirname(__FILE__) . '/__header.php' ?>
     <div id="notifies"></div>
     <? if (!empty($error)) {
         echo '<div class="panel panel-danger"><div class="panel-body">' . $error . '</div></div>';
     } ?>
     <?php include static::$contentTemplate; ?>
 </div>
-<?php include dirname(__FILE__).'/__footer.php' ?>
+<?php include dirname(__FILE__) . '/__footer.php' ?>
 
 <script>
-    $(function(){
+    $(function () {
         App.fullScreenProcesses.hideCog();
     })
 </script>

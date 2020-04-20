@@ -19,6 +19,7 @@ class CalculcateFormat extends Calculate
     const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton'];
     const tableformats = ['blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'tabletext', 'tablecomment'];
     const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
+    const floatFormat = ["fill","glue","maxheight","maxwidth","nextline", "blocknum", "height"];
     protected $startSections = [];
     protected $formatArray = [];
 
@@ -33,6 +34,34 @@ class CalculcateFormat extends Calculate
             }
         }
         ksort($this->startSections);
+    }
+
+    function funcSetFloatFormat($params){
+        if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], static::floatFormat))) {
+            $conditionTest = true;
+            if (!empty($params['condition'])) {
+                foreach ($params['condition'] as $i => $c) {
+                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+
+
+                    if (!is_bool($condition)) {
+                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                    }
+                    if (!$condition) {
+                        $conditionTest = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($conditionTest) {
+                foreach (static::floatFormat as $format) {
+                    if (key_exists($format, $params)) {
+                        $this->formatArray[$format] = $this->__getValue($this->getCodes($params[$format])[0]);
+                    }
+                }
+            }
+        }
     }
 
     function getFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])

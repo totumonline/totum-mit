@@ -72,7 +72,6 @@ class Text extends Field
                 $valArray['v'] = base64_encode($valArray['v']);
                 break;
         }
-
     }
 
     protected function getDefaultValue()

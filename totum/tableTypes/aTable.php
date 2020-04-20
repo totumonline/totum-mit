@@ -925,17 +925,18 @@ abstract class aTable extends _Table
 
                     $Field = Field::init($f, $this);
 
-                    $Field->addViewValues($viewType,
-                        $data['params'][$f['name']],
-                        $this->tbl['params'],
-                        $this->tbl);
                     if ($isWithFormat) {
                         $Field->addFormat(
                             $data['params'][$f['name']],
                             $this->tbl['params'],
                             $this->tbl);
-
                     }
+
+                    $Field->addViewValues($viewType,
+                        $data['params'][$f['name']],
+                        $this->tbl['params'],
+                        $this->tbl);
+
 
                     if ($isWithList && $f['category'] == 'filter' && in_array($f['type'], ['select', 'tree'])) {
                         /** @var Select $Field */

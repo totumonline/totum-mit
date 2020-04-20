@@ -2775,7 +2775,7 @@ class Calculate
         $listCount = 0;
         foreach ($params['field'] as $f) {
             $f = $this->getExecParamVal($f);
-            $rows = array_merge($rows, $f);
+            $rows = array_replace($rows, $f);
         }
         $rowList = [];
         foreach ($rows as $f => $list) {

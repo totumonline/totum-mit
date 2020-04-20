@@ -7,16 +7,16 @@
     <script src="/js/libs.js?v=40c5077"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=da43bca">
+          href="/css/main.css?v=8407b30">
 
     <?if(\totum\common\Auth::isCreator()){?>
-        <script src="/js/functions.json?v=3f8bced"></script>
+        <script src="/js/functions.json?v=047a3c8"></script>
         <? if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'], 'jsTemplates')){
            echo '<script>App.functions=App.functions.concat('.$GLOBALS['CalculateExtentions']->jsTemplates.')</script>';
         }?>
     <?}?>
 
-    <script src="/js/main.js?v=c8f1be4"></script>
+    <script src="/js/main.js?v=1a5f196"></script>
 
 
 

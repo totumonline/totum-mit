@@ -77,9 +77,19 @@ class Comments extends Field
                 if ($n > 0 && ($valArray['v'][$n - 1][1] != Auth::$aUser->getId())) {
                     $notViewed = $n - $this->getViewed($row['id'] ?? null);
                 }
-                $valArray['v'] = ['n' => $n, 'c' => $n > 0 ? $this->prepareComment($valArray['v'][$n - 1],
-                    true,
-                    $isCuted) : []];
+
+                if((!empty($valArray['f']['height']) || !empty($valArray['f']['maxheight']))
+                    && ($this->data['category']!=='column' && !($this->data['category']==='footer' && !empty($this->data['column'])))){
+                    $valArray['v']=['all'=>true, 'n' => $n, 'c'=>array_map(function($c) use(&$isCuted){
+                       return  $this->prepareComment($c, false, $isCuted);
+                    }, $valArray['v'])];
+
+                }else{
+                    $valArray['v'] = ['n' => $n, 'c' => $n > 0 ? $this->prepareComment($valArray['v'][$n - 1],
+                        true,
+                        $isCuted) : []];
+
+                }
                 if ($n === 1 && $isCuted) {
                     $valArray['v']['cuted'] = true;
                 }

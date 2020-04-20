@@ -169,7 +169,8 @@ create table "_log"
     dt timestamp default ('now'::text)::timestamp without time zone not null,
     from_code boolean default false not null
 );
-
+create index _log_tableid_rowid_field_userid_index
+    on _log (tableid, rowid, field, userid);
 comment on column "_log".action is '1-add;2-modify;3-clear;4-delete';
 
 create table "_comments_viewed"

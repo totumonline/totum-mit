@@ -925,6 +925,36 @@ class CalculateAction extends Calculate
         return $this->funcInsertListExt($params);
     }
 
+
+
+    protected function funcTableLog($params)
+    {
+        if ($params = $this->getParamsArray($params)) {
+
+            $table = $this->__getActionTable($params, 'TableLog');
+            if ($table->getTableRow()['type'] === 'tmp') throw new errorException('Нельзя писать в лог данные временной таблицы');
+            if (empty($params['field'])) throw new errorException('Заполните поле field');
+            if (!($field = $table->getFields()[$params['field']])) throw new errorException('Поле [[' . $params['field'] . ']] не найдено в таблице ' . $table->getTableRow()['name']);
+            if ($field['category'] == 'column') {
+                if (!is_numeric($params['id'])) throw new errorException('Поле id должно быть числовым');
+
+
+                $valID = $table->getByParams(['field' => ['id', $params['field']], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $params['id']]]],
+                    'row');
+                if (!$valID) throw new errorException('Строка с ид ' . $params['id'] . ' не найдена в таблице ' . $table->getTableRow()['name']);
+                $val = $valID[$params['field']];
+            } else {
+                $val = $table->getByParams(['field' => [$params['field']]], 'field');
+            }
+            aLog::innerLog($table->getTableRow()['id'],
+                $table->getCycle() ? $table->getCycle()->getId() : null,
+                $params['id'] ?? null,
+                $params['field'],
+                $params['comment'] ?? null,
+                $val);
+
+        }
+    }
     protected
     function funcInsertListExt($params)
     {
@@ -992,36 +1022,6 @@ class CalculateAction extends Calculate
             if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
         }
     }
-
-    protected function funcTableLog($params)
-    {
-        if ($params = $this->getParamsArray($params)) {
-
-            $table = $this->__getActionTable($params, 'TableLog');
-            if ($table->getTableRow()['type'] === 'tmp') throw new errorException('Нельзя писать в лог данные временной таблицы');
-            if (empty($params['field'])) throw new errorException('Заполните поле field');
-            if (!($field = $table->getFields()[$params['field']])) throw new errorException('Поле [[' . $params['field'] . ']] не найдено в таблице ' . $table->getTableRow()['name']);
-            if ($field['category'] == 'column') {
-                if (!is_numeric($params['id'])) throw new errorException('Поле id должно быть числовым');
-
-
-                $valID = $table->getByParams(['field' => ['id', $params['field']], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $params['id']]]],
-                    'row');
-                if (!$valID) throw new errorException('Строка с ид ' . $params['id'] . ' не найдена в таблице ' . $table->getTableRow()['name']);
-                $val = $valID[$params['field']];
-            } else {
-                $val = $table->getByParams(['field' => [$params['field']]], 'field');
-            }
-            aLog::innerLog($table->getTableRow()['id'],
-                $table->getCycle() ? $table->getCycle()->getId() : null,
-                $params['id'] ?? null,
-                $params['field'],
-                $params['comment'] ?? null,
-                $val);
-
-        }
-    }
-
     protected
     function funcInsertList($params)
     {

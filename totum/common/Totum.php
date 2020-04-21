@@ -11,5 +11,5 @@ namespace totum\common;
 
 class Totum
 {
-    const Version = '0.90.2';
+    const Version = '0.91.1';
 }

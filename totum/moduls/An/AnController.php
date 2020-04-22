@@ -161,7 +161,7 @@ class AnController extends interfaceController
                 case 'checkInsertRow':
                     $result = $this->Table->checkInsertRowForClient($_POST['data'] ?? [],
                         $_POST['tableData'] ?? [],
-                        $_POST['savedFieldName'] ?? null);
+                        json_decode($_POST['editedFields'] ?? '[]', true));
                     break;
                 case 'checkEditRow':
                     $result = $this->Table->checkEditRow($_POST['data'] ?? [], $_POST['tableData'] ?? []);

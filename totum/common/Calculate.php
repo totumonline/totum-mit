@@ -529,14 +529,20 @@ class Calculate
         if ($params = $this->getParamsArray($params)) {
             if ($xml = simplexml_load_string($params['xml'])) {
                 $getData = function (\SimpleXMLElement $xml) use (&$getData, $params) {
+                    $children=[];
                     foreach ($xml->attributes() as $k => $attr) {
                         $children[$params['attrpref'] . $k] = (string)$attr;
+                    }
+                    foreach ($xml->getNamespaces() as $pref=>$namespace) {
+                        foreach ($xml->children($namespace) as $k => $child) {
+                            $children[$pref.':'.$k][] = $getData($child);
+                        }
                     }
                     foreach ($xml->children() as $k => $child) {
                         $children[$k][] = $getData($child);
                     }
                     if ((string)$xml) {
-                        $children[$params['textname']] = (string)$xml;
+                        $children[$params['textname']] = trim((string)$xml);
                     }
                     return $children;
                 };

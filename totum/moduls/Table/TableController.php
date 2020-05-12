@@ -53,6 +53,11 @@ class TableController extends interfaceController
      */
     protected $Cycle;
     private $logTypes;
+    /**
+     * @var mixed
+     */
+    private $anchorId;
+
 
     function __construct($modulName, $inModuleUri)
     {
@@ -193,7 +198,7 @@ class TableController extends interfaceController
                 case 'linkButtonsClick':
                     $model = Model::initService('_tmp_tables');
                     $key = ['table_name' => '_linkToButtons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
-                    if ($data = $model->getField( 'tbl', $key)) {
+                    if ($data = $model->getField('tbl', $key)) {
                         $data = json_decode($data, true);
                         if ($data['buttons'][$_POST['index']] ?? null) {
                             $CA = new CalculateAction($data['buttons'][$_POST['index']]['code']);
@@ -586,7 +591,7 @@ row: rowCreate(field: "data" = $#DATA)');
 
 
         } catch (errorException $exception) {
-            $return = ['error' => $exception->getMessage().(Auth::isCreator()? "<br/>" . $exception->getPathMess():'')];
+            $return = ['error' => $exception->getMessage() . (Auth::isCreator() ? "<br/>" . $exception->getPathMess() : '')];
 
             $result['FullLOGS'] = [];
             if (static::$FullLogs || static::$Logs) {
@@ -665,8 +670,12 @@ row: rowCreate(field: "data" = $#DATA)');
             $tree[] = [
                     'id' => 'tree' . $t['id']
                     , 'text' => $t['title']
-                    , 'type' => $t['type'] ? $t['type'] : 'folder'
+                    , 'type' => $t['type'] ? ($t['type']=='anchor'?"link":$t['type']) : 'folder'
+                    , 'link' => $t['type'] == 'anchor' ? ('/Table/' . $t['id'] . '/') : null
                     , 'parent' => ($parent = (!$t['parent_id'] ? '#' : 'tree' . $t['parent_id']))
+                    , 'state' => [
+                        'selected' => $t['type'] == 'anchor' ? ($this->anchorId == $t['id']) : false
+                    ]
                 ] + ($t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []) + ($t['type'] == 'link' ? ['link' => $t['link']] : []);
             if ($t['type'] != "link")
                 $branchIds[] = $t['id'];
@@ -683,7 +692,7 @@ row: rowCreate(field: "data" = $#DATA)');
                     , 'type' => 'table_' . $t['type']
                     , 'parent' => 'tree' . $t['tree_node_id']
                     , 'state' => [
-                        'selected' => ($this->Table && $this->Table->getTableRow()['id'] == $t['id'] ? true : false)
+                        'selected' => (!$this->anchorId && $this->Table && $this->Table->getTableRow()['id'] == $t['id'] ? true : false)
                     ]
                 ];
             }
@@ -693,9 +702,10 @@ row: rowCreate(field: "data" = $#DATA)');
 
 
             $idHref = 'Cycle' . $this->Cycle->getId();
+            $isOneTable = false;
             if (Auth::$aUser->isOneCycleTable($this->Cycle->getCyclesTable()->getTableRow()) && count($this->Cycle->getCyclesTable()->getUserCycles(Auth::getUserId())) === 1) {
                 $idHref = 'table' . $this->Table->getTableRow()['tree_node_id'];
-
+                $isOneTable = true;
             } else {
                 $cycleRow = [
                     'id' => $idHref
@@ -720,6 +730,8 @@ row: rowCreate(field: "data" = $#DATA)');
                             , 'text' => $tableRow['title']
                             , 'type' => 'table_calcs'
                             , 'parent' => $idHref
+                            , 'isCycleTable' => true
+                            , 'isOneUserCycle' => $isOneTable
                             , 'state' => [
                                 'selected' => ($this->Table && $this->Table->getTableRow()['id'] == $tId ? true : false)
                             ]
@@ -736,11 +748,7 @@ row: rowCreate(field: "data" = $#DATA)');
 
         $this->__addAnswerVar('topBranches', $topBranches);
         $this->__addAnswerVar('treeData', $tree);
-        if (!$this->Table) {
-            $this->__addAnswerVar('html',
-                tableTypes::getTableByName('tree')->getByParams(['field' => 'html', 'where' => [['field' => 'id', 'operator' => '=', 'value' => $this->branchId]]],
-                    'field'));
-        }
+
     }
 
     function doIt($action)
@@ -802,7 +810,7 @@ row: rowCreate(field: "data" = $#DATA)');
 
         $tableData = $this->Table->getTableDataForInterface();
 
-        $tableData['fields']=$this->getFieldsForClient($tableData['fields']);
+        $tableData['fields'] = $this->getFieldsForClient($tableData['fields']);
         $this->__addAnswerVar('table', $tableData);
         $this->__addAnswerVar('error', $tableData['error'] ?? null);
         $this->__addAnswerVar('onlyRead', $tableData['onlyRead'] ?? $this->onlyRead);
@@ -1015,6 +1023,21 @@ row: rowCreate(field: "data" = $#DATA)');
             $tableId = $tableMatches[1];
 
             $checkTreeTable($tableId);
+        } else {
+            $branchData = tableTypes::getTableByName('tree')->getByParams(['field' => ['html', 'type', 'default_table', 'filters', 'top'], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $this->branchId]]],
+                'row');
+            switch ($branchData['type']) {
+                case null:
+                    $this->__addAnswerVar('html', $branchData['html']);
+                    break;
+                case 'anchor':
+                    $this->anchorId = $this->branchId;
+                    $this->branchId = $branchData['top'];
+                    $this->Table = tableTypes::getTable(Table::getTableRowById($branchData['default_table']));
+                    $this->Table->setAnchorFilters($branchData['filters']);
+                    break;
+            }
+
         }
 
     }

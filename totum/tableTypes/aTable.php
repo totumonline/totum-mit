@@ -55,6 +55,10 @@ abstract class aTable extends _Table
     protected $filtersFromUser;
     protected $calculatedFilters;
     private $isNowTable = false;
+    /**
+     * @var array|bool|string
+     */
+    private $anchorFilters = [];
 
 
     static function init($tableRow, $extraData = null, $light = false)
@@ -74,6 +78,14 @@ abstract class aTable extends _Table
             }
         }
         return $footerColumns;
+    }
+
+    /**
+     * @param array $anchorFilters
+     */
+    public function setAnchorFilters($anchorFilters): void
+    {
+        $this->anchorFilters = $anchorFilters;
     }
 
     protected function checkIsUserCanModifyIds($modify, $removeIds, $channel)
@@ -1339,7 +1351,7 @@ abstract class aTable extends _Table
 
             static::$recalcLogPointer->addSelects($this, $SourceTable);
 
-            return $SourceTable->getChildrenIds($params['id'], $params['parent'], $params['bfield']??'id');
+            return $SourceTable->getChildrenIds($params['id'], $params['parent'], $params['bfield'] ?? 'id');
         } else {
 
             return $SourceTable->getByParamsCached($params, $returnType, $this);
@@ -1632,6 +1644,11 @@ abstract class aTable extends _Table
             $columns = $this->sortedFields['filter'] ?? [];
 
             foreach ($columns as $column) {
+
+                if (key_exists($column['name'], $this->anchorFilters)) {
+                    $this->tbl['params'][$column['name']] = ["v" => $this->anchorFilters[$column['name']]];
+                    continue;
+                }
 
                 switch ($channel) {
                     case 'xml':

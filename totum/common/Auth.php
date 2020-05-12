@@ -52,6 +52,11 @@ class Auth
         $this->tables = $tables;
     }
 
+    static function checkUserPass($string, $hash)
+    {
+        return $hash === md5($string);
+    }
+
     static function getUserLogin()
     {
         return static::isAuthorized() ? static::$aUser->rowData['login'] : null;
@@ -62,7 +67,7 @@ class Auth
         return static::isAuthorized() ? static::$aUser->rowData[$name] : null;
     }
 
-    static function getUserId(): Int
+    static function getUserId(): int
     {
         return static::isAuthorized() ? static::$aUser->rowData['id'] : null;
     }

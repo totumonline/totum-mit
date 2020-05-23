@@ -529,13 +529,13 @@ class Calculate
         if ($params = $this->getParamsArray($params)) {
             if ($xml = simplexml_load_string($params['xml'])) {
                 $getData = function (\SimpleXMLElement $xml) use (&$getData, $params) {
-                    $children=[];
+                    $children = [];
                     foreach ($xml->attributes() as $k => $attr) {
                         $children[$params['attrpref'] . $k] = (string)$attr;
                     }
-                    foreach ($xml->getNamespaces() as $pref=>$namespace) {
+                    foreach ($xml->getNamespaces() as $pref => $namespace) {
                         foreach ($xml->children($namespace) as $k => $child) {
-                            $children[$pref.':'.$k][] = $getData($child);
+                            $children[$pref . ':' . $k][] = $getData($child);
                         }
                     }
                     foreach ($xml->children() as $k => $child) {
@@ -1923,6 +1923,7 @@ class Calculate
     function funcDateFormat($params)
     {
         if ($params = $this->getParamsArray($params)) {
+            if (($params['date'] ?? '') === '') return '';
             $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
 
             if (empty($params['format']) || !($formated = $date->format(strval($params['format']))))
@@ -2596,28 +2597,65 @@ class Calculate
         $params = $this->getParamsArray($params, []);
         $this->__checkListParam($params['list'], 'list', 'listFilter');
         if (empty($params['key'])) throw new errorException('Параметр [[key]] обязателен');
+        $isGerExp = $params['regexp'] ?? false;
 
+        if ($isGerExp) {
+            $regExpFlags = $params['regexp'] !== true && $params['regexp'] !== 'true' ? $params['regexp'] : 'u';
+
+            if (!in_array($params['key']['operator'], ['=', '!=', '!==', '==='])) {
+                throw new errorException('regexp сравнивается только = и !=');
+            } else {
+                $operator = in_array($params['key']['operator'], ['=', '===']) ? true : false;
+            }
+            $pattern = '/' . str_replace('/', '\/', $params['key']['value']) . '/' . $regExpFlags;
+            $matches = [];
+
+            $getCompare = function ($v) use ($operator, $pattern, &$matches) {
+                if (preg_match($pattern, $v, $_matches)) {
+                    $matches[] = $_matches;
+                    return $operator;
+                }
+                return !$operator;
+            };
+        } else {
+            $operator = $params['key']['operator'];
+            $value = $params['key']['value'];
+            $getCompare = function ($v) use ($operator, $value) {
+                return Calculate::compare($operator, $v, $value);
+            };
+        }
 
         switch ($params['key']['field']) {
             case 'value':
-                $filter = function ($k, $v) use ($params) {
-                    return Calculate::compare($params['key']['operator'], $v, $params['key']['value']);
+                $filter = function ($k, $v) use ($getCompare) {
+                    return $getCompare($v);
                 };
                 break;
             case 'key':
-                $filter = function ($k, $v) use ($params) {
-                    return Calculate::compare($params['key']['operator'], $k, $params['key']['value']);
+                $filter = function ($k, $v) use ($getCompare) {
+                    return $getCompare($k);
                 };
                 break;
             case 'item':
 
-                if (!array_key_exists('item', $params)) throw new errorException('Параметр [[item]] не найден');
+                if (!array_key_exists('item', $params)) {
+                    throw new errorException('Параметр [[item]] не найден');
+                }
 
-                $filter = function ($k, $v) use ($params) {
-                    if (!is_array($v)) throw new errorException('Параметр не соответствует условиям фильтрации - значение не list');
-                    else if (!array_key_exists($params['item'],
-                        $v)) throw new errorException('Параметр не соответствует условиям фильтрации - item не найден');
-                    return Calculate::compare($params['key']['operator'], $v[$params['item']], $params['key']['value']);
+                $skip = $params['skip'] ?? false;
+
+                $filter = function ($k, $v) use ($params, $skip, $getCompare) {
+                    if (!is_array($v)) {
+                        if (!$skip)
+                            throw new errorException('Параметр не соответствует условиям фильтрации - значение не list');
+                        return false;
+                    } else if (!array_key_exists($params['item'],
+                        $v)) {
+                        if (!$skip)
+                            throw new errorException('Параметр не соответствует условиям фильтрации - item не найден');
+                        return false;
+                    }
+                    return $getCompare($v[$params['item']]);
                 };
                 break;
             default:
@@ -2637,6 +2675,9 @@ class Calculate
                     $filtered[] = $v;
                 }
             }
+        }
+        if ($isGerExp && ($params['matches'] ?? null)) {
+            $this->vars[$params['matches']] = $matches;
         }
 
         return $filtered;

@@ -161,6 +161,10 @@ class Calculate
                 return '';
             case 'boolean':
                 return $n ? 'true' : 'false';
+            case 'integer':
+                return strval($n);
+            case 'double':
+                return number_format($n, 10, '', '');
             case 'array':
                 foreach ($n as &$_) {
                     $_ = static::__compare_normalize($_);
@@ -1523,6 +1527,21 @@ class Calculate
                 $param,
                 'Ошибка вычисления параметра [[' . $param . ']] - ' . $e->getMessage());
             throw $e;
+        }
+    }
+
+    protected function funcNumFormat($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        $value = (string)($params['num'] ?? null);
+
+        if (is_numeric($value)) {
+            return number_format($value,
+                    $params['dectimals'] ?? 0,
+                    $params['decsep'] ?? ',',
+                    $params['thousandssep'] ?? '')
+                . ($params['unittype'] ?? '');
         }
     }
 

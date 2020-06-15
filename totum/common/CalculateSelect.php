@@ -200,7 +200,7 @@ class CalculateSelect extends Calculate
     function funcSelectRowListForSelect($params)
     {
 
-        $params = $this->getParamsArray($params, ['where', 'order']);
+        $params = $this->getParamsArray($params, ['where', 'order'], ['previewscode']);
 
         $params2 = $params;
 
@@ -209,7 +209,6 @@ class CalculateSelect extends Calculate
         $params2['field'] = [$params['field'], $baseField, 'is_del'];
         $params2['sfield'] = [];
         if (!empty($params['section'])) {
-            // $params2['field'][] = $params['section'];
             $params2['sfield'][] = $params2['section'];
             unset($params2['section']);
             $params2['with__sectionFunction'] = true;

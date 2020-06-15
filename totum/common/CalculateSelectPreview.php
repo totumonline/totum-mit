@@ -26,19 +26,20 @@ class CalculateSelectPreview extends CalculateSelect
 
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
-        $rows['previewdata']=[];
-        foreach ($params['preview'] as $fName){
-            $rows['__fields'][$fName]= $Table->getFields()[$fName];
+        $rows['previewdata'] = [];
+        foreach ($params['preview'] as $fName) {
+            $rows['__fields'][$fName] = $Table->getFields()[$fName];
         }
         return $rows;
     }
+
     protected
     function funcSelectRowListForTree($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order']);
         $params2 = $params;
 
-        $baseField = $params['bfield']??'id';
+        $baseField = $params['bfield'] ?? 'id';
 
         $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal];
 
@@ -47,6 +48,7 @@ class CalculateSelectPreview extends CalculateSelect
 
         return $rows;
     }
+
     protected
     function funcSelectRowListForSelect($params)
     {
@@ -60,10 +62,11 @@ class CalculateSelectPreview extends CalculateSelect
 
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
-        $rows['previewdata']=[];
-        foreach ($params['preview'] as $fName){
-            $rows['__fields'][$fName]= $Table->getFields()[$fName];
+        $rows['previewdata'] = [];
+        foreach ($params['preview'] as $fName) {
+            $rows['__fields'][$fName] = $Table->getFields()[$fName];
         }
+        $rows['previewscode'] = $params['previewscode'];
         return $rows;
     }
 

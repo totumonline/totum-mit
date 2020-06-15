@@ -667,7 +667,8 @@ row: rowCreate(field: "data" = $#DATA)');
                 if ($t['top'] != $this->branchId) continue;
             }
 
-            $tree[] = [
+            $tree[] =
+                ($t['type'] == 'link' ? ['link' => $t['link']] : []) + [
                     'id' => 'tree' . $t['id']
                     , 'text' => $t['title']
                     , 'type' => $t['type'] ? ($t['type']=='anchor'?"link":$t['type']) : 'folder'
@@ -676,7 +677,10 @@ row: rowCreate(field: "data" = $#DATA)');
                     , 'state' => [
                         'selected' => $t['type'] == 'anchor' ? ($this->anchorId == $t['id']) : false
                     ]
-                ] + ($t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []) + ($t['type'] == 'link' ? ['link' => $t['link']] : []);
+                ]
+                + (
+                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : [])
+                ;
             if ($t['type'] != "link")
                 $branchIds[] = $t['id'];
         }

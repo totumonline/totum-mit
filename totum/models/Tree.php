@@ -25,7 +25,7 @@ class Tree extends Model
         return $id;
     }
 
-    function update($params, $where, $ignore = 0, $oldRow = null): Int
+    function update($params, $where, $ignore = 0, $oldRow = null): int
     {
         $r = $params ? parent::update($params, $where, $ignore, $oldRow) : 0;
         if (array_key_exists('parent_id', $params) || empty($oldRow['top']['v'])) {
@@ -50,8 +50,12 @@ class Tree extends Model
     {
         if (empty($tables)) $tables = [0];
         $rolesSql = '';
+
+        $quotedTables = implode(',',
+            Sql::quote($tables));
+
         if (!empty($roles)) {
-            foreach ($roles as &$role) $role=Sql::quote(strval($role));
+            foreach ($roles as &$role) $role = Sql::quote(strval($role));
             unset($role);
             $roles = implode(',', $roles);
             $rolesSql = <<<SQL
@@ -62,17 +66,27 @@ class Tree extends Model
 SQL;
         }
 
-         return Sql::getAll('WITH RECURSIVE r AS (
+        $anchorsSql = <<<SQL
+ UNION 
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
-    WHERE id IN (select (tree_node_id->>\'v\')::integer from tables where type->>\'v\'!=\'calcs\' AND id in (' . implode(',',
-                Sql::quote($tables)) . '))
+    WHERE type='anchor' AND default_table IN (
+       select id from tables where (ARRAY(SELECT * FROM   jsonb_array_elements_text(edit_roles->'v') ) && ARRAY[{$roles}]) OR (ARRAY(SELECT * FROM   jsonb_array_elements_text(read_roles->'v') ) && ARRAY[{$roles}])
+    ) 
+SQL;
+
+        $r= Sql::getAll($q='WITH RECURSIVE r AS (
+    SELECT parent_id, id, title, ord, top, default_table, type, icon, link
+    FROM tree__v
+    WHERE id IN (select (tree_node_id->>\'v\')::integer from tables where type->>\'v\'!=\'calcs\' AND id in (' . $quotedTables . '))
    ' . $rolesSql . '
+   ' . $anchorsSql . '
     UNION 
     SELECT tree__v.parent_id, tree__v.id, tree__v.title, tree__v.ord, tree__v.top, tree__v.default_table, tree__v.type, tree__v.icon, tree__v.link
     FROM tree__v JOIN r ON tree__v.id = r.parent_id
     )
     select * FROM r where top!=0 AND (parent_id is null ' . ($branchId ? ' OR top=' . $branchId : '') . ') order by ord');
+        return $r;
     }
 
     function getBranchesForCreator($branchId = null)

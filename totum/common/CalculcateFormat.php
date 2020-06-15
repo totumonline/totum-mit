@@ -16,10 +16,10 @@ class CalculcateFormat extends Calculate
 {
     static $logClassName = "format";
 
-    const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton'];
+    const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide'];
     const tableformats = ['blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'tabletext', 'tablecomment'];
     const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
-    const floatFormat = ["fill","glue","maxheight","maxwidth","nextline", "blocknum", "height"];
+    const floatFormat = ["fill", "glue", "maxheight", "maxwidth", "nextline", "blocknum", "height", "breakwidth"];
     protected $startSections = [];
     protected $formatArray = [];
 
@@ -36,7 +36,8 @@ class CalculcateFormat extends Calculate
         ksort($this->startSections);
     }
 
-    function funcSetFloatFormat($params){
+    function funcSetFloatFormat($params)
+    {
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], static::floatFormat))) {
             $conditionTest = true;
             if (!empty($params['condition'])) {
@@ -128,7 +129,9 @@ class CalculcateFormat extends Calculate
 
     protected function funcSetFormat($params)
     {
-        if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], static::formats))) {
+        if ($params = $this->getParamsArray($params,
+            ['condition', 'hide'],
+            array_merge(['condition'], static::formats))) {
 
             $conditionTest = true;
             if (!empty($params['condition'])) {
@@ -147,9 +150,26 @@ class CalculcateFormat extends Calculate
             }
 
             if ($conditionTest) {
+                if ($params['hideinpanel'] ?? false) {
+                    $params['hide']['panel'] = true;
+                }
+
                 foreach (static::formats as $format) {
                     if (key_exists($format, $params)) {
-                        $this->formatArray[$format] = $this->__getValue($this->getCodes($params[$format])[0]);
+                        switch ($format) {
+                            case 'hide':
+                                foreach ($params['hide'] as $_str) {
+                                    $_strSplit = preg_split('/\s*=\s*/', $_str);
+
+                                    if (count($_strSplit) !== 2) {
+                                        throw new errorException('Ошибка форматирования параметра [[hide]]');
+                                    }
+                                    $this->formatArray[$format][$this->__getValue($this->getCodes($_strSplit[0])[0])] = $this->__getValue($this->getCodes($_strSplit[1])[0]);
+                                }
+                                break;
+                            default:
+                                $this->formatArray[$format] = $this->__getValue($this->getCodes($params[$format])[0]);
+                        }
                     }
                 }
             }

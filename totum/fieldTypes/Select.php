@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 
+use totum\common\Calculate;
 use totum\common\CalculateSelect;
 use totum\common\CalculateSelectPreview;
 use totum\common\CalculateSelectValue;
@@ -24,7 +25,9 @@ class Select extends Field
     const loadItemsCount = 50;
     protected $commonSelectList, $commonSelectValueList;
     protected $commonSelectViewList;
+    protected $commonSelectListWithPreviews;
     protected $CalculateCodeViewSelect;
+    protected $CalculateCodePreviews;
 
     protected function __construct($fieldData, aTable $table)
     {
@@ -89,10 +92,10 @@ class Select extends Field
 
             if ($q) {
                 $qs = explode(' ', str_ireplace('ё', 'е', $q));
-                $qfunc=function ($v) use($qs){
-                    $v=str_ireplace('ё', 'е', $v);
+                $qfunc = function ($v) use ($qs) {
+                    $v = str_ireplace('ё', 'е', $v);
                     foreach ($qs as $q) {
-                        if ($q!=="" && mb_stripos($v, $q) === false) {
+                        if ($q !== "" && mb_stripos($v, $q) === false) {
                             return false;
                         }
                     }
@@ -130,18 +133,36 @@ class Select extends Field
         return ['list' => $listMain, 'indexed' => $objMain, 'sliced' => $isSliced, 'previewdata' => $previewdata];
     }
 
-    public function getPreviewHtml($val, $row, $tbl)
+    public function getPreviewHtml($val, $row, $tbl, $withNames = false)
     {
-        $Calc = new CalculateSelectPreview($this->data['codeSelect']);
-        $row = $Calc->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
+        if (!$this->CalculateCodePreviews) {
+            $this->CalculateCodePreviews = new CalculateSelectPreview($this->data['codeSelect']);
+        }
+
+        $row = $this->CalculateCodePreviews->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
         $htmls = [];
-        foreach ($row['__fields'] as $name=>$field) {
+
+        if ($row['previewscode'] ?? null) {
+            $CalcPreview = new Calculate($row['previewscode']);
+            $data = $CalcPreview->exec([], [], [], $this->table->getTbl()['params'], [], $this->table->getTbl(), $this->table, ['val' => $val]);
+            foreach ($data as $_row) {
+                $title=$_row['title'] ?? '';
+                $value=$_row['value'] ?? '';
+                if ($withNames)
+                    $htmls[$_row['name'] ?? ''] = [$title, $value, 'text', ''];
+                else
+                    $htmls[] = [$title, $value, 'text', ''];
+            }
+        }
+
+
+        foreach ($row['__fields'] as $name => $field) {
             $format = 'string';
             $elseData = [];
             $val = $row[$name];
 
-            if($name==='id'){
-                $field=['title'=>'id'];
+            if ($name === 'id') {
+                $field = ['title' => 'id'];
             }
 
             switch ($field['type']) {
@@ -165,7 +186,11 @@ class Select extends Field
 
 
             }
-            $htmls[] = [$field['title'], $val, $format, $elseData ?? []];
+            if ($withNames) {
+                if (!key_exists($name, $htmls))
+                    $htmls[$name] = [$field['title'], $val, $format, $elseData ?? []];
+            } else
+                $htmls[] = [$field['title'], $val, $format, $elseData ?? []];
             //string, url, currency, css, xml, text, html, json, totum, javascript
         }
         return $htmls;
@@ -319,6 +344,22 @@ class Select extends Field
         }
         return $this->commonSelectList = $list;
 
+    }
+
+    function calculateSelectListWithPreviews(&$val, $row, $tbl = [])
+    {
+        $list = $this->calculateSelectList($val, $row, $tbl = []);
+
+        if ($list['previewdata']) {
+            unset($list['previewdata']);
+            foreach ($list as $val => &$l) {
+                $l[] = $this->getPreviewHtml($val, $row, $tbl, true);
+            }
+        } else {
+            unset($list['previewdata']);
+        }
+        unset($l);
+        return $list;
     }
 
     protected function calculateSelectViewList(&$val, $row, $tbl = [])

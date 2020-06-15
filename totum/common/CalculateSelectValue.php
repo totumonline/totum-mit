@@ -24,7 +24,7 @@ class CalculateSelectValue extends CalculateSelect
     protected
     function funcSelectRowListForSelect($params)
     {
-        $params = $this->getParamsArray($params, ['where', 'order']);
+        $params = $this->getParamsArray($params, ['where', 'order'], ['previewscode', 'section', 'preview']);
         unset($params['section']);
         unset($params['preview']);
 

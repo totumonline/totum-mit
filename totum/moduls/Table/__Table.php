@@ -87,6 +87,7 @@ if (!empty($_GET['a'])) {
 ?>
 
 <script>
+    window.top_branch=<?=$this->branchId?>;
     let TableConfig = <?=json_encode($forJsonObj, JSON_UNESCAPED_UNICODE);?>;
     TableConfig.model = TableModel;
     <? if ($LOGS ?? null) {

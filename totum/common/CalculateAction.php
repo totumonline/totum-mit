@@ -53,6 +53,63 @@ class CalculateAction extends Calculate
         }
     }
 
+    protected function funcSchemaGzStringGet($params)
+    {
+        $params = $this->getParamsArray($params);
+        if (!Auth::isCreator()) throw new errorException('Функция доступна только роли Создатель');
+
+        if ($params['password'] !== Auth::getUserVar('pass')) {
+            throw new errorException('Пароль не подходит');
+        }
+        $tmpFilename = tempnam(Conf::getTmpLoadedFilesDir(), Conf::getSchema() . '.' . Auth::getUserId() . '.');
+        $ConfDb = Conf::getDb();
+        $schema = $ConfDb['schema'];
+        $exclude = "--exclude-table-data='_tmp_tables'";
+        if (empty($params['withlog'])) {
+            $exclude .= " --exclude-table-data='_log'";
+        }
+        if (empty($params['withbfl'])) {
+            $exclude .= " --exclude-table-data='_bfl'";
+        }
+        exec(Conf::db['pg_dump'] . " " .
+            "--dbname=postgresql://{$ConfDb['username']}:{$ConfDb['password']}@{$ConfDb['host']}/{$ConfDb['dbname']}" .
+            " -O --schema '{$schema}' {$exclude} | grep -v '^--' | gzip > \"{$tmpFilename}\"",
+            $data);
+        return file_get_contents($tmpFilename);
+
+    }
+
+    protected function funcSchemaGzStringUpload($params)
+    {
+        $params = $this->getParamsArray($params);
+        if (!Auth::isCreator()) throw new errorException('Функция доступна только роли Создатель');
+
+        if ($params['password'] !== Auth::getUserVar('pass')) {
+            throw new errorException('Пароль не подходит');
+        }
+        if (empty($params['gzstring'])) {
+            throw new errorException('Строка схемы пуста');
+        }
+        $pathPsql = Conf::getDb()['psql'];
+        $dbConnect = 'postgresql://' . Conf::getDb()['username'] . ':' . Conf::getDb()['password'] . '@' . Conf::getDb()['host'] . '/' . Conf::getDb()['dbname'];
+        $tmpFileName = tempnam(Conf::getTmpLoadedFilesDir(), Conf::getSchema() . '.' . Auth::getUserId() . '.');
+        $tmpFileName2 = tempnam(Conf::getTmpLoadedFilesDir(), Conf::getSchema() . '.' . Auth::getUserId() . '.');
+
+        file_put_contents($tmpFileName, $params['gzstring']);
+        ` zcat {$tmpFileName} > $tmpFileName2`;
+
+        file_put_contents($tmpFileName,
+            'drop schema "' . Conf::getSchema() . '" cascade; ' . preg_replace('/^(REVOKE|GRANT) ALL .*?;[\n\r]*$/m',
+                '',
+                file_get_contents($tmpFileName2)));
+
+        $tmpErrors = tempnam(Conf::getTmpLoadedFilesDir(), 'schema_errors_');
+        `$pathPsql --dbname="$dbConnect" -q -1 -b -v ON_ERROR_STOP=1 -f $tmpFileName 2>$tmpErrors`;
+        if ($errors = file_get_contents($tmpErrors)) {
+            throw new errorException($errors);
+        }
+    }
+
     protected
     function funcReCalculateCycle($params)
     {
@@ -148,7 +205,7 @@ class CalculateAction extends Calculate
             $key);
         $model->insert($vars,
             false);
-        $params['hash']=$hash;
+        $params['hash'] = $hash;
         Controller::addToInterfaceDatas('buttons', $params);
 
 
@@ -926,7 +983,6 @@ class CalculateAction extends Calculate
     }
 
 
-
     protected function funcTableLog($params)
     {
         if ($params = $this->getParamsArray($params)) {
@@ -955,6 +1011,7 @@ class CalculateAction extends Calculate
 
         }
     }
+
     protected
     function funcInsertListExt($params)
     {
@@ -1022,6 +1079,7 @@ class CalculateAction extends Calculate
             if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
         }
     }
+
     protected
     function funcInsertList($params)
     {

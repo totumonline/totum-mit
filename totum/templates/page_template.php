@@ -17,7 +17,7 @@
         } ?>
     <? } ?>
 
-    <script src="/js/main.js?v=3dc916a"></script>
+    <script src="/js/main.js?v=6ff109a"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

@@ -104,6 +104,9 @@ class CalculateAction extends Calculate
                 file_get_contents($tmpFileName2)));
 
         $tmpErrors = tempnam(Conf::getTmpLoadedFilesDir(), 'schema_errors_');
+
+        Sql::transactionRollBack();
+
         `$pathPsql --dbname="$dbConnect" -q -1 -b -v ON_ERROR_STOP=1 -f $tmpFileName 2>$tmpErrors`;
         if ($errors = file_get_contents($tmpErrors)) {
             throw new errorException($errors);

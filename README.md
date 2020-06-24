@@ -1,4 +1,4 @@
-[README — RUSSIAN](/readme_ru.md)
+[README — RUSSIAN](/README_RU.md)
 
 
 
@@ -12,19 +12,33 @@
 
 
 
-![ico1](https://totum.totum.online/fls/365_233_file.png) Totum is a hybrid of electronic tables and databases.
+![ico1](https://totum.totum.online/fls/365_233_file.png)
 
-![ico2](https://totum.totum.online/fls/365_234_file.png) Ready frontend — for desktop and mobile.
+Totum is a hybrid of electronic tables and databases.
 
-![ico3](https://totum.totum.online/fls/365_235_file.png) Small code principal — a lot of simple situational code.
+![ico2](https://totum.totum.online/fls/365_234_file.png)
 
-![ico4](https://totum.totum.online/fls/365_236_file.png) Learn to program Totum in about 50-60 hours.
+Ready frontend — for desktop and mobile.
 
-![ico5](https://totum.totum.online/fls/365_237_file.png) WEB, full-stack — install it on your own server.
+![ico3](https://totum.totum.online/fls/365_235_file.png)
 
-![ico6](https://totum.totum.online/fls/365_238_file.png) Two levels of access — programmer-user.
+Small code principal — a lot of simple situational code.
 
-![ico7](https://totum.totum.online/fls/365_239_file.png) Simple language —  logic, query and build-in IDE.
+![ico4](https://totum.totum.online/fls/365_236_file.png)
+
+Learn to program Totum in about 50-60 hours.
+
+![ico5](https://totum.totum.online/fls/365_237_file.png)
+
+WEB, full-stack — install it on your own server.
+
+![ico6](https://totum.totum.online/fls/365_238_file.png)
+
+Two levels of access — programmer-user.
+
+![ico7](https://totum.totum.online/fls/365_239_file.png)
+
+Simple language —  logic, query and build-in IDE.
 
 
 

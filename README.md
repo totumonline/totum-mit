@@ -1,4 +1,8 @@
-[README — RUSSIAN](/README_RU.md) [https://totum.online](https://totum.online) [https://docs.totum.online](https://docs.totum.online)
+[README — RUSSIAN](/README_RU.md)
+
+[https://totum.online](https://totum.online)
+
+[https://docs.totum.online](https://docs.totum.online)
 
 
 

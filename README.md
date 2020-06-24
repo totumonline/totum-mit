@@ -12,7 +12,7 @@
 
 
 
-![ico1](https://totum.totum.online/fls/365_233_file.png) ![ico2](https://totum.totum.online/fls/365_234_file.png) ![ico3](https://totum.totum.online/fls/365_235_file.png) ![ico4](https://totum.totum.online/fls/365_236_file.png) ![ico5](https://totum.totum.online/fls/365_237_file.png) ![ico6](https://totum.totum.online/fls/365_238_file.png) ![ico7](https://totum.totum.online/fls/365_239_file.png) ![main](https://totum.totum.online/fls/365_242_file.png)
+![ico1](https://totum.totum.online/fls/365_233_file.png) ![ico2](https://totum.totum.online/fls/365_234_file.png) ![ico3](https://totum.totum.online/fls/365_235_file.png) ![ico4](https://totum.totum.online/fls/365_236_file.png) ![ico5](https://totum.totum.online/fls/365_237_file.png) ![ico6](https://totum.totum.online/fls/365_238_file.png) ![ico7](https://totum.totum.online/fls/365_239_file.png) 
 
 — Totum is a hybrid of electronic tables and databases.
 
@@ -28,6 +28,7 @@
 
 — Simple language —  logic, query and build-in IDE.
 
+![main](https://totum.totum.online/fls/365_242_file.png)
 
 ## Advantages
 

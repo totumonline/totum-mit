@@ -16,6 +16,7 @@ use totum\common\Cycle;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Model;
+use totum\common\NoValueField;
 use totum\common\Sql;
 use totum\common\SqlExeption;
 use totum\fieldTypes\File;
@@ -33,16 +34,16 @@ abstract class RealTables extends aTable
         if (!array_key_exists($parentField, $this->fields) || $this->fields[$parentField]['category'] != 'column') {
             throw new errorException('Поле [' . $parentField . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
         }
-        if($bfield!=='id' && !key_exists($bfield, $this->fields)){
+        if ($bfield !== 'id' && !key_exists($bfield, $this->fields)) {
             throw new errorException('Поле [' . $bfield . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
         }
 
         return Sql::getFieldArray('WITH RECURSIVE cte_name (id) AS ( select
-                                                    ('.($bfield=='id'?'id':$bfield.'->>\'v\'').'):: text as id
+                                                    (' . ($bfield == 'id' ? 'id' : $bfield . '->>\'v\'') . '):: text as id
                                                   from ' . $this->tableRow['name'] . '
                                                   where is_del = false AND (' . $parentField . ' ->> \'v\') :: text=' . Sql::quote((string)$id) . '
                                                   UNION select
-                                                         ( '.($bfield=='id'?'tp.id':'tp.'.$bfield.'->>\'v\'').'):: text as id
+                                                         ( ' . ($bfield == 'id' ? 'tp.id' : 'tp.' . $bfield . '->>\'v\'') . '):: text as id
                                                         from ' . $this->tableRow['name'] . ' tp
                                                           JOIN cte_name c ON (tp.' . $parentField . ' ->> \'v\') :: text = c.id AND
                                                                              tp.is_del = false ) SELECT id
@@ -132,7 +133,8 @@ abstract class RealTables extends aTable
     {
 
         if ($fieldRow['category'] == 'column') {
-            Sql::exec('ALTER TABLE ' . $this->tableRow['name'] . ' DROP COLUMN "' . $fieldRow['name'] . '" ');
+            Sql::exec('ALTER TABLE ' . $this->tableRow['name'] . ' DROP COLUMN IF EXISTS "' . $fieldRow['name'] . '" ');
+
         } elseif ($fieldRow['category'] === 'filter') {
             $data = json_decode($fieldRow['data'], true);
             if (!empty($data['v']['column'])) {
@@ -848,7 +850,11 @@ abstract class RealTables extends aTable
 
         if ($add) {
             if (!empty($this->tableRow['with_order_field'])) {
-                $fIds = $channel != 'inner' ? $this->getFilteredIds($channel, []) : [];
+
+                $fIds = $channel != 'inner' ? $this->getFilteredIds($channel,
+                    $this->webIdInterval) : [];
+
+
                 $afterN = null;
                 if ("0" === (string)$addAfter) {
                     $afterN = 0;
@@ -1173,6 +1179,7 @@ abstract class RealTables extends aTable
         if (!is_null($prevN)) {
             if (!empty($this->tableRow['order_desc'])) {
                 $nextN = Sql::getField($q = 'select MAX(n) from ' . $this->tableRow['name'] . ' where n<' . $prevN);
+                [$prevN, $nextN] = [$nextN, $prevN];
             } else {
                 $nextN = Sql::getField($q = 'select MIN(n) from ' . $this->tableRow['name'] . ' where n>' . $prevN);
             }

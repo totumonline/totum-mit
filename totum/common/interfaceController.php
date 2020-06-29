@@ -211,7 +211,7 @@ abstract class interfaceController extends Controller
 
     function getTableRowForClient($tableRow)
     {
-        $fields = ['title', 'updated', 'type', 'id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field', 'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version'];
+        $fields = ['title', 'updated', 'type', 'id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field', 'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination'];
         if (Auth::isCreator()) {
             $fields = array_merge($fields,
                 [

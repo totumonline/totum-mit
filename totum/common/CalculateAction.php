@@ -214,6 +214,31 @@ class CalculateAction extends Calculate
 
     }
 
+    protected function funcLinkToInput($params)
+    {
+        $params = $this->getParamsArray($params, ['var']);
+        if (empty($params['title'])) throw new errorException('Заполните параметр [[title]]');
+        if (empty($params['code'])) throw new errorException('Заполните параметр [[code]]');
+
+        $params['input'] = '';
+
+        $model = Model::initService('_tmp_tables');
+
+        do {
+            $hash = md5(microtime(true) . '__linktoinput_' . mt_srand());
+            $key = ['table_name' => '_linkToInput', 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+        } while ($model->getField('user_id', $key));
+
+        $vars = array_merge(['tbl' => json_encode($params,
+            JSON_UNESCAPED_UNICODE),
+            'touched' => date('Y-m-d H:i')],
+            $key);
+        $model->insert($vars,
+            false);
+        $params['hash'] = $hash;
+        Controller::addToInterfaceDatas('input', array_intersect_key($params, ["title"=>1, "html"=>1, "hash"=>1, "refresh"=>1, "button"=>1]));
+    }
+
     protected
     function __getActionTable($params, $funcName)
     {

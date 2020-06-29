@@ -45,6 +45,12 @@ abstract class aTable extends _Table
     ];
 
 
+    protected function __construct($tableRow, $extraData = null, $light = false, $hash = null)
+    {
+        parent::__construct($tableRow, $extraData, $light, $hash);
+        $this->tableRow['pagination'] = $this->tableRow['pagination'] ?? '0/0';
+    }
+
     static $isActionRecalculateDone = false;  //Выставляется в true, если был выполнен actionSet actionInsert или actionRecalculate
     static $recalcLog = [];
 
@@ -59,6 +65,10 @@ abstract class aTable extends _Table
      * @var array|bool|string
      */
     private $anchorFilters = [];
+    /**
+     * @var array|bool|string
+     */
+    protected $webIdInterval = [];
 
 
     static function init($tableRow, $extraData = null, $light = false)
@@ -230,7 +240,7 @@ abstract class aTable extends _Table
         return $data;
     }
 
-    function getTableDataForRefresh($viewFields = null)
+    function getTableDataForRefresh($offset = null, $onPage = null)
     {
         $data = ['params' => $this->tbl['params'], 'rows' => []];
 
@@ -258,17 +268,40 @@ abstract class aTable extends _Table
             }
         }
 
-
-        $data = $this->getValuesAndFormatsForClient($data, 'web');
-
         if (!empty($this->getTableRow()['new_row_in_sort'])) {
-            array_multisort($data['rows'], sort(array_column($data['rows'], 'n'), SORT_NUMERIC | SORT_ASC));
+            $n = array_column($data['rows'], 'n');
+            array_multisort($n, SORT_NUMERIC | SORT_ASC, $data['rows']);
             $data['nsorted_ids'] = array_column($data['rows'], 'id');
         }
 
+        if ($offset !== null && $onPage > 0) {
+            $orderFN = $this->orderFieldName;
+            if (in_array($orderFN, ['id', 'n']) || !in_array($orderFN, ['tree', 'select'])) {
+                $this->sortRowsBydefault($data['rows']);
+            } else {
+                $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
+                $this->sortRowsBydefault($data['rows']);
+            }
+            $allcount = count($data['rows']);
+            $offset = $offset;
+
+            $data['rows'] = array_slice($data['rows'], $offset, $onPage);
+        }
+        $data['rows'] = array_combine(array_column($data['rows'], 'id'), $data['rows']);
+
+        $data = $this->getValuesAndFormatsForClient($data, 'web');
+
+
         $data['f'] = $this->getTableFormat();
-        $data = ['chdata' => $data, 'updated' => $this->updated, 'refresh' => true];
+        $data = ['chdata' => $data, 'updated' => $this->updated, 'refresh' => true, 'offset' => $offset ?? null, 'allCount' => $allcount ?? null];
         return $data;
+    }
+
+    function setWebIdInterval($ids)
+    {
+        if ($ids && is_array($ids)) {
+            $this->webIdInterval = $ids;
+        }
     }
 
     static function recalcLog($AddPath, $data = '')
@@ -282,7 +315,7 @@ abstract class aTable extends _Table
         }
     }
 
-    function getTableDataForInterface($withoutRows = false)
+    function getTableDataForInterface($withoutData = false, $withoutRowsData = false)
     {
         $table = $this->tableRow;
 
@@ -310,8 +343,12 @@ abstract class aTable extends _Table
         }
 
 
-        if (!$withoutRows) {
-            $data = $this->getFilteredData('web');
+        if (!$withoutData) {
+            if ($withoutRowsData) {
+                $data = ['params' => $this->tbl['params']];
+            } else {
+                $data = $this->getFilteredData('web');
+            }
         }
 
 
@@ -458,7 +495,8 @@ abstract class aTable extends _Table
         $inVars['remove'] = $remove;
         $inVars['duplicate'] = $duplicate;
         $inVars['reorder'] = $reorder;
-        if (!empty($data['addAfter']) && in_array($data['addAfter'], $duplicate['ids'])) {
+
+        if (!empty($data['addAfter'])) {
             $inVars['addAfter'] = $data['addAfter'];
         }
 
@@ -864,8 +902,8 @@ abstract class aTable extends _Table
             $RowFormatCalculate = new CalculcateFormat($this->tableRow['row_format']);
         }
 
-        $ids = json_decode($_POST['ids'] ?? '[]', true);
-        $ids = array_unique(array_merge($ids, array_column($data['rows'], "id")));
+
+        $ids = array_unique(array_merge($this->webIdInterval, array_column($data['rows'], "id")));
 
         foreach (($data['rows'] ?? []) as $i => $row) {
 
@@ -2537,7 +2575,15 @@ abstract class aTable extends _Table
         }
     }
 
-    protected function sortRowsBydefault(&$rows)
+    /**
+     * @return string
+     */
+    public function getOrderFieldName(): string
+    {
+        return $this->orderFieldName;
+    }
+
+    function sortRowsByDefault(&$rows)
     {
         if ($this->tableRow['order_field']
             && $this->orderFieldName != 'id'

@@ -137,7 +137,7 @@ class Number extends Field
             throw new errorException('Поле [[' . $this->data['title'] . ']] должно содержать число, а не [[' . $val . ']]');
         }
         if (!empty($this->data['regexp']) && !preg_match("/" . str_replace('/',
-                    '//',
+                    '\/',
                     $this->data['regexp']) . "/",
                 $val)
         ) throw new criticalErrorException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"');

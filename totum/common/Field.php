@@ -9,7 +9,6 @@
 namespace totum\common;
 
 
-use totum\common\criticalErrorException;
 use totum\fieldTypes\Checkbox;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Date;
@@ -25,11 +24,10 @@ use totum\fieldTypes\TableNameField;
 use totum\fieldTypes\Text;
 use totum\fieldTypes\Tree;
 use totum\fieldTypes\Unic;
+use totum\fieldTypes\Chart;
 use totum\models\Table;
 use totum\tableTypes\_Table;
 use totum\tableTypes\aTable;
-use totum\tableTypes\calcsTable;
-use totum\tableTypes\globcalcsTable;
 use totum\tableTypes\JsonTables;
 
 class Field
@@ -183,6 +181,9 @@ class Field
                         } else
                             $model = Unic::class;
                         break;
+                    case 'chart':
+                        $model = Chart::class;
+                        break;
                     default:
                         $model = Field::class;
                         debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
@@ -247,7 +248,7 @@ class Field
         if (!empty($this->data['codeAction'])) {
 
 
-                $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
+            $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
 
             try {
 
@@ -476,11 +477,6 @@ class Field
         return $newVal;
     }
 
-    function isWithCode()
-    {
-        return !empty($this->data['code']);
-    }
-
     function modify($channel, $changeFlag, $newVal, $oldRow, $row = [], $oldTbl = [], $tbl = [], $isCheck = false)
     {
 
@@ -635,11 +631,6 @@ class Field
     }
 
 
-    function getCalculateLog()
-    {
-        return $this->log;
-    }
-
     protected function getDefaultValue()
     {
         return $this->data['default'] ?? null;
@@ -669,7 +660,7 @@ class Field
 
         $val = &$newVal['v'];
 
-        if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val===null)) {
+        if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val === null)) {
             throw new criticalErrorException('Поле [[' . $this->data['title'] . ']] таблицы [[' . $this->table->getTableRow()['title'] . ']] должно быть заполнено');
         }
 

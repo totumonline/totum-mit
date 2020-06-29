@@ -30,7 +30,7 @@ class StringF extends Field
 
     protected function checkValByType(&$val, $row, $isCheck = false){
         if (!empty($this->data['regexp']) && $val!=='' && !is_null($val) && !preg_match("/" . str_replace('/',
-                    '//',
+                    '\/',
                     $this->data['regexp']) . "/",
                 $val)
         ) throw new criticalErrorException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"');

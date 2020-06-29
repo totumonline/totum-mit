@@ -553,8 +553,8 @@ abstract class JsonTables extends aTable
             if ($this->tableRow['with_order_field']
                 &&
                 (!is_null($addAfter) ||
-                    ($channel != 'inner' && $this->issetActiveFilters($channel) &&
-                        ($filteredIds = $this->getFilteredIds($channel))))) {
+                    ($channel != 'inner' && ($this->issetActiveFilters($channel) || $this->webIdInterval) &&
+                        ($filteredIds = $this->getFilteredIds($channel, $this->webIdInterval))))) {
 
                 if (!is_null($addAfter)) {
                     $after = $addAfter;

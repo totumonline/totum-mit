@@ -184,7 +184,7 @@ class TableController extends interfaceController
 
         try {
             if ($this->onlyRead && !in_array($method,
-                    ['linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+                    ['loadPage', 'linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
 
             if (!empty($_POST['data']) && is_string($_POST['data'])) $_POST['data'] = json_decode($_POST['data'], true);
 
@@ -195,6 +195,97 @@ class TableController extends interfaceController
             $this->Table->setFilters($_POST['filters'] ?? '');
 
             switch ($method) {
+                case 'loadPage':
+
+                    $this->Table->reCalculateFilters('web');
+
+                    $lastId = (int)$_POST['lastId'] ?? 0;
+                    $prevLastId = (int)$_POST['prevLastId'] ?? 0;
+                    $pageCount = $_POST['pageCount'] ?? 0;
+
+                    $data = $this->Table->getFilteredData('web');
+                    $data['params'] = [];
+                    $orderFN = $this->Table->getOrderFieldName();
+
+                    $allCount = count($data['rows']);
+
+                    $slice = function (&$rows) use ($lastId, $prevLastId, $pageCount) {
+                        if ($pageCount == 0) return 0;
+                        $offset = 0;
+                        if ($prevLastId) {
+                            if ($prevLastId === -1) {
+                                $offset = count($rows);
+                            } else {
+                                foreach ($rows as $i => $row) {
+                                    if ($row['id'] === $prevLastId) {
+                                        $offset = $i;
+                                    }
+                                }
+                            }
+                            $offset -= $pageCount;
+                            if ($offset < 0) $offset = 0;
+
+                        } elseif ($lastId !== 0) {
+                            foreach ($rows as $i => $row) {
+                                if ($row['id'] == $lastId) {
+                                    $offset = $i + 1;
+                                }
+                            }
+                        }
+                        $rows = array_slice($rows, $offset, $pageCount);
+                        return $offset;
+                    };
+
+
+                    if (in_array($orderFN, ['id', 'n']) || !in_array($orderFN, ['tree', 'select'])) {
+                        $this->Table->sortRowsBydefault($data['rows']);
+                        $offset = $slice($data['rows']);
+                        $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
+                    } else {
+                        $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
+                        $this->Table->sortRowsBydefault($data['rows']);
+                        $offset = $slice($data['rows']);
+                    }
+
+                    $result = ['rows' => $data['rows'], 'offset' => $offset, 'allCount' => $allCount];
+
+                    break;
+                case 'getChartTypes':
+                    $table = Table::getTableRowByName('ttm__charts');
+                    if (!$table) {
+                        throw new errorException('Таблица графиков не найдена');
+                    }
+                    $Table = tableTypes::getTable($table);
+                    $result['chartTypes'] = $Table->getByParams([
+                        'field' => ['type', 'title', 'default_options', 'format'],
+                    ],
+                        'rows');
+                    break;
+                case 'linkInputClick':
+
+                    $model = Model::initService('_tmp_tables');
+                    $key = ['table_name' => '_linkToInput', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
+                    if ($data = $model->getField('tbl', $key)) {
+                        $data = json_decode($data, true);
+                        $CA = new CalculateAction($data['code']);
+                        try {
+                            $CA->execAction('CODE',
+                                [],
+                                [],
+                                $this->Table->getTbl(),
+                                $this->Table->getTbl(),
+                                $this->Table,
+                                $data['buttons'][$_POST['index']]['vars'] ?? [] + ['input' => $_POST['val']]);
+                            static::addLogVar($this->Table, ['INPUT_CLICK'], 'a', $CA->getLogVar());
+                        } catch (errorException $e) {
+                            static::addLogVar($this->Table, ['INPUT_CLICK'], 'a', $CA->getLogVar());
+                            throw $e;
+                        }
+
+                    } else {
+                        throw new errorException('Предложенный ввод устарел.');
+                    }
+                    break;
                 case 'linkButtonsClick':
                     $model = Model::initService('_tmp_tables');
                     $key = ['table_name' => '_linkToButtons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
@@ -359,6 +450,7 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
                         , 'withCsvButtons' => $table['withCsvButtons']
                         , 'withCsvEditButtons' => $table['withCsvEditButtons']
 
+
                         , 'isCreatorView' => Auth::isCreator()
 //                        , 'notCorrectOrder' => ($table['notCorrectOrder'] ?? false)
                         , 'fields' => $this->getFieldsForClient($table['fields'] ?? [])
@@ -410,10 +502,12 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
                 case 'add':
 
                     if (Auth::$aUser->isOneCycleTable($this->Table->getTableRow())) return 'Добавление запрещено';
+                    $_POST['ids'] = json_decode($_POST['ids']);
+                    $this->Table->setWebIdInterval($_POST['ids']);
 
                     $result = $this->Table->modify(
                         $_POST['tableData'] ?? [],
-                        ['add' => $_POST['data'] ?? []]
+                        ['add' => $_POST['data'] ?? [], 'addAfter' => $_POST['insertAfter'] ?? null]
                     );
                     break;
                 case 'getFieldLog':
@@ -443,7 +537,7 @@ row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; fiel
                     break;
                 case 'refresh':
 
-                    $result = $this->Table->getTableDataForRefresh();
+                    $result = $this->Table->getTableDataForRefresh($_POST['offset'] ?? null, $_POST['onPage'] ?? null);
 
                     break;
                 case 'selectSourceTableAction':
@@ -524,7 +618,8 @@ row: rowCreate(field: "data" = $#DATA)');
                                 $_POST['tableData'] ?? [],
                                 ['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => $_POST['data']], 'addAfter' => ($_POST['insertAfter'] ?? null)]);
                         }
-                        $result = $this->Table->getTableDataForRefresh();
+                        $result = $this->Table->getTableDataForRefresh($_POST['offset'] ?? null,
+                            $_POST['onPage'] ?? null);
 
 
                     }
@@ -671,7 +766,7 @@ row: rowCreate(field: "data" = $#DATA)');
                 ($t['type'] == 'link' ? ['link' => $t['link']] : []) + [
                     'id' => 'tree' . $t['id']
                     , 'text' => $t['title']
-                    , 'type' => $t['type'] ? ($t['type']=='anchor'?"link":$t['type']) : 'folder'
+                    , 'type' => $t['type'] ? ($t['type'] == 'anchor' ? "link" : $t['type']) : 'folder'
                     , 'link' => $t['type'] == 'anchor' ? ('/Table/' . $t['id'] . '/') : null
                     , 'parent' => ($parent = (!$t['parent_id'] ? '#' : 'tree' . $t['parent_id']))
                     , 'state' => [
@@ -679,8 +774,7 @@ row: rowCreate(field: "data" = $#DATA)');
                     ]
                 ]
                 + (
-                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : [])
-                ;
+                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []);
             if ($t['type'] != "link")
                 $branchIds[] = $t['id'];
         }
@@ -812,7 +906,7 @@ row: rowCreate(field: "data" = $#DATA)');
 
         $this->Table->setFilters($_GET['f'] ?? '');
 
-        $tableData = $this->Table->getTableDataForInterface();
+        $tableData = $this->Table->getTableDataForInterface(false, $this->Table->getTableRow()['pagination'] !== '0/0');
 
         $tableData['fields'] = $this->getFieldsForClient($tableData['fields']);
         $this->__addAnswerVar('table', $tableData);
@@ -1117,7 +1211,7 @@ row: rowCreate(field: "data" = $#DATA)');
 
         }
 
-        $refresh = $this->Table->getTableDataForRefresh();
+        $refresh = $this->Table->getTableDataForRefresh($_POST['offset'] ?? null, $_POST['onPage'] ?? null);
 
         Sql::transactionCommit();
         return $refresh;

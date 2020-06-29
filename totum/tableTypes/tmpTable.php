@@ -79,10 +79,10 @@ class tmpTable extends JsonTables
 
     }
 
-    function getTableDataForInterface($withoutRows = false)
+    function getTableDataForInterface($withoutRows = false, $withoutRowsData = false)
     {
 
-        $r = parent::getTableDataForInterface($withoutRows);
+        $r = parent::getTableDataForInterface($withoutRows, $withoutRowsData);
         $this->saveTable();
         return $r;
     }

@@ -33,6 +33,10 @@ class tmpTable extends JsonTables
      */
     private $key;
 
+    static protected function getKey($tableName, $hash)
+    {
+        return ['table_name' => $tableName, 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+    }
 
     function __construct($tableRow, Cycle $Cycle, $light = false, $hash = null)
     {
@@ -41,7 +45,7 @@ class tmpTable extends JsonTables
         if (is_null($hash)) {
             do {
                 $hash = md5(microtime(true) . '_' . $tableRow['name'] . '_' . mt_srand());
-                $this->key = ['table_name' => $tableRow['name'], 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+                $this->key = static::getKey($tableRow['name'], $hash);
             } while ($this->model->getField('user_id', $this->key));
 
             $this->savedTbl = $this->tbl = $this->getNewTblForRecalculate();
@@ -186,6 +190,11 @@ class tmpTable extends JsonTables
     {
 
         return $this->updated ?? static::getUpdatedJson();
+    }
+
+    static function checkTableExists($tableName, $hash)
+    {
+        return Model::initService('_tmp_tables')->get(static::getKey($tableName, $hash));
     }
 
     function loadDataRow($fromConstructor = false, $force = false)

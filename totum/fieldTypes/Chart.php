@@ -40,7 +40,9 @@ class Chart extends NoValueField
             if ($format = $this->chartFormat->exec($this->data, [], $row, $row, $tbl, $tbl, $this->table, [])) {
                 $valArray['ch'] = $format;
             }
-            $this->addInControllerLog('ch', $this->chartFormat->getLogVar(), $row);
+            $this->addInControllerLog('f',
+                ["text" => "Формирование графика", "children" => [$this->chartFormat->getLogVar()]],
+                $row);
         }
     }
 }

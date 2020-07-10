@@ -123,15 +123,18 @@ class cyclesTable extends RealTables
         return parent::loadRowsByParams($params, $order);
     }
 
-    protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck=false)
+    protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck = false)
     {
         $addedRow = parent::addRow($channel, $addData, $fromDuplicate, $addWithId, $duplicatedId, $isCheck);
+
         if (!$fromDuplicate && !$isCheck) {
-            $Cycle = Cycle::create($this->tableRow['id'], $addedRow['id']);
-            if ($channel == 'web' && $Cycle->getFirstTableId()) {
-                $action = new CalculateAction('=: linkToTable(table: ' . $Cycle->getFirstTableId() . '; cycle: ' . $addedRow['id'] . ')');
-                $action->execAction('addingRow', [], [], [], [], $this);
-            }
+            $this->changeIds['rowOperations'][] = function () use ($addedRow, $channel) {
+                $Cycle = Cycle::create($this->tableRow['id'], $addedRow['id']);
+                if ($channel == 'web' && $Cycle->getFirstTableId()) {
+                    $action = new CalculateAction('=: linkToTable(table: ' . $Cycle->getFirstTableId() . '; cycle: ' . $addedRow['id'] . ')');
+                    $action->execAction('addingRow', [], [], [], [], $this);
+                }
+            };
         }
         return $addedRow;
     }
@@ -140,15 +143,17 @@ class cyclesTable extends RealTables
     {
         $newRow = parent::duplicateRow($channel, $baseRow, $replaces, $addAfter);
 
-        $cyclesVersion = tableTypes::getTableByName('calcstable_cycle_version')->actionDuplicate(
+        tableTypes::getTableByName('calcstable_cycle_version')->actionDuplicate(
             ['cycle' => $newRow['id']],
             [
                 ['field' => 'cycles_table', 'operator' => '=', 'value' => $this->tableRow['id']]
-                ,['field' => 'cycle', 'operator' => '=', 'value' => $baseRow['id']]
+                , ['field' => 'cycle', 'operator' => '=', 'value' => $baseRow['id']]
             ]
         );
+        $this->changeIds['rowOperations'][] = function () use ($baseRow, $newRow) {
+            Cycle::duplicate($this->tableRow['id'], $baseRow['id'], $newRow['id']);
+        };
 
-        Cycle::duplicate($this->tableRow['id'], $baseRow['id'], $newRow['id']);
         $newRow = $this->model->getById($newRow['id']);
 
         return $newRow;

@@ -810,7 +810,7 @@ row: rowCreate(field: "data" = $#DATA)');
                     , 'href' => '#'
                     , 'text' => $this->Cycle->getRowName()
                     , 'type' => 'cycle_name'
-                    , 'parent' => 'table' . $this->Table->getTableRow()['tree_node_id']
+                    , 'parent' => ($this->anchorId ? 'tree' . $this->anchorId : 'table' . $this->Table->getTableRow()['tree_node_id'])
                     , 'state' => [
                         'selected' => false
                     ]
@@ -834,9 +834,19 @@ row: rowCreate(field: "data" = $#DATA)');
                                 'selected' => ($this->Table && $this->Table->getTableRow()['id'] == $tId ? true : false)
                             ]
                         ];
-                        if ($i === 0 && !empty($cycleRow)) {
-                            $cycleRow['href'] = $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId;
+                        if ($this->anchorId) {
+                            unset($tree[count($tree) - 1]['href']);
+                            $tree[count($tree) - 1]['link'] = '/Table/' . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                         }
+                        if ($i === 0 && !empty($cycleRow)) {
+
+                            if ($this->anchorId) {
+                                $cycleRow['link'] = '/Table/' . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
+                            } else {
+                                $cycleRow['href'] = $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId;
+                            }
+                        }
+
                     }
                 }
             }
@@ -1079,15 +1089,39 @@ row: rowCreate(field: "data" = $#DATA)');
         }
 
 
-        if ($tableUri && preg_match('/^(\d+)\/(\d+)\/(\d+)/', $tableUri, $tableMatches)) {
+        if ($tableUri && (preg_match('/^(\d+)\/(\d+)\/(\d+)/',
+                    $tableUri,
+                    $tableMatches) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
+
+            if (empty($tableMatches[3])) {
+                $tableRow = Table::getTableRowById($tableMatches[2]);
+                if ($tableRow['type'] !== 'calcs') {
+                    throw new errorException('Ошибка строки доступа');
+                }
+                $tableId = $tableMatches[2];
+                $tableMatches[2] = $tableMatches[1];
+                $tableMatches[1] = $tableRow['tree_node_id'];
+                $branchData = tableTypes::getTableByName('tree')->getByParams(['field' => ['html', 'type', 'default_table', 'filters', 'top'], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $this->branchId]]],
+                    'row');
+                switch ($branchData['type']) {
+                    case null:
+                        $this->__addAnswerVar('html', $branchData['html']);
+                        break;
+                    case 'anchor':
+                        $this->anchorId = $this->branchId;
+                        $this->branchId = $branchData['top'];
+                        break;
+                }
+
+            } else {
+                $tableId = $tableMatches[3];
+            }
+
 
             $this->Cycle = Cycle::init($tableMatches[2], $tableMatches[1]);
             if (!$this->Cycle->loadRow()) {
                 throw new errorException('Цикл не найден');
             }
-
-
-            $tableId = $tableMatches[3];
 
             if (!array_key_exists($tableId, Auth::$aUser->getTables())) {
                 $this->__addAnswerVar('error', 'Доступ к таблице запрещен');

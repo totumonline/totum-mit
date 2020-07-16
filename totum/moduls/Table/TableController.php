@@ -129,9 +129,15 @@ class TableController extends interfaceController
                                         $result['notification_id'] = $row['id'];
                                     }
                                     if ($actived) {
+                                        $result['deactivated']=[];
                                         if ($ids = Model::init('notifications')->getAllIds(['id' => $actived, 'user_id' => Auth::$aUser->getId(), 'active' => 'false'])) {
-                                            $result['deactivated'] = $ids;
+                                            $result['deactivated'] = array_merge($result['deactivated'], $ids);
                                         }
+                                        if ($ids = Model::init('notifications')->getAllIds(['id' => $actived, 'user_id' => Auth::$aUser->getId(), 'active' => 'true', 'active_dt_from->>$$v$$>\''.date('Y-m-d H:i').'\''])) {
+                                            $result['deactivated'] = array_merge($result['deactivated'], $ids);
+                                        }
+                                        if(empty($result['deactivated']))
+                                            unset($result['deactivated']);
                                     }
                                     return $result;
                                 };

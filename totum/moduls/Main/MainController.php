@@ -25,7 +25,9 @@ class MainController extends interfaceController
 {
     function actionMain()
     {
-        foreach (Model::init('tables')->getAll(['id' => Auth::$aUser->getFavoriteTables()], 'id, top, title, type', 'sort') as $t) {
+        foreach (Model::init('tables')->getAll(['id' => Auth::$aUser->getFavoriteTables()],
+            'id, top, title, type',
+            'sort') as $t) {
 
             $tree[] = [
                 'id' => 'table' . $t['id']
@@ -57,13 +59,13 @@ class MainController extends interfaceController
                 break;
             case 'getNotificationsTable':
 
-                $Calc=new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "Нотификации"; width: 800; height: "80vh"; refresh: false; header: true; footer: true)');
+                $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "Нотификации"; width: 800; height: "80vh"; refresh: false; header: true; footer: true)');
                 $Calc->execAction('KOD', [], [], [], [], tableTypes::getTableByName('tables'));
 
                 break;
             case 'notificationUpdate':
                 if (!empty($_POST['id'])) {
-                    if ($row = Model::init('notifications')->get(['id' => (int)$_POST['id'], 'user_id' => Auth::$aUser->getId()])) {
+                    if ($rows = Model::init('notifications')->getAll(['id' => $_POST['id'], 'user_id' => Auth::$aUser->getId()])) {
                         $upd = [];
                         switch ($_POST['type']) {
                             case 'deactivate':
@@ -72,12 +74,22 @@ class MainController extends interfaceController
                             case 'later':
 
                                 $date = date_create();
-                                $date->modify('+5 minutes');
+                                if (empty($_POST['num']) || empty($_POST['item'])) {
+                                    $date->modify('+5 minutes');
+                                } else {
+                                    $items = [1 => 'minutes', 'hours', 'days'];
+                                    $date->modify('+' . $_POST['num'] . ' ' . ($items[$_POST['item']] ?? 'minutes'));
+                                }
 
                                 $upd = ['active_dt_from' => $date->format('Y-m-d H:i')];
                                 break;
                         }
-                        tableTypes::getTableByName('notifications')->reCalculateFromOvers(['modify' => [$row['id'] => $upd]]);
+
+                        $md = [];
+                        foreach ($rows as $row) {
+                            $md[$row['id']] = $upd;
+                        }
+                        tableTypes::getTableByName('notifications')->reCalculateFromOvers(['modify' => $md]);
                     }
                 }
                 $result = ['ok' => 1];

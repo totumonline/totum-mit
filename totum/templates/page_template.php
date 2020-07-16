@@ -7,7 +7,7 @@
     <script src="/js/libs.js?v=40c5077"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=74c14de">
+          href="/css/main.css?v=441aee5">
 
     <? if (\totum\common\Auth::isCreator()) { ?>
         <script src="/js/functions.json?v=7c1298a"></script>
@@ -17,7 +17,7 @@
         } ?>
     <? } ?>
 
-    <script src="/js/main.js?v=11f3659"></script>
+    <script src="/js/main.js?v=247fbbb"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

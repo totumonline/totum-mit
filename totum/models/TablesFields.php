@@ -225,7 +225,7 @@ class TablesFields extends Model
             throw new errorException('Выберите таблицу');
         }
         if ($decodedVars['name'] == 'new_field') {
-            throw new errorException('Заполните корректно развание поля');
+            throw new errorException('Name поля не может быть new_field');
         }
         if (in_array($decodedVars['name'], Model::serviceFields)) {
             throw new errorException('[[' . $decodedVars['name'] . ']] - название технического поля. Выберите другое имя');

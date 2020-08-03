@@ -13,7 +13,13 @@ use totum\common\Field;
 
 class Password extends Field
 {
-
+    function getModifiedLogValue($val){
+        return "---";
+    }
+    function getLogValue($val, $row, $tbl = [])
+    {
+        return "---";
+    }
     function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         if ($viewType != 'edit') {

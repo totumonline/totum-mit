@@ -25,6 +25,7 @@ if (!Auth::isAuthorized()) {
                             Auth::$aUser->getRoles());
 
                     foreach ($topBranches as $branch) {
+
                         $href = '/Table/' . $branch['id'] . '/';
                         if (!empty($branch['default_table']) && Auth::$aUser->isTableInAccess($branch['default_table'])) $href .= $branch['default_table'] . '/';
                         ?>
@@ -32,10 +33,18 @@ if (!Auth::isAuthorized()) {
                             <a href="<?= $href ?>">
                                 <?= htmlspecialchars($branch['title']) ?>
                             </a></li>
-                    <? }
-                    if (Auth::isCreator()) {?>
-                        <li class="plus-top-branch" onClick="(new EditPanel(window.TREE_TABLE_ID, BootstrapDialog.TYPE_DANGER, {})).then(function (json) { if (json) window.location.href=('/Table/'+json.chdata.rows[Object.keys(json.chdata.rows)[0]].id+'/');})"><a><i class="fa fa-plus"></i></a></li>
-                    <?}?>
+                    <?php }
+                    if (Auth::isCreator() && $Branch) { ?>
+                        <li class="plus-top-branch"
+                            onClick="(new EditPanel(window.TREE_TABLE_ID, BootstrapDialog.TYPE_DANGER, {id: <?= $Branch ?>})).then(function (json) { if (json) window.location.reload() })">
+                            <a><i class="fa fa-edit"></i></a></li>
+                    <?
+                    }
+                    if (Auth::isCreator()) { ?>
+                        <li class="plus-top-branch"
+                            onClick="(new EditPanel(window.TREE_TABLE_ID, BootstrapDialog.TYPE_DANGER, {})).then(function (json) { if (json) window.location.href=('/Table/'+json.chdata.rows[Object.keys(json.chdata.rows)[0]].id+'/');})">
+                            <a><i class="fa fa-plus"></i></a></li>
+                    <?php }?>
 
                 </ul>
 
@@ -63,7 +72,7 @@ if (!Auth::isAuthorized()) {
                             App.reUserInterface(reUsers, <?=Auth::isCreatorNotItself() ? 'true' : 'false'?>);
                         }());
                     </script>
-                <? } ?>
+                <?php } ?>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>

@@ -12,7 +12,7 @@ if (empty($table)) {
                     Выберите таблицу
                 </div>
             </div>
-            <?
+            <?php
         }
     }
     return;
@@ -26,7 +26,7 @@ if (empty($table)) {
     }
     var TableModel = App.models.table(window.location.href, {'updated': <?=($table['updated'])?><?=($this->Table->getTableRow()['sess_hash'] ?? null) ? ', sess_hash: "' . $this->Table->getTableRow()['sess_hash'] . '"' : ''?>})
 </script>
-<?
+<?php
 $forJsonObj = [
     'type' => $table['type']
     , 'control' => [

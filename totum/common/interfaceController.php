@@ -82,6 +82,7 @@ abstract class interfaceController extends Controller
         return ['previews' => $Field->getPreviewHtml($data['val'], $row, $this->Table->getTbl())];
 
     }
+
     protected function __runAuth($action)
     {
         if (!Auth::isAuthorized()) {
@@ -192,6 +193,19 @@ abstract class interfaceController extends Controller
     function getFieldsForClient($fields)
     {
         foreach ($fields as &$field) {
+            if (key_exists('format', $field)) {
+                $panelFormatExists = false;
+                foreach ($field['format'] as $k => $c) {
+                    if (preg_match('/^p\d+=$/', $k)) {
+                        $panelFormatExists = true;
+                        break;
+                    }
+                }
+                if ($panelFormatExists) {
+                    $field['formatInPanel'] = true;
+                }
+            }
+
             foreach (_Table::fieldCodeParams as $param) {
                 if (!empty($field[$param])) $field[$param] = true;
             }
@@ -224,13 +238,13 @@ abstract class interfaceController extends Controller
         $_tableRow = array_intersect_key($tableRow, array_flip($fields));
         if ($tableRow['type'] === 'cycles') {
             try {
-                    $_tableRow['__firstUserTable'] =
+                $_tableRow['__firstUserTable'] =
                     tableTypes::getTableByName('tables')->getByParams(
                         ['where' => [
-                            ['field'=>'type', 'operator'=>'=', 'value'=>'calcs'],
-                            ['field'=>'tree_node_id', 'operator'=>'=', 'value'=>$tableRow['id']],
-                            ['field'=>'id', 'operator'=>'=', 'value'=>array_keys(Auth::$aUser->getTreeTables())],
-                            ],
+                            ['field' => 'type', 'operator' => '=', 'value' => 'calcs'],
+                            ['field' => 'tree_node_id', 'operator' => '=', 'value' => $tableRow['id']],
+                            ['field' => 'id', 'operator' => '=', 'value' => array_keys(Auth::$aUser->getTreeTables())],
+                        ],
                             'order' => [['field' => 'sort', 'ad' => 'asc']], 'field' => 'id'],
                         'field');
             } catch (errorException $e) {

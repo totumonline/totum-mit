@@ -216,7 +216,7 @@ class AuthController extends interfaceController
             }
 
             if ($userRow) {
-                if (json_decode($userRow['pass'], true)['v'] === md5($_POST['pass'])) {
+                if (Auth::checkUserPass($_POST['pass'], json_decode($userRow['pass'], true)['v'])) {
                     Auth::webInterfaceSetAuth($userRow['id']);
 
                     $this->location();

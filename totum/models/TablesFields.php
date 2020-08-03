@@ -99,7 +99,7 @@ class TablesFields extends Model
 
                     if ($fForLink) {
                         $fieldFromLinkParams = [];
-                        foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'codeSelect', 'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency', 'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull', 'viewTextMaxLength', 'values'] as $fV) {
+                        foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect', 'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency', 'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull', 'viewTextMaxLength', 'values'] as $fV) {
                             if (isset($fForLink[$fV])) {
                                 $fieldFromLinkParams[$fV] = $fForLink[$fV];
                             }

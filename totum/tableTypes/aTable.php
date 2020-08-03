@@ -98,6 +98,48 @@ abstract class aTable extends _Table
         $this->anchorFilters = $anchorFilters;
     }
 
+    function checkIsUserCanViewIds($ids, $channel, $loadForse = false)
+    {
+        if ($channel != 'inner') {
+            $filtered = false;
+
+            $filtersFields = $channel == 'web' ? $this->sortedFields["filter"] : $this->sortedXmlFields["filter"];
+
+            if (!Auth::isCreator() && $filtersFields) {
+                $this->reCalculateFilters($channel, $inVars['isEditFilters'] ?? false);
+
+                foreach (array_intersect_key($this->tbl['params'],
+                    $filtersFields) as $flName => $flValues) {
+                    if (!is_null($fVal_V = $this->tbl['params'][$flName]['v']) //не "Все"
+                        && !(is_array($fVal_V) && count($fVal_V) == 0)
+                        && !($fVal_V === '*ALL*' && in_array($this->sortedFields['filter'][$flName]['type'],
+                                ['tree', 'select'])
+                        )
+                        && (!Field::init($this->sortedFields['filter'][$flName],
+                            $this)->isChannelChangeable('modify',
+                            $channel)) // если фильтр не доступен ему на редактирование
+                    ) {
+                        $filtered = true;
+                        break;
+                    }
+
+                }
+            }
+            if ($filtered) {
+                $getFiltered = $this->getFilteredIds($channel, $ids);
+                foreach ($ids as $id) {
+                    if (!in_array($id, $getFiltered)) {
+                        throw new errorException('Строка с id ' . $id . ' недоступна вам с текущими настроками фильтров.');
+                    }
+                }
+            }
+
+            if ($loadForse) {
+                $this->loadRowsByIds($ids);
+            }
+        }
+    }
+
     protected function checkIsUserCanModifyIds($modify, $removeIds, $channel)
     {
         unset($modify['params']);
@@ -1835,7 +1877,7 @@ abstract class aTable extends _Table
                                 $thisRow,
                                 $newTbl)
                             ,
-                            $channel == 'inner' ? 'скрипт' : $modified[$Field->getName()]]]
+                            $channel == 'inner' ? 'скрипт' : $Field->getModifiedLogValue($modified[$Field->getName()])]]
                     );
                 } elseif (key_exists($Field->getName(),
                     $setValuesToDefaults)) {
@@ -2360,7 +2402,7 @@ abstract class aTable extends _Table
 
             $paramNames = [];
             $paramValues = [];
-
+            $paramTitles = [];
 
             foreach ($categoriFields as $field) {
                 if (!in_array($field['name'], $visibleFields)) continue;

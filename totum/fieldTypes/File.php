@@ -38,6 +38,8 @@ class File extends Field
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         switch ($viewType) {
             case 'csv':
+                throw new errorException('Поле типа файл нельзя использовать в csv-экспорт');
+
                 $data = [];
 
                 foreach ($valArray['v'] as $fileData) {
@@ -63,10 +65,14 @@ class File extends Field
         }
 
     }
+
     function getValueFromCsv($val)
     {
-        return $val = json_decode(base64_decode($val), true);
+        throw new errorException('Поле типа файл нельзя использовать в csv-импорт');
+
+        //return $val = json_decode(base64_decode($val), true);
     }
+
     static function getDir($host = null)
     {
         $dir = 'http/fls/' . (Conf::getHostForDir($host ?? Conf::getFullHostName())) . '/';

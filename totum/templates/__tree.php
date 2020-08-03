@@ -8,7 +8,9 @@ if (!\totum\common\Auth::isAuthorized()) return;
     <div id="TreeMaximizer"><span class="fa fa-bars"></span></div>
     <div class="TreeContainer">
         <a class="totum-brand" href="/"><span><?=Settings::init()->getParam('totum_name')??'TOTUM'?></span></a> <span class="fa fa-times" id="TreeMinimizer"></span>
-
+        <?php if(!empty($Branch)){?>
+            <div id="branch-title"><?=$BranchTitle ?></div>
+        <?php }?>
         <div id="leftTree"
              style=""></div>
     </div>

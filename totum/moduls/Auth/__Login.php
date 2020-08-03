@@ -1,4 +1,4 @@
-<?
+<?php
 
 use totum\config\Conf;
 
@@ -44,20 +44,20 @@ use totum\config\Conf;
 
             </div>
         </form>
-        <? if ($with_pass_recover) { ?>
+        <?php if ($with_pass_recover) { ?>
             <button
                     style=";margin-top:4px;"
                     id="recover"
                     class="form-control btn btn-default">Отправить новый пароль на email
             </button>
-        <? } ?><? if ($with_register) { ?>
+        <?php } ?><?php if ($with_register) { ?>
             <input type="button"
                    id="register"
                    value="Зарегистрироваться"
                    style=";margin-top:4px;"
                    id="regiter"
                    class="form-control btn btn-default"/>
-        <? } ?>
+        <?php } ?>
     </div>
 </div>
 

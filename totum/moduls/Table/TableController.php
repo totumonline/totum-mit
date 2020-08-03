@@ -12,6 +12,7 @@ namespace totum\moduls\Table;
 use totum\common\aLog;
 use totum\common\Calculate;
 use totum\common\CalculateAction;
+use totum\common\CalculcateFormat;
 use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
@@ -129,14 +130,14 @@ class TableController extends interfaceController
                                         $result['notification_id'] = $row['id'];
                                     }
                                     if ($actived) {
-                                        $result['deactivated']=[];
+                                        $result['deactivated'] = [];
                                         if ($ids = Model::init('notifications')->getAllIds(['id' => $actived, 'user_id' => Auth::$aUser->getId(), 'active' => 'false'])) {
                                             $result['deactivated'] = array_merge($result['deactivated'], $ids);
                                         }
-                                        if ($ids = Model::init('notifications')->getAllIds(['id' => $actived, 'user_id' => Auth::$aUser->getId(), 'active' => 'true', 'active_dt_from->>$$v$$>\''.date('Y-m-d H:i').'\''])) {
+                                        if ($ids = Model::init('notifications')->getAllIds(['id' => $actived, 'user_id' => Auth::$aUser->getId(), 'active' => 'true', 'active_dt_from->>$$v$$>\'' . date('Y-m-d H:i') . '\''])) {
                                             $result['deactivated'] = array_merge($result['deactivated'], $ids);
                                         }
-                                        if(empty($result['deactivated']))
+                                        if (empty($result['deactivated']))
                                             unset($result['deactivated']);
                                     }
                                     return $result;
@@ -190,7 +191,7 @@ class TableController extends interfaceController
 
         try {
             if ($this->onlyRead && !in_array($method,
-                    ['loadPage', 'linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+                    ['getPanelFormats', 'loadPage', 'linkButtonsClick', 'loadPage', 'linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
 
             if (!empty($_POST['data']) && is_string($_POST['data'])) $_POST['data'] = json_decode($_POST['data'], true);
 
@@ -201,6 +202,72 @@ class TableController extends interfaceController
             $this->Table->setFilters($_POST['filters'] ?? '');
 
             switch ($method) {
+                case 'panelButtonsClear':
+
+                    $model = Model::initService('_tmp_tables');
+                    $key = ['table_name' => '_panelbuttons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
+                    $model->delete($key);
+
+                    break;
+                case 'panelButtonsClick':
+                    $model = Model::initService('_tmp_tables');
+                    $key = ['table_name' => '_panelbuttons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
+                    if ($data = $model->getField('tbl', $key)) {
+                        $data = json_decode($data, true);
+                        foreach ($data as $row) {
+                            if ($row['ind'] == ($_POST['index'] ?? null)) {
+                                $CA = new CalculateAction($row['code']);
+                                try {
+                                    if ($row['id']) {
+                                        $this->Table->checkIsUserCanViewIds([$row['id']], 'web', true);
+                                        $item = $this->Table->getTbl()["rows"][$row['id']];
+                                    } else {
+                                        $item = $this->Table->getTbl()['params'];
+                                    }
+
+                                    $CA->execAction($row['field'],
+                                        [],
+                                        $item,
+                                        [],
+                                        $this->Table->getTbl(),
+                                        $this->Table,
+                                        $row['vars'] ?? []);
+                                    static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
+                                } catch (errorException $e) {
+                                    static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
+                                    throw $e;
+                                }
+                                break;
+                            }
+                        }
+
+                    } else {
+                        throw new errorException('Предложенный выбор устарел.');
+                    }
+                    break;
+                case 'getPanelFormats':
+                    $result = null;
+                    if (!empty($_POST['field']) && !empty($field = $this->Table->getFields()[$_POST['field']])) {
+                        $clc = new CalculcateFormat($field['format']);
+                        $tbl = $this->Table->getTbl();
+                        $item = $tbl['params'];
+                        if ($field['category'] === 'column') {
+                            $this->Table->checkIsUserCanViewIds([$_POST['id']], 'web', true);
+                            $item = $this->Table->getTbl()["rows"][$_POST['id']];
+                        }
+
+                        $result = $clc->getPanelFormat($field['name'],
+                            $item,
+                            $tbl,
+                            $this->Table);
+                        static::addLogVar($this->Table,
+                            ['Формат панели ' . $field['name'] . ' ' . ($_POST['id'] ? '(' . $_POST['id'] . ')' : '')],
+                            'f',
+                            $clc->getLogVar());
+
+                    }
+                    $result = ['panelFormats' => $result];
+                    break;
                 case 'loadPage':
 
                     $this->Table->reCalculateFilters('web');
@@ -763,6 +830,7 @@ row: rowCreate(field: "data" = $#DATA)');
             if (!$t['parent_id']) {
                 if ($t['id'] == $this->branchId) {
                     $this->__addAnswerVar('title', $t['title']);
+                    $this->__addAnswerVar('BranchTitle', $t['title']);
                 }
                 $topBranches[] = $t;
                 if ($t['top'] != $this->branchId) continue;
@@ -858,7 +926,17 @@ row: rowCreate(field: "data" = $#DATA)');
             }
         }
 
+
+
+        foreach ($tree as $i => $_t) {
+            if ($_t['id'] === 'tree' . $this->branchId) {
+                unset($tree[$i]);
+            } elseif ($_t['parent'] === 'tree' . $this->branchId) {
+                $tree[$i]['parent'] = '#';
+            }
+        }
         $tree = array_values($tree);
+
 
         $this->__addAnswerVar('topBranches', $topBranches);
         $this->__addAnswerVar('treeData', $tree);

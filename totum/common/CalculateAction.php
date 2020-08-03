@@ -209,6 +209,8 @@ class CalculateAction extends Calculate
         $model->insert($vars,
             false);
         $params['hash'] = $hash;
+
+        $params['buttons'] = $buttons;
         Controller::addToInterfaceDatas('buttons', $params);
 
 
@@ -236,7 +238,8 @@ class CalculateAction extends Calculate
         $model->insert($vars,
             false);
         $params['hash'] = $hash;
-        Controller::addToInterfaceDatas('input', array_intersect_key($params, ["title"=>1, "html"=>1, "hash"=>1, "refresh"=>1, "button"=>1]));
+        Controller::addToInterfaceDatas('input',
+            array_intersect_key($params, ["title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1]));
     }
 
     protected
@@ -1043,43 +1046,71 @@ class CalculateAction extends Calculate
     protected
     function funcInsertListExt($params)
     {
-        $params = $this->getParamsArray($params, ['fields', 'field'], ['field']);
-
+        $params = $this->getParamsArray($params, ['field'], ['field']);
         $MainList = [];
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'InsertListExtended');
 
-        foreach ($params['fields'] as $i => $rowList) {
-            if ($rowList) {
-                $this->__checkListParam($rowList, 'fields' . (++$i), 'InsertListExtended');
-                $max = count($MainList) > count($rowList) ? count($MainList) : count($rowList);
-                for ($i = 0; $i < $max; $i++) {
-                    $MainList[$i] = array_replace($MainList[$i] ?? [], $rowList[$i] ?? []);
-                }
+        if ($params['fields'] ?? null) {
+
+            if(!is_array($params['fields'])){
+                throw new errorException('Параметр fields должен быть row или list');
             }
-        }
-        foreach ($params['field'] ?? [] as $i => $field) {
-            $field = $this->getExecParamVal($field);
-            $k = array_keys($field)[0];
-            $v = array_values($field)[0];
-            if (is_array($v) && array_key_exists(0, $v)) {
 
-                $max = count($MainList) > count($v) ? count($MainList) : count($v);
-                for ($i = 0; $i < $max; $i++) {
-                    $MainList[$i] = array_replace($MainList[$i] ?? [], [$k => $v[$i] ?? null]);
+            if (ctype_digit((string)array_keys($params['fields'])[0])) {
+                /*Массив из row как от функции selectRowList*/
+                foreach ($params['fields'] as $i => $row) {
+                    foreach ($row as $f => $val) {
+                        $MainList[$f][$i] = $val ?? null;
+                    }
                 }
-
             } else {
-                $max = count($MainList);
-                for ($i = 0; $i < $max; $i++) {
-                    $MainList[$i] = array_replace($MainList[$i] ?? [], [$k => $v]);
-                }
+                /*row листов*/
+                $MainList = $params['fields'];
             }
         }
 
-        if (($rowList = $MainList) && $params = $this->getParamsArray($params,
-                ['field', 'cycle'],
-                ['field'])) {
-            if (empty($params['cycle']) && in_array($this->aTable->getTableRow()['type'], ['calcs', 'globcalcs'])) {
-                $params['cycle'] = [$this->aTable->getCycle()->getId()];
+        $rows = $MainList;
+        foreach ($params['field'] as $f) {
+            $f = $this->getExecParamVal($f);
+            $rows = array_replace($rows, $f);
+        }
+
+        $listCount = 0;
+        $rowList = [];
+        foreach ($rows as $f => $list) {
+            if (is_array($rows[$f]) && key_exists(0, $rows[$f])) {
+                if (count($rows[$f]) > $listCount) $listCount = count($rows[$f]);
+            }
+        }
+        foreach ($rows as $f => &$list) {
+            if (!is_array($rows[$f]) || !key_exists(0, $rows[$f])) {
+                $list = array_fill(0, $listCount, $list);
+            } else {
+                if (count($list) < $listCount) {
+                    $diff = $listCount - count($list);
+                    for ($i = 0; $i < $diff; $i++) {
+                        $list[] = null;
+                    }
+                }
+
+            }
+            $list = array_values($list);
+        }
+        unset($list);
+
+        for ($i = 0; $i < $listCount; $i++) {
+            $rowList[$i] = [];
+            foreach ($rows as $f => $list) {
+                $rowList[$i][$f] = $list[$i];
+            }
+        }
+
+        if (($rowList)) {
+            if ($tableRow['type'] === 'calcs') {
+                if (empty($params['cycle']) && $this->aTable->getTableRow()['type'] === 'calcs')
+                    $params['cycle'] = [$this->aTable->getCycle()->getId()];
+            } else {
+                unset($params['cycle']);
             }
 
             $addedIds = [];
@@ -1090,8 +1121,7 @@ class CalculateAction extends Calculate
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
-
-                $addedIds[] = $table->actionInsert(null, $rowList, $params['after'] ?? null);
+                $addedIds = array_merge($addedIds, $table->actionInsert(null, $rowList, $params['after'] ?? null));
             };
 
             if (!empty($params['cycle'])) {
@@ -1111,36 +1141,7 @@ class CalculateAction extends Calculate
     protected
     function funcInsertList($params)
     {
-        if (($rowList = $this->funcRowListCreate($params)) && $params = $this->getParamsArray($params,
-                ['field', 'cycle'],
-                ['field'])) {
-            if (empty($params['cycle']) && in_array($this->aTable->getTableRow()['type'], ['calcs', 'globcalcs'])) {
-                $params['cycle'] = [$this->aTable->getCycle()->getId()];
-            }
-
-            $addedIds = [];
-
-            $funcSet = function ($params) use ($rowList, &$addedIds) {
-                $table = $this->__getActionTable($params, 'Insert');
-                if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
-                }
-
-                $addedIds = array_merge($addedIds, $table->actionInsert(null, $rowList, $params['after'] ?? null));
-            };
-
-            if (!empty($params['cycle'])) {
-                $cycleIds = (array)$params['cycle'];
-                foreach ($cycleIds as $cycleId) {
-                    $params['cycle'] = $cycleId;
-                    $funcSet($params);
-                }
-            } else {
-                $funcSet($params);
-            }
-            aTable::$isActionRecalculateDone = true;
-            if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
-        }
+        return $this->funcInsertListExt($params);
     }
 
     protected

@@ -1,10 +1,12 @@
-<? use totum\common\Auth;
+<?php
+
+use totum\common\Auth;
 use totum\common\Crypt;
 use totum\models\Table;
 
 if (empty($table)) {
     if (empty($error)) {
-        if (!empty($html)) echo '<div style="padding:40px; font-family: \'Open Sans\', sans-serif" id="text_main_page">' . $html . '</div>';
+        if (!empty($html)) echo '<div id="main-page">' . $html . '</div>';
         else {
             ?>
 
@@ -14,7 +16,7 @@ if (empty($table)) {
                 </div>
             </div>
 
-            <?
+            <?php
         }
         echo '<div id="page-tree"></div>';
     }
@@ -24,7 +26,7 @@ if (empty($table)) {
 <script>
     var TableModel = App.models.table(window.location.href, {'updated': <?=($table['updated'])?><?=($this->Table->getTableRow()['sess_hash'] ?? null) ? ', sess_hash: "' . $this->Table->getTableRow()['sess_hash'] . '"' : ''?>})
 </script>
-<?
+<?php
 $forJsonObj = [
     'type' => $table['type']
     , 'control' => [
@@ -90,7 +92,7 @@ if (!empty($_GET['a'])) {
     window.top_branch=<?=$this->branchId?>;
     let TableConfig = <?=json_encode($forJsonObj, JSON_UNESCAPED_UNICODE);?>;
     TableConfig.model = TableModel;
-    <? if ($LOGS ?? null) {
+    <?php if ($LOGS ?? null) {
 
         $jsLog = json_encode($LOGS, JSON_UNESCAPED_UNICODE | JSON_OBJECT_AS_ARRAY);
         echo 'TableConfig.LOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '","type":"error"}];') . ';';
@@ -99,12 +101,12 @@ if (!empty($_GET['a'])) {
         }
     }
     ?>
-    <? if ($FullLOGS ?? null) {
+    <?php if ($FullLOGS ?? null) {
         $jsLog = json_encode($FullLOGS, JSON_UNESCAPED_UNICODE | JSON_OBJECT_AS_ARRAY);
         echo 'TableConfig.FullLOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '"}];') . ';';
     }?>
 
-    <? if ($FieldLOGS ?? null) {
+    <?php if ($FieldLOGS ?? null) {
         $jsLog = json_encode($FieldLOGS, JSON_UNESCAPED_UNICODE | JSON_OBJECT_AS_ARRAY);
         echo 'TableConfig.FieldLOGS=' . ($jsLog !== false ? $jsLog : '[{"text":"jsonError: ' . json_last_error_msg() . '"}];') . ';';
     }?>

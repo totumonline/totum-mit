@@ -281,6 +281,9 @@ class Field
         }
     }
 
+    function getModifiedLogValue($val){
+        return $val;
+    }
     function isLogging()
     {
         if (array_key_exists('logging', $this->data) && $this->data['logging'] === false) return false;

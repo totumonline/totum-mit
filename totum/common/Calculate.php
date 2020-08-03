@@ -346,9 +346,9 @@ class Calculate
                     $r = in_array($operator, ['<=', '<', '!=', '!==']) ? true : false;
             }
 
-        } else if ($n2IsArray) {
+        } elseif ($n2IsArray) {
             return static::_compare_n_array($operator, $n, $n2, null, true);
-        } else if ($nIsArray) {
+        } elseif ($nIsArray) {
             return static::_compare_n_array($operator, $n2, $n, null, true);
         } else {
             switch (static::__compare_normalize($n) <=> static::__compare_normalize($n2)) {
@@ -1418,7 +1418,7 @@ class Calculate
                                 $rowVar = $this->row[$nameVar];
                             } elseif (key_exists($nameVar, $this->tbl['params'] ?? [])) {
                                 $rowVar = $this->tbl['params'][$nameVar];
-                            } else if (key_exists($nameVar,
+                            } elseif (key_exists($nameVar,
                                     $this->oldRow ?? []) && !key_exists($nameVar,
                                     $this->row ?? [])) {
                                 $rowVar = ['v' => null];
@@ -1885,6 +1885,28 @@ class Calculate
         } else throw new errorException('Ошибка параметров функции strMdF');
     }
 
+    protected function funcExecSSH($params)
+    {
+        $params = $this->getParamsArray($params);
+        if (empty($params['ssh'])) throw new errorException('Параметр ssh обязателен');
+        $string = $params['ssh'];
+        if ($params['vars'] ?? null) {
+            if (!is_array($params['vars'])) {
+                throw new errorException('Параметр vars должен быть списком или ассоциативным массивом');
+            }
+            if (key_exists('0', $params['vars'])) {
+                foreach ($params['vars'] as $v) {
+                    $string .= ' ' . escapeshellarg($v) . '';
+                }
+            } else {
+                foreach ($params['vars'] as $k => $v) {
+                    $string .= ' ' . escapeshellcmd($k) . '=' . escapeshellarg($v) . '';
+                }
+            }
+        }
+        return shell_exec($string);
+    }
+
     protected
     function funcDateAdd($params)
     {
@@ -2069,7 +2091,7 @@ class Calculate
             $this->vars[$params['name']] = $params['value'];
         } else {
             if (array_key_exists($params['name'], $this->vars)) ;
-            else if (array_key_exists('default', $params)) {
+            elseif (array_key_exists('default', $params)) {
                 $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
             } else {
                 throw new errorException('Параметр [[' . $params['name'] . ']] не был установлен в этом коде');
@@ -2668,7 +2690,7 @@ class Calculate
                         if (!$skip)
                             throw new errorException('Параметр не соответствует условиям фильтрации - значение не list');
                         return false;
-                    } else if (!array_key_exists($params['item'],
+                    } elseif (!array_key_exists($params['item'],
                         $v)) {
                         if (!$skip)
                             throw new errorException('Параметр не соответствует условиям фильтрации - item не найден');
@@ -2710,7 +2732,7 @@ class Calculate
 
         $filter = function ($v) use ($params) {
             if (!is_array($v)) throw new errorException('Параметр не соответствует условиям фильтрации - значение не list');
-            else if (!array_key_exists($params['item'],
+            elseif (!array_key_exists($params['item'],
                 $v)) throw new errorException('Параметр не соответствует условиям фильтрации - ключ [[' . $params['item'] . ']] не найден');
             return $v[$params['item']];
         };
@@ -2742,7 +2764,7 @@ class Calculate
 
                 $filter = function ($k, $v) use ($params) {
                     if (!is_array($v)) throw new errorException('Параметр не соответствует условиям поиска - значение не list');
-                    else if (!array_key_exists($params['item'],
+                    elseif (!array_key_exists($params['item'],
                         $v)) throw new errorException('Параметр не соответствует условиям поиска - item не найден');
                     return Calculate::compare($params['key']['operator'], $v[$params['item']], $params['key']['value']);
                 };
@@ -3399,7 +3421,7 @@ class Calculate
                 if (!is_numeric($var)) {
                     $var = $this->execSubCode($var, 'MathCode');
                 }
-            } else if (is_array($var)) {
+            } elseif (is_array($var)) {
                 if (($var['type'] ?? '') !== 'interval') {
                     throw new errorException('Не корректное значение в math ');
                 }

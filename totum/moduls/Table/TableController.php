@@ -709,7 +709,8 @@ row: rowCreate(field: "data" = $#DATA)');
                         $result = $this->Table->csvExport(
                             $_POST['tableData'] ?? [],
                             $_POST['sorted_ids'] ?? '[]',
-                            json_decode($_POST['visibleFields'] ?? '[]', true)
+                            json_decode($_POST['visibleFields'] ?? '[]', true),
+                            $_POST['type']
                         );
                     } else throw new errorException('У вас нет доступа для csv-выкрузки');
                     break;
@@ -717,7 +718,10 @@ row: rowCreate(field: "data" = $#DATA)');
                     if (Table::isUserCanAction('csv_edit', $this->Table->getTableRow())) {
                         $result = $this->Table->csvImport($_POST['tableData'] ?? [],
                             $_POST['csv'] ?? '',
-                            $_POST['answers'] ?? []);
+                            $_POST['answers'] ?? [],
+                            json_decode($_POST['visibleFields'] ?? '[]', true),
+                            $_POST['type']
+                        );
                     } else throw new errorException('У вас нет доступа для csv-изменений');
                     break;
                 default:

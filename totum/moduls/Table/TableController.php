@@ -726,16 +726,22 @@ row: rowCreate(field: "data" = $#DATA)');
                     break;
                 case 'csvImport':
                     if (Table::isUserCanAction('csv_edit', $this->Table->getTableRow())) {
-                        $result = $this->Table->csvImport($_POST['tableData'] ?? [],
+                        $result = $this->Table->csvImport(
+                            $_POST['tableData'] ?? [],
                             $_POST['csv'] ?? '',
-                            $_POST['answers'] ?? []);
+                            $_POST['answers'] ?? [],
+                            false
+                        );
                     } else throw new errorException('У вас нет доступа для csv-изменений');
                     break;
                 case 'csvNewImport':
                     if (Table::isUserCanAction('csv_edit', $this->Table->getTableRow())) {
-                        $result = $this->Table->csvImport($_POST['tableData'] ?? [],
+                        $result = $this->Table->csvImport(
+                            $_POST['tableData'] ?? [],
                             $_POST['csv'] ?? '',
-                            $_POST['answers'] ?? []);
+                            $_POST['answers'] ?? [],
+                            true
+                        );
                     } else throw new errorException('У вас нет доступа для csv-изменений');
                     break;
                 default:

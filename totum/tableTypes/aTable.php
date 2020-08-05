@@ -1473,12 +1473,12 @@ abstract class aTable extends _Table
 
     abstract function checkInsertRow($data, $param);
 
-    function csvImport($tableData, $csvString, $answers)
+    function csvImport($tableData, $csvString, $answers, bool $addMeta = false)
     {
         $this->checkTableUpdated($tableData);
         $import = [];
 
-        if ($errorAndQuestions = $this->prepareCsvImport($import, $csvString, $answers)) {
+        if ($errorAndQuestions = $this->prepareCsvImport($import, $csvString, $answers, $addMeta)) {
             return $errorAndQuestions;
         }
         $table = ['ok' => 1];
@@ -2145,7 +2145,7 @@ abstract class aTable extends _Table
         return $jsonUpdated;
     }
 
-    protected function prepareCsvImport(&$import, $csvString, $answers)
+    protected function prepareCsvImport(&$import, $csvString, $answers, bool $addMeta = false)
     {
         $import['modify'] = [];
         $import['add'] = [];
@@ -2179,18 +2179,31 @@ abstract class aTable extends _Table
             return ['error' => 'Неверная кодировка файла (должно быть utf-8 или windows-1251)'];
         }
 
-        if (preg_match('/(\s+)"?от/', $csvString, $match)) {
-            $delim = $match[1];
-        } else {
-            return ['error' => 'Ошибка определения разделителя строк'];
-        }
+        $csvString = preg_replace('/\r\n/', PHP_EOL, $csvString);
 
-        $csvArray = explode($delim, $csvString);
+        $csvArray = explode(PHP_EOL, $csvString);
         foreach ($csvArray as &$row) {
+            if ($addMeta) {
+                $row = ";;{$row}";
+            }
             $row = str_getcsv(trim($row), ';', '"', '\\');
             foreach ($row as &$c) {
                 $c = trim($c);
             }
+        }
+
+        if ($addMeta) {
+            $visibleFields = $this->getTableDataForInterface(false, false)['fields'];
+            $visibleFields = array_keys($visibleFields);
+            $csvHeader = $csvFooter = $rowParams = [];
+
+            $this->addHeaderMeta($csvHeader, $visibleFields, $rowParams);
+            if (is_a($this, JsonTables::class)) {
+                $this->addFooterMeta($rowParams, $visibleFields, $csvFooter);
+            }
+
+            $csvArray = array_merge($csvHeader, $csvArray, $csvFooter);
+            $csvArray[1][1] = 'code:' . time();
         }
 
 //Проверка та ли таблица
@@ -2281,7 +2294,7 @@ abstract class aTable extends _Table
 
         $rowFields = $csvArray[$rowNumSectionRows + 2];
 
-        while ($numRow < $rowCount && (count($csvArray[$numRow]) > 1) && ($csvArray[$numRow][1] ?? '') !== 'f0H') {
+        while ($numRow < $rowCount && ($csvArray[$numRow][1] ?? '') !== 'f0H') {
             $csvRow = $csvArray[$numRow];
 
             $isDel = ($csvRow[0] ?? '') !== '';
@@ -2296,7 +2309,7 @@ abstract class aTable extends _Table
             }
             $numRow++;
 
-            if ($isAllFieldsEmpty) break;
+            if ($isAllFieldsEmpty) continue;
 
             $id = $csvRow[1];
             $csvRowColumns = [];
@@ -2368,94 +2381,48 @@ abstract class aTable extends _Table
         }
     }
 
+    protected function addRowsByCategory($categoriFields, $categoryTitle, &$csv, $visibleFields) {
+        $csv[] = [$categoryTitle];
+
+        $paramNames = [];
+        $paramValues = [];
+        $paramTitles = [];
+
+        foreach ($categoriFields as $field) {
+            if (!in_array($field['name'], $visibleFields)) continue;
+            $valArray = $this->tbl['params'][$field['name']];
+
+            Field::init($field, $this)->addViewValues('csv', $valArray, $this->tbl['params'], $this->tbl);
+            $val = $valArray['v'];
+
+            $paramTitles[] = '' . $field['title'] . '';
+            $paramNames[] = '' . $field['name'] . '';
+            $paramValues[] = '' . $val . '';
+        }
+
+        $csv[] = $paramTitles;
+        $csv[] = $paramNames;
+        $csv[] = $paramValues;
+        $csv[] = ["", "", ""];
+    }
+
+    protected function addFilter($categoriFields, &$csv)
+    {
+        $csv[] = ["Фильтр"];
+        $_filters = [];
+        foreach ($categoriFields as $field) {
+            $_filters[$field['name']] = $this->tbl['params'][$field['name']]['v'] ?? null;
+        }
+        $csv[] = [empty($_filters) ? '' : Crypt::getCrypted(json_encode($_filters, JSON_UNESCAPED_UNICODE))];
+        $csv[] = ["", "", ""];
+    }
+
     protected function getCsvArray($visibleFields, bool $withMeta = true)
     {
-        $csv = [];
-
-        $addRowsByCategory = function ($categoriFields, $categoryTitle) use (&$csv, $visibleFields) {
-            $csv[] = [$categoryTitle];
-
-            $paramNames = [];
-            $paramValues = [];
-            $paramTitles = [];
-
-            foreach ($categoriFields as $field) {
-                if (!in_array($field['name'], $visibleFields)) continue;
-                $valArray = $this->tbl['params'][$field['name']];
-
-                Field::init($field, $this)->addViewValues('csv', $valArray, $this->tbl['params'], $this->tbl);
-                $val = $valArray['v'];
-
-                $paramTitles[] = '' . $field['title'] . '';
-                $paramNames[] = '' . $field['name'] . '';
-                $paramValues[] = '' . $val . '';
-            }
-
-            $csv[] = $paramTitles;
-            $csv[] = $paramNames;
-            $csv[] = $paramValues;
-            $csv[] = ["", "", ""];
-        };
-        $addFilter = function ($categoriFields) use (&$csv) {
-            $csv[] = ["Фильтр"];
-            $_filters = [];
-            foreach ($categoriFields as $field) {
-                $_filters[$field['name']] = $this->tbl['params'][$field['name']]['v'] ?? null;
-            }
-            $csv[] = [empty($_filters) ? '' : Crypt::getCrypted(json_encode($_filters, JSON_UNESCAPED_UNICODE))];
-            $csv[] = ["", "", ""];
-        };
-
-        if ($withMeta) {
-//Название таблицы
-            $csv[] = [$this->tableRow['title']];
-//Апдейтед
-            $updated = json_decode($this->updated, true);
-            $csv[] = [
-                'от ' . date_create($updated['dt'])->format('d.m H:i') . '',
-                'code:' . $updated['code'] . '',
-                'structureCode:' . $this->getStructureUpdatedJSON()['code']
-            ];
-
-
-//id Проекта    Название проекта
-            if ($this->tableRow['type'] == 'calcs') {
-                $csv[] = [$this->Cycle->getId(), $this->Cycle->getRowName()];
-            } else {
-                $csv[] = ['Вне циклов'];
-            }
-
-            $csv[] = ["", "", ""];
-
-            $csv[] = ['Ручные значения'];
-            $csv[] = ['[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]'];
-            $csv[] = [0];
-
-            $csv[] = ["", "", ""];
-
-            /******Хэдер******/
-            $addRowsByCategory($this->sortedVisibleFields['param'], 'Хедер');
-            /******Фильтр******/
-            $addFilter($this->sortedVisibleFields['filter']);
-
-            /******Строчная часть******/
-            $csv[] = ['Строчная часть'];
-        }
-
-        $paramTitles = ['Удаление', 'id'];
-        $paramNames = ['', ''];
-        $rowParams = [];
-        foreach ($this->sortedVisibleFields['column'] as $k => $field) {
-            if (!in_array($field['name'], $visibleFields)) continue;
-
-            $paramTitles[] = $field['title'];
-            $paramNames[] = $field['name'];
-            $rowParams[] = $k;
-        }
-
-        if ($withMeta) {
-            $csv[] = $paramTitles;
-            $csv[] = $paramNames;
+        $csv = $rowParams = [];
+        $this->addHeaderMeta($csv, $visibleFields, $rowParams);
+        if (!$withMeta) {
+            $csv = [];
         }
 
         foreach ($this->tbl['rows'] as $row) {
@@ -2469,54 +2436,10 @@ abstract class aTable extends _Table
             }
             $csv[] = $csvRow;
         }
+
         /******Футеры колонок - только в json-таблицах******/
-        if (is_a($this, JsonTables::class) && $withMeta) {
-            $columnsFooters = [];
-            $withoutColumnsFooters = [];
-            $maxCountInColumn = 0;
-            foreach ($this->sortedVisibleFields['footer'] as $field) {
-
-                if (!empty($field['column'])) {
-                    if (empty($columnsFooters[$field['column']])) $columnsFooters[$field['column']] = [];
-                    $columnsFooters[$field['column']][] = $field;
-                    if (count($columnsFooters[$field['column']]) > $maxCountInColumn) $maxCountInColumn++;
-                } else {
-                    $withoutColumnsFooters[] = $field;
-                }
-            }
-
-
-            for ($iFooter = 0; $iFooter < $maxCountInColumn; $iFooter++) {
-                $iFooterCsvHead = ['', 'f' . $iFooter . 'H'];
-                $iFooterCsvName = ['', 'f' . $iFooter . 'N'];
-                $iFooterCsvVals = ['', 'f' . $iFooter . 'V'];
-                foreach ($rowParams as $fName) {
-                    if (isset($columnsFooters[$fName][$iFooter])) {
-                        $field = $columnsFooters[$fName][$iFooter];
-
-                        if (!in_array($field['name'], $visibleFields)) continue;
-
-                        $valArray = $this->tbl['params'][$field['name']];
-                        Field::init($field, $this)->addViewValues('csv', $valArray, $this->tbl['params'], $this->tbl);
-                        $val = $valArray['v'];
-
-                        $iFooterCsvHead [] = $field['title'];
-                        $iFooterCsvName [] = $field['name'];
-                        $iFooterCsvVals [] = $val;
-                    } else {
-                        $iFooterCsvHead [] = '';
-                        $iFooterCsvName [] = '';
-                        $iFooterCsvVals [] = '';
-                    }
-                }
-                $csv[] = $iFooterCsvHead;
-                $csv[] = $iFooterCsvName;
-                $csv[] = $iFooterCsvVals;
-            }
-
-            $csv[] = ["", "", ""];
-            $addRowsByCategory($withoutColumnsFooters, 'Футер');
-
+        if ($withMeta && is_a($this, JsonTables::class)) {
+            $this->addFooterMeta($rowParams, $visibleFields, $csv);
         }
 
         return $csv;
@@ -2670,6 +2593,124 @@ abstract class aTable extends _Table
             $rows = array_reverse($rows);
         }
 
+    }
+
+    /**
+     * @param array $csv
+     * @param $visibleFields
+     * @param $rowParams
+     */
+    protected function addHeaderMeta(array &$csv, $visibleFields, &$rowParams): void
+    {
+        //Название таблицы
+        $csv[] = [$this->tableRow['title']];
+        //Апдейтед
+        $updated = json_decode($this->updated, true);
+        $csv[] = [
+            'от ' . date_create($updated['dt'])->format('d.m H:i') . '',
+            'code:' . $updated['code'] . '',
+            'structureCode:' . $this->getStructureUpdatedJSON()['code']
+        ];
+
+
+        //id Проекта    Название проекта
+        if ($this->tableRow['type'] == 'calcs') {
+            $csv[] = [$this->Cycle->getId(), $this->Cycle->getRowName()];
+        } else {
+            $csv[] = ['Вне циклов'];
+        }
+
+        $csv[] = ["", "", ""];
+
+        $csv[] = ['Ручные значения'];
+        $csv[] = ['[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]'];
+        $csv[] = [0];
+
+        $csv[] = ["", "", ""];
+
+        /******Хэдер******/
+        $this->addRowsByCategory($this->sortedVisibleFields['param'], 'Хедер', $csv, $visibleFields);
+        /******Фильтр******/
+        $this->addFilter($this->sortedVisibleFields['filter'], $csv);
+
+        /******Строчная часть******/
+        $csv[] = ['Строчная часть'];
+
+        $paramTitles = ['Удаление', 'id'];
+        $paramNames = ['', ''];
+        $rowParams = [];
+        foreach ($this->sortedVisibleFields['column'] as $k => $field) {
+            if (!in_array($field['name'], $visibleFields)) {
+                continue;
+            }
+
+            $paramTitles[] = $field['title'];
+            $paramNames[] = $field['name'];
+            $rowParams[] = $k;
+        }
+
+        $csv[] = $paramTitles;
+        $csv[] = $paramNames;
+    }
+
+    /**
+     * @param array $rowParams
+     * @param $visibleFields
+     * @param array $csv
+     * @throws errorException
+     */
+    protected function addFooterMeta(array $rowParams, $visibleFields, array &$csv): void
+    {
+        $columnsFooters = [];
+        $withoutColumnsFooters = [];
+        $maxCountInColumn = 0;
+        foreach ($this->sortedVisibleFields['footer'] as $field) {
+            if (!empty($field['column'])) {
+                if (empty($columnsFooters[$field['column']])) {
+                    $columnsFooters[$field['column']] = [];
+                }
+                $columnsFooters[$field['column']][] = $field;
+                if (count($columnsFooters[$field['column']]) > $maxCountInColumn) {
+                    $maxCountInColumn++;
+                }
+            } else {
+                $withoutColumnsFooters[] = $field;
+            }
+        }
+
+
+        for ($iFooter = 0; $iFooter < $maxCountInColumn; $iFooter++) {
+            $iFooterCsvHead = ['', 'f' . $iFooter . 'H'];
+            $iFooterCsvName = ['', 'f' . $iFooter . 'N'];
+            $iFooterCsvVals = ['', 'f' . $iFooter . 'V'];
+            foreach ($rowParams as $fName) {
+                if (isset($columnsFooters[$fName][$iFooter])) {
+                    $field = $columnsFooters[$fName][$iFooter];
+
+                    if (!in_array($field['name'], $visibleFields)) {
+                        continue;
+                    }
+
+                    $valArray = $this->tbl['params'][$field['name']];
+                    Field::init($field, $this)->addViewValues('csv', $valArray, $this->tbl['params'], $this->tbl);
+                    $val = $valArray['v'];
+
+                    $iFooterCsvHead [] = $field['title'];
+                    $iFooterCsvName [] = $field['name'];
+                    $iFooterCsvVals [] = $val;
+                } else {
+                    $iFooterCsvHead [] = '';
+                    $iFooterCsvName [] = '';
+                    $iFooterCsvVals [] = '';
+                }
+            }
+            $csv[] = $iFooterCsvHead;
+            $csv[] = $iFooterCsvName;
+            $csv[] = $iFooterCsvVals;
+        }
+
+        $csv[] = ["", "", ""];
+        $this->addRowsByCategory($withoutColumnsFooters, 'Футер', $csv, $visibleFields);
     }
 
 }

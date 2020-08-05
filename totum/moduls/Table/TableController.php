@@ -191,7 +191,7 @@ class TableController extends interfaceController
 
         try {
             if ($this->onlyRead && !in_array($method,
-                    ['getPanelFormats', 'loadPage', 'linkButtonsClick', 'loadPage', 'linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+                    ['getPanelFormats', 'loadPage', 'linkButtonsClick', 'loadPage', 'linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'csvNewExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
 
             if (!empty($_POST['data']) && is_string($_POST['data'])) $_POST['data'] = json_decode($_POST['data'], true);
 
@@ -709,11 +709,29 @@ row: rowCreate(field: "data" = $#DATA)');
                         $result = $this->Table->csvExport(
                             $_POST['tableData'] ?? [],
                             $_POST['sorted_ids'] ?? '[]',
-                            json_decode($_POST['visibleFields'] ?? '[]', true)
+                            json_decode($_POST['visibleFields'] ?? '[]', true),
+                            true
+                        );
+                    } else throw new errorException('У вас нет доступа для csv-выкрузки');
+                    break;
+                case 'csvNewExport':
+                    if (Table::isUserCanAction('csv', $this->Table->getTableRow())) {
+                        $result = $this->Table->csvExport(
+                            $_POST['tableData'] ?? [],
+                            $_POST['sorted_ids'] ?? '[]',
+                            json_decode($_POST['visibleFields'] ?? '[]', true),
+                            false
                         );
                     } else throw new errorException('У вас нет доступа для csv-выкрузки');
                     break;
                 case 'csvImport':
+                    if (Table::isUserCanAction('csv_edit', $this->Table->getTableRow())) {
+                        $result = $this->Table->csvImport($_POST['tableData'] ?? [],
+                            $_POST['csv'] ?? '',
+                            $_POST['answers'] ?? []);
+                    } else throw new errorException('У вас нет доступа для csv-изменений');
+                    break;
+                case 'csvNewImport':
                     if (Table::isUserCanAction('csv_edit', $this->Table->getTableRow())) {
                         $result = $this->Table->csvImport($_POST['tableData'] ?? [],
                             $_POST['csv'] ?? '',

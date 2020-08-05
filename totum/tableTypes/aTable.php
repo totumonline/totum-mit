@@ -1500,7 +1500,7 @@ abstract class aTable extends _Table
         return $table;
     }
 
-    function csvExport($tableData, $idsString, $visibleFields)
+    function csvExport($tableData, $idsString, $visibleFields, bool $withMeta = true)
     {
         $this->checkTableUpdated($tableData);
 
@@ -1525,7 +1525,7 @@ abstract class aTable extends _Table
         foreach ($this->filtersFromUser as $f => $val) {
             $this->tbl['params'][$f] = ['v' => $val];
         }
-        $csv = $this->getCsvArray($visibleFields);
+        $csv = $this->getCsvArray($visibleFields, $withMeta);
 
         ob_start();
         $out = fopen('php://output', 'w');
@@ -2368,34 +2368,9 @@ abstract class aTable extends _Table
         }
     }
 
-    protected function getCsvArray($visibleFields)
+    protected function getCsvArray($visibleFields, bool $withMeta = true)
     {
-
-
         $csv = [];
-
-//Название таблицы
-        $csv[] = [$this->tableRow['title']];
-//Апдейтед
-        $updated = json_decode($this->updated, true);
-        $csv[] = ['от ' . date_create($updated['dt'])->format('d.m H:i') . '', 'code:' . $updated['code'] . '', 'structureCode:' . $this->getStructureUpdatedJSON()['code']];
-
-
-//id Проекта    Название проекта
-        if ($this->tableRow['type'] == 'calcs') {
-            $csv[] = [$this->Cycle->getId(), $this->Cycle->getRowName()];
-        } else {
-            $csv[] = ['Вне циклов'];
-        }
-
-        $csv[] = ["", "", ""];
-
-        $csv[] = ['Ручные значения'];
-        $csv[] = ['[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]'];
-        $csv[] = [0];
-
-        $csv[] = ["", "", ""];
-
 
         $addRowsByCategory = function ($categoriFields, $categoryTitle) use (&$csv, $visibleFields) {
             $csv[] = [$categoryTitle];
@@ -2431,15 +2406,41 @@ abstract class aTable extends _Table
             $csv[] = ["", "", ""];
         };
 
+        if ($withMeta) {
+//Название таблицы
+            $csv[] = [$this->tableRow['title']];
+//Апдейтед
+            $updated = json_decode($this->updated, true);
+            $csv[] = [
+                'от ' . date_create($updated['dt'])->format('d.m H:i') . '',
+                'code:' . $updated['code'] . '',
+                'structureCode:' . $this->getStructureUpdatedJSON()['code']
+            ];
 
-        /******Хэдер******/
-        $addRowsByCategory($this->sortedVisibleFields['param'], 'Хедер');
-        /******Фильтр******/
-        $addFilter($this->sortedVisibleFields['filter']);
 
+//id Проекта    Название проекта
+            if ($this->tableRow['type'] == 'calcs') {
+                $csv[] = [$this->Cycle->getId(), $this->Cycle->getRowName()];
+            } else {
+                $csv[] = ['Вне циклов'];
+            }
 
-        /******Строчная часть******/
-        $csv[] = ['Строчная часть'];
+            $csv[] = ["", "", ""];
+
+            $csv[] = ['Ручные значения'];
+            $csv[] = ['[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]'];
+            $csv[] = [0];
+
+            $csv[] = ["", "", ""];
+
+            /******Хэдер******/
+            $addRowsByCategory($this->sortedVisibleFields['param'], 'Хедер');
+            /******Фильтр******/
+            $addFilter($this->sortedVisibleFields['filter']);
+
+            /******Строчная часть******/
+            $csv[] = ['Строчная часть'];
+        }
 
         $paramTitles = ['Удаление', 'id'];
         $paramNames = ['', ''];
@@ -2451,10 +2452,14 @@ abstract class aTable extends _Table
             $paramNames[] = $field['name'];
             $rowParams[] = $k;
         }
-        $csv[] = $paramTitles;
-        $csv[] = $paramNames;
+
+        if ($withMeta) {
+            $csv[] = $paramTitles;
+            $csv[] = $paramNames;
+        }
+
         foreach ($this->tbl['rows'] as $row) {
-            $csvRow = ['', $row['id']];
+            $csvRow = $withMeta ? ['', $row['id']] : [];
             foreach ($rowParams as $fName) {
 
                 $valArray = $row[$fName];
@@ -2465,7 +2470,7 @@ abstract class aTable extends _Table
             $csv[] = $csvRow;
         }
         /******Футеры колонок - только в json-таблицах******/
-        if (is_a($this, JsonTables::class)) {
+        if (is_a($this, JsonTables::class) && $withMeta) {
             $columnsFooters = [];
             $withoutColumnsFooters = [];
             $maxCountInColumn = 0;

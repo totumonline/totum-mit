@@ -9,20 +9,23 @@
           type="text/css"
           href="/css/main.css?v=2b66cb1">
 
-    <? if (\totum\common\Auth::isCreator()) { ?>
+    <?php
+    if (\totum\common\Auth::isCreator()) { ?>
         <script src="/js/functions.json?v=9d17f34"></script>
-        <? if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'],
+        <?php
+        if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'],
                 'jsTemplates')) {
             echo '<script>App.functions=App.functions.concat(' . $GLOBALS['CalculateExtentions']->jsTemplates . ')</script>';
         } ?>
-    <? } ?>
+    <?php
+    } ?>
 
     <script src="/js/main.js?v=fcc00c3"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 
-    <?
+    <?php
     include dirname(__FILE__) . DIRECTORY_SEPARATOR . '__titles_descriptions.php';
 
     ?>
@@ -44,7 +47,8 @@
     <?php include dirname(__FILE__) . '/__tree.php'; ?>
     <?php include dirname(__FILE__) . '/__header.php' ?>
     <div id="notifies"></div>
-    <? if (!empty($error)) {
+    <?php
+    if (!empty($error)) {
         echo '<div class="panel panel-danger"><div class="panel-body">' . $error . '</div></div>';
     } ?>
     <?php include static::$contentTemplate; ?>

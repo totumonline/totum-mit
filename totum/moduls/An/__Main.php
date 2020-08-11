@@ -1,4 +1,5 @@
-<? use totum\common\Auth;
+<?php
+use totum\common\Auth;
 use totum\common\Crypt;
 use totum\models\Table;
 

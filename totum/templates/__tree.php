@@ -1,4 +1,4 @@
-<?
+<?php
 
 use totum\common\Settings;
 
@@ -16,5 +16,5 @@ if (!\totum\common\Auth::isAuthorized()) return;
     </div>
 </div>
 <script>
-    addTree('/<?=$Module?><?=!empty($Branch) ? '/' . $Branch : ''?>/', <?echo json_encode(($treeData??[]), JSON_UNESCAPED_UNICODE)?>, <?=json_encode($isCreatorView??false)?>);
+    addTree('/<?=$Module?><?=!empty($Branch) ? '/' . $Branch : ''?>/', <?phpecho json_encode(($treeData??[]), JSON_UNESCAPED_UNICODE)?>, <?=json_encode($isCreatorView??false)?>);
 </script>

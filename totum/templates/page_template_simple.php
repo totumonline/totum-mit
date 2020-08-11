@@ -13,7 +13,7 @@
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 
 
-    <?
+    <?php
     include dirname(__FILE__) . DIRECTORY_SEPARATOR . '__titles_descriptions.php';
     ?>
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
@@ -29,7 +29,8 @@
 </script>
 <div class="page_content tree-minifyed">
     <div id="notifies"></div>
-    <? if (!empty($error)) {
+    <?php
+    if (!empty($error)) {
         echo '<div class="panel panel-danger"><div class="panel-body">' . $error . '</div></div>';
     } ?>
     <?php include static::$contentTemplate; ?>

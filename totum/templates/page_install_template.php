@@ -14,7 +14,8 @@
         <?php if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'], 'jsTemplates')){
            echo '<script>App.functions=App.functions.concat('.$GLOBALS['CalculateExtentions']->jsTemplates.')</script>';
         }?>
-    <?}?>
+    <?php
+    }?>
 
     <script src="/js/main.js?v=fcc00c3"></script>
 
@@ -23,7 +24,7 @@
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 
     <title><?=!empty($title) ? $title . ' — ' : '' ?>Totum</title>
-    <?
+    <?php
     $host = 'http'.(!empty($_SERVER['HTTPS'])?'s':'').'://'.$_SERVER['HTTP_HOST'].'/';
     ?>
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
@@ -48,7 +49,8 @@
 </script>
 <div class="page_content">
     <div id="notifies"></div>
-    <? if (!empty($error)) {
+    <?php
+    if (!empty($error)) {
         echo '<div class="panel panel-danger"><div class="panel-body">' . $error . '</div></div>';
     } ?>
     <?php include static::$contentTemplate; ?>

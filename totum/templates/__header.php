@@ -1,4 +1,4 @@
-<?
+<?php
 
 use \totum\common\Auth;
 use totum\models\Table;
@@ -14,7 +14,7 @@ if (!Auth::isAuthorized()) {
             <div
                     id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <?
+                    <?php
 
                     if (is_null($topBranches ?? null) && Auth::isCreator()) {
                         $topBranches = Tree::init()->getBranchesForCreator(null);
@@ -38,7 +38,7 @@ if (!Auth::isAuthorized()) {
                         <li class="plus-top-branch"
                             onClick="(new EditPanel(window.TREE_TABLE_ID, BootstrapDialog.TYPE_DANGER, {id: <?= $Branch ?>})).then(function (json) { if (json) window.location.reload() })">
                             <a><i class="fa fa-edit"></i></a></li>
-                    <?
+                        <?php
                     }
                     if (Auth::isCreator()) { ?>
                         <li class="plus-top-branch"

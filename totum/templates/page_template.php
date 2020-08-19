@@ -7,7 +7,7 @@
     <script src="/js/libs.js?v=40c5077"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=2b66cb1">
+          href="/css/main.css?v=2b66csdf">
 
     <?php
     if (\totum\common\Auth::isCreator()) { ?>

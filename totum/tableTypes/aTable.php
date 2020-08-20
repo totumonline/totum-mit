@@ -416,6 +416,10 @@ abstract class aTable extends _Table
                     Auth::$aUser->getRoles())) == 0) {
                 unset($table['fields'][$k]);
             }
+            /*Не шифровать неизменяемые пользователем фильтры*/
+            if (empty($field['editable'])) {
+                unset($_filters[$k]);
+            }
         }
         $table['filtersString'] = Crypt::getCrypted(json_encode($_filters, JSON_UNESCAPED_UNICODE));
 
@@ -613,6 +617,10 @@ abstract class aTable extends _Table
                 foreach ($this->sortedVisibleFields['filter'] as $fName => $sortedVisibleField) {
                     $filters['params'][$fName] = $this->tbl['params'][$fName];
                     $_filters[$fName] = $filters['params'][$fName]['v'];
+                    /*Не шифровать неизменяемые пользователем фильтры*/
+                    if (empty($sortedVisibleField['editable'])) {
+                        unset($_filters[$fName]);
+                    }
                 }
                 $changedData = $this->getValuesAndFormatsForClient($filters, 'web');
                 $changedData['filtersString'] = Crypt::getCrypted(json_encode($_filters, JSON_UNESCAPED_UNICODE));

@@ -3379,7 +3379,7 @@ class Calculate
                     array_splice($actions, $i, 1);
                     continue;
                 }
-                switch ($actions[$i]) {
+                switch ((string)$actions[$i]) {
                     case '(':
                         if ($sc++ == 0)
                             $interval_start = $i;
@@ -3436,7 +3436,7 @@ class Calculate
 
             $i = 0;
             while ($i < count($actions_next)) {
-                switch ($actions_next[$i]) {
+                switch ((string)$actions_next[$i]) {
                     case '^':
                         $left = $checkValue($actions_next[$i - 1]);
                         $right = $checkValue($actions_next[$i + 1]);
@@ -3450,7 +3450,7 @@ class Calculate
 
             $i = 0;
             while ($i < count($actions_next)) {
-                switch ($actions_next[$i]) {
+                switch ((string)$actions_next[$i]) {
                     case '/':
                     case '*':
                         $left = $checkValue($actions_next[$i - 1]);
@@ -3467,7 +3467,7 @@ class Calculate
 
             $i = 0;
             while ($i < count($actions_next)) {
-                switch ($actions_next[$i]) {
+                switch ((string)$actions_next[$i]) {
                     case '+':
                     case '-':
                         $left = $checkValue($actions_next[$i - 1]);

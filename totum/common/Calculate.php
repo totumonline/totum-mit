@@ -1026,45 +1026,66 @@ class Calculate
 
     protected function funcListMath($params)
     {
-        $params = $this->getParamsArray($params);
-        $this->__checkListParam($params['list'], 'list', 'listMath');
-        $this->__checkDigitParam($params['num'], 'num', 'listMath');
+        $params = $this->getParamsArray($params, ['list']);
+
+        $list = $params['list'][0] ?? false;
+        $this->__checkListParam($list, 'list', 'listMath');
+
         switch ($params['operator'] ?? '') {
             case '+':
-                foreach ($params['list'] as &$l) {
-                    if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l = round($l + $params['num'], 10);
-                }
-                unset($l);
+                $func = function ($l, $num) {
+                    return round($l + $num, 10);
+                };
+
                 break;
             case '-':
-                foreach ($params['list'] as &$l) {
-                    if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l = round($l - $params['num'], 10);
-                }
-                unset($l);
+                $func = function ($l, $num) {
+                    return round($l - $num, 10);
+                };
                 break;
             case '*':
-                foreach ($params['list'] as &$l) {
-                    if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l = round($l * $params['num'], 10);
-                }
-                unset($l);
+                $func = function ($l, $num) {
+                    return round($l * $num, 10);
+                };
                 break;
             case '/':
-                if (empty($params['num']))
-                    throw new errorException('Деление на ноль');
-                foreach ($params['list'] as &$l) {
-                    if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
-                    $l = round($l / $params['num'], 10);
-                }
-                unset($l);
+
+                $func = function ($l, $num) {
+                    if (empty($num))
+                        throw new errorException('Деление на ноль');
+                    return round($l / $num, 10);
+                };
                 break;
             default:
                 throw new errorException('Параметр operator должен быть равен +,-,/,*');
         }
 
-        return $params['list'];
+        for ($i = 1; $i < count($params['list']); $i++) {
+            $list2 = $params['list'][$i] ?? false;
+            $this->__checkListParam($list2, 'list2', 'listMath');
+            foreach ($list as $k => &$l) {
+                if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
+                if (!key_exists($k, $list2)) {
+                    throw new errorException("Не существует ключа $k в листе " . ($i + 1));
+                }
+                if (!is_numeric((string)$list2[$k])) throw new errorException('Нечисловой параметр в листе ' . ($i + 1));
+
+                $l = $func($l, $list2[$k]);
+            }
+            unset($l);
+        }
+
+
+        if (key_exists('num', $params)) {
+            $num = $params['num'];
+            $this->__checkDigitParam($num, 'num', 'listMath');
+            foreach ($list as &$l) {
+                if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
+                $l = $func($l, $num);
+            }
+            unset($l);
+        }
+        return $list;
     }
 
     protected function funcFileGetContent($params)

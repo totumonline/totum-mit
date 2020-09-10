@@ -1064,10 +1064,13 @@ class Calculate
             $list2 = $params['list'][$i] ?? false;
             $this->__checkListParam($list2, 'list2', 'listMath');
             foreach ($list as $k => &$l) {
+                if (empty($l)) $l = 0;
+
                 if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
                 if (!key_exists($k, $list2)) {
                     throw new errorException("Не существует ключа $k в листе " . ($i + 1));
                 }
+                if (empty($list2[$k])) $list2[$k] = 0;
                 if (!is_numeric((string)$list2[$k])) throw new errorException('Нечисловой параметр в листе ' . ($i + 1));
 
                 $l = $func($l, $list2[$k]);
@@ -1080,6 +1083,7 @@ class Calculate
             $num = $params['num'];
             $this->__checkDigitParam($num, 'num', 'listMath');
             foreach ($list as &$l) {
+                if (empty($l)) $l = 0;
                 if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
                 $l = $func($l, $num);
             }

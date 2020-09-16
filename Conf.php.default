@@ -8,11 +8,11 @@ class Conf extends ConfParent{
     use WithPhpMailerTrait;
 
     const db=array (
-      'dsn' => 'pgsql:host=install-check.totum.online;dbname=check-totum',
-      'host' => 'install-check.totum.online',
-      'username' => 'check-totum-user',
-      'dbname' => 'check-totum',
-      'password' => 'qwerty123',
+      'dsn' => 'pgsql:host=;dbname=',
+      'host' => 'localhost',
+      'username' => 'user',
+      'dbname' => 'totum',
+      'password' => '11111111',
       'charset' => 'UTF8',
       'pg_dump' => '',
       'psql' => '',

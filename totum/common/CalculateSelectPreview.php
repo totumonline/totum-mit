@@ -8,17 +8,16 @@
 
 namespace totum\common;
 
-
 use totum\tableTypes\aTable;
 
 class CalculateSelectPreview extends CalculateSelect
 {
-    protected
-    function funcSelectListAssoc($params)
+    protected function funcSelectListAssoc($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'preview']);
         $params2 = $params;
-        $params2['sfield'] = $params['preview'];
+        if(key_exists('preview', $params))
+            $params2['sfield'] = $params['preview'];
 
         $baseField = $params['bfield'] ?? 'id';
 
@@ -27,14 +26,13 @@ class CalculateSelectPreview extends CalculateSelect
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
         $rows['previewdata'] = [];
-        foreach ($params['preview'] as $fName) {
+        foreach ($params['preview']??[] as $fName) {
             $rows['__fields'][$fName] = $Table->getFields()[$fName];
         }
         return $rows;
     }
 
-    protected
-    function funcSelectRowListForTree($params)
+    protected function funcSelectRowListForTree($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order']);
         $params2 = $params;
@@ -49,12 +47,11 @@ class CalculateSelectPreview extends CalculateSelect
         return $rows;
     }
 
-    protected
-    function funcSelectRowListForSelect($params)
+    protected function funcSelectRowListForSelect($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'preview']);
         $params2 = $params;
-        $params2['sfield'] = $params['preview'];
+        $params2['sfield'] = $params['preview'] ?? null;
 
         $baseField = $params['bfield'] ?? 'id';
 
@@ -63,10 +60,10 @@ class CalculateSelectPreview extends CalculateSelect
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
         $rows['previewdata'] = [];
-        foreach ($params['preview'] as $fName) {
+        foreach ($params['preview'] ?? [] as $fName) {
             $rows['__fields'][$fName] = $Table->getFields()[$fName];
         }
-        $rows['previewscode'] = $params['previewscode'];
+        $rows['previewscode'] = $params['previewscode'] ?? null;
         return $rows;
     }
 
@@ -74,5 +71,4 @@ class CalculateSelectPreview extends CalculateSelect
     {
         return $rows;
     }
-
 }

@@ -5,7 +5,7 @@ use totum\config\Conf;
 
 require_once '../totum/AutoloadAndErrorHandlers.php';
 require_once 'Conf.php';
-$ConfDb = Conf::getDb();
+$ConfDb = Conf::db;
 
 $dir = '../totumTmpfiles/backups/';
 if (!is_dir($dir)) mkdir($dir, 0777, true);

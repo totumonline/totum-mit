@@ -8,14 +8,13 @@
 
 namespace totum\common;
 
-
+use totum\common\calculates\Calculate;
+use totum\common\sql\SqlException;
 use totum\moduls\Forms\FormsController;
 use totum\tableTypes\aTable;
 
 class CalculcateFormat extends Calculate
 {
-    static $logClassName = "format";
-
     const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide'];
     const tableformats = ['blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'tabletext', 'tablecomment'];
     const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
@@ -24,7 +23,7 @@ class CalculcateFormat extends Calculate
     protected $startPanelSections = [];
     protected $formatArray = [];
 
-    function __construct($code)
+    public function __construct($code)
     {
         parent::__construct($code);
 
@@ -41,7 +40,7 @@ class CalculcateFormat extends Calculate
         ksort($this->startPanelSections);
     }
 
-    function funcSetFloatFormat($params)
+    public function funcSetFloatFormat($params)
     {
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], static::floatFormat))) {
             $conditionTest = true;
@@ -70,7 +69,7 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    function getFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
+    public function getFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
     {
         return $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, $this->startSections, 'f1');
     }
@@ -95,7 +94,7 @@ class CalculcateFormat extends Calculate
         return $btns;
     }
 
-    function getPanelFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
+    public function getPanelFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
     {
         $result = $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, $this->startPanelSections, 'p1');
 
@@ -117,33 +116,35 @@ class CalculcateFormat extends Calculate
 
                     $r['value'][$k] = $button;
                 }
-
             }
             unset($r);
         }
         if ($buttons) {
-            $model = Model::initService('_tmp_tables');
+            $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
 
             do {
                 $hash = md5(microtime(true) . '__panelbuttons_' . mt_srand());
-                $key = ['table_name' => '_panelbuttons', 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
-            } while ($model->getField('user_id', $key));
+                $key = ['table_name' => '_panelbuttons', 'user_id' => $this->Table->getTotum()->getUser()->getId(), 'hash' => $hash];
+            } while ($model->executePrepared(true, $key, 'user_id', null, '0,1')->fetchColumn(0));
 
-            $vars = array_merge(['tbl' => json_encode($buttons,
-                JSON_UNESCAPED_UNICODE),
-                'touched' => date('Y-m-d H:i')],
-                $key);
-            $model->insert($vars,
-                false);
+            $vars = array_merge(
+                ['tbl' => json_encode(
+                    $buttons,
+                    JSON_UNESCAPED_UNICODE
+                ),
+                    'touched' => date('Y-m-d H:i')],
+                $key
+            );
+            $model->insertPrepared(
+                $vars,
+                false
+            );
         }
         return ['rows' => $result, 'hash' => $hash ?? null];
     }
 
-    protected
-    function __getFormat($fieldName, $row, $tbl, aTable $table, $Vars, $startSections, $startSectionName)
+    protected function __getFormat($fieldName, $row, $tbl, aTable $table, $Vars, $startSections, $startSectionName)
     {
-        $dtStart = microtime(true);
-
         $this->formatArray = [];
         $this->fixedCodeVars = [];
 
@@ -155,11 +156,13 @@ class CalculcateFormat extends Calculate
 
         $this->row = $row;
         $this->tbl = $tbl;
-        $this->aTable = $table;
+        $this->Table = $table;
+        $result = [];
 
         try {
-            if (empty($startSections))
+            if (empty($startSections)) {
                 return [];
+            }
             switch ($startSectionName) {
                 case 'f1':
                     foreach ($startSections as $k => $v) {
@@ -184,24 +187,22 @@ class CalculcateFormat extends Calculate
             }
 
             $this->newLog['text'] .= ': ' . json_encode($result, JSON_UNESCAPED_UNICODE);
-
-
-        } catch (SqlExeption $e) {
+        } catch (SqlException $e) {
             $this->error = 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]';
             $this->newLog['text'] .= ': ' . $this->error;
+
+
+            throw $e;
         } catch (errorException $e) {
             $this->error = $e->getMessage();
             $this->newLog['text'] .= ': ' . $this->error;
         }
 
-        static::$calcLog[$var]['time'] = (static::$calcLog[$var = $table->getTableRow()["id"] . '/' . $fieldName . '/' . static::$logClassName]['time'] ?? 0) + (microtime(true) - $dtStart);
-        static::$calcLog[$var]['cnt'] = (static::$calcLog[$var]['cnt'] ?? 0) + 1;
-
         return $result;
     }
 
 
-    function funcExec($params)
+    protected function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
             if (!empty($params['code'] ?? $params['kod'])) {
@@ -211,7 +212,7 @@ class CalculcateFormat extends Calculate
                     foreach ($params['var'] ?? [] as $v) {
                         $Vars = array_merge($Vars, $this->getExecParamVal($v));
                     }
-                    $r = $CA->getFormat($this->varName, $this->row, $this->tbl, $this->aTable, $Vars);
+                    $r = $CA->getFormat($this->varName, $this->row, $this->tbl, $this->Table, $Vars);
                     $this->newLogParent['children'][] = $CA->getLogVar();
 
                     return $this->formatArray = array_merge($this->formatArray, $r);
@@ -223,13 +224,13 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    protected
-    function funcSetFormat($params)
+    protected function funcSetFormat($params)
     {
-        if ($params = $this->getParamsArray($params,
+        if ($params = $this->getParamsArray(
+            $params,
             ['condition', 'hide'],
-            array_merge(['condition'], static::formats))) {
-
+            array_merge(['condition'], static::formats)
+        )) {
             $conditionTest = true;
             if (!empty($params['condition'])) {
                 foreach ($params['condition'] as $i => $c) {
@@ -273,13 +274,13 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    protected
-    function funcSetTableFormat($params)
+    protected function funcSetTableFormat($params)
     {
-        if ($params = $this->getParamsArray($params,
+        if ($params = $this->getParamsArray(
+            $params,
             ['condition', 'fieldtitle'],
-            array_merge(['condition'], static::tableformats))) {
-
+            array_merge(['condition'], static::tableformats)
+        )) {
             $conditionTest = true;
             if (!empty($params['condition'])) {
                 foreach ($params['condition'] as $i => $c) {
@@ -309,7 +310,6 @@ class CalculcateFormat extends Calculate
 
                                 $this->formatArray[$format][$fieldname] = $fieldvalue;
                             }
-
                         } else {
                             $this->formatArray[$format] = is_string($params[$format]) ? $this->__getValue($this->getCodes($params[$format])[0]) : $params[$format];
                         }
@@ -319,16 +319,18 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    protected
-    function funcSetFormFieldFormat($params)
+    protected function funcSetFormFieldFormat($params)
     {
-        if (get_class(Controller::getActiveController()) !== FormsController::class) return [];
+        if (get_class(Controller::getActiveController()) !== FormsController::class) {
+            return [];
+        }
 
         $formats = ['hidden', 'width', 'height', 'classes'];
-        if ($params = $this->getParamsArray($params,
+        if ($params = $this->getParamsArray(
+            $params,
             ['condition'],
-            array_merge(['condition', 'section'], $formats))) {
-
+            array_merge(['condition', 'section'], $formats)
+        )) {
             $conditionTest = true;
             if (!empty($params['condition'])) {
                 foreach ($params['condition'] as $i => $c) {
@@ -354,17 +356,23 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    protected
-    function funcSetFormSectionsFormat($params)
+    protected function funcSetFormSectionsFormat($params)
     {
-        if (get_class(Controller::getActiveController()) !== FormsController::class) return [];
+        if (get_class(Controller::getActiveController()) !== FormsController::class) {
+            return [];
+        }
 
         $formats = ['status'];
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], $formats))) {
-
-            if (empty($params['section'])) throw new errorException('Укажите section');
-            if (!preg_match('/^[a-z_0-9]+$/',
-                $params['section'])) throw new errorException('Неверный формат параметра section (ожидаются цифны, строчные английские буквы и _)');
+            if (empty($params['section'])) {
+                throw new errorException('Укажите section');
+            }
+            if (!preg_match(
+                '/^[a-z_0-9]+$/',
+                $params['section']
+            )) {
+                throw new errorException('Неверный формат параметра section (ожидаются цифны, строчные английские буквы и _)');
+            }
 
             $conditionTest = true;
             if (!empty($params['condition'])) {
@@ -391,13 +399,13 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    protected
-    function funcSetRowFormat($params)
+    protected function funcSetRowFormat($params)
     {
-        if ($params = $this->getParamsArray($params,
+        if ($params = $this->getParamsArray(
+            $params,
             ['condition'],
-            array_merge(['condition'], static::rowformats))) {
-
+            array_merge(['condition'], static::rowformats)
+        )) {
             $conditionTest = true;
             if (!empty($params['condition'])) {
                 foreach ($params['condition'] as $i => $c) {
@@ -418,11 +426,9 @@ class CalculcateFormat extends Calculate
                 foreach (static::rowformats as $format) {
                     if (key_exists($format, $params)) {
                         $this->formatArray[$format] = $this->__getValue($this->getCodes($params[$format])[0]);
-
                     }
                 }
             }
         }
     }
-
 }

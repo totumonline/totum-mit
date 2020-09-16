@@ -9,7 +9,7 @@
 namespace totum\fieldTypes;
 
 
-use totum\common\Calculate;
+use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\tableTypes\aTable;

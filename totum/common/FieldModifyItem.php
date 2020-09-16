@@ -8,7 +8,9 @@
 
 namespace totum\common;
 
-
+/*
+ * Object of changing value in field
+ * */
 class FieldModifyItem
 {
     protected $sign, $val, $percent;

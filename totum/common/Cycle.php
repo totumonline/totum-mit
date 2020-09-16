@@ -8,173 +8,185 @@
 
 namespace totum\common;
 
-
+use PDO;
 use totum\models\CalcsTableCycleVersion;
+use totum\models\CalcsTablesVersions;
 use totum\models\Table;
 use totum\models\TablesCalcsConnects;
-use totum\models\TablesFields;
 use totum\tableTypes\aTable;
 use totum\tableTypes\calcsTable;
 use totum\tableTypes\globcalcsTable;
-use totum\tableTypes\tableTypes;
 
 class Cycle
 {
-    protected static $projects;
-    protected $id, $cyclesTableId;
-    protected $row, $accessRow;
-    protected $tables = [], $tableVersions = [];
-    private $calcTables;
+    protected $cycleId;
+    protected $cyclesTableId;
+    protected $cyclesTableRow;
+    protected $tables = [];
+    protected $tableVersions = [];
 
-    static function clearProjects()
-    {
-        static::$projects = [];
-    }
+    protected $calcTables;
+    protected $cacheVersions = [];
 
-    protected function __construct($id, $cyclesTableId)
+    /* Создавать cycle нужно только из объекта Тотум*/
+    /**
+     * @var Totum
+     */
+    protected $Totum;
+
+    public function __construct($id, $cyclesTableId, Totum $Totum)
     {
-        $this->id = $id;
+        $this->cycleId = $id;
         $this->cyclesTableId = $cyclesTableId;
+        $this->Totum = $Totum;
     }
 
     public function __toString()
     {
-        return (string)$this->id;
+        return (string)$this->cycleId;
     }
 
-    static function init($id, $cyclesTableId)
+    public static function create($cyclesTableId, $cycleId, Totum $Totum)
     {
-        $id = (int)$id;
-        $cyclesTableId = (int)$cyclesTableId;
-        $hashKey = $cyclesTableId . ':' . $id;
-
-        return static::$projects[$hashKey] ?? (static::$projects[$hashKey] = new static($id, $cyclesTableId));
-    }
-
-    static function create($cyclesTableId, $cycleId)
-    {
-        Sql::transactionStart();
-
-
-        $Cycle = static::init($cycleId, $cyclesTableId);
-        $tables = $Cycle->getTables();
+        $Cycle = $Totum->getCycle($cycleId, $cyclesTableId);
+        $tables = $Cycle->getTableIds();
         foreach ($tables as $tableId) {
-            $tableRow = Table::getTableRowById($tableId);
-            CalcsTableCycleVersion::addVersionForCycle($tableRow['name'], $cycleId);
+            $tableRow = $Totum->getTableRow($tableId);
+            $Cycle->addVersionForCycle($tableRow['name']);
         }
 
         $Cycle->afterCreate();
 
-
-        Sql::transactionCommit();
         return $Cycle;
-
     }
 
-    public static function duplicate($cyclesTableID, $oldId, $newId)
+    public function getVersionForTable($tableName)
     {
+        if (!key_exists($tableName, $this->cacheVersions)) {
+            $this->cacheVersions[$tableName] = CalcsTableCycleVersion::init($this->Totum->getConfig())->executePrepared(
+                true,
+                ['table_name' => $tableName, 'cycle' => $this->getId()],
+                'version, auto_recalc'
+            )->fetch(PDO::FETCH_NUM);
+        }
+        return $this->cacheVersions[$tableName];
+    }
 
-        $Cycle = Cycle::init($newId, $cyclesTableID);
-        $tables = $Cycle->getTables();
+    public function addVersionForCycle($tableName)
+    {
+        $cycleId = $this->getId();
+        $default_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($tableName);
+        $this->Totum->getTable('calcstable_cycle_version')->reCalculateFromOvers(
+            ['add' => [
+                ['table_name' => $tableName, 'cycle' => $cycleId, 'version' => $default_version]
+            ]]
+        );
+
+        return $this->cacheVersions[$tableName] = [$default_version, 'true'];
+    }
+
+    public static function duplicate($cyclesTableID, $oldId, $newId, Totum $Totum)
+    {
+        $Cycle = $Totum->getCycle($newId, $cyclesTableID);
+        $tables = $Cycle->getTableIds();
 
         /** @var TablesCalcsConnects $modelTablesCalcsConnects */
-        $modelTablesCalcsConnects = TablesCalcsConnects::init();
+        $modelTablesCalcsConnects = TablesCalcsConnects::init($Totum->getConfig());
         $modelTablesCalcsConnects->duplicateCycleSources($tables, $oldId, $newId);
 
         $updates = [];
 
 
         foreach ($tables as &$tId) {
-            $cycleTableRow = Table::getTableRowById($tId);
+            $cycleTableRow = $Totum->getTableRow($tId);
             $cycleTableName = $cycleTableRow['name'];
-            $model = Model::init($cycleTableName);
-            $cycleTableDataRow = $model->get(['cycle_id' => $oldId]);
+            $model = $Totum->getModel($cycleTableName, true);
+            $cycleTableDataRow = $model->getPrepared(['cycle_id' => $oldId]);
 
-            $model->insert(['updated' => $cycleTableDataRow['updated'], 'cycle_id' => $newId]);
+            $model->insertPrepared(['updated' => $cycleTableDataRow['updated'], 'cycle_id' => $newId]);
             $updates[$tId] = $cycleTableDataRow['updated'];
 
             /** @var calcsTable $tId */
             $tId = $Cycle->getTable($cycleTableRow);
+
             $tId->setDuplicatedTbl(json_decode($cycleTableDataRow['tbl'], true), null /*Важно!*/);
         }
 
 
         foreach ($tables as $table) {
             /** @var calcsTable $table */
-            $table->updateFromSource(0);
+            $table->reCalculateFromOvers(
+                [],
+                $Totum->getTable($cyclesTableID)->getCalculateLog()
+            );
         }
-        $Cycle->saveTables();
-
-        foreach ($tables as $table) {
-            /** @var calcsTable $table */
-            if (!$table->getSavedUpdated() || $updates[$table->getTableRow()['id']] === $table->getSavedUpdated()) {
-                $table->saveTable(true);
-            }
-        }
-
-        $Cycle->reCalculateCyclesTableRow();
+        $Cycle->saveTables(true, true);
     }
 
-    function delete($isGroup = false)
+    public function delete()
     {
         foreach ($this->getListTables() as $tableId) {
-            $tableRow = Table::getTableRowById($tableId);
+            $tableRow = $this->Totum->getTableRow($tableId);
             if ($tableRow) {
-                Model::init($tableRow['name'])->delete(['cycle_id' => $this->getId()]);
+                $this->Totum->getModel($tableRow['name'])->deletePrepared(['cycle_id' => $this->getId()]);
             }
         }
-        TablesCalcsConnects::init()->removeConnectsForCycle($this);
+        TablesCalcsConnects::init($this->Totum->getConfig())->removeConnectsForCycle($this);
     }
 
-    function getTables()
+    public function getTableIds()
     {
         if (is_null($this->calcTables)) {
-            $this->calcTables = array_keys(Table::init()->getAllIndexedById(['tree_node_id' => $this->getCyclesTableId(), 'type' => 'calcs', 'is_del' => false],
+            $this->calcTables = array_keys(Table::init($this->Totum->getConfig())->getAllIndexedById(
+                ['tree_node_id' => $this->getCyclesTableId(), 'type' => 'calcs', 'is_del' => false],
                 'id',
-                '(sort->>\'v\')::int'));
-
+                '(sort->>\'v\')::int'
+            ));
         }
         return $this->calcTables;
     }
 
-    function getFirstTableId()
+    public function getFirstTableId()
     {
-        if (count($this->getTables()) > 0) return $this->getTables()[0];
+        if (count($this->getTableIds()) > 0) {
+            return $this->getTableIds()[0];
+        }
         return null;
     }
 
-    function getRow()
+    public function getRow()
     {
         $this->loadRow();
-        return $this->row;
+        return $this->cyclesTableRow;
     }
 
-    function getRowName()
+    public function getRowName()
     {
-        $CyclesTableRow = Table::getTableRowById($this->getCyclesTableId());
-        $fields = TablesFields::getFields($this->getCyclesTableId());
+        $CyclesTableRow = $this->Totum->getTableRow($this->getCyclesTableId());
         $mainFieldName = 'id';
         if ($CyclesTableRow['main_field']) {
             $mainFieldName = $CyclesTableRow['main_field'];
         }
 
         if ($mainFieldName != 'id') {
-            $CyclesTable = tableTypes::getTable($CyclesTableRow);
+            $CyclesTable = $this->Totum->getTable($CyclesTableRow);
             $fData = $CyclesTable->getFields()[$mainFieldName];
             if (in_array($fData['type'], ['select', 'tree'])) {
-                $sValue = Field::init($fData, $CyclesTable)->getSelectValue($this->getRow()[$mainFieldName]['v'],
-                    $this->getRow());
+                $sValue = Field::init($fData, $CyclesTable)->getSelectValue(
+                    $this->getRow()[$mainFieldName]['v'],
+                    $this->getRow()
+                );
             }
         }
         return $sValue ?? $this->getRow()[$mainFieldName]['v'] ?? $this->getRow()['id'];
     }
 
-    function getId()
+    public function getId()
     {
-        return $this->id;
+        return $this->cycleId;
     }
 
-    function getCyclesTableId()
+    public function getCyclesTableId()
     {
         return $this->cyclesTableId;
     }
@@ -182,29 +194,28 @@ class Cycle
     /**
      * @return bool
      */
-    function loadRow()
+    public function loadRow()
     {
-        if (is_null($this->row)) {
-            if ($this->id && $this->cyclesTableId) {
-                $cycleTableRow = Table::getTableRowById($this->cyclesTableId);
-                if (!$cycleTableRow || $cycleTableRow['type'] != 'cycles') throw new errorException('Таблица циклов не найдена');
-                if ($row = Model::init($cycleTableRow['name'])->get(['id' => $this->id, 'is_del' => false])) {
+        if (is_null($this->cyclesTableRow)) {
+            if ($this->cycleId && $this->cyclesTableId) {
+                $cycleTableRow = $this->Totum->getTableRow($this->cyclesTableId);
+                if (!$cycleTableRow || $cycleTableRow['type'] != 'cycles') {
+                    throw new errorException('Таблица циклов не найдена');
+                }
+                if ($row = $this->Totum->getModel($cycleTableRow['name'])->get(['id' => $this->cycleId, 'is_del' => false])) {
                     foreach ($row as $k => &$v) {
                         if (!in_array($k, Model::serviceFields)) {
                             $v = json_decode($v, true);
                         }
                     }
-                    $this->setRow($row);
+                    $this->cyclesTableRow = $row;
                 }
-            } else return false;
+            }
         }
-        if (!empty($this->row))
+        if (!empty($this->cyclesTableRow)) {
             return true;
-    }
-
-    function setRow($row)
-    {
-        $this->row = $row;
+        }
+        return false;
     }
 
     /**
@@ -212,57 +223,62 @@ class Cycle
      * @param bool $light
      * @return aTable
      */
-    function getTable($tableRow, $light = false)
+    public function getTable($tableRow, $light = false, $force = false)
     {
-        if ($tableRow['type'] == 'globcalcs') {
-            $model = globcalcsTable::class;
-        } else {
-            $model = calcsTable::class;
-            if ($tableRow['tree_node_id'] != $this->getCyclesTableId())
-                throw new errorException('Ошибка обращения к таблице не своей циклической таблицы');
-
-            list($tableRow['__version'], $tableRow['__auto_recalc']) = CalcsTableCycleVersion::getVersionForCycle($tableRow['name'],
-                $this->id);
+        if (!is_array($tableRow)) {
+            $tableRow = $this->Totum->getTableRow($tableRow);
         }
 
-        if (key_exists($tableRow['name'], $this->tables)) {
+        if ($tableRow['type'] !== 'calcs') {
+            errorException::criticalException('Через Cycle создаются только расчетные таблицы цикла', $this->getCyclesTable());
+        }
+        if ($tableRow['tree_node_id'] != $this->getCyclesTableId()) {
+            errorException::criticalException('Ошибка обращения к таблице не своей циклической таблицы', $this->getCyclesTable());
+        }
+
+        list($tableRow['__version'], $tableRow['__auto_recalc']) = $this->getVersionForTable($tableRow['name']);
+
+        if (!$force && key_exists($tableRow['name'], $this->tables)) {
             if (($this->tables[$tableRow['name']]->getTableRow()['__version'] ?? null) !== ($tableRow['__version'] ?? null)) {
                 $this->tables[$tableRow['name']]->setVersion($tableRow['__version'], $tableRow['__auto_recalc']);
                 $this->tables[$tableRow['name']]->initFields();
             }
+        } else {
+            $this->tables[$tableRow['name']] = calcsTable::init(
+                $this->Totum,
+                $tableRow,
+                $this,
+                $light
+            );
 
-        } else $this->tables[$tableRow['name']] = $model::init($tableRow,
-            $this,
-            $light);
+            $this->tables[$tableRow['name']]->addCalculateLogInstance($this->Totum->getCalculateLog()->getChildInstance(['table' => $this->tables[$tableRow['name']]]));
+        }
+
 
         return $this->tables[$tableRow['name']];
     }
 
-    function getListTables()
+    public function getListTables()
     {
-        return $this->getTables();
+        return $this->getTableIds();
     }
 
-    function saveTables($forceReCalculateCyclesTableRow = false)
+    public function saveTables($forceReCalculateCyclesTableRow = false, $forceSaveTables = false)
     {
         $isChanged = false;
         /** @var calcsTable $t */
         foreach ($this->tables as $t) {
-            if ($t->saveTable()) {
+            if ($t->saveTable($forceSaveTables)) {
                 $isChanged = true;
-
             }
         }
-
         if ($forceReCalculateCyclesTableRow || $isChanged) {
-            $this->reCalculateCyclesTableRow();
+            $this->reCalculateCyclesRow();
         }
-
     }
 
-    function reCalculateCyclesTableRow()
+    public function reCalculateCyclesRow()
     {
-
         if ($this->getId()) {
             $CyclesTable = $this->getCyclesTable();
 
@@ -272,43 +288,37 @@ class Cycle
         }
     }
 
-    function getCyclesTable()
+    public function getCyclesTable()
     {
-        return tableTypes::getTable(Table::getTableRowById($this->getCyclesTableId()));
+        return $this->Totum->getTable($this->getCyclesTableId());
     }
 
-    function recalculate($isAdding = false)
+    public function recalculate($isAdding = false)
     {
-
-        $tables = $this->getTables();
+        $tables = $this->getTableIds();
         $tablesUpdates = [];
 
         foreach ($tables as &$t) {
-            $t = $this->getTable(Table::getTableRowById($t));
+            $t = $this->getTable($t);
             $tablesUpdates[$t->getTableRow()["id"]] = $t->getLastUpdated();
         }
         unset($t);
 
+        $cyclesTable = $this->Totum->getTable($this->cyclesTableId);
         foreach ($tables as $t) {
             if ($tablesUpdates[$t->getTableRow()["id"]] == $t->getLastUpdated()) {
-                $t->updateFromSource(1, $isAdding);
+                /** @var calcsTable $t */
+                $t->reCalculateFromOvers(
+                    ['isTableAdding' => $isAdding],
+                    $cyclesTable->getCalculateLog()
+                );
             }
         }
         $this->saveTables(true);
-
     }
 
     protected function afterCreate()
     {
         $this->recalculate(true);
     }
-
-    protected function loadAccessRow()
-    {
-        if (is_null($this->accessRow)) {
-            $this->accessRow = Model::initService('cycles_access__v')->get(['cycles_table_id' => $this->getCyclesTableId(), 'cycle_id' => $this->getId()]);
-        }
-
-    }
-
 }

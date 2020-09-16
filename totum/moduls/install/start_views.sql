@@ -13,7 +13,8 @@ SELECT users.id,
 FROM users;
 
 
-create or replace view tree__v(id, parent_id, title, path, top, ord, is_del, default_table, type, link, icon, roles) as
+drop view if exists tree__v;
+create view tree__v(id, parent_id, title, path, top, ord, is_del, default_table, type, link, icon, roles) as
     WITH RECURSIVE temp1(id, parent_id, title, path, ord, top, is_del, default_table, type, link, icon, roles) AS (
         SELECT t1.id,
                ((t1.parent_id ->> 'v'::text))::integer            AS int4,

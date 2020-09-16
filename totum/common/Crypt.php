@@ -1,60 +1,58 @@
-<?php //004fb
-if(!extension_loaded('ionCube Loader')){$__oc=strtolower(substr(php_uname(),0,3));$__ln='ioncube_loader_'.$__oc.'_'.substr(phpversion(),0,3).(($__oc=='win')?'.dll':'.so');if(function_exists('dl')){@dl($__ln);}if(function_exists('_il_exec')){return _il_exec();}$__ln='/ioncube/'.$__ln;$__oid=$__id=realpath(ini_get('extension_dir'));$__here=dirname(__FILE__);if(strlen($__id)>1&&$__id[1]==':'){$__id=str_replace('\\','/',substr($__id,2));$__here=str_replace('\\','/',substr($__here,2));}$__rd=str_repeat('/..',substr_count($__id,'/')).$__here.'/';$__i=strlen($__rd);while($__i--){if($__rd[$__i]=='/'){$__lp=substr($__rd,0,$__i).$__ln;if(file_exists($__oid.$__lp)){$__ln=$__lp;break;}}}if(function_exists('dl')){@dl($__ln);}}else{die('The file '.__FILE__." is corrupted.\n");}if(function_exists('_il_exec')){return _il_exec();}echo("Site error: the ".(php_sapi_name()=='cli'?'ionCube':'<a href="http://www.ioncube.com">ionCube</a>')." PHP Loader needs to be installed. This is a widely used PHP extension for running ionCube protected PHP code, website security and malware blocking.\n\nPlease visit ".(php_sapi_name()=='cli'?'get-loader.ioncube.com':'<a href="http://get-loader.ioncube.com">get-loader.ioncube.com</a>')." for install assistance.\n\n");exit(199);
-?>
-HR+cPpOXOu5LfbUtKEpsebhJwBxFSDpppTcIbBd82Gnt8S36J1vtSGgVC41u243uWtfNMfeWdVFJ
-oHNOdRClRdofqP7YHh2EeGPdUhBkTyFyqAUSN3HXiqb6xZOlBLzLmd9hqPhIUjpyhFO/oLeKp/+C
-Xzuj/QBAhQRUhohhod540kZm4wCXhFMnCm8+weCe7JfFNOUvay9FFuH5S9kfNKNewlJKIqlIZz3g
-xosbz4C8+GqlfcMHd6fzdDE3OzBQdw7N26pe+pFBbGV55cBPaDaRxi3VjvDJLrA6LC7VTmXeADc1
-0Ot5UOqJO09uD2d1Ao/6J5fWJNZuZj+Oi1DYwTHrwwTCXNB9xW/WO/ZdPF8QIwbys8wz0Mxi4gBN
-71BEyfbustohNG3RoO8GfqiEdQgvrrpDWFb6XwFPWA76VBinfKkn0NEpO+xvwPgJK687XRWb+X5o
-t+mmd8Rv4gAXfrGpLM3iBMfo0+6/57qUwdsD8LauyfumP87K+i7iH28fZKpGiElnERp7upDbDRJU
-Hwp9cOc6YwFPJ6c+u43t8PNhBeKGkqhV+ISVpXUPhHfDR0hIQ28FzAfiQRFSAJRquGezjcJdwdRR
-pODiZ+GTQ/668XK/arySL1qr9SBHpR9TvUHZc2C6favrJ/XPkboEi0gd+EVWiz58/ewdKxGJ/n1+
-9gCCV+a4OG02ULP324HK250Ms4T+kFcXIDxYZxDi6ojyHjqZOKsdHM3rtv/ScF9b4RtUSLXmAwZ0
-eDMrpTlRbC9SyMU9CX6E73gNp2rhXUbh6rVDOM+BR1uf6eFKQ5haU4xDO0tvnId5ytTBZroZg5RI
-643f9Uu1eLsZ15Z+h9Z3OQgyEefC4chJfEBWeGd6TGhownl3i8e4qqf2127OITvw6/gVDC8W3X1t
-my8TX2YjOi9vu0mk1mqEsM8vaKPFb0vohlOWeT696eflXwAtSpqpaOcnu5rnmzzP8/hE6BedLEHr
-70zN1pqpJRMA3o4ktW7x8l42NL7QB5WwX1DuhGZCO0fNoVgLblBQyGoTYOGPFrSOxQYOuDebj07y
-iXd5HZc39wYaDOzYtOYffS+K9SsQPFiu8mkWc3/cMmIQogNKFliPVl2Om1F8N6P1df7uSWRHvnEI
-UPjo2J7+RB594WU/gF2YKwmltMeofQzhRORxFdK8Ic0saqmX1VdrKjt/WNP9Jjjvk9tOB0aZaUkQ
-Q9XivGWNr87CpNVuAeZUP79KPPM3qnAEUTRN7YBExDeLBiGuKcEvRxvapZkwsIV4Is1Tx+McYxt5
-10Ve6gPt1j8Sgud8C36M1GsOVnJ9dPUz1PTudoZ8pPiMeCvXNF19+BvkHssBDZ9Nw4QzdGkoo+Ed
-1hEQf7/UIrZRYfHAQp3HJgEGGkioA9CeLAgB1E40bgFTp1pkQ0OtjWDG09HH4UvhTvspkPYCtF4w
-y0NfVYdsXDXy6/Ny9tPW3RAHzqoTqhauOTMsw9uNo/uVFMtgPWW0YuzVfZ4eMQku8QIYAx5/hxMp
-C040J0goXVbOXsxMQCbe3P1N0xNKqwwTJhNV+zJdGMpopGLDDklYD0lRw1xHzs4RD04x6eDCpx+W
-3MfDsDrvYkMTfzglkYvrtHkp2YvbCWeOVfE5HsbTyo/jv6ipMovPnoxIl8G5N+xpxvJBluRU1hVB
-USPA61GL+K83a/+yueZM67Qmy4yfQHzuAhSJCkG8jiQ3ZS9tFNi9BFwBsVESnTKb27jWJeDFB7/2
-TXPaN1k2gOcq7CkfgYi1fHTntA0EfGdxXi2eYGupEW/fZK3UEd/skDykQQnsfklvgtfgkbnqcg7n
-FvxTTmFYFYGK348QPhONbTbai34nPNNSDGtAsQmhGuEJ+mINTmX5MIX3QbqQLYpW1pZWb++UCEjV
-hEJ43+QitlmZZ2reUseeRYvwEhr74ksz9nJ+0TY1c2KSgKU7sX42u9Vw5W7MeJ94fq8QsV74FsqT
-nW/xRF+rG/LehhF/OX4jNBoREGackDKPm5ZZzUSMHtf5Qy6IpmlNKoGv7g+L3spDuKywXbDRvmHT
-oDW4/Lu3CXUpKeIRPXVJA2V/8cAO/4oH3Xb9UnnIEEJZ1Qgd7tq4LI7dj0/YMT/bIFcYpMeVluLU
-qV06pbb2Bf0GQoZP4hmnQDxSV/uidnrEfSWjNt8JGaT8dmL7DqVP4C2A7drlfAbT7P9gLOEGIokz
-YEU9pUbPuUjyLmgsY9kk+O+bMN8sHEs7Sujd27PlTc/mCHcWNmOjMsfsBkFCo/e7w8u4zmYCOW8U
-8rwoLzYqU1IgR8C6Ybui90iZX6Cl420/yJuVO+BhOQesqwi7uyfOsf2uk4FNtO/Y6OeASDYUTQev
-0agm4kJRgsPtvHVmuOoTpS4DicU02JrX3alZgTWTlZMhkanjf03nI459uF5TOF+wgzvGrHTN6iW0
-w5nCnodgMcCEmeHBzzxUtaBjUbYeb4PuVNyAW1/NeY+K8SjMHeqIb5wHHqVaX9CwDWpwe8Gpod/t
-ckWYNaQpjrmjTcwMFNKXBQ1xPdyFXlL2EsqUaLYasuevm5tq8EemRUgNCEd9b5Tk3S5AnFOhQh8Y
-UZyM+Co3boCaH+XniczMn4XpQeSH7g1VImX5RpfWjDbWtNNzNbGU1FU/p0i2z96N9D0TNlNp8OS/
-oulMqc///hsardqO9Ab3kHl3zmtrK5gH+M6vyTGPNaykC5ruz0G+ccr6GJC2kp4PibbgWC3MdoLP
-L7MHqc1njO9mZ+SqHpJ1B15oLrEALnik5XYgYva91/UI5fDwt+wJ47pvmJ733LQsOWrwYZyA10vp
-9IomIGkSFsiI4PbTjG2JnPLxI8Hwz+b/+RdjyPoC9CeWrjEBjo1xthl2N+8FwAJDM9AhPWAkp8OM
-1QIR0lQWp0yT4RB8aCYc/gcXXk1rsZlNaAqU82RN5cxZL84VoYz5IKvNTsT9qVN7EZrqGCOG8Yng
-d+5Gj5UF61PQ0LmmM6PsgMlD5uQXphB3Ehl7lyBwmjH3U2Ga3yLGwMWLCLM7zcXEuCojHoe49ntt
-FUWbwtFUvasW4FQ4Km1TB+imj6SuGzGSpWjJQbd1sRAtnMYYjofu1qUaUPK27nB7EPMDHN3/aRGC
-7Zjrqz42EFBNmIr2rHiAXyW9MtL8a9aCwf+cl0dJsea1hQlZJdX9RKPuMj7Wdl6gMmxGEpZGUSLv
-aIgTWIktmRre7EivCj8cafcDAtbD7E6rVhuxagTYH7cJ85UWSFDHauyZcCY3En2Ytnm7yKMzDt9L
-jbR5WHB+ee1h4141iqtHjEc081wS5U4tZ+7PHVOEzDYV4ggGVTHno5jaO4OwZ50/7ZDn4j4WS5fV
-ZjhvuWpy0m1adSa4OXxPC8zcX1iisdbjFW7LLjG7kAm5sVMXGKOUg000xp89Zzu916fyeuF4QLpI
-/6rfXfer8vib6KspWj7p3TgEhwDPGs7NE46yUKnftbWxC5pu+O24DRFlJhRSHdgMTcIk4H1e84Jr
-tMUX+GuQjlizBbAaWSEOld4jKrIfqpX+zQ8suYMqb/sb19ZdR5hdInCWXguIeypaVRb7nIKjJTkm
-YXM/cAVXWmG4Evv0cmlQV1PU5k61saCGGf0d28t3lltFh1XO26dYvp/aUp+I9/l355Fi+j9fUkEh
-47gBfDJF7v+n3+CWMhcCr7eqAvyGFbuNrYureVjTquZOIO77Na5tvLdYdOpcD2PCxgpFd9y2Q0rw
-oSHAmZtCezwrhaPOIveOOXB9MTIkCBhPUuO42AMft9w3I0A2pdmQKcC+yiv8cTLM0Y9IhZ73CFbF
-Obk59cL775CuKqg8tiu9YOzv0NTpsNqONTUGMICe3nAJT62Bec3qii+Dgu3BrHX/Fu7cqE6GLhon
-LcicdwY3w09rpxgYFt8iZY9TTOCx8jagpui0+k5+ULygSbMicF8JgvNEaCPTx8+txTzMQVuDrn4m
-nn/a9r1j+fech/elIhFHJKitEMPUDa0pAa35AxIqwDHzb7VBHae0c98rHhonStRJJ/5saOtIukId
-aLgrUthF3edMKUIHOb/sZFtjBHENmfPh1VrMsbLLVkmosP4e6DJ3oiZsyfwu55c5nTIdClVPmIC9
-HVBuCGq57FUeqC4F1f+6V2wg6UWI4Pmw/2GWFZlMsN1XU/S8XmBDaGTZ5tPVRDiKty608F1JDmyf
-Y4RGiK0jf9YVDnYehIjyUU+pnmuolDJtV2Bfp+iu0FTUwzeWl4JeKXQ8BJT+ODLt396v7DsBtKKz
-Qs9EIngJL4YkXpOvsYa6oHTPvqPem9jdhEhEfPkiFfe=
+<?php
+/**
+ * Created by PhpStorm.
+ * User: tatiana
+ * Date: 09.06.2018
+ * Time: 16:12
+ */
+
+namespace totum\common;
+
+use totum\config\Conf;
+
+class Crypt
+{
+    private static function getKey($sess)
+    {
+        if ($sess === true) {
+            if (empty($_SESSION['crypt_key'])) {
+                $_SESSION['crypt_key'] = md5(microtime(true));
+            }
+
+            return $_SESSION['crypt_key'];
+        } else {
+            return 'Y`9~g8_cjZrZkGd!' . $sess;
+        }
+    }
+
+    public static function setKeySess()
+    {
+        if (empty($_SESSION['crypt_key'])) {
+            $_SESSION['crypt_key'] = md5(microtime(true));
+        }
+    }
+
+    public static function getCrypted($string, $sess = true)
+    {
+        $ivlen = openssl_cipher_iv_length($cipher = "AES-128-CBC");
+        $iv = openssl_random_pseudo_bytes($ivlen);
+        $ciphertext_raw = openssl_encrypt($string, $cipher, static::getKey($sess), $options = OPENSSL_RAW_DATA, $iv);
+        $hmac = hash_hmac('sha256', $ciphertext_raw, static::getKey($sess), $as_binary = true);
+        return base64_encode($iv . $hmac . $ciphertext_raw);
+    }
+
+    public static function getDeCrypted($string, $sess = true)
+    {
+        $c = base64_decode($string);
+        $ivlen = openssl_cipher_iv_length($cipher = "AES-128-CBC");
+        $iv = substr($c, 0, $ivlen);
+        $hmac = substr($c, $ivlen, $sha2len = 32);
+        $ciphertext_raw = substr($c, $ivlen + $sha2len);
+        $plaintext = openssl_decrypt($ciphertext_raw, $cipher, static::getKey($sess), $options = OPENSSL_RAW_DATA, $iv);
+        $calcmac = hash_hmac('sha256', $ciphertext_raw, static::getKey($sess), $as_binary = true);
+        if (hash_equals($hmac, $calcmac)) {
+            return $plaintext;
+        }
+        return false;
+    }
+}

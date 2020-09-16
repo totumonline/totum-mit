@@ -10,38 +10,50 @@ namespace totum\models;
 
 
 use totum\common\Model;
-use totum\common\Sql;
-use totum\tableTypes\tableTypes;
+use totum\config\Conf;
 
 class Tree extends Model
 {
 
-    function insert($vars, $returning = 'idFieldName', $ignore = false)
+    /**
+     * @var mixed|string|Model
+     */
+    private $treeVModel;
+
+    public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true)
     {
-        $id = parent::insert($vars, $returning, $ignore);
+        $id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt);
         if ($id) {
             $this->update(['title' => $vars['title']], ['id' => $id]);
         }
         return $id;
     }
 
-    function update($params, $where, $ignore = 0, $oldRow = null): int
+
+    function update($params, $where, $oldRow = null): int
     {
-        $r = $params ? parent::update($params, $where, $ignore, $oldRow) : 0;
+        $r = $params ? parent::update($params, $where, $oldRow) : 0;
         if (array_key_exists('parent_id', $params) || empty($oldRow['top']['v'])) {
-            foreach (TreeV::init()->getField('id', [], null, null) as $id) {
+            $treeVModel = $this->treeVModel ?? $this->treeVModel = (new Model($this->Sql,
+                    Conf::getTableNameByModel(TreeV::class),
+                    null,
+                    true));
+
+            foreach ($this->getColumn('id') as $id) {
                 $params = [];
                 $where = ['id' => $id];
-                $treeVRow = TreeV::init()->get($where, 'top');
+                $treeVRow = $treeVModel->executePrepared(true, $where, 'top')->fetch();
                 $params['top'] = json_encode(['v' => $treeVRow['top']], JSON_UNESCAPED_UNICODE);
-                parent::update($params, $where, $ignore, null);
+                parent::update($params, $where, null);
             }
-            $Tables = tableTypes::getTable(Table::getTableRowById(Table::$TableId));
+
+            /*TODO заменить на код вызываемый из схемы при обновлении поля parent_id*/
+            /*$Tables = tableTypes::getTable(Table::getTableRowById(Table::$TableId));
             $ids = $Tables->loadRowsByParams([['field' => 'type', 'operator' => '!=', 'value' => "calcs"]]);
             $Tables->reCalculateFromOvers(['modify' => array_map(function () {
                 return [];
             },
-                array_flip($ids))]);
+                array_flip($ids))]);*/
         }
         return $r;
     }
@@ -52,10 +64,10 @@ class Tree extends Model
         $rolesSql = '';
 
         $quotedTables = implode(',',
-            Sql::quote($tables));
+            $this->Sql->quote($tables));
 
         if (!empty($roles)) {
-            foreach ($roles as &$role) $role = Sql::quote(strval($role));
+            foreach ($roles as &$role) $role = $this->Sql->quote(strval($role));
             unset($role);
             $roles = implode(',', $roles);
             $rolesSql = <<<SQL
@@ -75,7 +87,7 @@ SQL;
     ) 
 SQL;
 
-        $r= Sql::getAll($q='WITH RECURSIVE r AS (
+        $r = $this->Sql->getAll($q = 'WITH RECURSIVE r AS (
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
     WHERE id IN (select (tree_node_id->>\'v\')::integer from tables where type->>\'v\'!=\'calcs\' AND id in (' . $quotedTables . '))
@@ -91,7 +103,7 @@ SQL;
 
     function getBranchesForCreator($branchId = null)
     {
-        return Sql::getAll('WITH RECURSIVE r AS (
+        return $this->Sql->getAll('WITH RECURSIVE r AS (
     SELECT parent_id, id, title, ord, top,default_table, type, icon,link
     FROM tree__v
     UNION 

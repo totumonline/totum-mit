@@ -8,20 +8,15 @@
 
 namespace totum\common;
 
-
 use SoapClient;
-use totum\config\Conf;
-use totum\models\Table;
-use totum\tableTypes\aTable;
+use totum\common\calculates\Calculate;
+use totum\common\sql\SqlException;
 use totum\tableTypes\RealTables;
-use totum\tableTypes\tableTypes;
 use \Exception;
 
 class CalculateAction extends Calculate
 {
-    static $logClassName = "act";
-
-    function funcExec($params)
+    protected function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
             $code = $params['code'] ?? $params['kod'];
@@ -34,17 +29,18 @@ class CalculateAction extends Calculate
                         $Vars = array_merge($Vars, $this->getExecParamVal($v));
                     }
 
-                    $r = $CA->execAction($this->varName,
+                    $r = $CA->execAction(
+                        $this->varName,
                         $this->oldRow,
                         $this->row,
                         $this->oldTbl,
                         $this->tbl,
-                        $this->aTable,
-                        $Vars);
+                        $this->Table,
+                        $Vars
+                    );
                     $this->newLogParent['children'][] = $CA->getLogVar();
 
                     return $r;
-
                 } catch (errorException $e) {
                     $this->newLogParent['children'][] = $CA->getLogVar();
                     throw $e;
@@ -53,17 +49,23 @@ class CalculateAction extends Calculate
         }
     }
 
+    /*TODO сломано*/
     protected function funcSchemaGzStringGet($params)
     {
         $params = $this->getParamsArray($params);
-        if (!Auth::isCreator()) throw new errorException('Функция доступна только роли Создатель');
+        if (!$this->Table->getUser()->isCreator()) {
+            throw new errorException('Функция доступна только роли Создатель');
+        }
 
-        if ($params['password'] !== Auth::getUserVar('pass')) {
+        if ($params['password'] !== $this->Table->getUser()->getVar('pass')) {
             throw new errorException('Пароль не подходит');
         }
-        $tmpFilename = tempnam(Conf::getTmpLoadedFilesDir(), Conf::getSchema() . '.' . Auth::getUserId() . '.');
-        $ConfDb = Conf::getDb();
-        $schema = $ConfDb['schema'];
+        $tmpFilename = tempnam(
+            $this->Table->getTotum()->getConfig()->getTmpDir(),
+            $this->Table->getTotum()->getConfig()->getSchema() . '.' . $this->Table->getUser()->getId() . '.'
+        );
+        $ConfDb = $this->Table->getTotum()->getConfig()->getDb();
+        $schema = $this->Table->getTotum()->getConfig()->getSchema();
         $exclude = "--exclude-table-data='_tmp_tables'";
         if (empty($params['withlog'])) {
             $exclude .= " --exclude-table-data='_log'";
@@ -71,55 +73,70 @@ class CalculateAction extends Calculate
         if (empty($params['withbfl'])) {
             $exclude .= " --exclude-table-data='_bfl'";
         }
-        exec(Conf::db['pg_dump'] . " " .
+        exec(
+            $ConfDb['pg_dump'] . " " .
             "--dbname=postgresql://{$ConfDb['username']}:{$ConfDb['password']}@{$ConfDb['host']}/{$ConfDb['dbname']}" .
             " -O --schema '{$schema}' {$exclude} | grep -v '^--' | gzip > \"{$tmpFilename}\"",
-            $data);
+            $data
+        );
         return file_get_contents($tmpFilename);
-
     }
 
     protected function funcSchemaGzStringUpload($params)
     {
         $params = $this->getParamsArray($params);
-        if (!Auth::isCreator()) throw new errorException('Функция доступна только роли Создатель');
+        if (!$this->Table->getUser()->isCreator()) {
+            throw new errorException('Функция доступна только роли Создатель');
+        }
 
-        if ($params['password'] !== Auth::getUserVar('pass')) {
+        if ($params['password'] !== $this->Table->getUser()->getVar('pass')) {
             throw new errorException('Пароль не подходит');
         }
         if (empty($params['gzstring'])) {
             throw new errorException('Строка схемы пуста');
         }
-        $pathPsql = Conf::getDb()['psql'];
-        $dbConnect = 'postgresql://' . Conf::getDb()['username'] . ':' . Conf::getDb()['password'] . '@' . Conf::getDb()['host'] . '/' . Conf::getDb()['dbname'];
-        $tmpFileName = tempnam(Conf::getTmpLoadedFilesDir(), Conf::getSchema() . '.' . Auth::getUserId() . '.');
-        $tmpFileName2 = tempnam(Conf::getTmpLoadedFilesDir(), Conf::getSchema() . '.' . Auth::getUserId() . '.');
+        $pathDbPsql = $this->Table->getTotum()->getConfig()->getSshPostgreConnect();
+        $tmpFileName = tempnam(
+            $this->Table->getTotum()->getConfig()->getTmpDir(),
+            $this->Table->getTotum()->getConfig()->getSchema() . '.' . $this->Table->getTotum()->getUser()->getId() . '.'
+        );
+        $tmpFileName2 = tempnam(
+            $this->Table->getTotum()->getConfig()->getTmpDir(),
+            $this->Table->getTotum()->getConfig()->getSchema() . '.' . $this->Table->getTotum()->getUser()->getId() . '.'
+        );
 
         file_put_contents($tmpFileName, $params['gzstring']);
         ` zcat {$tmpFileName} > $tmpFileName2`;
 
-        file_put_contents($tmpFileName,
-            'drop schema "' . Conf::getSchema() . '" cascade; ' . preg_replace('/^(REVOKE|GRANT) ALL .*?;[\n\r]*$/m',
-                '',
-                file_get_contents($tmpFileName2)));
+        file_put_contents(
+            $tmpFileName,
+            sprintf(
+                'drop schema "%s" cascade; %s',
+                $this->Table->getTotum()->getConfig()->getSchema(),
+                preg_replace(
+                    '/^(REVOKE|GRANT) ALL .*?;[\n\r]*$/m',
+                    '',
+                    file_get_contents($tmpFileName2)
+                )
+            )
+        );
 
-        $tmpErrors = tempnam(Conf::getTmpLoadedFilesDir(), 'schema_errors_');
+        $tmpErrors = tempnam($this->Table->getTotum()->getConfig()->getTmpDir(), 'schema_errors_');
 
-        Sql::transactionRollBack();
-
-        `$pathPsql --dbname="$dbConnect" -q -1 -b -v ON_ERROR_STOP=1 -f $tmpFileName 2>$tmpErrors`;
+        `$pathDbPsql -q -1 -b -v ON_ERROR_STOP=1 -f $tmpFileName 2>$tmpErrors`;
         if ($errors = file_get_contents($tmpErrors)) {
             throw new errorException($errors);
         }
     }
 
-    protected
-    function funcReCalculateCycle($params)
+    protected function funcReCalculateCycle($params)
     {
         if ($params = $this->getParamsArray($params)) {
             $tableRow = $this->__checkTableIdOrName($params['table'], 'table', '$table->reCalculate(reCalculate');
 
-            if ($tableRow['type'] != 'cycles') throw new errorException('Функция принимает только таблицы циклов');
+            if ($tableRow['type'] != 'cycles') {
+                throw new errorException('Функция принимает только таблицы циклов');
+            }
 
             if (!is_array($params['cycle']) && empty($params['cycle'])) {
                 throw new errorException('Не указан [[cycle]] в функции [[reCalculate]]');
@@ -128,234 +145,220 @@ class CalculateAction extends Calculate
             $Cycles = (array)$params['cycle'];
             foreach ($Cycles as $cycleId) {
                 $params['cycle'] = $cycleId;
-                $Cycle = Cycle::init($params['cycle'], $tableRow['id']);
+                $Cycle = $this->Table->getTotum()->getCycle($params['cycle'], $tableRow['id']);
                 $Cycle->recalculate();
             }
-
         }
-        aTable::$isActionRecalculateDone = true;
     }
 
-    function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, $table, $var = [])
+    public function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, $table, $var = [])
     {
-        $dtStart = microtime(true);
-
-        $this->newLog = [];
-        $this->newLogParent = &$this->newLog;
-
-        $this->fixedCodeVars = [];
-        $this->whileIterators = [];
-        $this->vars = $var;
-        $this->varName = $varName;
-
-        $this->error = '';
-
-        $this->row = $newRow;
-        $this->oldRow = $oldRow;
-        $this->tbl = $newTbl;
-        $this->oldTbl = $oldTbl;
-        $this->aTable = $table;
-
-        try {
-
-            $r = $this->execSubCode($this->code['='], '=');
-
-        } catch (SqlExeption $e) {
-            $this->error = 'Ошибка базы данных [[' . $e->getMessage() . ']]';
-            $this->newLog['text'] .= $this->error;
-            throw new errorException($this->error);
-        } catch (errorException $e) {
-            $this->newLog['text'] = ($this->newLog['text'] ?? '') . $e->getMessage() . ' поля [[' . $this->varName . ']] таблицы [[' . $this->aTable->getTableRow()['name'] . ']]';
-            $e->addPath(' поля [[' . $this->varName . ']] таблицы [[' . $this->aTable->getTableRow()['name'] . ']]');
-            throw $e;
-        }
-
-        static::$calcLog[$var]['time'] = (static::$calcLog[$var = $table->getTableRow()["id"] . '/' . $varName . '/' . static::$logClassName]['time'] ?? 0) + (microtime(true) - $dtStart);
-        static::$calcLog[$var]['cnt'] = (static::$calcLog[$var]['cnt'] ?? 0) + 1;
-
+        $r = $this->exec(['name' => $varName], null, $oldRow, $newRow, $oldTbl, $newTbl, $table, $var);
 
         return $r;
+    }
+
+    protected function funcSchemaUpdate($params)
+    {
+        $params = $this->getParamsArray($params);
+        $TotumInstall = new TotumInstall($this->Table->getTotum()->getConfig(),
+            $this->Table->getTotum()->getUser(),
+            null,
+            $this->Table->getCalculateLog());
+        $TotumInstall->updateSchema($params['schema'],
+            $params['roles'] ?? [],
+            $params['categories'] ?? [],
+            $params['tree'] ?? [],
+            true);
+
+
     }
 
     protected function funcLinkToButtons($params)
     {
         $params = $this->getParamsArray($params);
-        if (empty($params['title'])) throw new errorException('Заполните параметр [[title]]');
-        if (empty($params['buttons'])) throw new errorException('Заполните параметр [[buttons]]');
-        if (!is_array($params['buttons'])) throw new errorException('Параметр [[buttons]] должен содержать массив');
+        if (empty($params['title'])) {
+            throw new errorException('Заполните параметр [[title]]');
+        }
+        if (empty($params['buttons'])) {
+            throw new errorException('Заполните параметр [[buttons]]');
+        }
+        if (!is_array($params['buttons'])) {
+            throw new errorException('Параметр [[buttons]] должен содержать массив');
+        }
 
         $requiredByttonParams = ['text', 'code'];
         $buttons = [];
         foreach ($params['buttons'] as $btn) {
             foreach ($requiredByttonParams as $req) {
-                if (empty($btn[$req])) throw new errorException('Каждая кнопка должна содержать [[' . $req . ']]');
+                if (empty($btn[$req])) {
+                    throw new errorException('Каждая кнопка должна содержать [[' . $req . ']]');
+                }
             }
             unset($btn['code']);
             unset($btn['vars']);
             $buttons[] = $btn;
         }
 
-        $model = Model::initService('_tmp_tables');
+        $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
 
         do {
             $hash = md5(microtime(true) . '__linktobuttons_' . mt_srand());
-            $key = ['table_name' => '_linkToButtons', 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+            $key = ['table_name' => '_linkToButtons', 'user_id' => $this->Table->getUser()->getId(), 'hash' => $hash];
         } while ($model->getField('user_id', $key));
 
-        $vars = array_merge(['tbl' => json_encode($params,
-            JSON_UNESCAPED_UNICODE),
-            'touched' => date('Y-m-d H:i')],
-            $key);
-        $model->insert($vars,
-            false);
+        $vars = array_merge(
+            ['tbl' => json_encode(
+                $params,
+                JSON_UNESCAPED_UNICODE
+            ),
+                'touched' => date('Y-m-d H:i')],
+            $key
+        );
+
+
+        $model->insertPrepared(
+            $vars,
+            false
+        );
         $params['hash'] = $hash;
 
         $params['buttons'] = $buttons;
-        Controller::addToInterfaceDatas('buttons', $params);
-
-
+        $this->Table->getTotum()->addToInterfaceDatas('buttons', $params);
     }
 
     protected function funcLinkToInput($params)
     {
         $params = $this->getParamsArray($params, ['var']);
-        if (empty($params['title'])) throw new errorException('Заполните параметр [[title]]');
-        if (empty($params['code'])) throw new errorException('Заполните параметр [[code]]');
+        if (empty($params['title'])) {
+            throw new errorException('Заполните параметр [[title]]');
+        }
+        if (empty($params['code'])) {
+            throw new errorException('Заполните параметр [[code]]');
+        }
 
         $params['input'] = '';
 
-        $model = Model::initService('_tmp_tables');
+        $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
 
         do {
             $hash = md5(microtime(true) . '__linktoinput_' . mt_srand());
-            $key = ['table_name' => '_linkToInput', 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+            $key = ['table_name' => '_linkToInput', 'user_id' => $this->Table->getUser()->getId(), 'hash' => $hash];
         } while ($model->getField('user_id', $key));
 
-        $vars = array_merge(['tbl' => json_encode($params,
-            JSON_UNESCAPED_UNICODE),
-            'touched' => date('Y-m-d H:i')],
-            $key);
-        $model->insert($vars,
-            false);
+        $vars = array_merge(
+            ['tbl' => json_encode(
+                $params,
+                JSON_UNESCAPED_UNICODE
+            ),
+                'touched' => date('Y-m-d H:i')],
+            $key
+        );
+        $model->insertPrepared(
+            $vars,
+            false
+        );
         $params['hash'] = $hash;
-        Controller::addToInterfaceDatas('input',
-            array_intersect_key($params, ["title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1]));
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'input',
+            array_intersect_key($params, ["title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1])
+        );
     }
 
-    protected
-    function __getActionTable($params, $funcName)
-    {
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'reCalculate');
 
-        switch ($tableRow['type']) {
-            case 'calcs':
-                if (empty($params['cycle'])) {
-                    throw new errorException('Параметр [[cycle]] не указан');
-                }
-
-                $Cycle = Cycle::init($params['cycle'], $tableRow['tree_node_id']);
-                $table = $Cycle->getTable($tableRow);
-                unset($params['cycle']);
-
-                break;
-            case 'globcalcs':
-                $Cycle = Cycle::init(0, 0);
-                $table = $Cycle->getTable($tableRow);
-
-                break;
-            case 'tmp':
-                if (empty($params['hash']) && $this->aTable->getTableRow()['name'] != $tableRow['name']) {
-
-                    throw new errorException('Параметр [[hash]] не указан');
-                }
-                if ($params['hash']) {
-                    $table = tableTypes::getTable($tableRow, $params['hash'] ?? null);
-                } else $table = $this->aTable;
-                break;
-            default:
-                $table = tableTypes::getTable($tableRow);
-
-                break;
-        }
-        return $table;
-    }
-
-    protected
-    function funcEmailSend($params)
+    protected function funcEmailSend($params)
     {
         $params = $this->getParamsArray($params, [], []);
 
-        if (empty($params['to'])) throw new errorException('Параметр to обязателен');
-        if (empty($params['title'])) throw new errorException('Параметр title обязателен');
-        if (empty($params['body'])) throw new errorException('Параметр body обязателен');
+        if (empty($params['to'])) {
+            throw new errorException('Параметр to обязателен');
+        }
+        if (empty($params['title'])) {
+            throw new errorException('Параметр title обязателен');
+        }
+        if (empty($params['body'])) {
+            throw new errorException('Параметр body обязателен');
+        }
 
-        $toBfl = $params['bfl'] ?? in_array('email',
-                tableTypes::getTableByName('settings')->getTbl()['params']['bfl']['v'] ?? []);
+        $toBfl = $params['bfl'] ?? in_array(
+                'email',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
 
         try {
-            $r = Mail::send($params['to'],
+            $r = $this->Table->getTotum()->getConfig()->sendMail(
+                $params['to'],
                 $params['title'],
                 $params['body'],
-                $params['from'] ?? null,
-                $params['files'] ?? []);
-            if ($toBfl) {
-                Bfl::add('script',
-                    'system',
-                    $params);
-            }
-            return $r;
-        } catch (\Exception $e) {
+                $params['files'] ?? [],
+                $params['from'] ?? null
+            );
 
             if ($toBfl) {
-                Bfl::add('script',
-                    'system',
-                    $params);
+                $this->Table->getTotum()->getOutersLogger()->debug("email", $params);
+            }
+            return $r;
+        } catch (Exception $e) {
+            if ($toBfl) {
+                $this->Table->getTotum()->getOutersLogger()->error(
+                    "email",
+                    ['error' => $e->getMessage()] + $params
+                );
             }
             throw new errorException($e->getMessage());
         }
     }
 
-    protected
-    function funcTryCatch($params)
+    protected function funcTryCatch($params)
     {
         $paramsBefore = $this->getParamsArray($params, [], ['catch', 'try']);
 
-        if (!array_key_exists('try', $paramsBefore)) throw new errorException('try - обязательный параметр');
-        if (!array_key_exists('catch', $paramsBefore)) throw new errorException('catch - обязательный параметр');
+        if (!array_key_exists('try', $paramsBefore)) {
+            throw new errorException('try - обязательный параметр');
+        }
+        if (!array_key_exists('catch', $paramsBefore)) {
+            throw new errorException('catch - обязательный параметр');
+        }
 
         try {
             return $this->getParamsArray($params, [], ['error', 'catch'])['try'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->vars[$paramsBefore['error'] ?? 'exception'] = $e->getMessage();
             return $this->execSubCode($paramsBefore['catch'], 'catch');
-
         }
     }
 
-    protected
-    function funcGetFromSoap($params)
+    protected function funcGetFromSoap($params)
     {
-
         $params = $this->getParamsArray($params, [], []);
-        if (array_key_exists('options',
-                $params) && !is_array($params['options'])) throw new errorException('options должно быть типа row');
+        if (array_key_exists(
+                'options',
+                $params
+            ) && !is_array($params['options'])) {
+            throw new errorException('options должно быть типа row');
+        }
 
 
-        $toBfl = $params['bfl'] ?? in_array('soap',
-                tableTypes::getTableByName('settings')->getTbl()['params']['bfl']['v'] ?? []);
+        $toBfl = $params['bfl'] ?? in_array(
+                'soap',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
         try {
-
-            $soapClient = new SoapClient($params['wsdl'] ?? null,
+            $soapClient = new SoapClient(
+                $params['wsdl'] ?? null,
                 (['cache_wsdl' => WSDL_CACHE_NONE,
                         'exceptions' => true,
                         'soap_version' => SOAP_1_2,
                         'trace' => 1,
-                    ] + ($params['options'] ?? [])));
+                    ] + ($params['options'] ?? []))
+            );
 
 
             if (array_key_exists('params', $params)) {
-                $res = $soapClient->{$params['func']}(json_decode(json_encode($params['params'],
-                    JSON_UNESCAPED_UNICODE)));
+                $res = $soapClient->{$params['func']}(json_decode(json_encode(
+                    $params['params'],
+                    JSON_UNESCAPED_UNICODE
+                )));
             } else {
                 $res = $soapClient->{$params['func']}();
             }
@@ -370,124 +373,134 @@ class CalculateAction extends Calculate
                     return $d;
                 }
             };
-            $this->addInNewLogVar('cogs',
-                'soap-data-request',
-                $soapClient->__getLastRequest());
-
-            $this->addInNewLogVar('cogs',
-                'soap-data-response',
-                $soapClient->__getLastResponse());
             $data = $objectToArray($res);
             if ($toBfl) {
-                Bfl::add('soap',
-                    'system',
-                    ['xml_request' => $soapClient->__getLastRequest(), 'xml_response' => $soapClient->__getLastResponse(), 'data_request' => $params, 'data_response' => $data]);
+                $this->Table->getTotum()->getOutersLogger()->debug(
+                    "SOAP",
+                    ['xml_request' => $soapClient->__getLastRequest(), 'xml_response' => $soapClient->__getLastResponse(), 'data_request' => $params, 'data_response' => $data]
+                );
             }
             return $data;
-
-        } catch (\Exception $e) {
-            if (!empty($soapClient)) {
-                $this->addInNewLogVar('a',
-                    'soap-data',
-                    ['Исходящее SOAP' => $soapClient->__getLastRequest(), 'Ответное SOAP' => $soapClient->__getLastResponse()]);
-                if ($toBfl) {
-                    Bfl::add('soap',
-                        'system',
-                        ['xml_request' => $soapClient->__getLastRequest(), 'xml_response' => $soapClient->__getLastResponse(), 'data_request' => $params, 'data_response' => $data, 'error' => $e->getMessage()]);
+        } catch (Exception $e) {
+            if ($toBfl) {
+                if (!empty($soapClient)) {
+                    $this->Table->getTotum()->getOutersLogger()->error(
+                        "SOAP" . $e->getMessage(),
+                        ['xml_request' => $soapClient->__getLastRequest(),
+                            'xml_response' => $soapClient->__getLastResponse(),
+                            'data_request' => $params, 'data_response' => $data,
+                            'error' => $e->getMessage()]
+                    );
+                } else {
+                    $this->Table->getTotum()->getOutersLogger()->error(
+                        "SOAP",
+                        ['xml_request' => null, 'xml_response' => null,
+                            'data_request' => $params, 'data_response' => null,
+                            'error' => $e->getMessage()]
+                    );
                 }
-            } elseif ($toBfl) {
-                Bfl::add('soap',
-                    'system',
-                    ['xml_request' => null, 'xml_response' => null, 'data_request' => $params, 'data_response' => null, 'error' => $e->getMessage()]);
             }
             throw new errorException($e->getMessage());
         }
-
     }
 
-    protected
-    function funcLinkToPanel($params)
+    protected function funcLinkToPanel($params)
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'LinkToPanel');
         $link = '/Table/';
 
         if ($tableRow['type'] === 'calcs') {
-            if ($topTableRow = Table::getTableRowById($tableRow['tree_node_id'])) {
-                if ($this->aTable->getTableRow()['type'] === 'calcs' && $tableRow['tree_node_id'] == $this->aTable->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
-                    $Cycle_id = $this->aTable->getCycle()->getId();
+            if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
+                if ($this->Table->getTableRow()['type'] === 'calcs' && $tableRow['tree_node_id'] == $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
+                    $Cycle_id = $this->Table->getCycle()->getId();
                 } else {
-                    $this->__checkDigitParam($params['cycle'], 'cycle', 'LinkToPanel');
+                    $this->__checkNumericParam($params['cycle'], 'cycle', 'LinkToPanel');
                     $Cycle_id = $params['cycle'];
                 }
 
                 $link .= $topTableRow['top'] . '/' . $topTableRow['id'] . '/' . $Cycle_id . '/' . $tableRow['id'] . '/';
-                $Cycle = Cycle::init($Cycle_id, $tableRow['tree_node_id']);
-                $linkedTable = $Cycle->getTable($tableRow);
             } else {
                 throw new errorException('Таблица циклов указана неверно');
             }
         } else {
-            $linkedTable = tableTypes::getTable($tableRow);
             $link .= $tableRow ['top'] . '/' . $tableRow['id'] . '/';
         }
         if (!empty($params['id'])) {
             $ids = (array)$params['id'];
             foreach ($ids as $id) {
-                Controller::addLinkPanel($link,
+                $this->Table->getTotum()->addLinkPanel(
+                    $link,
                     $id,
                     [],
-                    $params['refresh'] ?? false);
+                    $params['refresh'] ?? false
+                );
             }
         } elseif (!empty($params['field'])) {
             $field = $this->__getActionFields($params['field'], 'LinkToPanel');
             foreach ($field as $f => &$v) {
                 $v = ['v' => $v];
             }
-            Controller::addLinkPanel($link,
+            $this->Table->getTotum()->addLinkPanel(
+                $link,
                 null,
                 $field,
-                $params['refresh'] ?? false);
+                $params['refresh'] ?? false
+            );
         } else {
-            Controller::addLinkPanel($link,
+            $this->Table->getTotum()->addLinkPanel(
+                $link,
                 null,
                 [],
-                $params['refresh'] ?? false);
+                $params['refresh'] ?? false
+            );
         }
-
     }
 
-    protected
-    function funcLinkToPrint($params)
+    protected function funcLinkToPrint($params)
     {
         $params = $this->getParamsArray($params);
 
-        if (!$params['template'] || !($templates = Model::init('print_templates')->getAllIndexedByField([],
+        if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
+                [],
                 'styles, html, name',
-                'name')) || (!array_key_exists($params['template'],
-                $templates))) throw new errorException('Шаблон не найден');
+                'name'
+            )) || (!array_key_exists(
+                $params['template'],
+                $templates
+            ))) {
+            throw new errorException('Шаблон не найден');
+        }
 
         $style = $templates[$params['template']]['styles'];
 
         $usedStyles = [];
 
         $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $templates, &$style, &$usedStyles) {
-            return preg_replace_callback('/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
+            return preg_replace_callback(
+                '/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
                 function ($matches) use ($data, $templates, &$funcReplaceTemplates, &$style, &$usedStyles) {
                     if (array_key_exists($matches[2], $data)) {
-
                         if (is_array($data[$matches[2]])) {
-
                             if (!empty($matches[3])) {
                                 $matches[3] = substr($matches[3], 2, -2);
-                                if (!array_key_exists($matches[3],
-                                    $data[$matches[2]])) throw new errorException('Не найден ключ ' . $matches[3] . ' в параметре [' . $matches[2] . ']');
+                                if (!array_key_exists(
+                                    $matches[3],
+                                    $data[$matches[2]]
+                                )) {
+                                    throw new errorException('Не найден ключ ' . $matches[3] . ' в параметре [' . $matches[2] . ']');
+                                }
                                 $value = $data[$matches[2]][$matches[3]];
                             } else {
-
-                                if (empty($data[$matches[2]]['template'])) throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
-                                if (!array_key_exists($data[$matches[2]]['template'],
-                                    $templates)) throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
+                                if (empty($data[$matches[2]]['template'])) {
+                                    throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
+                                }
+                                if (!array_key_exists(
+                                    $data[$matches[2]]['template'],
+                                    $templates
+                                )) {
+                                    throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
+                                }
                                 $template = $templates[$data[$matches[2]]['template']];
                                 $html = '';
                                 if (!in_array($template['name'], $usedStyles)) {
@@ -500,20 +513,20 @@ class CalculateAction extends Calculate
                                         $html .= $funcReplaceTemplates($template['html'], $_data);
                                     }
                                 } else {
-                                    $html .= $funcReplaceTemplates($template['html'],
-                                        (array)$data[$matches[2]]['data']);
+                                    $html .= $funcReplaceTemplates(
+                                        $template['html'],
+                                        (array)$data[$matches[2]]['data']
+                                    );
                                 }
 
                                 return $html;
                             }
-
                         } else {
                             $value = $data[$matches[2]];
                         }
 
                         if (!empty($matches[4])) {
                             if ($formatData = explode(':', $matches[4], 2)) {
-
                                 switch ($formatData[0]) {
                                     case 'money':
                                         if (is_numeric($value)) {
@@ -525,10 +538,12 @@ class CalculateAction extends Calculate
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     if (is_numeric($value)) {
-                                                        $value = number_format($value,
+                                                        $value = number_format(
+                                                                $value,
                                                                 $numberVals[0],
                                                                 $numberVals[1] ?? '.',
-                                                                $numberVals[2] ?? '')
+                                                                $numberVals[2] ?? ''
+                                                            )
                                                             . ($numberVals[3] ?? '');
                                                     }
                                                 }
@@ -539,17 +554,20 @@ class CalculateAction extends Calculate
                                         if (count($formatData) == 2) {
                                             if ($date = date_create($value)) {
                                                 if (strpos($formatData[1], 'F') !== false) {
-                                                    $formatData[1] = str_replace('F',
+                                                    $formatData[1] = str_replace(
+                                                        'F',
                                                         Formats::months[$date->format('n')],
-                                                        $formatData[1]);
+                                                        $formatData[1]
+                                                    );
                                                 }
                                                 if (strpos($formatData[1], 'f') !== false) {
-                                                    $formatData[1] = str_replace('f',
+                                                    $formatData[1] = str_replace(
+                                                        'f',
                                                         Formats::monthRods[$date->format('n')],
-                                                        $formatData[1]);
+                                                        $formatData[1]
+                                                    );
                                                 }
                                                 $value = $date->format($formatData[1]);
-
                                             }
                                         }
                                         break;
@@ -576,13 +594,14 @@ class CalculateAction extends Calculate
 
                         return $value;
                     }
-
                 },
-                $html);
+                $html
+            );
         };
         //var_dump($style); die;
 
-        Controller::addToInterfaceDatas('print',
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'print',
             [
                 'body' => $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []),
                 'styles' => $style
@@ -590,78 +609,34 @@ class CalculateAction extends Calculate
         );
     }
 
-    protected
-    function funcLinkToData($params)
+    protected function funcLinkToData($params)
     {
         $params = $this->getParamsArray($params, ['field']);
-
-        $title = $params['title'] ?? 'Здесь должен быть title';
-
         switch ($params['type'] ?? '') {
             case 'text':
-                $width = $params['width'] ?? 500;
-
-                Controller::addToInterfaceDatas('text',
-                    ['title' => $title, 'width' => $width, 'text' => htmlspecialchars($params['text']) ?? ''],
-                    $params['refresh'] ?? false);
-                break;
-
+                return $this->funcLinkToDataText($params);
             case 'table':
-
-                $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
-
-                $tmp = tableTypes::getTable($tableRow);
-                $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ($params['params'] ?? [])]);
-                $data = $tmp->getTableDataForRefresh(null);
-
-                if (empty($params['width'])) {
-                    $width = 130;
-                    foreach ($tmp->getFieldsFiltered('sortedVisibleFields')['column'] as $field) {
-                        $width += $field['width'];
-                    }
-                    if ($width > 1200) $width = 1200;
-                } else {
-                    $width = $params['width'];
-                }
-
-                $table = [
-                    'title' => $title,
-                    'table_id' => $tableRow['id'],
-                    'sess_hash' => $tmp->getTableRow()['sess_hash'],
-                    'data' => array_values($data['chdata']['rows']),
-                    'data_params' => $data['chdata']['params'],
-                    'f' => $data['chdata']['f'],
-                    'width' => $width,
-                    'height' => $params['height'] ?? '80vh'
-                ];
-
-                Controller::addToInterfaceDatas('table',
-                    $table,
-                    $params['refresh'] ?? false,
-                    ['header' => $params['header'] ?? true,
-                        'footer' => $params['footer'] ?? true]);
-                break;
+                return $this->funcLinkToDataTable($params);
         }
-
     }
 
-    protected
-    function funcLinkToDataTable($params)
+    protected function funcLinkToDataTable($params)
     {
-
         $params = $this->getParamsArray($params);
 
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
-        $tmp = tableTypes::getTable($tableRow);
+        $tmp = $this->Table->getTotum()->getTable($tableRow);
         $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ($params['params'] ?? [])]);
 
         if (empty($params['width'])) {
             $width = 130;
-            foreach ($tmp->getFieldsFiltered('sortedVisibleFields')['column'] as $field) {
+            foreach ($tmp->getVisibleFields('web', true)['column'] as $field) {
                 $width += $field['width'];
             }
-            if ($width > 1200) $width = 1200;
+            if ($width > 1200) {
+                $width = 1200;
+            }
         } else {
             $width = $params['width'];
         }
@@ -673,21 +648,23 @@ class CalculateAction extends Calculate
             'height' => $params['height'] ?? '80vh'
         ];
 
-        Controller::addToInterfaceDatas('table',
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'table',
             $table,
             $params['refresh'] ?? false,
             ['header' => $params['header'] ?? true,
-                'footer' => $params['footer'] ?? true]);
-
+                'footer' => $params['footer'] ?? true]
+        );
     }
 
-    protected
-    function funcLinkToAnonymTable($params)
+    protected function funcLinkToAnonymTable($params)
     {
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
-        if ($tableRow['type'] != "tmp") throw new errorException('Только для временных таблиц');
+        if ($tableRow['type'] != "tmp") {
+            throw new errorException('Только для временных таблиц');
+        }
         $d = [];
         if (!empty($params['data'])) {
             $d['d'] = $params['data'];
@@ -697,13 +674,13 @@ class CalculateAction extends Calculate
         }
         $t = $tableRow['id'];
         if ($d) {
-            $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(json_encode($d, JSON_UNESCAPED_UNICODE), false));
+            $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->anonimCryptSolt));
         }
-        return Conf::getAnonymHost() . '/' . Conf::anonym_modul . '/' . $t;
+        return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
     }
 
-    protected
-    function funcLinkToDataText($params)
+    protected function funcLinkToDataText($params)
     {
         $params = $this->getParamsArray($params);
 
@@ -711,14 +688,14 @@ class CalculateAction extends Calculate
 
         $width = $params['width'] ?? 600;
 
-        Controller::addToInterfaceDatas('text',
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'text',
             ['title' => $title, 'width' => $width, 'text' => htmlspecialchars($params['text'] ?? '')],
-            $params['refresh'] ?? false);
-
+            $params['refresh'] ?? false
+        );
     }
 
-    protected
-    function funcLinkToDataHtml($params)
+    protected function funcLinkToDataHtml($params)
     {
         $params = $this->getParamsArray($params);
 
@@ -726,36 +703,43 @@ class CalculateAction extends Calculate
 
         $width = $params['width'] ?? 600;
 
-        Controller::addToInterfaceDatas('text',
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'text',
             ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? ''],
-            $params['refresh'] ?? false);
-
+            $params['refresh'] ?? false
+        );
     }
 
-    protected
-    function funcNormalizeN($params)
+    protected function funcNormalizeN($params)
     {
         $params = $this->getParamsArray($params);
 
-        if (!key_exists('num',
-                $params) || !is_numeric(strval($params['num']))) throw new errorException('Параметр num обязателен и должен быть числом');
+        if (!key_exists(
+                'num',
+                $params
+            ) || !is_numeric(strval($params['num']))) {
+            throw new errorException('Параметр num обязателен и должен быть числом');
+        }
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
 
-
         /** @var RealTables $table */
-        $table = tableTypes::getTable($tableRow);
-        if (!is_a($table,
-            RealTables::class)) throw new errorException('Нормализация проводится только для простых таблиц и таблиц циклов');
-        if (!$tableRow['with_order_field']) throw new errorException('Таблица не сортируется по N');
+        $table = $this->Table->getTotum()->getTable($tableRow);
+        if (!is_a(
+            $table,
+            RealTables::class
+        )) {
+            throw new errorException('Нормализация проводится только для простых таблиц и таблиц циклов');
+        }
+        if (!$tableRow['with_order_field']) {
+            throw new errorException('Таблица не сортируется по N');
+        }
 
         if ($table->getNTailLength() >= (int)$params['num']) {
             $table->normalizeN();
         }
-
     }
 
-    protected
-    function funcLinkToTable($params)
+    protected function funcLinkToTable($params)
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
 
@@ -764,37 +748,33 @@ class CalculateAction extends Calculate
         $link = '/Table/';
 
         if ($tableRow['type'] === 'calcs') {
-            if ($topTableRow = Table::getTableRowById($tableRow['tree_node_id'])) {
-                if ($this->aTable->getTableRow()['type'] === 'calcs' && $tableRow['tree_node_id'] == $this->aTable->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
-                    $Cycle_id = $this->aTable->getCycle()->getId();
+            if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
+                if ($this->Table->getTableRow()['type'] === 'calcs' && $tableRow['tree_node_id'] == $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
+                    $Cycle_id = $this->Table->getCycle()->getId();
                 } else {
-                    $this->__checkDigitParam($params['cycle'], 'cycle', 'LinkToTable');
+                    $this->__checkNumericParam($params['cycle'], 'cycle', 'LinkToTable');
                     $Cycle_id = $params['cycle'];
                 }
 
                 $link .= $topTableRow['top'] . '/' . $topTableRow['id'] . '/' . $Cycle_id . '/' . $tableRow['id'];
-                $Cycle = Cycle::init($Cycle_id, $tableRow['tree_node_id']);
+                $Cycle = $this->Table->getTotum()->getCycle($Cycle_id, $tableRow['tree_node_id']);
                 $linkedTable = $Cycle->getTable($tableRow);
             } else {
                 throw new errorException('Таблица циклов указана неверно');
             }
         } else {
-            $linkedTable = tableTypes::getTable($tableRow);
+            $linkedTable = $this->Table->getTotum()->getTable($tableRow);
             $link .= ($tableRow ['top'] ? $tableRow ['top'] : 0) . '/' . $tableRow['id'];
         }
 
         $iParams = false;
 
         $fields = $linkedTable->getFields();
-        $filtered = [];
         if (!empty($params['filter'])) {
             $filters = [];
             foreach ($params['filter'] as $i => $f) {
                 if ($f['field'] == 'id' || !empty($fields[$f['field']])) {
                     $filters[$f['field']] = $f['value'];
-                    if ($f['field'] != 'id' && !empty($fields[$f['field']]['column'])) {
-                        $filtered[$fields[$f['field']]['column']] = 1;
-                    }
                 }
             }
             if ($filters) {
@@ -817,7 +797,8 @@ class CalculateAction extends Calculate
         }
 
 
-        Controller::addLinkLocation($link,
+        $this->Table->getTotum()->addToInterfaceLink(
+            $link,
             $params['target'] ?? 'self',
             $params['title'] ?? $tableRow['title'],
             null,
@@ -828,13 +809,16 @@ class CalculateAction extends Calculate
         );
     }
 
-    protected
-    function funcLinkToScript($params)
+    protected function funcLinkToScript($params)
     {
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
-        if (empty($params['uri']) || !preg_match('`https?://`',
-                $params['uri'])) throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
+        if (empty($params['uri']) || !preg_match(
+                '`https?://`',
+                $params['uri']
+            )) {
+            throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
+        }
 
         $link = $params['uri'];
         $title = $params['title'] ?? 'Обращение к стороннему скрипту';
@@ -843,23 +827,26 @@ class CalculateAction extends Calculate
         }
 
 
-        Controller::addLinkLocation($link,
+        $this->Table->getTotum()->addToInterfaceLink(
+            $link,
             $params['target'] ?? 'self',
             $title,
             $post ?? null,
             $params['width'] ?? null,
             $params['refresh'] ?? false
-
         );
     }
 
-    protected
-    function funcGetFromScript($params)
+    protected function funcGetFromScript($params)
     {
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
-        if (empty($params['uri']) || !preg_match('`https?://`',
-                $params['uri'])) throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
+        if (empty($params['uri']) || !preg_match(
+                '`https?://`',
+                $params['uri']
+            )) {
+            throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
+        }
 
         $link = $params['uri'];
         if (!empty($params['post'])) {
@@ -876,12 +863,15 @@ class CalculateAction extends Calculate
             $link .= http_build_query($params['gets']);
         }
 
-        $toBfl = $params['bfl'] ?? in_array('script',
-                tableTypes::getTableByName('settings')->getTbl()['params']['bfl']['v'] ?? []);
+        $toBfl = $params['bfl'] ?? in_array(
+                'script',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
 
         try {
-            $r = $this->cURL($link,
-                'http://' . Conf::getFullHostName(),
+            $r = $this->cURL(
+                $link,
+                'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
                 $params['header'] ?? 0,
                 $params['cookie'] ?? '',
                 $post,
@@ -889,58 +879,61 @@ class CalculateAction extends Calculate
                 ($params['headers'] ?? "")
             );
             if ($toBfl) {
-                Bfl::add('script',
-                    'system',
+                $this->Table->getTotum()->getOutersLogger()->error(
+                    "getFromScript",
                     [
                         'link' => $link,
-                        'ref' => 'http://' . Conf::getFullHostName(),
+                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
                         'header' => $params['header'] ?? 0,
                         'headers' => $params['headers'] ?? 0,
                         'cookie' => $params['cookie'] ?? '',
                         'post' => $post,
                         'timeout' => ($params['timeout'] ?? null),
                         'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
-                    ]);
+                    ]
+                );
             }
             return $r;
-        } catch (\Exception $e) {
-
+        } catch (Exception $e) {
             if ($toBfl) {
-                Bfl::add('script',
-                    'system',
-                    [
+                $this->Table->getTotum()->getOutersLogger()->error(
+                    "getFromScript:",
+                    ['error' => $e->getMessage()] + [
                         'link' => $link,
-                        'ref' => 'http://' . Conf::getFullHostName(),
+                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
                         'header' => $params['header'] ?? 0,
                         'headers' => $params['headers'] ?? 0,
                         'cookie' => $params['cookie'] ?? '',
                         'post' => $post,
                         'timeout' => ($params['timeout'] ?? null),
-                        'error' => $e->getMessage()
-                    ]);
+                        'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
+                    ]
+                );
             }
             throw new errorException($e->getMessage());
         }
-
-
     }
 
-    protected
-    function __getActionFields($fieldParams, $funcName)
+    protected function __getActionFields($fieldParams, $funcName)
     {
         $fields = [];
 
-        if (empty($fieldParams)) return false;
+        if (empty($fieldParams)) {
+            return false;
+        }
         foreach ($fieldParams as $f) {
             $fc = $this->getCodes($f);
 
             try {
-
-                if (count($fc) < 2) throw new Exception();
+                if (count($fc) < 2) {
+                    throw new Exception();
+                }
 
 
                 $fieldName = $this->__getValue($fc[0]);
-                if (empty($fieldName)) throw new Exception();
+                if (empty($fieldName)) {
+                    throw new Exception();
+                }
 
 
                 $fieldValue = $this->__getValue($fc[2] ?? $fc[1]);
@@ -952,16 +945,15 @@ class CalculateAction extends Calculate
                     } elseif (empty($fc['comparison'])) {
                         $fieldValue = new FieldModifyItem('+', $fieldValue, $fc[1]['percent'] ?? false);
                     }
-
                 }
 
                 //if (is_null($fieldValue)) throw new Exception();
-
-
             } catch (errorException $e) {
                 $e->addPath('[[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
                 throw $e;
-            } catch (SqlExeption $e) {
+            } catch (SqlException $e) {
+                throw $e;
+
                 throw new errorException($e->getMessage() . ' [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
             } catch (Exception $e) {
                 throw new errorException('Неправильное оформление кода в [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
@@ -971,24 +963,26 @@ class CalculateAction extends Calculate
         return $fields;
     }
 
-    protected
-    function funcInsert($params)
+    protected function funcInsert($params)
     {
         if ($params = $this->getParamsArray($params, ['field', 'cycle'], ['field'])) {
-            if (empty($params['cycle']) && in_array($this->aTable->getTableRow()['type'], ['calcs', 'globcalcs'])) {
-                $params['cycle'] = [$this->aTable->getCycle()->getId()];
+            if (empty($params['cycle']) && in_array($this->Table->getTableRow()['type'], ['calcs', 'globcalcs'])) {
+                $params['cycle'] = [$this->Table->getCycle()->getId()];
             }
             $addedIds = [];
             $funcSet = function ($params) use (&$addedIds) {
-                $table = $this->__getActionTable($params, 'Insert');
+                $table = $this->getSourceTable($params);
                 if ($params['field']) {
                     $fields = $this->__getActionFields($params['field'], 'Insert');
-                } else $fields = [];
+                } else {
+                    $fields = [];
+                }
 
-                if (!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
 
                 $addedIds += $table->actionInsert($fields, null, $params['after'] ?? null);
-
             };
 
 
@@ -1003,8 +997,9 @@ class CalculateAction extends Calculate
             }
 
 
-            aTable::$isActionRecalculateDone = true;
-            if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
+            if (!empty($params['inserts']) && !is_array($params['inserts'])) {
+                $this->vars[$params['inserts']] = $addedIds;
+            }
         }
     }
 
@@ -1017,42 +1012,52 @@ class CalculateAction extends Calculate
     protected function funcTableLog($params)
     {
         if ($params = $this->getParamsArray($params)) {
-
-            $table = $this->__getActionTable($params, 'TableLog');
-            if ($table->getTableRow()['type'] === 'tmp') throw new errorException('Нельзя писать в лог данные временной таблицы');
-            if (empty($params['field'])) throw new errorException('Заполните поле field');
-            if (!($field = $table->getFields()[$params['field']])) throw new errorException('Поле [[' . $params['field'] . ']] не найдено в таблице ' . $table->getTableRow()['name']);
+            $table = $this->getSourceTable($params);
+            if ($table->getTableRow()['type'] === 'tmp') {
+                throw new errorException('Нельзя писать в лог данные временной таблицы');
+            }
+            if (empty($params['field'])) {
+                throw new errorException('Заполните поле field');
+            }
+            if (!($field = $table->getFields()[$params['field']])) {
+                throw new errorException('Поле [[' . $params['field'] . ']] не найдено в таблице ' . $table->getTableRow()['name']);
+            }
             if ($field['category'] == 'column') {
-                if (!is_numeric($params['id'])) throw new errorException('Поле id должно быть числовым');
+                if (!is_numeric($params['id'])) {
+                    throw new errorException('Поле id должно быть числовым');
+                }
 
 
-                $valID = $table->getByParams(['field' => ['id', $params['field']], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $params['id']]]],
-                    'row');
-                if (!$valID) throw new errorException('Строка с ид ' . $params['id'] . ' не найдена в таблице ' . $table->getTableRow()['name']);
+                $valID = $table->getByParams(
+                    ['field' => ['id', $params['field']], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $params['id']]]],
+                    'row'
+                );
+                if (!$valID) {
+                    throw new errorException('Строка с ид ' . $params['id'] . ' не найдена в таблице ' . $table->getTableRow()['name']);
+                }
                 $val = $valID[$params['field']];
             } else {
                 $val = $table->getByParams(['field' => [$params['field']]], 'field');
             }
-            aLog::innerLog($table->getTableRow()['id'],
+            $this->Table->getTotum()->totumActionsLogger()->innerLog(
+                $table->getTableRow()['id'],
                 $table->getCycle() ? $table->getCycle()->getId() : null,
                 $params['id'] ?? null,
                 $params['field'],
                 $params['comment'] ?? null,
-                $val);
-
+                $val
+            );
         }
     }
 
-    protected
-    function funcInsertListExt($params)
+    protected function funcInsertListExt($params)
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
         $MainList = [];
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'InsertListExtended');
 
         if ($params['fields'] ?? null) {
-
-            if(!is_array($params['fields'])){
+            if (!is_array($params['fields'])) {
                 throw new errorException('Параметр fields должен быть row или list');
             }
 
@@ -1079,7 +1084,9 @@ class CalculateAction extends Calculate
         $rowList = [];
         foreach ($rows as $f => $list) {
             if (is_array($rows[$f]) && key_exists(0, $rows[$f])) {
-                if (count($rows[$f]) > $listCount) $listCount = count($rows[$f]);
+                if (count($rows[$f]) > $listCount) {
+                    $listCount = count($rows[$f]);
+                }
             }
         }
         foreach ($rows as $f => &$list) {
@@ -1092,7 +1099,6 @@ class CalculateAction extends Calculate
                         $list[] = null;
                     }
                 }
-
             }
             $list = array_values($list);
         }
@@ -1107,8 +1113,9 @@ class CalculateAction extends Calculate
 
         if (($rowList)) {
             if ($tableRow['type'] === 'calcs') {
-                if (empty($params['cycle']) && $this->aTable->getTableRow()['type'] === 'calcs')
-                    $params['cycle'] = [$this->aTable->getCycle()->getId()];
+                if (empty($params['cycle']) && $this->Table->getTableRow()['type'] === 'calcs') {
+                    $params['cycle'] = [$this->Table->getCycle()->getId()];
+                }
             } else {
                 unset($params['cycle']);
             }
@@ -1116,7 +1123,7 @@ class CalculateAction extends Calculate
             $addedIds = [];
 
             $funcSet = function ($params) use ($rowList, &$addedIds) {
-                $table = $this->__getActionTable($params, 'Insert');
+                $table = $this->getSourceTable($params);
 
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue();
@@ -1133,26 +1140,24 @@ class CalculateAction extends Calculate
             } else {
                 $funcSet($params);
             }
-            aTable::$isActionRecalculateDone = true;
-            if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
+            if (!empty($params['inserts']) && !is_array($params['inserts'])) {
+                $this->vars[$params['inserts']] = $addedIds;
+            }
         }
     }
 
-    protected
-    function funcInsertList($params)
+    protected function funcInsertList($params)
     {
         return $this->funcInsertListExt($params);
     }
 
-    protected
-    function __doAction($params, $func, $isFieldSimple = false)
+    protected function __doAction($params, $func, $isFieldSimple = false)
     {
         $notPrepareParams = $isFieldSimple ? [] : ['field'];
 
         if ($params = $this->getParamsArray($params, ['field'], $notPrepareParams)) {
-
-            if (empty($params['cycle']) && $this->aTable->getTableRow()['type'] === 'calcs') {
-                $params['cycle'] = [$this->aTable->getCycle()->getId()];
+            if (empty($params['cycle']) && $this->Table->getTableRow()['type'] === 'calcs') {
+                $params['cycle'] = [$this->Table->getCycle()->getId()];
             }
 
             if (!empty($params['cycle'])) {
@@ -1164,16 +1169,15 @@ class CalculateAction extends Calculate
             } else {
                 $func($params);
             }
-            aTable::$isActionRecalculateDone = true;
         }
     }
 
-    protected
-    function funcSet($params)
+    protected function funcSet($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'Set');
+                $table = $this->getSourceTable($params);
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
@@ -1181,199 +1185,224 @@ class CalculateAction extends Calculate
                 $where = $params['where'] ?? [];
 
                 $table->actionSet($fields, $where, 1);
-            });
+            }
+        );
     }
 
-    protected
-    function funcDelete($params)
+    protected function funcDelete($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'Delete');
+                $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
-                if (!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
                 $table->actionDelete($where, 1);
-            });
+            }
+        );
     }
 
-    protected
-    function funcDuplicate($params)
+    protected function funcDuplicate($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'Duplicate');
+                $table = $this->getSourceTable($params);
                 $fields = $this->__getActionFields($params['field'], 'Duplicate');
 
-                if (!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
 
                 $where = $params['where'] ?? [];
                 $addedIds = $table->actionDuplicate($fields, $where, 1, $params['after'] ?? null);
-                if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
-            });
-
+                if (!empty($params['inserts']) && !is_array($params['inserts'])) {
+                    $this->vars[$params['inserts']] = $addedIds;
+                }
+            }
+        );
     }
 
-    protected
-    function funcDuplicateList($params)
+    protected function funcDuplicateList($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'DuplicateList');
+                $table = $this->getSourceTable($params);
                 $fields = $this->__getActionFields($params['field'], 'DuplicateList');
 
-                if (!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
 
                 $where = $params['where'] ?? [];
                 $addedIds = $table->actionDuplicate($fields, $where, null, $params['after']);
-                if (!empty($params['inserts']) && !is_array($params['inserts'])) $this->vars[$params['inserts']] = $addedIds;
-            });
+                if (!empty($params['inserts']) && !is_array($params['inserts'])) {
+                    $this->vars[$params['inserts']] = $addedIds;
+                }
+            }
+        );
     }
 
-    protected
-    function funcDeleteList($params)
+    protected function funcDeleteList($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'DeleteList');
+                $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
-                if (!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
                 $table->actionDelete($where, null);
-            });
+            }
+        );
     }
 
-    protected
-    function funcClear($params)
+    protected function funcClear($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'Clear');
+                $table = $this->getSourceTable($params);
 
                 $where = $params['where'] ?? [];
 
-                if (!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
 
                 $table->actionClear($params['field'], $where, 1);
             },
-            true);
+            true
+        );
     }
 
-    protected
-    function funcPin($params)
+    protected function funcPin($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'Pin');
+                $table = $this->getSourceTable($params);
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
                 $where = $params['where'] ?? [];
                 $table->actionPin($params['field'], $where, 1);
             },
-            true);
+            true
+        );
     }
 
-    protected
-    function funcPinList($params)
+    protected function funcPinList($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'PinList');
+                $table = $this->getSourceTable($params);
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
                 $where = $params['where'] ?? [];
                 $table->actionPin($params['field'], $where, null);
             },
-            true);
+            true
+        );
     }
 
-    protected
-    function funcSetList($params)
+    protected function funcSetList($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'SetList');
+                $table = $this->getSourceTable($params);
                 $fields = $this->__getActionFields($params['field'], 'SetList');
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue();
                 }
                 $where = $params['where'] ?? [];
                 $table->actionSet($fields, $where, null);
-            });
+            }
+        );
     }
 
     protected function __execButtonList($params)
     {
-        $table = $this->__getActionTable($params, 'SetList');
+        $table = $this->getSourceTable($params);
         $params['field'] = $params['field'][0] ?? null;
-        if (!$params['field']) throw new errorException('Поле кнопки не указано');
-        if (!key_exists($params['field'],
-            $table->getFields())) throw new errorException('Поле кнопки не указано');
+        if (!$params['field']) {
+            throw new errorException('Поле кнопки не указано');
+        }
+        if (!key_exists(
+            $params['field'],
+            $table->getFields()
+        )) {
+            throw new errorException('Поле кнопки не указано');
+        }
 
         $field = $table->getFields()[$params['field']];
 
         $CA = new CalculateAction($field['codeAction']);
-        try {
-            if ($field['category'] === "column") {
-                $params['field'] = ['__all__'];
-                $rows = $table->getByParams($params, 'rows');
-                foreach ($rows as $row) {
+        if ($field['category'] === "column") {
+            $params['field'] = ['__all__'];
+            $rows = $table->getByParams($params, 'rows');
+            foreach ($rows as $row) {
+                if (is_a($table, RealTables::class)) {
                     $row = RealTables::decodeRow($row);
-                    $CA->execAction($field['name'],
-                        $row,
-                        $row,
-                        $table->getTbl(),
-                        $table->getTbl(),
-                        $table);
-                    $this->addInNewLogVar('cogs',
-                        'Выполнение кода действия ' . $field['name'] . ' id:' . $row['id'],
-                        $CA->getLogVar(),
-                        true);
                 }
 
-            } else {
-                $CA->execAction($field['name'],
-                    $table->getTbl()['params'],
-                    $table->getTbl()['params'],
+                $CA->execAction(
+                    $field['name'],
+                    $row,
+                    $row,
                     $table->getTbl(),
                     $table->getTbl(),
-                    $table);
-                $this->addInNewLogVar('cogs', 'Выполнение кода действия ' . $field['name'], $CA->getLogVar(), true);
+                    $table
+                );
             }
-
-
-        } catch (errorException $e) {
-            $this->addInNewLogVar('cogs', 'Выполнение кода действия ' . $field['name'], $CA->getLogVar(), true);
-            throw $e;
+        } else {
+            $CA->execAction(
+                $field['name'],
+                $table->getTbl()['params'],
+                $table->getTbl()['params'],
+                $table->getTbl(),
+                $table->getTbl(),
+                $table
+            );
         }
     }
 
     protected function funcExecButtonList($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
                 $this->__execButtonList($params);
             },
-            true);
+            true
+        );
     }
 
     protected function funcExecButton($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
                 $params['limit'] = 1;
                 $this->__execButtonList($params);
             },
-            true);
-
+            true
+        );
     }
 
-    protected
-    function funcSetListExtended($params)
+    protected function funcSetListExtended($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'SetListExtended');
+                $table = $this->getSourceTable($params);
                 $fields = $this->__getActionFields($params['field'], 'SetListExtended');
 
                 $where = $params['where'] ?? [];
@@ -1387,26 +1416,31 @@ class CalculateAction extends Calculate
                     $table->reCalculateFromOvers(
                         [
                             'modify' => $modify
-                        ]);
+                        ]
+                    );
                 }
-            });
+            }
+        );
     }
 
 
-    protected
-    function funcClearList($params)
+    protected function funcClearList($params)
     {
-        $this->__doAction($params,
+        $this->__doAction(
+            $params,
             function ($params) {
-                $table = $this->__getActionTable($params, 'ClearList');
+                $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
-                if (!empty($params['log'])) $table->setWithALogTrue();
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
                 $table->actionClear($params['field'], $where, null);
             },
-            true);
+            true
+        );
     }
 
-    static function cURL($url, $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null)
+    public static function cURL($url, $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -1433,7 +1467,9 @@ class CalculateAction extends Calculate
         if ($cookie) {
             $headers[] = "Cookie: " . $cookie;
         }
-        if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, (array)$headers);
+        if ($headers) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, (array)$headers);
+        }
 
         $result = curl_exec($ch);
         if ($error = curl_error($ch)) {
@@ -1442,6 +1478,5 @@ class CalculateAction extends Calculate
         }
         curl_close($ch);
         return $result;
-
     }
 }

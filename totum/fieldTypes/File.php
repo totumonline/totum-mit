@@ -12,26 +12,12 @@ namespace totum\fieldTypes;
 use totum\common\Auth;
 use totum\common\errorException;
 use totum\common\Field;
-use totum\common\Sql;
+use totum\common\sql\Sql;
 use totum\config\Conf;
 
 class File extends Field
 {
     static protected $transactionCommits = [];
-
-    public static function getDataForUpdates($v)
-    {
-        $files = [];
-        foreach ($v ?? [] as $fileData) {
-            if ($fileContent = file_get_contents(static::getFile($fileData['file']))) {
-                $files[] = [
-                    'name' => $fileData['name'],
-                    'filestringbase64' => base64_encode($fileContent)
-                ];
-            }
-        }
-        return $files;
-    }
 
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
@@ -45,7 +31,7 @@ class File extends Field
                 foreach ($valArray['v'] as $fileData) {
                     $data[] = [
                         'name' => $fileData['name'],
-                        'filestringbase64' => base64_encode(file_get_contents(File::getFile($fileData['file'])))
+                        'filestringbase64' => base64_encode(file_get_contents(File::getFilePath($fileData['file'])))
                     ];
                 }
 
@@ -73,18 +59,25 @@ class File extends Field
         //return $val = json_decode(base64_decode($val), true);
     }
 
-    static function getDir($host = null)
+    static function deleteFile($fileName, Conf $Config)
     {
-        $dir = 'http/fls/' . (Conf::getHostForDir($host ?? Conf::getFullHostName())) . '/';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+        $file = File::getDir($Config) . $fileName;
+        if (is_file($file))
+            unlink($file);
+        if (is_file($preview = $file . '_thumb.jpg')) {
+            unlink($preview);
         }
-        return $dir;
     }
 
-    static function getFile($file_name)
+    static function getDir(Conf $Config)
     {
-        return static::getDir() . $file_name;
+        return $Config->getFilesDir();
+
+    }
+
+    static function getFilePath($file_name, Conf $Config)
+    {
+        return static::getDir($Config) . $file_name;
     }
 
     function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
@@ -144,10 +137,11 @@ class File extends Field
         }
     }
 
-    public static function fileUpload($userId)
+    /*TODO переделать на использование входящего контекста*/
+    public static function fileUpload($userId, Conf $Config)
     {
 
-        $tmpFileName = tempnam(Conf::getTmpLoadedFilesDir(), Conf::getSchema() . '.' . $userId . '.');
+        $tmpFileName = tempnam($Config->getTmpDir(), $Config->getSchema() . '.' . $userId . '.');
         if ($_FILES['file']) {
             if (filesize($_FILES['file']['tmp_name']) > Conf::$MaxFileSizeMb * 1024 * 1024) return ['error' => 'Файл больше ' . Conf::$MaxFileSizeMb . ' Mb'];
 
@@ -155,8 +149,6 @@ class File extends Field
                 static::checkAndCreateThumb($tmpFileName, $_FILES['file']['name']);
                 return ['fname' => preg_replace('`^.*/([^/]+)$`', '$1', $tmpFileName)];
             }
-
-
         }
         return ['error' => 'Файл не получен. Возможно, слишком большой'];
     }
@@ -198,12 +190,9 @@ class File extends Field
             }
 
             if ($deletedFiles) {
-                Sql::addOnCommit(function () use ($deletedFiles) {
+                $this->table->getTotum()->getConfig()->getSql()->addOnCommit(function () use ($deletedFiles) {
                     foreach ($deletedFiles as $file) {
-                        unlink(static::getDir() . $file);
-                        if (is_file($preview = static::getDir() . $file . '_thumb.jpg')) {
-                            unlink($preview);
-                        }
+                        static::deleteFile($file, $this->table->getTotum()->getConfig());
                     }
                 });
             }
@@ -222,8 +211,8 @@ class File extends Field
         /*Добавление через filestring и filestringbase64 */
         foreach ($val as &$file) {
             if (!empty($file['filestring'])) {
-                $ftmpname = tempnam(Conf::getTmpLoadedFilesDir(),
-                    Conf::getSchema() . '.' . Auth::$aUser->getId() . '.');
+                $ftmpname = tempnam($this->table->getTotum()->getConfig()->getTmpDir(),
+                    $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.');
                 file_put_contents($ftmpname, $file['filestring']);
 
                 if (!empty($file['gz'])) {
@@ -237,9 +226,9 @@ class File extends Field
                 unset($file['filestring']);
                 static::checkAndCreateThumb($ftmpname, $file['name']);
                 $file['tmpfile'] = preg_replace('`^.*/([^/]+)$`', '$1', $ftmpname);
-            } else if (!empty($file['filestringbase64'])) {
-                $ftmpname = tempnam(Conf::getTmpLoadedFilesDir(),
-                    Conf::getSchema() . '.' . Auth::$aUser->getId() . '.');
+            } elseif (!empty($file['filestringbase64'])) {
+                $ftmpname = tempnam($this->table->getTotum()->getConfig()->getTmpDir(),
+                    $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.');
 
                 file_put_contents($ftmpname, base64_decode($file['filestringbase64']));
 
@@ -269,7 +258,7 @@ class File extends Field
                 do {
                     $unlinked = false;
 
-                    $fname = static::getDir()
+                    $fname = static::getDir($this->table->getTotum()->getConfig())
                         . $fPrefix
                         . ($fnum ? '_' . $fnum : '') //Номер
                         . (!empty($this->data['nameWithHash']) ? '_' . md5(microtime(1) . $this->data['name']) : '') //хэш
@@ -322,14 +311,14 @@ class File extends Field
 
                 if (!empty($file['tmpfile'])) {
 
-                    if (!is_file($ftmpname = Conf::getTmpLoadedFilesDir() . $file['tmpfile'])) {
+                    if (!is_file($ftmpname = $this->table->getTotum()->getConfig()->getTmpDir() . $file['tmpfile'])) {
                         die('{"error":"Временный файл не найден"}');
                     }
                     $fname = $funcGetFname($file['ext']);
 
                     static::$transactionCommits[$fname] = $ftmpname;
 
-                    Sql::addOnCommit(function () use ($ftmpname, $fname) {
+                    $this->table->getTotum()->getConfig()->getSql()->addOnCommit(function () use ($ftmpname, $fname) {
                         if (!copy($ftmpname, $fname)) {
                             die('{"error":"Не удалось копировать временный файл"}');
                         }
@@ -346,7 +335,7 @@ class File extends Field
                     $fl['file'] = preg_replace('/^.*\/([^\/]+)$/', '$1', $fname);
 
                 } elseif (!empty($file['file'])) {
-                    $filepath = static::getDir() . $file['file'];
+                    $filepath = static::getDir($this->table->getTotum()->getConfig()) . $file['file'];
                     $fl['file'] = $file['file'];
 
                     if (key_exists($filepath, static::$transactionCommits)) ;
@@ -359,11 +348,11 @@ class File extends Field
                         if (strpos($file['file'], $fPrefix) !== 0 && !empty($this->data['fileDuplicateOnCopy'])) {
                             $fname = $funcGetFname($file['ext']);
 
-                            $otherfname = static::getDir() . $file['file'];
+                            $otherfname = static::getDir($this->table->getTotum()->getConfig()) . $file['file'];
 
                             static::$transactionCommits[$fname] = $otherfname;
 
-                            Sql::addOnCommit(function () use ($otherfname, $fname) {
+                            $this->table->getTotum()->getConfig()->getSql()->addOnCommit(function () use ($otherfname, $fname) {
                                 if (!copy($otherfname, $fname)) {
                                     die('{"error":"Не удалось копировать  файл в ячейку"}');
                                 }
@@ -392,9 +381,9 @@ class File extends Field
 
     }
 
-    static function getContent($fname)
+    public static function getContent($fname, Conf $Config)
     {
-        $filepath = static::getDir() . $fname;
+        $filepath = static::getFilePath($fname, $Config);
         if (key_exists($filepath, static::$transactionCommits)) {
             $filepath = static::$transactionCommits[$filepath];
         }

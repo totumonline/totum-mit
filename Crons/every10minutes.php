@@ -7,7 +7,7 @@ use \totum\common\Log;
 require_once '../totum/AutoloadAndErrorHandlers.php';
 require_once 'Conf.php';
 
-$ConfDb = Conf::getDb();
+$ConfDb = Conf::db;
 
 $schemas = array_flip(Conf::getSchemas());
 $date = date('Y-m-d H:i:s');

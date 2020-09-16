@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+use totum\commands\SchemaDecode;
+use totum\commands\SchemaInstall;
+use totum\config\Conf;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+/*if(!class_exists(Conf::class)){
+    die('Класс настроек не найден');
+}
+
+$Config=new Conf();*/
+
+use Symfony\Component\Console\Application;
+
+$app = new Application();
+$app->add(new SchemaDecode());
+$app->add(new SchemaInstall());
+$app->run();
+

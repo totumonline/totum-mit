@@ -3,24 +3,24 @@
     <script>App = {}</script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/libs.css?v=880594f">
-    <script src="/js/libs.js?v=40c5077"></script>
+          href="/css/libs.css?v=1321042">
+    <script src="/js/libs.js?v=02ef05b"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=2b66csdf">
+          href="/css/main.css?v=7a43da6">
 
     <?php
-    if (\totum\common\Auth::isCreator()) { ?>
+    if ($isCreatorView ?? null) { ?>
         <script src="/js/functions.json?v=9d17f34"></script>
         <?php
         if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'],
                 'jsTemplates')) {
             echo '<script>App.functions=App.functions.concat(' . $GLOBALS['CalculateExtentions']->jsTemplates . ')</script>';
         } ?>
-    <?php
+        <?php
     } ?>
 
-    <script src="/js/main.js?v=fcc00c3"></script>
+    <script src="/js/main.js?v=3ff6d7b"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
@@ -44,16 +44,23 @@
     })
 </script>
 <div class="page_content">
-    <?php include dirname(__FILE__) . '/__tree.php'; ?>
-    <?php include dirname(__FILE__) . '/__header.php' ?>
+    <?php
+    include dirname(__FILE__) . '/__tree.php'; ?>
+    <?php
+    include dirname(__FILE__) . '/__header.php' ?>
     <div id="notifies"></div>
     <?php
     if (!empty($error)) {
         echo '<div class="panel panel-danger"><div class="panel-body">' . $error . '</div></div>';
     } ?>
-    <?php include static::$contentTemplate; ?>
+    <?php
+    include static::$contentTemplate; ?>
 </div>
-<?php include dirname(__FILE__) . '/__footer.php' ?>
+<div id="TOTUM_FOOTER">
+    <?= $totumFooter ?>
+
+</div>
+
 
 <script>
     $(function () {

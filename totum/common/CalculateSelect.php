@@ -8,45 +8,26 @@
 
 namespace totum\common;
 
+use totum\common\calculates\Calculate;
+use totum\common\sql\SqlException;
+use totum\models\Table;
+use totum\tableTypes\aTable;
 
 class CalculateSelect extends Calculate
 {
-
-    static $logClassName = "select";
-
-    function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars = [])
+    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
     {
-        $dtStart = microtime(true);
-
-        $this->error = null;
-
-        $this->vars = $vars;
-        $this->fixedCodeVars = [];
-
-        $this->whileIterators = [];
-        $this->setEnvironmentVars($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table);
-        $this->varName = $fieldData['name'];
-
-        $this->newLog = [];
-        $this->newLogParent = &$this->newLog;
-
         try {
-
-            if (empty($this->code['='])) {
-                throw new errorException('Ошибка кода - нет секции [[=]]');
-            }
-            $r = $this->execSubCode($this->code['='], '=');
-            if (!is_array($r)) {
+            $r=parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl,  $table, $vars);
+            if (!$this->error && !is_array($r)) {
                 throw new errorException('Код должен возвращать rowList или то, что возвращает функция SelectListAssoc');
             }
-
             $r = $this->getPreparedList($r);
-
-        } catch (SqlExeption $e) {
+        } catch (SqlException $e) {
             $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
             $this->newLog['children'][] = ['type' => 'error', 'text' => 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]'];
             $this->error = 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]';
-
+            throw $e;
         } catch (errorException $e) {
             $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
             $this->newLog['children'][] = ['type' => 'error', 'text' => $e->getMessage()];
@@ -54,20 +35,14 @@ class CalculateSelect extends Calculate
         }
 
         if ($this->error) {
-            $this->error .= ' (поле [[' . $this->varName . ']] таблицы [[' . $this->aTable->getTableRow()['name'] . ']])';
+            $this->error .= ' (поле [[' . $this->varName . ']] таблицы [[' . $this->Table->getTableRow()['name'] . ']])';
         }
-
-        static::$calcLog[$var]['time'] = (static::$calcLog[$var = $table->getTableRow()["id"] . '/' . $fieldData['name'] . '/' . static::$logClassName]['time'] ?? 0) + (microtime(true) - $dtStart);
-        static::$calcLog[$var]['cnt'] = (static::$calcLog[$var]['cnt'] ?? 0) + 1;
-
 
         return $r ?? $this->error;
     }
 
-    protected
-    function funcSelectListAssoc($params)
+    protected function funcSelectListAssoc($params)
     {
-
         $params = $this->getParamsArray($params, ['where', 'order']);
 
         $params2 = $params;
@@ -90,7 +65,8 @@ class CalculateSelect extends Calculate
 
         $rows = $this->select($params2, 'rows');
 
-        $rows = array_map(function ($row) use ($params, $disabled, $baseField) {
+        $rows = array_map(
+            function ($row) use ($params, $disabled, $baseField) {
             $r = ['value' => $row[$baseField]
                 , 'is_del' => $row['is_del']
                 , 'title' => $row[$params['field']]];
@@ -105,7 +81,8 @@ class CalculateSelect extends Calculate
             }
             return $r;
         },
-            $rows);
+            $rows
+        );
 
         if (!empty($params['preview'])) {
             $rows['previewdata'] = true;
@@ -113,27 +90,27 @@ class CalculateSelect extends Calculate
         return $rows;
     }
 
-    protected
-    function funcSelectRowListForTree($params)
+    protected function funcSelectRowListForTree($params)
     {
-
         $params = $this->getParamsArray($params, ['where', 'order']);
 
         $params2 = $params;
 
-        $params['bfield']=$params['bfield']??'id';
+        $params['bfield'] = $params['bfield'] ?? 'id';
 
         $params2['field'] = [$params['field'], $params['bfield'], 'is_del'];
         $params2['sfield'] = [];
 
-        if (empty($params['parent'])) throw new errorException('Параметр parent должен быть заполнен');
+        if (empty($params['parent'])) {
+            throw new errorException('Параметр parent должен быть заполнен');
+        }
         $params2['field'][] = $params['parent'];
 
         $disabled = array_flip(array_unique($params['disabled'] ?? []));
 
         $rows = $this->select($params2, 'rows');
 
-        $thisField = $this->aTable->getFields()[$this->varName];
+        $thisField = $this->Table->getFields()[$this->varName];
 
         $ParentField = null;
         $treeListPrep = '';
@@ -141,25 +118,10 @@ class CalculateSelect extends Calculate
 
         /* Дополненное дерево - ид папок из другой таблицы */
         if (empty($thisField['treeAutoTree'])) {
-            $sourceTable = $this->aTable->getSelectTableByParams($params);
+            $sourceTable = $this->getSourceTable($params);
             $ParentField = Field::init($sourceTable->getFields()[$params['parent']], $sourceTable);
-
             if ($ParentField->getData('codeSelectIndividual')) {
                 throw new errorException('Параметр [[' . $params['parent'] . ']] не должен быть индивидуально рассчитываемым селектом/деревом');
-                /* $v = ['v' => $row[$params['parent']]];
-                 $parentList=$ParentField->calculateSelectList($v, $row, $sourceTable);
-                 unset($parentList['previewdata']);
-
-                 $treeListPrep=$row['id'].'/'.$treeListPrep;
-
-                 foreach ($parentList as $val=>$_r) {
-                     if($ParentField->getData('type')=='tree'){
-                         $treeRows[] = ['value' => $treeListPrep . $val, 'title'=>$_r[0], 'is_del'=>$_r['1'], 'parent'=>$_r[3]?$treeListPrep.$_r[3]:null];
-                     }else{
-                         $treeRows[] = ['value' => $treeListPrep . $val, 'title'=>$_r[0], 'is_del'=>$_r['1'], 'parent'=>null];
-                     }
-
-                 }*/
             } else {
                 $treeListPrep = 'PP/';
 
@@ -196,10 +158,9 @@ class CalculateSelect extends Calculate
         return $treeRows;
     }
 
-    protected
-    function funcSelectRowListForSelect($params)
-    {
 
+    protected function funcSelectRowListForSelect($params)
+    {
         $params = $this->getParamsArray($params, ['where', 'order'], ['previewscode']);
 
         $params2 = $params;
@@ -216,7 +177,8 @@ class CalculateSelect extends Calculate
 
         $rows = $this->select($params2, 'rows');
 
-        $rows = array_map(function ($row) use ($params, $baseField) {
+        $rows = array_map(
+            function ($row) use ($params, $baseField) {
             $r = ['value' => $row[$baseField]
                 , 'is_del' => $row['is_del']
                 , 'title' => $row[$params['field']]];
@@ -226,7 +188,8 @@ class CalculateSelect extends Calculate
             }
             return $r;
         },
-            $rows);
+            $rows
+        );
 
         if (!empty($params['preview'])) {
             $rows['previewdata'] = true;
@@ -236,24 +199,22 @@ class CalculateSelect extends Calculate
 
     protected function getPreparedList($rows)
     {
-
         $selectList = [];
         if ($this->varData['type'] === 'tree') {
             foreach ($rows as $row) {
-
                 $r = [$row['title'] //0
                     , empty($row['is_del']) ? 0 : 1 //1
                     , null //2
-                    , $row['parent'] //3
+                    , $row['parent']??null //3
                     // disabled //4
                 ];
-                if ($row['disabled'] ?? false) $r[] = 1;
+                if ($row['disabled'] ?? false) {
+                    $r[] = 1;
+                }
 
                 $selectList[$row['value']] = $r;
             }
-
         } else {
-
             $selectList['previewdata'] = $rows['previewdata'] ?? false;
             unset($rows['previewdata']);
 
@@ -266,5 +227,4 @@ class CalculateSelect extends Calculate
         }
         return $selectList;
     }
-
 }

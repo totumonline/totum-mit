@@ -13,7 +13,7 @@ use totum\tableTypes\aTable;
 
 class TableNameField extends Unic
 {
-    protected function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl = [], $vars = [])
+    protected function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
     {
         $newVal['c'] = $this->CalculateCode->exec($this->data,
             $newVal,

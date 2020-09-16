@@ -3,7 +3,9 @@
 
 namespace totum\common;
 
-class criticalErrorException extends errorException
+class criticalErrorException extends \Exception
 {
+    use WithPathMessTrait;
+
 
 }

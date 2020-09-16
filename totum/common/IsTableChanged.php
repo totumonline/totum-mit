@@ -26,12 +26,12 @@ class IsTableChanged
     private $cycleId;
 
 
-    public function __construct($table_id, $cycle_id = 0)
+    public function __construct($table_id, $cycle_id = 0, Conf $Config)
     {
 
 
-        $this->tableChanges = new SharedFileUsage(Conf::getTmpTableChangesDir() . Conf::getSchema() . '.tableChanges');
-        $this->tableChangesSubscribes = new SharedFileUsage(Conf::getTmpTableChangesDir() . Conf::getSchema() . '.tableChangesSubscribes');
+        $this->tableChanges = new SharedFileUsage($Config->getTmpTableChangesDir() . $Config->getSchema() . '.tableChanges');
+        $this->tableChangesSubscribes = new SharedFileUsage($Config->getTmpTableChangesDir() . $Config->getSchema() . '.tableChangesSubscribes');
         $this->tablestring = $table_id . ($cycle_id ? '.' . $cycle_id : '');
         $this->tableId = $table_id;
         $this->cycleId = $cycle_id;
@@ -51,10 +51,10 @@ class IsTableChanged
         }
         $this->tableChanges->update($update, $delete);
     }
-    function isChanged($code)
+    function isChanged($code, Totum $Totum)
     {
         $this->subcribeToChanges();
-        $Table = tableTypes::getTable(Table::getTableRowById($this->tableId), $this->cycleId, true);
+        $Table = $Totum->getTable($this->tableId, $this->cycleId, true);
 
         $stampnow=date_create(date('Y-m-d H:i:00'))->format('U');
 

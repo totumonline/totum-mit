@@ -1,0 +1,13 @@
+#!/usr/bin/env php
+<?php
+
+use totum\commands\SchemaFileDecode;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+
+$app = new Application();
+$app->add(new SchemaFileDecode());
+$app->run();
+

@@ -3,14 +3,14 @@
     <script>App = {}</script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/libs.css?v=880594f">
-    <script src="/js/libs.js?v=40c5077"></script>
+          href="/css/libs.css?v=1321042">
+    <script src="/js/libs.js?v=02ef05b"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=2b66cb1">
-    <script src="/js/main.js?v=fcc00c3"></script>
+          href="/css/main.css?v=7a43da6">
+    <script src="/js/main.js?v=3ff6d7b"></script>
 
-    <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
+    <link rel="shortcut icon" type="image/png" href="../http/fls/6_favicon.png"/>
 
 
     <?php

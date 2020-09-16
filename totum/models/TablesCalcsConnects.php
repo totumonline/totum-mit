@@ -8,62 +8,70 @@
 
 namespace totum\models;
 
-
 use totum\common\Cycle;
 use totum\common\Model;
-use totum\common\Sql;
+use totum\common\sql\Sql;
 
 class TablesCalcsConnects extends Model
 {
-    const tableV = 'tables_calcs_connects__v';
+    protected const VIEW_NAME = 'tables_calcs_connects__v';
 
     protected $isServiceTable = true;
 
-    function addConnects($tableId, $cycle_id = 0, $cycles_table_id = 0, array $sourceTableIds)
+    public function addConnects($tableId, $cycle_id = 0, $cycles_table_id = 0, array $sourceTableIds)
     {
-        
-        foreach ($sourceTableIds as $sourceTableId=>$null) {
-            $this->insert([
+        foreach ($sourceTableIds as $sourceTableId => $null) {
+            $this->insertPrepared(
+                [
                 'table_id' => $tableId
                 , 'cycle_id' => $cycle_id
                 , 'cycles_table_id' => $cycles_table_id
                 , 'source_table_id' => $sourceTableId
             ],
-                false, true);
+                false,
+                true
+            );
         }
-        $this->delete([
+
+        $this->deletePrepared([
             'table_id' => $tableId
             , 'cycle_id' => $cycle_id
             , 'cycles_table_id' => $cycles_table_id
-            , 'source_table_idNOTIN' => array_keys($sourceTableIds)
+            , '!source_table_id' => array_keys($sourceTableIds)
         ]);
     }
 
-    function duplicateCycleSources($tables, $cycleBaseId, $cycleNewId){
-        Sql::exec('insert into '.$this->table.' (table_id, cycle_id, cycles_table_id, source_table_id)  '.
-            '(select table_id, '.$cycleNewId.', cycles_table_id, source_table_id from '.$this->table.' where cycle_id IN ('.implode(',', $tables).') AND cycle_id='.$cycleBaseId.')');
+    public function duplicateCycleSources($tables, $cycleBaseId, $cycleNewId)
+    {
+        $this->exec('insert into ' . $this->table . ' (table_id, cycle_id, cycles_table_id, source_table_id)  ' .
+            '(select table_id, ' . $cycleNewId . ', cycles_table_id, source_table_id from ' .
+            $this->table . ' where cycle_id IN (' . implode(
+                ',',
+                $tables
+            ) . ') AND cycle_id=' . $cycleBaseId . ')');
     }
 
 
-    function getSourceTables($table_id, $cycle_id/*=0*/, $cycles_table_id/*=0*/)
+    public function getSourceTables($table_id, $cycle_id/*=0*/, $cycles_table_id/*=0*/)
     {
         //TODO недоделано
-        return Model::initService(static::tableV)->getAllIndexedByField(['table_id' => $table_id, 'cycle_id' => $cycle_id, 'cycles_table_id' => $cycles_table_id],
+        return Model::initService(static::VIEW_NAME)->getAllIndexedByField(
+            ['table_id' => $table_id, 'cycle_id' => $cycle_id, 'cycles_table_id' => $cycles_table_id],
             'source_table_id',
-            'source_table_id');
+            'source_table_id'
+        );
     }
 
-    function getReceiverTables($table_id, $cycle_id/*=0*/, $cycles_table_id/*=0*/)
+    public function getReceiverTables($table_id, $cycle_id/*=0*/, $cycles_table_id/*=0*/)
     {
-        return $this->getField('table_id',
-            ['source_table_id' => $table_id, 'cycle_id' => $cycle_id, 'cycles_table_id' => $cycles_table_id],
-            null,
-            null);
+        return $this->getColumn(
+            'table_id',
+            ['source_table_id' => $table_id, 'cycle_id' => $cycle_id, 'cycles_table_id' => $cycles_table_id]
+        );
     }
 
-    function removeConnectsForCycle(Cycle $Cycle)
+    public function removeConnectsForCycle(Cycle $Cycle)
     {
-        $this->delete(['cycles_table_id' => $Cycle->getCyclesTableId(), 'cycle_id' => $Cycle->getId()]);
+        $this->deletePrepared(['cycles_table_id' => $Cycle->getCyclesTableId(), 'cycle_id' => $Cycle->getId()]);
     }
-
 }

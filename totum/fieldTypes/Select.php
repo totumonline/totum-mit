@@ -8,8 +8,7 @@
 
 namespace totum\fieldTypes;
 
-
-use totum\common\Calculate;
+use totum\common\calculates\Calculate;
 use totum\common\CalculateSelect;
 use totum\common\CalculateSelectPreview;
 use totum\common\CalculateSelectValue;
@@ -23,7 +22,8 @@ use totum\tableTypes\aTable;
 class Select extends Field
 {
     const loadItemsCount = 50;
-    protected $commonSelectList, $commonSelectValueList;
+    protected $commonSelectList;
+    protected $commonSelectValueList;
     protected $commonSelectViewList;
     protected $commonSelectListWithPreviews;
     protected $CalculateCodeViewSelect;
@@ -35,11 +35,10 @@ class Select extends Field
 
         if (!empty($this->data['codeSelect'])) {
             $this->CalculateCodeSelect = new CalculateSelect($this->data['codeSelect']);
-
         }
     }
 
-    function cropSelectListForWeb($list, $checkedVals, $q = '', $parentId = null)
+    public function cropSelectListForWeb($list, $checkedVals, $q = '', $parentId = null)
     {
         $previewdata = $list['previewdata'] ?? false;
         unset($list['previewdata']);
@@ -85,11 +84,12 @@ class Select extends Field
         };
 
         foreach ($list as $k => $v) {
-            if (($v[1] ?? 0) == 1) unset($list[$k]);
+            if (($v[1] ?? 0) == 1) {
+                unset($list[$k]);
+            }
         }
 
         if (count($list) > ($selectLength + $checkedNum)) {
-
             if ($q) {
                 $qs = explode(' ', str_ireplace('ё', 'е', $q));
                 $qfunc = function ($v) use ($qs) {
@@ -104,7 +104,6 @@ class Select extends Field
             }
 
             foreach ($list as $k => $v) {
-
                 if ($i < $checkedNum) {
                     $addInArrays($k, $v);
                 } else {
@@ -112,7 +111,6 @@ class Select extends Field
                         if ($qfunc($v[0])) {
                             $addInArrays($k, $v);
                         }
-
                     } else {
                         $addInArrays($k, $v);
                     }
@@ -122,7 +120,6 @@ class Select extends Field
                     $isSliced = true;
                     break;
                 }
-
             }
         } else {
             foreach ($list as $k => $v) {
@@ -144,19 +141,29 @@ class Select extends Field
 
         if ($row['previewscode'] ?? null) {
             $CalcPreview = new Calculate($row['previewscode']);
-            $data = $CalcPreview->exec([], [], [], $this->table->getTbl()['params'], [], $this->table->getTbl(), $this->table, ['val' => $val]);
+            $data = $CalcPreview->exec(
+                [],
+                [],
+                [],
+                $this->table->getTbl()['params'],
+                [],
+                $this->table->getTbl(),
+                $this->table,
+                ['val' => $val]
+            );
             foreach ($data as $_row) {
-                $title=$_row['title'] ?? '';
-                $value=$_row['value'] ?? '';
-                if ($withNames)
+                $title = $_row['title'] ?? '';
+                $value = $_row['value'] ?? '';
+                if ($withNames) {
                     $htmls[$_row['name'] ?? ''] = [$title, $value, 'text', ''];
-                else
+                } else {
                     $htmls[] = [$title, $value, 'text', ''];
+                }
             }
         }
 
 
-        foreach ($row['__fields'] as $name => $field) {
+        foreach ($row['__fields'] ?? [] as $name => $field) {
             $format = 'string';
             $elseData = [];
             $val = $row[$name];
@@ -167,7 +174,9 @@ class Select extends Field
 
             switch ($field['type']) {
                 case 'string':
-                    if ($field['url'] ?? false) $format = 'url';
+                    if ($field['url'] ?? false) {
+                        $format = 'url';
+                    }
                     break;
                 case 'number':
                     if ($field['unitType'] ?? false) {
@@ -187,10 +196,12 @@ class Select extends Field
 
             }
             if ($withNames) {
-                if (!key_exists($name, $htmls))
+                if (!key_exists($name, $htmls)) {
                     $htmls[$name] = [$field['title'], $val, $format, $elseData ?? []];
-            } else
+                }
+            } else {
                 $htmls[] = [$field['title'], $val, $format, $elseData ?? []];
+            }
             //string, url, currency, css, xml, text, html, json, totum, javascript
         }
         return $htmls;
@@ -198,7 +209,6 @@ class Select extends Field
 
     protected function calculateSelectValueList($val, $row, $tbl = [])
     {
-
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectValueList)) {
                 return $this->commonSelectValueList;
@@ -216,22 +226,21 @@ class Select extends Field
                 } else {
                     $list[$k] = $v;
                 }
-
             }
         } elseif (array_key_exists('codeSelect', $this->data)) {
             if (is_null($this->CalculateCodeSelectValue)) {
                 $this->CalculateCodeSelectValue = new CalculateSelectValue($this->data['codeSelect']);
             }
 
-            $list = $this->CalculateCodeSelectValue->exec($this->data,
+            $list = $this->CalculateCodeSelectValue->exec(
+                $this->data,
                 $val,
                 [],
                 $row,
                 [],
                 $tbl,
-                $this->table);
-
-
+                $this->table
+            );
         }
 
         return $this->commonSelectValueList = $list;
@@ -246,7 +255,7 @@ class Select extends Field
      * @param array $tbl
      * @return array|mixed|null|string
      */
-    function getSelectValue($val, $row, $tbl = [])
+    public function getSelectValue($val, $row, $tbl = [])
     {
         $list = $this->calculateSelectValueList($val, $row, $tbl);
 
@@ -256,7 +265,9 @@ class Select extends Field
                     $return = '';
                     if ($val != $this->data['errorText']) {
                         foreach ($val ?? [] as $v) {
-                            if (!empty($return)) $return .= ', ';
+                            if (!empty($return)) {
+                                $return .= ', ';
+                            }
                             if (empty($list[$v])) {
                                 $return .= $v;
                             } else {
@@ -266,9 +277,7 @@ class Select extends Field
                     } else {
                         $return = $this->data['errorText'];
                     }
-
                 } else {
-
                     if ($v_ = $list[$val] ?? null) {
                         $return = $v_;
                     } elseif ($this->data['withEmptyVal'] ?? false) {
@@ -277,7 +286,6 @@ class Select extends Field
                         $return = $val;
                     }
                 }
-
             } else {
                 $return = $this->data['errorText'];
             }
@@ -286,86 +294,104 @@ class Select extends Field
         return $return;
     }
 
-    function getLogValue($val, $row, $tbl = [])
+    public function getLogValue($val, $row, $tbl = [])
     {
         return $this->getSelectValue($val, $row, $tbl);
     }
 
-    function calculateSelectList(&$val, $row, $tbl = [])
+    public function calculateSelectList(&$val, $row, $tbl = [])
     {
-
-
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectList)) {
                 return $this->commonSelectList;
             }
         }
+
+        $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "view", 'field' => $this->data['name']]);
+
         $list = [];
 
-        if (!empty($this->data['values'])) {
-
-            foreach ($this->data['values'] ?? [] as $k => $v) {
-                if (is_array($v)) {
-                    if (!empty($v['disabled'])) {
-                        $list[$k] = [$v['title'], 2];
+        try {
+            if (!empty($this->data['values'])) {
+                foreach ($this->data['values'] ?? [] as $k => $v) {
+                    if (is_array($v)) {
+                        if (!empty($v['disabled'])) {
+                            $list[$k] = [$v['title'], 2];
+                        }
+                        $list[$k] = [$v['title'], 0];
+                    } else {
+                        $list[$k] = [$v, 0];
                     }
-                    $list[$k] = [$v['title'], 0];
-                } else {
-                    $list[$k] = [$v, 0];
                 }
-
+            } elseif (array_key_exists('codeSelect', $this->data)) {
+                $list = $this->CalculateCodeSelect->exec(
+                    $this->data,
+                    $val,
+                    [],
+                    $row,
+                    [],
+                    $tbl,
+                    $this->table
+                );
+                if ($error = $this->CalculateCodeSelect->getError()) {
+                    $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
+                    $list = [];
+                }
+                $this->log = $this->CalculateCodeSelect->getLogVar();
             }
-        } elseif (array_key_exists('codeSelect', $this->data)) {
 
-
-            $list = $this->CalculateCodeSelect->exec($this->data,
-                $val,
-                [],
-                $row,
-                [],
-                $tbl,
-                $this->table);
-            if ($error = $this->CalculateCodeSelect->getError()) {
-                $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
-                $list = [];
+            if ($this->data['category'] === 'filter') {
+                $add = [];
+                if (!empty($this->data['selectFilterWithEmpty'])) {
+                    $add[''] = [($this->data['selectFilterWithEmptyText'] ?? 'Пустое'), 0];
+                }
+                if (!empty($this->data['selectFilterWithAll'])) {
+                    $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? 'Все'), 0];
+                }
+                if (!empty($this->data['selectFilterWithNone'])) {
+                    $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? 'Ничего'), 0];
+                }
+                $list = $add + $list;
             }
-            $this->log = $this->CalculateCodeSelect->getLogVar();
+
+            $this->table->calcLog($Log, 'result', $list);
+        } catch (\Exception $exception) {
+            $this->table->calcLog($Log, 'error', $exception->getMessage());
+            throw $exception;
         }
 
-        if ($this->data['category'] === 'filter') {
-            $add = [];
-            if (!empty($this->data['selectFilterWithEmpty']))
-                $add[''] = [($this->data['selectFilterWithEmptyText'] ?? 'Пустое'), 0];
-            if (!empty($this->data['selectFilterWithAll']))
-                $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? 'Все'), 0];
-            if (!empty($this->data['selectFilterWithNone']))
-                $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? 'Ничего'), 0];
-            $list = $add + $list;
-        }
+
         return $this->commonSelectList = $list;
-
     }
 
-    function calculateSelectListWithPreviews(&$val, $row, $tbl = [])
+    public function calculateSelectListWithPreviews(&$val, $row, $tbl = [])
     {
-        $list = $this->calculateSelectList($val, $row, $tbl = []);
+        $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "viewWithPreviews", 'field' => $this->data['name']]);
 
-        if ($list['previewdata']) {
-            unset($list['previewdata']);
-            foreach ($list as $val => &$l) {
-                $l[] = $this->getPreviewHtml($val, $row, $tbl, true);
+        try {
+            $list = $this->calculateSelectList($val, $row, $tbl = []);
+
+            if ($list['previewdata']) {
+                unset($list['previewdata']);
+                foreach ($list as $val => &$l) {
+                    $l[] = $this->getPreviewHtml($val, $row, $tbl, true);
+                }
+            } else {
+                unset($list['previewdata']);
             }
-        } else {
-            unset($list['previewdata']);
+            unset($l);
+
+            $this->table->calcLog($Log, 'result', $list);
+        } catch (\Exception $e) {
+            $this->table->calcLog($Log, 'error', $e->getMessage());
+            throw $e;
         }
-        unset($l);
+
         return $list;
     }
 
     protected function calculateSelectViewList(&$val, $row, $tbl = [])
     {
-
-
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectViewList)) {
                 return $this->commonSelectViewList;
@@ -374,7 +400,6 @@ class Select extends Field
         $list = [];
 
         if (!empty($this->data['values'])) {
-
             foreach ($this->data['values'] ?? [] as $k => $v) {
                 if (is_array($v)) {
                     if (!empty($v['disabled'])) {
@@ -384,61 +409,75 @@ class Select extends Field
                 } else {
                     $list[$k] = [$v, 0];
                 }
-
             }
         } elseif (array_key_exists('codeSelect', $this->data)) {
-
             if (is_null($this->CalculateCodeViewSelect)) {
                 $this->CalculateCodeViewSelect = new CalculateSelectViewValue($this->data['codeSelect']);
             }
 
-            $list = $this->CalculateCodeViewSelect->exec($this->data,
-                $val,
-                [],
-                $row,
-                [],
-                $tbl,
-                $this->table);
-            if ($error = $this->CalculateCodeViewSelect->getError()) {
-                $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
-                $list = [];
+            $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "view", 'field' => $this->data['name']]);
+
+            try {
+                $list = $this->CalculateCodeViewSelect->exec(
+                    $this->data,
+                    $val,
+                    [],
+                    $row,
+                    [],
+                    $tbl,
+                    $this->table
+                );
+                if ($error = $this->CalculateCodeViewSelect->getError()) {
+                    $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
+                    $list = [];
+                }
+
+                $this->table->calcLog($Log, 'result', $list);
+            } catch (\Exception $e) {
+
+                $this->table->calcLog($Log, 'error', $e->getMessage());
+                throw $e;
             }
-            $this->log = $this->CalculateCodeViewSelect->getLogVar();
         }
 
         if ($this->data['category'] === 'filter') {
             $add = [];
-            if (!empty($this->data['selectFilterWithEmpty']))
+            if (!empty($this->data['selectFilterWithEmpty'])) {
                 $add[''] = [($this->data['selectFilterWithEmptyText'] ?? 'Пустое'), 0];
-            if (!empty($this->data['selectFilterWithAll']))
+            }
+            if (!empty($this->data['selectFilterWithAll'])) {
                 $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? 'Все'), 0];
-            if (!empty($this->data['selectFilterWithNone']))
+            }
+            if (!empty($this->data['selectFilterWithNone'])) {
                 $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? 'Ничего'), 0];
+            }
             $list = $add + $list;
         }
         return $this->commonSelectViewList = $list;
-
     }
 
-    function getValueFromCsv($val)
+    public function getValueFromCsv($val)
     {
         if (!empty($this->data['multiple'])) {
             $vals = preg_split('/\]\s*\[/', $val);
             foreach ($vals as &$v) {
                 $v = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $v);
-                if ($v === '') $v = null;
+                if ($v === '') {
+                    $v = null;
+                }
             }
             $val = $vals;
         } else {
             $val = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $val);
-            if ($val === '') $val = null;
+            if ($val === '') {
+                $val = null;
+            }
         }
         return $val;
     }
 
-    function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
+    public function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
     {
-
         if (!empty($this->data['multiple'])) {
             $paramInXml = $simpleXMLElement->addChild($this->data['name']);
             $v_ = [];
@@ -450,9 +489,7 @@ class Select extends Field
                 $value->addAttribute('title', $v_[$v][0]);
                 $value->addAttribute('correct', $v_[$v][0] == 1 ? '0' : '1');
             }
-
         } else {
-
             if (is_array($fVar['v'])) {
                 $paramInXml = $simpleXMLElement->addChild($this->data['name'], json_encode($fVar['v']));
                 $fVar['e'] = 'list в немульти поле';
@@ -468,7 +505,9 @@ class Select extends Field
             }
         }
 
-        if (empty($paramInXml)) $paramInXml = $simpleXMLElement->addChild($this->data['name']);
+        if (empty($paramInXml)) {
+            $paramInXml = $simpleXMLElement->addChild($this->data['name']);
+        }
 
         if (isset($fVar['e'])) {
             $paramInXml->addAttribute('error', $fVar['e']);
@@ -479,7 +518,7 @@ class Select extends Field
         }
     }
 
-    function addViewValues($viewType, array &$valArray, $row, $tbl = [])
+    public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
 
@@ -502,7 +541,6 @@ class Select extends Field
                             $v_ = [[$this->data['errorText'], 0]];
                         }
                     } else {
-
                         if (!is_array($v)) {
                             if ($v_ = $list[$v] ?? null) {
                                 $v_ = $v_;
@@ -534,13 +572,14 @@ class Select extends Field
                     $valArray['e'] .= "\n" . $list;
                 }
             }
-
         }
 
         switch ($viewType) {
             case 'print':
                 $func = function ($arrayVals, $arrayTitles) use (&$func) {
-                    if (!$arrayTitles) return '';
+                    if (!$arrayTitles) {
+                        return '';
+                    }
                     if (is_array($arrayVals)) {
                         $v = [$arrayVals[0], $arrayTitles[0]];
                     } else {
@@ -551,9 +590,13 @@ class Select extends Field
                     if ($v[1][0] !== '' && !is_null($v[1][0]) && !empty($this->data['unitType'])) {
                         $v[1][0] .= ' ' . $this->data['unitType'];
                     }
-                    return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(array_slice($arrayVals,
-                            1),
-                            array_slice($arrayTitles, 1));
+                    return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
+                        array_slice(
+                                $arrayVals,
+                                1
+                            ),
+                        array_slice($arrayTitles, 1)
+                    );
                 };
 
                 if ($this->data['multiple'] && ($this->data['printTextfull'] ?? false)) {
@@ -562,8 +605,10 @@ class Select extends Field
                     if ($this->data['multiple']) {
                         if ($valArray['v']) {
                             if (count($valArray['v']) == 1) {
-                                $valArray['v'] = $func($valArray['v'][count($valArray['v']) - 1],
-                                    $valArray['v_'][count($valArray['v_']) - 1]);
+                                $valArray['v'] = $func(
+                                    $valArray['v'][count($valArray['v']) - 1],
+                                    $valArray['v_'][count($valArray['v_']) - 1]
+                                );
                             } else {
                                 $valArray['v'] = $func('', [count($valArray['v']) . ' элем.', 0]);
                             }
@@ -581,10 +626,11 @@ class Select extends Field
                 $val = '';
                 if (!empty($this->data['multiple'])) {
                     foreach ($valArray['v'] as $k => $v) {
-                        if ($val) $val .= ' ';
+                        if ($val) {
+                            $val .= ' ';
+                        }
                         $val .= '[' . $v . ':' . $valArray['v_'][$k][0] . ']';
                     }
-
                 } else {
                     $val = '[' . $valArray['v'] . ':' . $valArray['v_'][0] . ']';
                 }
@@ -594,7 +640,6 @@ class Select extends Field
 
             case 'web':
                 if (array_key_exists('c', $valArray)) {
-
                     if ($valArray['c'] != $valArray['v']) {
                         $valArrayTmp = $valArray;
                         $valArrayTmp['v'] = $valArrayTmp['c'];
@@ -613,30 +658,16 @@ class Select extends Field
 
                 break;
         }
-
-
-        if ($viewType == 'web' || $viewType == 'edit') {
-            if ($this->CalculateCodeSelect && $this->CalculateCodeSelect->getLogVar()) {
-                $this->addInControllerLog('s', $this->CalculateCodeSelect->getLogVar(), $row);
-            } elseif ($this->CalculateCodeViewSelect && $this->CalculateCodeViewSelect->getLogVar()) {
-                $this->addInControllerLog('s', $this->CalculateCodeViewSelect->getLogVar(), $row);
-            }
-        }
-    }
-
-    function addInControllerSelectLog($row = null)
-    {
-        if ($this->CalculateCodeSelect) {//TODO check it
-            $this->addInControllerLog('s', $this->CalculateCodeSelect->getLogVar(), $row);
-        }
     }
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
         if (($this->data['multiple'] ?? false) == true && !is_array($val)) {
-            if (is_numeric($val)) $val = [strval($val)];
-            elseif (is_null($val)) $val = [];
-            else {
+            if (is_numeric($val)) {
+                $val = [strval($val)];
+            } elseif (is_null($val)) {
+                $val = [];
+            } else {
                 if ($v = json_decode($val, true)) {
                     $val = strval($v);
                 } else {
@@ -646,24 +677,29 @@ class Select extends Field
         }
         if ($this->data['multiple']) {
             foreach ($val as &$v) {
-                if (is_int($v)) $v = strval($v);
+                if (is_int($v)) {
+                    $v = strval($v);
+                }
             }
-
         } else {
             if (is_array($val)) {
-                if (count($val) == 0) $val = null;
-                else $val = strval($val[0]);
+                if (count($val) == 0) {
+                    $val = null;
+                } else {
+                    $val = strval($val[0]);
+                }
             } else {
                 $val = strval($val);
             }
         }
 
-        if ($val === "" && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] == true)) $val = null;
+        if ($val === "" && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] == true)) {
+            $val = null;
+        }
     }
 
     protected function getDefaultValue()
     {
-
         if (!empty($this->data['multiple'])) {
             if ($default = json_decode($this->data['default'], true)) {
                 if (!is_array($default)) {
@@ -680,11 +716,15 @@ class Select extends Field
 
     protected function modifyValue($modifyVal, $oldValue, $isCheck)
     {
-        if (empty($modifyVal)) return $modifyVal;
+        if (empty($modifyVal)) {
+            return $modifyVal;
+        }
 
         if (!empty($this->data['multiple']) && !is_array($modifyVal)) {
             if (is_object($modifyVal)) {
-                if (empty($oldValue)) $oldValue = array();
+                if (empty($oldValue)) {
+                    $oldValue = array();
+                }
                 switch ($modifyVal->sign) {
                     case '-':
                         $modifyVal = array_diff($oldValue, (array)$modifyVal->val);
@@ -697,12 +737,16 @@ class Select extends Field
                 }
             } else {
                 $tmpVal = substr($modifyVal, 1);
-                if (empty($oldValue)) $oldValue = array();
+                if (empty($oldValue)) {
+                    $oldValue = array();
+                }
                 switch ($modifyVal{0}) {
                     case '-':
                         $modifyVal = [];
                         foreach ($oldValue as $v) {
-                            if ($v == $tmpVal) continue;
+                            if ($v == $tmpVal) {
+                                continue;
+                            }
                             $modifyVal[] = $v;
                         }
                         break;

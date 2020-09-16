@@ -1,16 +1,5 @@
 <?php
 $host = 'http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/';
-$sTable = \totum\tableTypes\tableTypes::getTableByName('settings');
-try {
-    $settings = $sTable->getByParams([
-        'field' => [
-            'h_og_title', 'h_og_description', 'h_og_image', 'h_title'
-        ]
-    ],
-        'row');
-} catch (\totum\common\errorException $e) {
-    $settings = [];
-}
 $settings['h_og_title'] = $settings['h_og_title'] ?? 'TOTUM — платформа для любой автоматизации в малом бизнесе';
 if (empty($settings['h_title']))
     $settings['h_title'] = 'TOTUM';

@@ -51,20 +51,17 @@ namespace totum\moduls\Json;
 
  */
 
+use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
-use totum\common\Calculate;
 use totum\common\CalculateAction;
-use totum\common\Controller;
+use totum\common\controllers\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
 use totum\common\Field;
-use totum\common\Sql;
-use totum\common\tableSaveException;
+use totum\common\Totum;
+use totum\common\User;
 use totum\models\Table;
-use totum\models\User;
 use totum\tableTypes\aTable;
-use totum\tableTypes\JsonTables;
-use totum\tableTypes\tableTypes;
 
 use SimpleXMLElement;
 
@@ -91,155 +88,78 @@ class JsonController extends Controller
     private static $translates = ['header' => 'param', 'footer' => 'footer', 'rows' => 'column'];
 
 
-    protected $arrayIn, $arrayOut = [];
+    protected $arrayIn;
+    protected $arrayOut = [];
     protected $inModuleUri;
     /**
      * @var aTable
      */
     protected $Table;
     /**
-     * @var Auth
+     * @var User
      */
     protected $aUser;
     private $tableUpdatedOnLoad;
     private $addedIds = [];
 
 
-    function __construct($modulName, $inModuleUri)
+    public function __construct($modulName, $inModuleUri, \totum\config\Conf $Config)
     {
-        parent::__construct();
+        parent::__construct($modulName, $inModuleUri, $Config);
         $this->inModuleUri = $inModuleUri;
     }
 
-    protected function __addLogVar(aTable $table, $path, $type = 'c', $log)
+    public function doIt(ServerRequestInterface $request, bool $output)
     {
+        $jsonString = $request->getBody()->getContents();
 
-        $logTypes = $this->arrayIn['withLogs'] ?? [];
-
-        if (in_array($type, $logTypes)) {
-            $this->__addInGlobalLog($table, $path, $type, $log);
-        }
-    }
-
-    protected function __addInGlobalLog(aTable $table, $path, $type = 'c', $log)
-    {
-        if (is_null($log)) return;
-
-        if (!static::$FullLogsTOO_BIG && static::$FullLogsSize >= 5000000) {
-            static::$FullLogsTOO_BIG = true;
-            array_unshift(static::$FullLogs[0]['children'], ['text' => 'СЛИШКОМ БОЛЬШОЙ ЛОГ', 'type' => '!']);
-            return;
-        }
-        static::$FullLogsSize += strlen(json_encode($log, JSON_UNESCAPED_UNICODE));
-
-        $fL =& static::$FullLogs;
-
-
-        $tableFolder = null;
-
-        if ($table->getTableRow()['type'] == 'calcs') {
-            $tableHashName = $table->getTableRow()['id'] . '_' . $table->getCycle()->getId();
-            $tableTitle = $table->getTableRow()['title'] . ' / цикл id ' . $table->getCycle()->getId();
-        } else {
-            $tableHashName = $table->getTableRow()['id'];
-            $tableTitle = $table->getTableRow()['title'];
-        }
-
-        if (empty(static::$FullLogsTablesIndex[$tableHashName])) {
-            static::$FullLogsTablesIndex[$tableHashName] =  &$fL[];
-            static::$FullLogsTablesIndex[$tableHashName]['text'] = $tableTitle;
-            static::$FullLogsTablesIndex[$tableHashName] = &static::$FullLogsTablesIndex[$tableHashName]['children'];
-        }
-
-        $tableFolder = &static::$FullLogsTablesIndex[$tableHashName];
-        $tableFolderPath = [$tableTitle];
-
-
-        if (ctype_digit(strval($path[0]))) {
-            if ($path[0] === 0) {
-                $path[0] = 'Строка добавления';
-            }
-            array_unshift($path, 'СТРОЧНАЯ ЧАСТЬ');
-        }
-
-        $types = [
-            'c' => 'Код',
-            's' => 'Селект',
-            'f' => 'Формат',
-            'a' => 'Код действия',
-        ];
-
-        $path[] = $types[$type];
-        foreach ($path as $folder) {
-            $thisFolderPath = null;
-            if ($tableFolder) {
-                foreach ($tableFolder as $k => $innerItem) {
-                    if ($innerItem['text'] === $folder) {
-                        $tableFolder = &$tableFolder[$k]['children'];
-                        continue 2;
-                    }
-                }
-            }
-
-            $tableFolder = &$tableFolder[];
-            $tableFolder['text'] = $folder;
-            $tableFolder = &$tableFolder['children'];
-
-        }
-
-        $tableFolder[] = $log;
-    }
-
-    function doIt($action)
-    {
-
-        $jsonString = file_get_contents('php://input');
         try {
-            sql::transactionStart();
-            $this->arrayIn = json_decode($jsonString, true) ?? json_decode($_POST['data'] ?? "", true);
-            if (!is_array($this->arrayIn)) $this->throwError(1);
-            if (!empty($this->arrayIn['withLogs'])) {
-                Calculate::$logsOn = true;
+            $this->arrayIn = json_decode($jsonString, true) ?? json_decode($request->getParsedBody()['data'] ?? "",
+                    true);
+            if (!is_array($this->arrayIn)) {
+                $this->throwError(1);
             }
+
             $this->authUser();
+            $this->Totum = new Totum($this->Config, $this->aUser);
+            $this->Totum->setCalcsTypesLog($this->arrayIn['withLogs'] ?? false);
+
             $this->checkTable(
                 array_key_exists('import', $this->arrayIn)
                 || array_key_exists('recalculate', $this->arrayIn)
             );
-
+            $this->Totum->transactionStart();
             foreach (['import', 'recalculate', 'remotes', 'export'] as $action) {
                 if (array_key_exists($action, $this->arrayIn)) {
-                    if (!$this->Table && $action != 'remotes')
+                    if (!$this->Table && $action != 'remotes') {
                         $this->throwError(14);
+                    }
                     $this->{'json' . $action}();
                 }
             }
 
-            foreach (Controller::getLinks() ?? [] as $link) {
-
+            foreach ($this->Totum->getInterfaceLinks() ?? [] as $link) {
                 $data = http_build_query($link['postData']);
 
                 $context = stream_context_create(
-                    array(
-                        'http' => array(
+                    [
+                        'http' => [
                             'header' => "Content-type: application/x-www-form-urlencoded\r\nUser-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
                             'method' => 'POST',
                             'content' => $data
-                        )
-                    )
+                        ]
+                    ]
                 );
                 file_get_contents($link['uri'], false, $context);
             }
-            sql::transactionCommit();
-
+            $this->Totum->transactionCommit();
         } catch (errorException $e) {
             $error = $e->getCode() ? $e->getCode() : -1;
             $errorDescription = $e->getMessage();
-            sql::transactionRollBack();
+            $this->Totum->transactionRollBack();
         }
 
         $this->sendJson($error ?? 0, $errorDescription ?? '');
-
     }
 
     protected function jsonRecalculate()
@@ -249,17 +169,22 @@ class JsonController extends Controller
             $inVars['modify'] = [];
             $params = [];
             foreach ($this->arrayIn['recalculate'] as $where) {
-                if (!is_array($where) || count(array_intersect_key($where,
-                        ['field' => 1, 'operator' => '', 'value' => ''])) != 3) {
+                if (!is_array($where) || count(array_intersect_key(
+                        $where,
+                        ['field' => 1, 'operator' => '', 'value' => '']
+                    )) != 3) {
                     $this->throwError(9);
                 }
                 $params[] = $where;
             }
-            $ids = $this->Table->loadRowsByParams($params);
-            $inVars['modify'] = array_map(function () {
-                return [];
-            },
-                array_flip($ids));
+            /*TODO ограничение по фильтру*/
+            $ids = $this->Table->getByParams($params);
+            $inVars['modify'] = array_map(
+                function () {
+                    return [];
+                },
+                array_flip($ids)
+            );
         }
         $this->Table->reCalculateFromOvers($inVars);
         $this->addedIds = array_merge($this->addedIds, $this->Table->addedIds);
@@ -269,7 +194,7 @@ class JsonController extends Controller
     {
         $selectedRemotes = [];
         $remoteOutputs = [];
-        $RemotesTable = tableTypes::getTableByName('ttm__remotes');
+        $RemotesTable = $this->Totum->getTable('ttm__remotes');
         foreach ($this->arrayIn['remotes'] ?? [] as $remote) {
             $name = $remote['name'] ?? null;
             if (!$name) {
@@ -277,12 +202,14 @@ class JsonController extends Controller
             }
 
             if (!key_exists($name, $selectedRemotes)) {
-                $code = ($selectedRemotes[$name] = $RemotesTable->getByParams(['where' => [
-                    ['field' => 'on_off', 'operator' => '=', 'value' => true],
-                    ['field' => 'name', 'operator' => '=', 'value' => $name],
-                    ['field' => 'api_user', 'operator' => '=', 'value' => Auth::$aUser->getId()],
-                ], 'field' => 'code'],
-                    'field'));
+                $code = ($selectedRemotes[$name] = $RemotesTable->getByParams(
+                    ['where' => [
+                        ['field' => 'on_off', 'operator' => '=', 'value' => true],
+                        ['field' => 'name', 'operator' => '=', 'value' => $name],
+                        ['field' => 'api_user', 'operator' => '=', 'value' => $this->aUser->getId()],
+                    ], 'field' => 'code'],
+                    'field'
+                ));
                 if (!$code) {
                     $this->throwError(15, ["{var}" => $name]);
                 }
@@ -290,7 +217,8 @@ class JsonController extends Controller
             }
 
             /** @var CalculateAction array $selectedRemotes */
-            $remoteOutputs[] = $selectedRemotes[$name]->execAction('CODE',
+            $remoteOutputs[] = $selectedRemotes[$name]->execAction(
+                'CODE',
                 [],
                 [],
                 [],
@@ -298,7 +226,8 @@ class JsonController extends Controller
                 $RemotesTable,
                 [
                     'data' => $remote['data'] ?? null
-                ]);
+                ]
+            );
         }
         $this->arrayOut['remotes'] = $remoteOutputs;
     }
@@ -315,17 +244,27 @@ class JsonController extends Controller
         $import['remove'] = [];
 
         $addValToImportNoColumn = function ($v, $field, &$importPart, $isAdd = false) {
-
-            if (empty($field['showInXml']) || (!$isAdd && empty($field['apiEditable'])) || ($isAdd && empty($field['apiInsertable'])))
-                throw new errorException('Поле [[' . $field['name'] . ']] запрещено для ' . ($isAdd ? 'добавления' : 'редактирования') . ' через Api',
-                    10);
+            if (empty($field['showInXml']) || (!$isAdd && empty($field['apiEditable'])) || ($isAdd && empty($field['apiInsertable']))) {
+                throw new errorException(
+                    'Поле [[' . $field['name'] . ']] запрещено для ' . ($isAdd ? 'добавления' : 'редактирования') . ' через Api',
+                    10
+                );
+            }
 
             if (Field::isFieldListValues($field['type'], $field['multiple'] ?? false)) {
-                if (!is_array($v)) throw new errorException('Поле [[' . $field['name'] . ']] должно содержать множественный селект',
-                    11);
+                if (!is_array($v)) {
+                    throw new errorException(
+                        'Поле [[' . $field['name'] . ']] должно содержать множественный селект',
+                        11
+                    );
+                }
             } else {
-                if (is_array($v)) throw new errorException('Поле [[' . $field['name'] . ']]  должно содержать строку',
-                    11);
+                if (is_array($v)) {
+                    throw new errorException(
+                        'Поле [[' . $field['name'] . ']]  должно содержать строку',
+                        11
+                    );
+                }
             }
 
             $importPart[$field['name']] = $v;
@@ -336,25 +275,39 @@ class JsonController extends Controller
         $handleItem = function ($itemArray, $category, $path, &$importPart, &$defaultsPart, &$pinnedPars, $isAdd = false) use ($fields, &$addValToImportNoColumn) {
             if (array_key_exists('__clears', $itemArray)) {
                 foreach ((array)$itemArray['__clears'] as $k) {
-                    if (empty($fields[$k]) || $fields[$k]['category'] !== $category) throw new errorException('Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
-                        10);
-                    else $defaultsPart[$k] = 1;
+                    if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
+                        throw new errorException(
+                            'Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
+                            10
+                        );
+                    } else {
+                        $defaultsPart[$k] = 1;
+                    }
                 }
 
                 unset($itemArray['__clears']);
             }
             if (array_key_exists('__pins', $itemArray)) {
                 foreach ((array)$itemArray['__pins'] as $k) {
-                    if (empty($fields[$k]) || $fields[$k]['category'] !== $category) throw new errorException('Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
-                        10);
-                    else $pinnedPars[$k] = 1;
+                    if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
+                        throw new errorException(
+                            'Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
+                            10
+                        );
+                    } else {
+                        $pinnedPars[$k] = 1;
+                    }
                 }
                 unset($itemArray['__pins']);
             }
 
             foreach ($itemArray as $k => $v) {
-                if (empty($fields[$k]) || $fields[$k]['category'] !== $category) throw new errorException('Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
-                    10);
+                if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
+                    throw new errorException(
+                        'Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
+                        10
+                    );
+                }
                 $addValToImportNoColumn($v, $fields[$k], $importPart, $isAdd);
             };
         };
@@ -364,26 +317,34 @@ class JsonController extends Controller
             foreach ($this->arrayIn['import']['rows-set-where'] as $set) {
                 $where = [];
                 foreach ($set['where'] as $_where) {
-                    if (count(array_intersect_key($_where,
-                            array_flip(['field', 'operator', 'value']))) != 3) static::throwError(13);
+                    if (count(array_intersect_key(
+                            $_where,
+                            array_flip(['field', 'operator', 'value'])
+                        )) != 3) {
+                        static::throwError(13);
+                    }
                     $where[] = $_where;
                 }
-                $ids = $this->Table->getByParams([
-                    'field' => 'id', 'where' => $where
-                ],
-                    'list');
+                $ids = $this->Table->getByParams(
+                    [
+                        'field' => 'id', 'where' => $where
+                    ],
+                    'list'
+                );
                 if ($ids) {
                     foreach ($ids as $id) {
                         $r =& $import['modify'][(int)$id];
                         $rD =& $import['setValuesToDefaults'][(int)$id];
                         $rP =& $import['setValuesToPinned'][(int)$id];
                         unset($set['set']['id']);
-                        $handleItem($set['set'],
+                        $handleItem(
+                            $set['set'],
                             'column',
                             'rows',
                             $r,
                             $rD,
-                            $rP);
+                            $rP
+                        );
                     }
                 }
             }
@@ -393,66 +354,97 @@ class JsonController extends Controller
             if ($itemsArray = ($this->arrayIn['import'][$path] ?? [])) {
                 if ($path == 'rows') {
                     if (!empty($itemsArray['remove'])) {
-                        foreach ($itemsArray['remove'] as $id) $import['remove'][] = (int)$id;
+                        foreach ($itemsArray['remove'] as $id) {
+                            $import['remove'][] = (int)$id;
+                        }
                         unset($itemsArray['remove']);
                     }
                     foreach ($itemsArray['add'] ?? [] as $row) {
                         unset($row['id']);
                         $nullA = [];
                         $r =& $import['add'][];
-                        $handleItem($row,
+                        $handleItem(
+                            $row,
                             $category,
                             $path,
                             $r,
                             $nullA,
                             $nullA,
-                            true);
+                            true
+                        );
                     }
                     foreach ($itemsArray['modify'] ?? [] as $id => $row) {
                         $r =& $import['modify'][(int)$id];
                         $rD =& $import['setValuesToDefaults'][(int)$id];
                         $rP =& $import['setValuesToPinned'][(int)$id];
                         unset($row['id']);
-                        $handleItem($row,
+                        $handleItem(
+                            $row,
                             $category,
                             $path,
                             $r,
                             $rD,
-                            $rP);
+                            $rP
+                        );
                     }
                 } else {
-                    $handleItem($itemsArray,
+                    $handleItem(
+                        $itemsArray,
                         $category,
                         $path,
                         $import['modify']['params'],
                         $import['setValuesToDefaults']['params'],
-                        $import['setValuesToPinned']['params']);
+                        $import['setValuesToPinned']['params']
+                    );
                 }
-
             }
         }
         $import['channel'] = 'xml';
 
-        if ($import['add'] && !Table::isUserCanAction('insert',
-                $this->Table->getTableRow())) throw new errorException('Добавление в эту таблицу вам запрещено');
-        if ($import['remove'] && !Table::isUserCanAction('delete',
-                $this->Table->getTableRow())) throw new errorException('Удаление из этой таблицы вам запрещено');
+        if ($import['add'] && !Table::isUserCanAction(
+                'insert',
+                $this->Table->getTableRow()
+            )) {
+            throw new errorException('Добавление в эту таблицу вам запрещено');
+        }
+        if ($import['remove'] && !Table::isUserCanAction(
+                'delete',
+                $this->Table->getTableRow()
+            )) {
+            throw new errorException('Удаление из этой таблицы вам запрещено');
+        }
 
         $this->Table->reCalculateFromOvers($import);
         $this->addedIds = array_merge($this->addedIds, $this->Table->addedIds);
-
     }
 
-    protected
-    function jsonExport()
+    protected function jsonExport()
     {
         if (empty($this->arrayIn['export']['fields'])) {
             $this->throwError(12);
         }
-        $this->Table->setFilters($this->arrayIn['export']['filters'] ?? [], false);
-        $this->Table->reCalculateFilters('xml', true, true);
 
-        $data = $this->Table->getFilteredData('xml');
+        $permittedFilters = [];
+        foreach ($this->arrayIn['export']['filters'] ?? [] as $fName => $val) {
+            if (($field = $this->Table->getFields()[$fName] ?? []) && $field['category'] === 'filter') {
+                if ($this->Table->isField('editable', 'xml', $field)) {
+                    $permittedFilters[$fName] = $val;
+                }
+            }
+        }
+        $this->Table->reCalculateFilters('xml', true, $permittedFilters);
+
+        $data = $this->Table->getSortedFilteredRows(
+            'xml',
+            'xml',
+            array_map(
+                function ($v) {
+                    return (int)$v;
+                },
+                (array)($this->arrayIn['export']['filters']['id'] ?? [])
+            )
+        );
+
         $withTitles = false;
         $withCalcs = false;
 
@@ -473,13 +465,12 @@ class JsonController extends Controller
                         $v['e'] = $valArray['e'];
                     }
                 }
-
             }
             $addTo[$field['name']] = $v;
         };
 
         //header
-        $sortedXmlFields = $this->Table->getSortedXmlFields();
+        $sortedXmlFields = $this->Table->getVisibleFields('xml', true);
         $this->arrayOut['export'] = ['header' => [], 'filters' => [], 'rows' => [], 'footer' => []];
 
 
@@ -524,13 +515,12 @@ class JsonController extends Controller
         }
     }
 
-    protected
-    function checkTable($isRequestForWrite)
+    protected function checkTable($isRequestForWrite)
     {
         try {
-            if ($this->inModuleUri == '')
+            if ($this->inModuleUri == '') {
                 return;
-            else if (preg_match('/^(\d+)\/(\d+)\/(\d+)$/', $this->inModuleUri, $match)) {
+            } elseif (preg_match('/^(\d+)\/(\d+)\/(\d+)$/', $this->inModuleUri, $match)) {
                 $cyclesTableId = $match[1];
                 $cycleId = $match[2];
                 $cycleTableId = $match[3];
@@ -540,7 +530,6 @@ class JsonController extends Controller
 
                 $Cycle = Cycle::init($cycleId, $cyclesTableId);
                 $this->Table = $Cycle->getTable($tableRow);
-
             } elseif (preg_match('/^(\d+)$/', $this->inModuleUri, $match)) {
                 $tableId = $match[1];
 
@@ -554,7 +543,6 @@ class JsonController extends Controller
             }
 
             $this->tableUpdatedOnLoad = $this->Table->getSavedUpdated();
-
         } catch (errorException $errorException) {
             $this->throwError(6);
         }
@@ -566,40 +554,35 @@ class JsonController extends Controller
         if ($isRequestForWrite && empty($userTables[$tableRow['id']])) {
             $this->throwError(8);
         }
-
-
     }
 
-    protected
-    function throwError($code, $datas = [])
+    protected function throwError($code, $datas = [])
     {
         throw new errorException(str_replace(array_keys($datas), array_values($datas), static::$errors[$code]), $code);
     }
 
-    protected
-    function authUser()
+    protected function authUser()
     {
-
-        if (!isset($this->arrayIn['auth'])) $this->throwError(2);
+        if (!isset($this->arrayIn['auth'])) {
+            $this->throwError(2);
+        }
 
         $Auth = $this->arrayIn['auth'];
 
-        if (!isset($Auth['login'])) $this->throwError(3);
-        if (!isset($Auth['password'])) $this->throwError(4);
-
-        if (!($userId = User::init()->getField('id',
-            ['login' => $Auth['login'], 'pass' => md5($Auth['password']), 'interface' => 'xmljson', 'is_del' => false]))
-        ) {
-            $this->throwError(5);
+        if (!isset($Auth['login'])) {
+            $this->throwError(3);
+        }
+        if (!isset($Auth['password'])) {
+            $this->throwError(4);
         }
 
-        $this->aUser = Auth::xmlInterfaceAuth($userId);
+        if ($this->aUser = Auth::authUserWithPass($this->Config, $Auth['login'], $Auth['password'], 'xmljson')) {
+            $this->throwError(5);
+        }
     }
 
-    protected
-    function sendJson($error, $errorDescription)
+    protected function sendJson($error, $errorDescription)
     {
-
         if ($errorDescription) {
             $this->arrayOut['error'] = $error;
             $this->arrayOut['errorDescription'] = $errorDescription;
@@ -618,8 +601,8 @@ class JsonController extends Controller
             }
         }
 
-        if (static::$FullLogs) {
-            $this->arrayOut['logs'] = static::$FullLogs;
+        if ($this->arrayIn['withLogs'] ?? false) {
+            $this->arrayOut['logs'] = $this->Totum->getCalculateLog()->getLodTree();
         }
 
         header('Content-type: text/json');

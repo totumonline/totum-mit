@@ -120,7 +120,7 @@ abstract class ConfParent
 
     public function getFullHostName()
     {
-        return $this->hostName;
+        return array_key_first(static::getSchemas());
     }
 
     protected function getHostForDir($host)

@@ -132,7 +132,7 @@ CONF;
         $data = static::getDataFromFile($getFilePath('start.json.gz'));
 
         $this->consoleLog('Install base tables');
-        $baseTablesIds=$this->installBaseTables($data);
+        $baseTablesIds = $this->installBaseTables($data);
 
 
         $categories = $data['categories'];
@@ -371,7 +371,7 @@ CONF;
 
         try {
             if ($selectTableRow = $this->Totum->getTableRow($schemaRow['name'])) /* Изменение */ {
-                $this->consoleLog('Update settings table "'.$schemaRow['name'].'"', 3);
+                $this->consoleLog('Update settings table "' . $schemaRow['name'] . '"', 3);
 
                 $Log = $this->calcLog(['name' => "UPDATE SETTINGS TABLE {$schemaRow['name']}"]);
 
@@ -394,7 +394,7 @@ CONF;
 
                 $tablesChanges['modify'][$tableId] = $schemaRow['settings'];
             } else /* Добавление */ {
-                $this->consoleLog('Add table "'.$schemaRow['name'].'"', 3);
+                $this->consoleLog('Add table "' . $schemaRow['name'] . '"', 3);
                 $Log = $this->calcLog(['name' => "ADD TABLE {$schemaRow['name']}"]);
 
                 $treeNodeId = null;
@@ -460,7 +460,7 @@ CONF;
             $this->systemTableFieldsApply($schemaTableSettings, 1);
         }
 
-        if(!empty($schemaData['tables_settings']['sys_data'])){
+        if (!empty($schemaData['tables_settings']['sys_data'])) {
             $this->consoleLog('Set settings in table tables for "tables" and "tables_fields"');
             $this->updateSysTablesRows($schemaData['tables_settings']['sys_data'], 2);
         }
@@ -539,8 +539,8 @@ CONF;
             $this->consoleLog('Load data to tables and exec codes from schema', 2);
             $this->updateDataExecCodes($schemaRows, $funcCategories('all'), $funcRoles('all'), $getTreeId('all'));
         }
-        $this->consoleLog('Set default tables for new tree branches', 2);
-        $getTreeId('set default tables');
+        $this->consoleLog('Set default tables and sort for new tree branches', 2);
+        $getTreeId('set default tables and sort');
 
         return [$schemaRows, $funcRoles, $getTreeId, $funcCategories];
     }
@@ -732,20 +732,20 @@ CONF;
      */
     protected function updateSysTablesRows($sysData)
     {
-            $TableModel = $this->Totum->getNamedModel(Table::class);
-            foreach ($sysData['rows'] as $row) {
-                $selectedRow = $this->Totum->getTableRow($row['name']['v'], true);
-                unset($row['name']);
-                foreach (['tree_node_id', 'sort', 'category'] as $param) {
-                    if (key_exists($param, $selectedRow) && $selectedRow[$param]) {
-                        unset($row[$param]);
-                    }
+        $TableModel = $this->Totum->getNamedModel(Table::class);
+        foreach ($sysData['rows'] as $row) {
+            $selectedRow = $this->Totum->getTableRow($row['name']['v'], true);
+            unset($row['name']);
+            foreach (['tree_node_id', 'sort', 'category'] as $param) {
+                if (key_exists($param, $selectedRow) && $selectedRow[$param]) {
+                    unset($row[$param]);
                 }
-                foreach ($row as &$item) {
-                    $item = json_encode($item, JSON_UNESCAPED_UNICODE);
-                }
-                $TableModel->updatePrepared(true, $row, ['id' => $selectedRow['id']]);
             }
+            foreach ($row as &$item) {
+                $item = json_encode($item, JSON_UNESCAPED_UNICODE);
+            }
+            $TableModel->updatePrepared(true, $row, ['id' => $selectedRow['id']]);
+        }
     }
 
     /**
@@ -1042,25 +1042,44 @@ CONF;
     protected function getFuncTree(array $treeIn)
     {
         $defaultTables = [];
+        $addedBranches = [];
 
-        return $getTreeId = function ($tree_node_id) use ($treeIn, &$treeMatches, &$getTreeId, &$Tree, &$defaultTables) {
+        return $getTreeId = function ($tree_node_id) use (&$addedBranches, $treeIn, &$treeMatches, &$getTreeId, &$Tree, &$defaultTables) {
             $treeMatches = $treeMatches ?? [];
             if (key_exists($tree_node_id, $treeMatches)) {
                 return $treeMatches[$tree_node_id];
             } elseif ($tree_node_id === 'all') {
                 return $treeMatches;
-            } elseif ($tree_node_id === 'set default tables') {
-                if ($defaultTables) {
-                    $defTables = $this->Totum->getModel('tables')->getFieldIndexedByField(
-                        ['name' => array_values($defaultTables)],
-                        'name',
-                        'id'
-                    );
-                    foreach ($defaultTables as $treeId => &$name) {
-                        $name = ['default_table' => $defTables[$name] ?? null];
+            } elseif ($tree_node_id === 'set default tables and sort') {
+                if ($defaultTables || $addedBranches) {
+                    $modify = [];
+                    if ($defaultTables) {
+                        $defTables = $this->Totum->getModel('tables')->getFieldIndexedByField(
+                            ['name' => array_values($defaultTables)],
+                            'name',
+                            'id'
+                        );
+                        foreach ($defaultTables as $treeId => &$name) {
+                            $modify[$treeId] = ['default_table' => $defTables[$name] ?? null];
+                        }
+                        unset($name);
                     }
-                    unset($name);
-                    $Tree->reCalculateFromOvers(['modify' => $defaultTables]);
+                    if ($addedBranches) {
+                        $lastOrdParent = [];
+                        foreach ($treeIn as $row) {
+                            if (key_exists($row['id'], $addedBranches)) {
+                                if (!key_exists($row['parent_id'], $lastOrdParent)) {
+                                    $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField('ord',
+                                            ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                            'ord desc') ?? 0;
+                                }
+                                $lastOrdParent[$row['parent_id']] += 10;
+                                $modify[$addedBranches[$row['id']]]['ord'] = $lastOrdParent[$row['parent_id']];
+                            }
+                        }
+                    }
+                    /** @var aTable $Tree */
+                    $Tree->reCalculateFromOvers(['modify' => $modify]);
                 }
                 return;
             }
@@ -1083,6 +1102,7 @@ CONF;
                         if (isset($defaultTable)) {
                             $defaultTables[$outId] = $defaultTable;
                         }
+                        $addedBranches[$id] = $outId;
                     } elseif (ctype_digit(strval($row['out_id']))) {
                         $outId = $row['out_id'];
                     } else {
@@ -1107,10 +1127,10 @@ CONF;
         $Log->addParam('result', 'done');
     }
 
-    private function consoleLog(string $string, $level=0)
+    private function consoleLog(string $string, $level = 0)
     {
         if ($this->outputConsole) {
-            $this->outputConsole->write(str_repeat(" ", $level).$string, true);
+            $this->outputConsole->write(str_repeat(" ", $level) . $string, true);
         }
     }
 }

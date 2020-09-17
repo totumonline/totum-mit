@@ -23,13 +23,13 @@ class SchemaInstall extends Command
             ->addArgument('dbhost', InputOption::VALUE_REQUIRED, 'Enter database host: ')
             ->addArgument('dbuser', InputOption::VALUE_REQUIRED, 'Enter database user: ')
             ->addArgument('dbpass', InputOption::VALUE_REQUIRED, 'Enter database user password: ')
-            ->addOption('pgdump', 'pgd', InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
-            ->addOption('psql', 'pgs', InputOption::VALUE_REQUIRED, 'Enter psql(): ', '')
+            ->addOption('pgdump', null, InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
+            ->addOption('psql', null, InputOption::VALUE_REQUIRED, 'Enter psql(): ', '')
             ->addArgument('admin_email', InputOption::VALUE_REQUIRED, 'Enter admin email: ', '')
             ->addArgument('totum_host', InputOption::VALUE_REQUIRED, 'Enter totum host: ')
             ->addArgument('user_login', InputOption::VALUE_REQUIRED, 'Enter totum admin login(admin): ', 'admin')
             ->addArgument('user_pass', InputOption::VALUE_REQUIRED, 'Enter totum admin password(1111): ', '1111')
-            ->addOption('schema_exists', 'ex', InputOption::VALUE_REQUIRED, 'Install in existing schema(N): ', 'N');
+            ->addOption('schema_exists', 'e', InputOption::VALUE_REQUIRED, 'Install in existing schema(N): ', 'N');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -52,10 +52,10 @@ class SchemaInstall extends Command
 
         $confs['schema_exists'] = $input->getOption('schema_exists') === 'Y';
 
-
         $TotumInstall = new TotumInstall($confs, 'admin', $output);
         $TotumInstall->install(function ($file) {
             return dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'moduls' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . $file;
         });
+        $output->write('done');
     }
 }

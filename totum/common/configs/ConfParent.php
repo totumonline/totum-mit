@@ -79,10 +79,10 @@ abstract class ConfParent
                 : ['error', 'debug', 'alert', 'critical', 'emergency', 'info', 'notice', 'warning'];
 
 
-        $this->baseDir = dirname((new \ReflectionClass(get_called_class()))->getFileName());
-        $this->tmpDirPath = $this->baseDir.DIRECTORY_SEPARATOR.$this->tmpDirPath;
-        $this->tmpTableChangesDirPath = $this->baseDir.DIRECTORY_SEPARATOR.$this->tmpTableChangesDirPath;
-        $this->logsDir = $this->baseDir.DIRECTORY_SEPARATOR.$this->logsDir;
+        $this->baseDir = dirname((new \ReflectionClass(get_called_class()))->getFileName()).DIRECTORY_SEPARATOR;
+        $this->tmpDirPath = $this->baseDir.$this->tmpDirPath;
+        $this->tmpTableChangesDirPath = $this->baseDir.$this->tmpTableChangesDirPath;
+        $this->logsDir = $this->baseDir.$this->logsDir;
         $this->env = $env;
 
         if ($setIniAndHandlers) {
@@ -98,7 +98,7 @@ abstract class ConfParent
 
     public function getTemplatesDir()
     {
-        return  $this->baseDir. '/totum/templates';
+        return  $this->baseDir. 'totum/templates';
     }
 
     public function getTmpDir()
@@ -134,7 +134,7 @@ abstract class ConfParent
 
     public function getFilesDir()
     {
-        $dir = 'http/fls/' . ($this->getHostForDir($this->getFullHostName())) . '/';
+        $dir = $this->baseDir.'http/fls/' . ($this->getHostForDir($this->getFullHostName())) . '/';
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }

@@ -28,6 +28,9 @@ class installController extends interfaceController
         if (!empty($post)) {
 
             try {
+
+                $post['schema_exists']=$post['schema_exists']==='1';
+
                 $TotumInstall = new TotumInstall($post, $post['user_login']);
                 $TotumInstall->install(function ($file) {
                     return dirname(__FILE__) . DIRECTORY_SEPARATOR . $file;

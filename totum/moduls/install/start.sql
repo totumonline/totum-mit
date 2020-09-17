@@ -84,6 +84,13 @@ VALUES ('{
   "v": "table_categories"
 }');
 
+INSERT INTO tables (type, name)
+VALUES ('{
+  "v": "simple"
+}', '{
+  "v": "settings"
+}');
+
 -- tables_fields
 
 create table tables_fields
@@ -171,7 +178,13 @@ create table table_categories
             primary key,
     is_del    boolean default false not null
 );
-
+create table settings
+(
+    id        serial                not null
+        constraint settings_pkey
+            primary key,
+    is_del    boolean default false not null
+);
 
 create view tables_fields__v as
 SELECT tables_fields.id,

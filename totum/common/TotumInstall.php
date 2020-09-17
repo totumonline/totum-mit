@@ -4,6 +4,7 @@
 namespace totum\common;
 
 use PDO;
+use Symfony\Component\Console\Output\OutputInterface;
 use totum\common\sql\Sql;
 use totum\config\Conf;
 use totum\fieldTypes\fieldParamsResult;
@@ -28,6 +29,9 @@ class TotumInstall
      * @var User
      */
     protected $User;
+    /**
+     * @var OutputInterface
+     */
     protected $outputConsole;
     /**
      * @var string
@@ -117,11 +121,17 @@ CONF;
         $Sql = $this->Sql;
         $Sql->transactionStart();
 
+        $this->consoleLog('Check/create schema');
         $this->checkSchemaExists($post['schema_exists']);
+
+
+        $this->consoleLog('Upload start sql');
         $this->applySql($getFilePath('start.sql'));
+
 
         $data = static::getDataFromFile($getFilePath('start.json.gz'));
 
+        $this->consoleLog('Install base tables');
         $this->installBaseTables($data);
 
 
@@ -135,6 +145,7 @@ CONF;
         foreach ($roles as $k => &$role) {
             if ($role['id'] == 1) {
                 $role['favorite'] = [];
+                $this->consoleLog('Add role Creator');
                 $this->getTotum()->getTable('roles')->reCalculateFromOvers(['add' => [$role]]);
                 unset($roles[$k]);
                 continue;
@@ -149,6 +160,7 @@ CONF;
         }
         unset($branch);
 
+        $this->consoleLog('Install other tables from schema file');
         list($schemaRows, $funcRoles, $funcTree, $funcCats) = $this->updateSchema(
             $data,
             $roles,
@@ -156,12 +168,17 @@ CONF;
             $tree
         );
 
+        $this->consoleLog('Create views');
         $this->applySql($getFilePath('start_views.sql'));
-        $this->updateSysTablesAfterInstall($funcTree, $funcCats);
-        $funcTree('set default tables');
 
+        $this->consoleLog('Update base tables tree and category');
+        $this->updateSysTablesAfterInstall($funcTree, $funcCats);
+
+
+        $this->consoleLog('Create default users');
         $this->insertUsersAndAuthAdmin($post);
 
+        $this->consoleLog('Load data to tables and exec codes from schema');
         $this->updateDataExecCodes($schemaRows, $funcCats('all'), $funcRoles('all'), $funcTree('all'));
 
 
@@ -170,8 +187,9 @@ CONF;
          *
        */
 
-
+        $this->consoleLog('Commit database transaction');
         $Sql->transactionCommit();
+        $this->consoleLog('Save config file');
         $this->saveFileConfig();
     }
 
@@ -228,7 +246,7 @@ CONF;
     public function updateSysTablesAfterInstall($funcTree, $funcCats)
     {
         $rows = $this->Totum->getModel('tables')->getAllIndexedById(
-            ['id' => [1, 2, 3, 4, 5]],
+            ['id' => [1, 2, 3, 4, 5, 6]],
             'id, category, tree_node_id'
         );
         foreach ($rows as &$row) {
@@ -284,8 +302,8 @@ CONF;
             '/((?i:userInRoles))\(([^)]+)\)/',
             function ($matches) use ($funcRoles) {
                 return $matches[1] . '(' . preg_replace_callback(
-                    '/role:\s*(\d+)/',
-                    function ($matches) use ($funcRoles) {
+                        '/role:\s*(\d+)/',
+                        function ($matches) use ($funcRoles) {
                             $roles = '';
                             foreach ($matches[1] as $role) {
                                 if ($roles != '') {
@@ -295,8 +313,8 @@ CONF;
                             }
                             return $roles;
                         },
-                    $matches[2]
-                ) . ')';
+                        $matches[2]
+                    ) . ')';
             },
             $code
         );
@@ -508,6 +526,7 @@ CONF;
         if ($withDataAndCodes) {
             $this->updateDataExecCodes($schemaRows, $funcCategories('all'), $funcRoles('all'), $getTreeId('all'));
         }
+        $getTreeId('set default tables');
 
         return [$schemaRows, $funcRoles, $getTreeId, $funcCategories];
     }
@@ -611,7 +630,7 @@ CONF;
 
         if (!$schemaExists) {
             $this->Sql->exec('CREATE SCHEMA IF NOT EXISTS "' . $this->Config->getSchema() . '"');
-        } elseif ($schema_exists_conf !== '1') {
+        } elseif ($schema_exists_conf !== true) {
             throw new errorException('Схема существует - выберите другую для установки');
         }
     }
@@ -667,7 +686,7 @@ CONF;
 
         $do2 = 0;
         $table = $this->Totum->getTable('tables');
-        $tablesIds = ['roles' => 3, 'tree' => 4, 'table_categories' => 5];
+        $tablesIds = ['roles' => 3, 'tree' => 4, 'table_categories' => 5, 'settings' => 6];
         foreach ($data['tables'] as $_t) {
             if ($tablesIds[$_t['table']] ?? false) {
                 $table->reCalculateFromOvers(['modify' => [$tablesIds[$_t['table']] => $_t['settings']]]);
@@ -775,15 +794,15 @@ CONF;
                                 $selectedRowId = null;
 
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
-                                    'id',
-                                    $row
-                                ) && $schemaRow['key_fields'] = ['id'])) {
+                                            'id',
+                                            $row
+                                        ) && $schemaRow['key_fields'] = ['id'])) {
                                     $keys = [];
                                     foreach ($schemaRow['key_fields'] as $key) {
                                         $keys[$key] = (is_array($row[$key] ?? []) && key_exists(
-                                            'v',
-                                            $row[$key] ?? []
-                                        )) ? $row[$key]['v'] : $row[$key];
+                                                'v',
+                                                $row[$key] ?? []
+                                            )) ? $row[$key]['v'] : $row[$key];
                                         if (is_array($keys[$key])) {
                                             $keys[$key] = json_encode(
                                                 $keys[$key],
@@ -884,9 +903,9 @@ CONF;
                                                                 ['v' => $tName],
                                                                 JSON_UNESCAPED_UNICODE
                                                             ), 'cycles_table' => json_encode(
-                                                                ['v' => $tableId],
-                                                                JSON_UNESCAPED_UNICODE
-                                                            ),]
+                                                            ['v' => $tableId],
+                                                            JSON_UNESCAPED_UNICODE
+                                                        ),]
                                                     );
                                                 }
                                             }
@@ -1073,5 +1092,12 @@ CONF;
             '<?php' . "\n" . $this->confClassCode
         );
         $Log->addParam('result', 'done');
+    }
+
+    private function consoleLog(string $string)
+    {
+        if ($this->outputConsole) {
+            $this->outputConsole->write($string, true);
+        }
     }
 }

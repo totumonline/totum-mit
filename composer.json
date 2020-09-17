@@ -53,6 +53,7 @@
       "rm http/js/libs.js && ln vendor/totumonline/totum-front/http/js/libs.js http/js/libs.js",
       "rm http/css/main.css && ln vendor/totumonline/totum-front/http/css/main.css http/css/main.css",
       "rm http/css/libs.css && ln vendor/totumonline/totum-front/http/css/libs.css http/css/libs.css"
-    ]
+    ],
+    "dev-run": "php -S localhost:8080 -t http/"
   }
 }

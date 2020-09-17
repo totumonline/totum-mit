@@ -132,7 +132,7 @@ CONF;
         $data = static::getDataFromFile($getFilePath('start.json.gz'));
 
         $this->consoleLog('Install base tables');
-        $this->installBaseTables($data);
+        $baseTablesIds=$this->installBaseTables($data);
 
 
         $categories = $data['categories'];
@@ -159,6 +159,9 @@ CONF;
             $branch['out_id'] = '';
         }
         unset($branch);
+
+        unset($data['tables_settings']['settings']);
+        unset($data['fields_settings']);
 
         $this->consoleLog('Install other tables from schema file');
         list($schemaRows, $funcRoles, $funcTree, $funcCats) = $this->updateSchema(
@@ -368,6 +371,8 @@ CONF;
 
         try {
             if ($selectTableRow = $this->Totum->getTableRow($schemaRow['name'])) /* Изменение */ {
+                $this->consoleLog('Update settings table "'.$schemaRow['name'].'"', 3);
+
                 $Log = $this->calcLog(['name' => "UPDATE SETTINGS TABLE {$schemaRow['name']}"]);
 
                 $tableId = $selectTableRow['id'];
@@ -389,6 +394,7 @@ CONF;
 
                 $tablesChanges['modify'][$tableId] = $schemaRow['settings'];
             } else /* Добавление */ {
+                $this->consoleLog('Add table "'.$schemaRow['name'].'"', 3);
                 $Log = $this->calcLog(['name' => "ADD TABLE {$schemaRow['name']}"]);
 
                 $treeNodeId = null;
@@ -446,13 +452,18 @@ CONF;
         $getTreeId = $this->getFuncTree($treeIn);
 
         if (!empty($schemaFieldSettings = $schemaData['fields_settings'] ?? [])) {
+            $this->consoleLog('Set fields of table tables_fields', 2);
             $this->systemTableFieldsApply($schemaFieldSettings, 2);
         }
         if (!empty($schemaTableSettings = $schemaData['tables_settings']['settings'] ?? [])) {
+            $this->consoleLog('Set fields of table tables', 2);
             $this->systemTableFieldsApply($schemaTableSettings, 1);
         }
 
-        $this->updateSysTablesRows($schemaData['tables_settings']['sys_data'] ?? []);
+        if(!empty($schemaData['tables_settings']['sys_data'])){
+            $this->consoleLog('Set settings in table tables for "tables" and "tables_fields"');
+            $this->updateSysTablesRows($schemaData['tables_settings']['sys_data'], 2);
+        }
         $schemaRows = $schemaData['tables'];
 
         /*Настройки таблиц*/
@@ -521,11 +532,14 @@ CONF;
             $getTreeId,
             $funcCategories
         );
+        $this->consoleLog('update roles favorites', 2);
         $this->updateRolesFavorites($schemaData['roles'], $funcRoles);
 
         if ($withDataAndCodes) {
+            $this->consoleLog('Load data to tables and exec codes from schema', 2);
             $this->updateDataExecCodes($schemaRows, $funcCategories('all'), $funcRoles('all'), $getTreeId('all'));
         }
+        $this->consoleLog('Set default tables for new tree branches', 2);
         $getTreeId('set default tables');
 
         return [$schemaRows, $funcRoles, $getTreeId, $funcCategories];
@@ -704,6 +718,7 @@ CONF;
             }
         }
         $this->refresh();
+        return $tablesIds;
     }
 
     protected function refresh()
@@ -717,7 +732,6 @@ CONF;
      */
     protected function updateSysTablesRows($sysData)
     {
-        if ($sysData) {
             $TableModel = $this->Totum->getNamedModel(Table::class);
             foreach ($sysData['rows'] as $row) {
                 $selectedRow = $this->Totum->getTableRow($row['name']['v'], true);
@@ -732,7 +746,6 @@ CONF;
                 }
                 $TableModel->updatePrepared(true, $row, ['id' => $selectedRow['id']]);
             }
-        }
     }
 
     /**
@@ -1094,10 +1107,10 @@ CONF;
         $Log->addParam('result', 'done');
     }
 
-    private function consoleLog(string $string)
+    private function consoleLog(string $string, $level=0)
     {
         if ($this->outputConsole) {
-            $this->outputConsole->write($string, true);
+            $this->outputConsole->write(str_repeat(" ", $level).$string, true);
         }
     }
 }

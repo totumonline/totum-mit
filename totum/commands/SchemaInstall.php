@@ -56,6 +56,6 @@ class SchemaInstall extends Command
         $TotumInstall->install(function ($file) {
             return dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'moduls' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . $file;
         });
-        $output->write('done');
+        $output->write('done', true);
     }
 }

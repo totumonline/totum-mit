@@ -8,9 +8,9 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=7a43da6">
-    <script src="/js/main.js?v=3ff6d7b"></script>
+    <script src="/js/main.js?v=1843d91"></script>
 
-    <link rel="shortcut icon" type="image/png" href="../http/fls/6_favicon.png"/>
+    <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 
 
     <?php

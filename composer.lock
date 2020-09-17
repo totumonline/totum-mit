@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc19589d97bec6b3f32d86f4e1d4b2af",
+    "content-hash": "1bf7969bbda776de36e39596de6fca04",
     "packages": [
         {
             "name": "guzzlehttp/psr7",
@@ -3213,28 +3213,28 @@
         },
         {
             "name": "totumonline/totum-front",
-            "version": "dev-master",
+            "version": "dev-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/totumonline/totum-front.git",
-                "reference": "2f0c9353111421730a95aa338771c0d4b133b858"
+                "reference": "42b1a88190b9170fb3e7913b95744b63f8fd99a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/totumonline/totum-front/zipball/2f0c9353111421730a95aa338771c0d4b133b858",
-                "reference": "2f0c9353111421730a95aa338771c0d4b133b858",
+                "url": "https://api.github.com/repos/totumonline/totum-front/zipball/42b1a88190b9170fb3e7913b95744b63f8fd99a9",
+                "reference": "42b1a88190b9170fb3e7913b95744b63f8fd99a9",
                 "shasum": ""
             },
-            "type": "dev-project",
+            "type": "package",
             "license": [
                 "MIT"
             ],
             "description": "totum frontend",
             "support": {
-                "source": "https://github.com/totumonline/totum-front/tree/master",
+                "source": "https://github.com/totumonline/totum-front/tree/dev",
                 "issues": "https://github.com/totumonline/totum-front/issues"
             },
-            "time": "2020-09-16T10:07:14+00:00"
+            "time": "2020-09-16T13:25:04+00:00"
         },
         {
             "name": "webmozart/assert",

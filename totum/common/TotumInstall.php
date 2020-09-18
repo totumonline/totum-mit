@@ -77,6 +77,28 @@ class TotumInstall
         ];
         $anonim_solt = random_int(1000, 9999999);
         $dbExport = var_export($db, true);
+
+
+        if ($post['multy'] === '1') {
+            $multyPhp = '';
+        } else {
+            $multyPhp = <<<CONF
+    function getSchema()
+    {
+        return static::db["schema"];
+    }
+    public function getFullHostName()
+    {
+        return array_key_first(static::getSchemas());
+    }
+    public function getFilesDir()
+    {
+        return \$this->baseDir.'http/fls/';
+    }
+CONF;
+        }
+
+
         $this->confClassCode = <<<CONF
 
 namespace totum\config;
@@ -92,7 +114,6 @@ class Conf extends ConfParent{
     const adminEmail="{$post['admin_email']}";
     
     const ANONYM_ALIAS="An";
-    public \$anonimCryptSolt="{$anonim_solt}";
     
     const backup_loginparol = '';
     const backup_server = 'https://webdav.yandex.ru/';
@@ -100,10 +121,8 @@ class Conf extends ConfParent{
     function getDefaultSender(){
         return "no-reply@$host";
     }
-    function getSchema()
-    {
-        return static::db["schema"];
-    }
+    $multyPhp
+    
     static function getSchemas()
     {
         return ["$host"=>static::db["schema"]];

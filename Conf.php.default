@@ -23,7 +23,6 @@ class Conf extends ConfParent{
     const adminEmail="";
 
     const ANONYM_ALIAS="An";
-    public $anonimCryptSolt="111111111";
 
     const backup_loginparol = '';
     const backup_server = 'https://webdav.yandex.ru/';

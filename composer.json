@@ -29,7 +29,6 @@
     "phpunit/phpunit": "^5.7",
     "friendsofphp/php-cs-fixer": "^2.16",
     "totumonline/totum-front": "dev-dev"
-
   },
   "autoload": {
     "psr-4": {
@@ -43,13 +42,20 @@
     }
   },
   "bin": [
-    "bin/schema_decode"
+    "bin/schema"
   ],
   "license": "MIT",
   "minimum-stability": "dev",
+  "extra": {
+    "compile": [
+        "echo 'test'>> test2222.txt"
+    ]
+  },
   "scripts": {
-    "post-package-update": [
-      "cp http/css/* ../../../http/css/"
+    "update-front": [
+      "cp -R vendor/totumonline/totum-front/http/css http",
+      "cp -R vendor/totumonline/totum-front/http/js http",
+      "cp -R vendor/totumonline/totum-front/http/fonts http"
     ],
     "dev-run": "php -S localhost:8080 -t http/"
   }

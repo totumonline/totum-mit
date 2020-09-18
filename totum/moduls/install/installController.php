@@ -24,17 +24,16 @@ class installController extends interfaceController
     {
         $post = $serverRequest->getParsedBody();
         set_time_limit(120);
-
+        $done=false;
         if (!empty($post)) {
-
             try {
-
-                $post['schema_exists']=$post['schema_exists']==='1';
+                $post['schema_exists'] = $post['schema_exists'] === '1';
 
                 $TotumInstall = new TotumInstall($post, $post['user_login']);
                 $TotumInstall->install(function ($file) {
                     return dirname(__FILE__) . DIRECTORY_SEPARATOR . $file;
                 });
+                $done=true;
             } catch (\Exception $exception) {
                 $this->__addAnswerVar('error', $exception->getMessage() . "\n\n" . $exception->getTraceAsString());
                 if (!empty($Sql)) {
@@ -42,7 +41,7 @@ class installController extends interfaceController
                 }
             }
         }
-        if (file_exists('../../Conf.php')) {
+        if ($done) {
             static::$contentTemplate = dirname(__FILE__) . DIRECTORY_SEPARATOR . '__done.php';
         } else {
             static::$contentTemplate = dirname(__FILE__) . DIRECTORY_SEPARATOR . '__form.php';

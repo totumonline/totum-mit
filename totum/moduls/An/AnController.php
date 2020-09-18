@@ -191,7 +191,7 @@ class AnController extends interfaceController
                             }
                             if (!empty($d = $this->Request->getQueryParams()['d']) && ($d = Crypt::getDeCrypted(
                                 $d,
-                                $this->Config->anonimCryptSolt
+                                $this->Config->getCryptSolt()
                             )) && ($d = json_decode($d, true))) {
                                 if (!empty($d['d'])) {
                                     $add_tbl_data["tbl"] = $d['d'];

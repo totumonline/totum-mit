@@ -29,7 +29,6 @@ abstract class ConfParent
 
     public static $MaxFileSizeMb = 10;
     public static $timeLimit = 30;
-    public $anonimCryptSolt = "vfgr4ff";
 
 
     /* Переменные работы конфига */
@@ -98,7 +97,7 @@ abstract class ConfParent
 
     public function getTemplatesDir()
     {
-        return  $this->baseDir. 'totum/templates';
+        return dirname(__FILE__). '/../../templates';
     }
 
     public function getTmpDir()
@@ -120,7 +119,7 @@ abstract class ConfParent
 
     public function getFullHostName()
     {
-        return array_key_first(static::getSchemas());
+        return $this->hostName;
     }
 
     protected function getHostForDir($host)
@@ -131,7 +130,10 @@ abstract class ConfParent
             $host
         );
     }
-
+    public function getCryptSolt()
+    {
+        return $this->getSettings('crypt_solt');
+    }
     public function getFilesDir()
     {
         $dir = $this->baseDir.'http/fls/' . ($this->getHostForDir($this->getFullHostName())) . '/';

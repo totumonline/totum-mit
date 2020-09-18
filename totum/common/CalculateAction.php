@@ -675,7 +675,7 @@ class CalculateAction extends Calculate
         $t = $tableRow['id'];
         if ($d) {
             $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->anonimCryptSolt));
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()));
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
     }

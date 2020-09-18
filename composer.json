@@ -48,6 +48,9 @@
   "license": "MIT",
   "minimum-stability": "dev",
   "scripts": {
+    "post-package-update": [
+      "cp http/css/* ../../../http/css/"
+    ],
     "dev-run": "php -S localhost:8080 -t http/"
   }
 }

@@ -22,13 +22,13 @@
     Для работы с системой необходимо включить JavaScript в настройках броузера
 </noscript>
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
-<div class="page_content">
+
     <?php
     if (!empty($error)) {
         echo '<div class="panel panel-danger" id="error"><div class="panel-body">' . $error . '</div></div>';
     } ?>
     <?php
     include static::$contentTemplate; ?>
-</div>
+
 </body>
 </html>

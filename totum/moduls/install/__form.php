@@ -1,4 +1,4 @@
-<style>
+<div class="page_content"><style>
     h3{
         padding-top: 20px;
     }
@@ -94,4 +94,4 @@
             $('input[name="psql').val('');
         }
     })
-</script>
+</script></div>

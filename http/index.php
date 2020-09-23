@@ -17,7 +17,10 @@ if (!class_exists(Conf::class)) {
     $Config = null;
     list($module, $lastPath) = ['install', ''];
 } else {
-    $Config = new Conf("dev", true);
+    $Config = new Conf();
+    if (is_callable([$Config, 'setHostSchema'])) {
+        $Config->setHostSchema($_SERVER['HTTP_HOST']);
+    }
     list($module, $lastPath) = $Config->getActivationData($_SERVER['REQUEST_URI']);
 }
 

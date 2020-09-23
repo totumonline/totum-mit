@@ -72,29 +72,18 @@ class TotumInstall
             'password' => $post['db_user_password'],
             'charset' => 'UTF8',
             'pg_dump' => $post['pg_dump'],
-            'psql' => $post['psql'],
-            'schema' => $post['db_schema'],
+            'psql' => $post['psql']
         ];
-        $anonim_solt = random_int(1000, 9999999);
         $dbExport = var_export($db, true);
 
 
         if ($post['multy'] === '1') {
-            $multyPhp = '';
+            $multyPhp = ' use MultiTrait;';
         } else {
             $multyPhp = <<<CONF
-    function getSchema()
-    {
-        return static::db["schema"];
-    }
-    public function getFullHostName()
-    {
-        return array_key_first(static::getSchemas());
-    }
-    public function getFilesDir()
-    {
-        return \$this->baseDir.'http/fls/';
-    }
+
+    protected \$hostName="$host";
+    protected \$schemaName="{$post['db_schema']}";
 CONF;
         }
 
@@ -105,8 +94,11 @@ namespace totum\config;
 
 use totum\common\configs\WithPhpMailerTrait;
 use totum\common\configs\ConfParent;
+use totum\common\configs\MultiTrait;
+
 class Conf extends ConfParent{
     use WithPhpMailerTrait;
+    $multyPhp
     
     const db=$dbExport;
     const timeLimit = 10;
@@ -115,102 +107,29 @@ class Conf extends ConfParent{
     
     const ANONYM_ALIAS="An";
     
-    const backup_loginparol = '';
-    const backup_server = 'https://webdav.yandex.ru/';
-    
     function getDefaultSender(){
         return "no-reply@$host";
     }
-    $multyPhp
-    
+    /***getSchemas***/
     static function getSchemas()
     {
-        return ["$host"=>static::db["schema"]];
+        return ["$host"=>"{$post['db_schema']}"];
     }
+    /***getSchemasEnd***/
 }
 CONF;
 
         eval($this->confClassCode);
-        return new Conf("dev", false);
+        $Conf = new Conf("dev", false);
+        if ($multyPhp) {
+            $Conf->setHostSchema($host);
+        }
+        return $Conf;
     }
 
     public function install($getFilePath)
     {
-        $post = $this->installSettings;
-        $Sql = $this->Sql;
-        $Sql->transactionStart();
-
-        $this->consoleLog('Check/create schema');
-        $this->checkSchemaExists($post['schema_exists']);
-
-
-        $this->consoleLog('Upload start sql');
-        $this->applySql($getFilePath('start.sql'));
-
-
-        $data = static::getDataFromFile($getFilePath('start.json.gz'));
-
-        $this->consoleLog('Install base tables');
-        $baseTablesIds = $this->installBaseTables($data);
-
-
-        $categories = $data['categories'];
-        foreach ($categories as &$category) {
-            $category['out_id'] = '';
-        }
-        unset($category);
-
-        $roles = $data['roles'];
-        foreach ($roles as $k => &$role) {
-            if ($role['id'] == 1) {
-                $role['favorite'] = [];
-                $this->consoleLog('Add role Creator');
-                $this->getTotum()->getTable('roles')->reCalculateFromOvers(['add' => [$role]]);
-                unset($roles[$k]);
-                continue;
-            }
-            $role['out_id'] = '';
-        }
-
-
-        $tree = $data['tree'];
-        foreach ($tree as &$branch) {
-            $branch['out_id'] = '';
-        }
-        unset($branch);
-
-        unset($data['tables_settings']['settings']);
-        unset($data['fields_settings']);
-
-        $this->consoleLog('Install other tables from schema file');
-        list($schemaRows, $funcRoles, $funcTree, $funcCats) = $this->updateSchema(
-            $data,
-            $roles,
-            $categories,
-            $tree
-        );
-
-        $this->consoleLog('Create views');
-        $this->applySql($getFilePath('start_views.sql'));
-
-        $this->consoleLog('Update base tables tree and category');
-        $this->updateSysTablesAfterInstall($funcTree, $funcCats);
-
-
-        $this->consoleLog('Create default users');
-        $this->insertUsersAndAuthAdmin($post);
-
-        $this->consoleLog('Load data to tables and exec codes from schema');
-        $this->updateDataExecCodes($schemaRows, $funcCats('all'), $funcRoles('all'), $funcTree('all'));
-
-
-        /*
-         * ord для дерева!
-         *
-       */
-
-        $this->consoleLog('Commit database transaction');
-        $Sql->transactionCommit();
+        $this->createSchema($this->installSettings, $getFilePath);
         $this->consoleLog('Save config file');
         $this->saveFileConfig();
     }
@@ -309,6 +228,82 @@ CONF;
             Auth::webInterfaceSessionStart($this->Config);
             Auth::webInterfaceSetAuth($AdminId);
         }
+    }
+
+    public function createSchema($post, $getFilePath)
+    {
+        $Sql = $this->Sql;
+        $Sql->transactionStart();
+
+        $this->consoleLog('Check/create schema');
+        $this->checkSchemaExists($post['schema_exists']);
+
+        $this->consoleLog('Upload start sql');
+        $this->applySql($getFilePath('start.sql'));
+
+        $data = static::getDataFromFile($getFilePath('start.json.gz'));
+
+        $this->consoleLog('Install base tables');
+        $baseTablesIds = $this->installBaseTables($data);
+
+
+        $categories = $data['categories'];
+        foreach ($categories as &$category) {
+            $category['out_id'] = '';
+        }
+        unset($category);
+
+        $roles = $data['roles'];
+        foreach ($roles as $k => &$role) {
+            if ($role['id'] == 1) {
+                $role['favorite'] = [];
+                $this->consoleLog('Add role Creator');
+                $this->getTotum()->getTable('roles')->reCalculateFromOvers(['add' => [$role]]);
+                unset($roles[$k]);
+                continue;
+            }
+            $role['out_id'] = '';
+        }
+
+
+        $tree = $data['tree'];
+        foreach ($tree as &$branch) {
+            $branch['out_id'] = '';
+        }
+        unset($branch);
+
+        unset($data['tables_settings']['settings']);
+        unset($data['fields_settings']);
+
+        $this->consoleLog('Install other tables from schema file');
+        list($schemaRows, $funcRoles, $funcTree, $funcCats) = $this->updateSchema(
+            $data,
+            $roles,
+            $categories,
+            $tree
+        );
+
+        $this->consoleLog('Create views');
+        $this->applySql($getFilePath('start_views.sql'));
+
+        $this->consoleLog('Update base tables tree and category');
+        $this->updateSysTablesAfterInstall($funcTree, $funcCats);
+
+
+        $this->consoleLog('Create default users');
+        $this->insertUsersAndAuthAdmin($post);
+
+        $this->consoleLog('Load data to tables and exec codes from schema');
+        $this->updateDataExecCodes($schemaRows, $funcCats('all'), $funcRoles('all'), $funcTree('all'));
+
+
+        /*
+         * ord для дерева!
+         *
+       */
+
+        $this->consoleLog('Commit database transaction');
+        $Sql->transactionCommit();
     }
 
     /**

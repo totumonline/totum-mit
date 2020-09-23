@@ -8,6 +8,7 @@
 
 namespace totum\common\configs;
 
+use totum\common\CalculateAction;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\logs\Log;
@@ -25,7 +26,7 @@ abstract class ConfParent
     public static $CalcLogs;
     protected $tmpDirPath = 'totumTmpfiles/tmpLoadedFiles/';
     protected $tmpTableChangesDirPath = 'totumTmpfiles/tmpTableChangesDirPath/';
-    protected $logsDir='myLogs/';
+    protected $logsDir = 'myLogs/';
 
     public static $MaxFileSizeMb = 10;
     public static $timeLimit = 30;
@@ -54,7 +55,7 @@ abstract class ConfParent
     /**
      * @var string
      */
-    private $schemaName;
+    protected $schemaName;
 
 
     /**
@@ -69,7 +70,7 @@ abstract class ConfParent
     protected $baseDir;
 
 
-    public function __construct($env = self::ENV_LEVELS["production"], $setIniAndHandlers = true)
+    public function __construct($env = self::ENV_LEVELS["production"])
     {
         $this->mktimeStart = microtime(true);
         set_time_limit(static::$timeLimit);
@@ -77,27 +78,49 @@ abstract class ConfParent
             $env == self::ENV_LEVELS["production"] ? ['critical', 'emergency']
                 : ['error', 'debug', 'alert', 'critical', 'emergency', 'info', 'notice', 'warning'];
 
-
-        $this->baseDir = dirname((new \ReflectionClass(get_called_class()))->getFileName()).DIRECTORY_SEPARATOR;
-        $this->tmpDirPath = $this->baseDir.$this->tmpDirPath;
-        $this->tmpTableChangesDirPath = $this->baseDir.$this->tmpTableChangesDirPath;
-        $this->logsDir = $this->baseDir.$this->logsDir;
+        $this->baseDir = dirname((new \ReflectionClass(get_called_class()))->getFileName()) . DIRECTORY_SEPARATOR;
+        $this->tmpDirPath = $this->baseDir . $this->tmpDirPath;
+        $this->tmpTableChangesDirPath = $this->baseDir . $this->tmpTableChangesDirPath;
+        $this->logsDir = $this->baseDir . $this->logsDir;
         $this->env = $env;
+    }
 
-        if ($setIniAndHandlers) {
-            $this->setLogIni();
-            $this->registerHandlers();
-        }
+    public function setLogIniAndHandlers()
+    {
+        $this->setLogIni();
+        $this->registerHandlers();
     }
 
     public function getClearConf()
     {
-        return new static($this->env, false);
+        return new static($this->env);
+    }
+
+    public function cronErrorActions($cronRow, $User, $exception)
+    {
+        try {
+            $Totum = new Totum($this, $User);
+            $Table = $Totum->getTable('settings');
+            $Cacl = new CalculateAction('=: insert(table: "notifications"; field: \'user_id\'=1; field: \'active\'=true; field: \'title\'="Ошибка крона"; field: \'code\'="admin_text"; field: "vars"=$#vars)');
+            $Cacl->execAction('kod',
+                $cronRow,
+                $cronRow,
+                $Table->getTbl(),
+                $Table->getTbl(),
+                $Table,
+                ['vars' => ['text' => 'Ошибка крона <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]);
+        } catch (\Exception $e) {
+        }
+
+        $this->sendMail(static::adminEmail,
+            'Ошибка крона ' . $this->getSchema() . ' ' . ($cronRow['descr'] ?? $cronRow['id']),
+            $exception->getMessage());
+
     }
 
     public function getTemplatesDir()
     {
-        return dirname(__FILE__). '/../../templates';
+        return dirname(__FILE__) . '/../../templates';
     }
 
     public function getTmpDir()
@@ -116,32 +139,30 @@ abstract class ConfParent
         return $this->tmpTableChangesDirPath;
     }
 
+    public function getSchema()
+    {
+        if (empty($this->schemaName)) {
+            errorException::criticalException('Схема не подключена', $this);
+        }
+        return $this->schemaName;
+    }
 
     public function getFullHostName()
     {
         return $this->hostName;
     }
 
-    protected function getHostForDir($host)
+    public function getFilesDir()
     {
-        return preg_replace(
-            '`^(www.)?(.+)$`',
-            '$2',
-            $host
-        );
+        return $this->baseDir . 'http/fls/';
     }
+
+
     public function getCryptSolt()
     {
         return $this->getSettings('crypt_solt');
     }
-    public function getFilesDir()
-    {
-        $dir = $this->baseDir.'http/fls/' . ($this->getHostForDir($this->getFullHostName())) . '/';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        return $dir;
-    }
+
 
     /********************* MAIL SECTION **************/
 
@@ -354,25 +375,6 @@ abstract class ConfParent
     }
 
     /********************* DATABASE SECTION **************/
-
-    public function setHostSchema($hostName = null, $schemaName = null)
-    {
-        if ($hostName) {
-            $this->hostName = $hostName;
-            $this->schemaName = $schemaName ?? $this->getSchemas()[$hostName];
-        } elseif ($schemaName) {
-            $this->schemaName = $schemaName;
-            $this->hostName = $hostName ?? array_flip($this->getSchemas())[$schemaName];
-        }
-    }
-
-    public function getSchema()
-    {
-        if (empty($this->schemaName)) {
-            errorException::criticalException('Схема не подключена', $this);
-        }
-        return $this->schemaName;
-    }
 
     abstract public static function getSchemas();
 

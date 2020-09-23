@@ -1,7 +1,6 @@
 <?php
 
 use GuzzleHttp\Psr7\ServerRequest;
-use totum\common\controllers\Controller;
 use totum\config\Conf;
 
 $GLOBALS['mktimeStart'] = microtime(true);

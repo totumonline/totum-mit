@@ -60,11 +60,14 @@ class CalculateAction extends Calculate
         if ($params['password'] !== $this->Table->getUser()->getVar('pass')) {
             throw new errorException('Пароль не подходит');
         }
+
+        $pathDbPsql = $this->Table->getTotum()->getConfig()->getSshPostgreConnect('pg_dump');
+
         $tmpFilename = tempnam(
             $this->Table->getTotum()->getConfig()->getTmpDir(),
             $this->Table->getTotum()->getConfig()->getSchema() . '.' . $this->Table->getUser()->getId() . '.'
         );
-        $ConfDb = $this->Table->getTotum()->getConfig()->getDb();
+
         $schema = $this->Table->getTotum()->getConfig()->getSchema();
         $exclude = "--exclude-table-data='_tmp_tables'";
         if (empty($params['withlog'])) {
@@ -74,12 +77,12 @@ class CalculateAction extends Calculate
             $exclude .= " --exclude-table-data='_bfl'";
         }
         exec(
-            $ConfDb['pg_dump'] . " " .
-            "--dbname=postgresql://{$ConfDb['username']}:{$ConfDb['password']}@{$ConfDb['host']}/{$ConfDb['dbname']}" .
-            " -O --schema '{$schema}' {$exclude} | grep -v '^--' | gzip > \"{$tmpFilename}\"",
+            "$pathDbPsql -O --schema '{$schema}' {$exclude} | grep -v '^--' | gzip > \"{$tmpFilename}\"",
             $data
         );
-        return file_get_contents($tmpFilename);
+        $f = file_get_contents($tmpFilename);
+        unlink($tmpFilename);
+        return $f;
     }
 
     protected function funcSchemaGzStringUpload($params)
@@ -95,7 +98,10 @@ class CalculateAction extends Calculate
         if (empty($params['gzstring'])) {
             throw new errorException('Строка схемы пуста');
         }
-        $pathDbPsql = $this->Table->getTotum()->getConfig()->getSshPostgreConnect();
+        $pathDbPsql = $this->Table->getTotum()->getConfig()->getSshPostgreConnect('psql');
+
+
+
         $tmpFileName = tempnam(
             $this->Table->getTotum()->getConfig()->getTmpDir(),
             $this->Table->getTotum()->getConfig()->getSchema() . '.' . $this->Table->getTotum()->getUser()->getId() . '.'

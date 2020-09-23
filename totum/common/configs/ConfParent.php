@@ -378,13 +378,13 @@ abstract class ConfParent
 
     abstract public static function getSchemas();
 
-    public function getSshPostgreConnect()
+    public function getSshPostgreConnect($type)
     {
-        if (!key_exists('psql', $this->getDb())) {
+        if (!key_exists($type, $this->getDb())) {
 
-            errorException::criticalException('Не задан путь к ssh скрипту postgres', $this);
+            errorException::criticalException('Не задан путь к ssh скрипту '.$type, $this);
         }
-        $pathPsql = $this->getDb()['psql'];
+        $pathPsql = $this->getDb()[$type];
         $dbConnect = sprintf(
             "postgresql://%s:%s@%s/%s",
             $this->getDb()['username'],

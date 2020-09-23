@@ -87,14 +87,6 @@ class TableController extends interfaceController
             }
             $Actions = $this->getTableActions($request, $method);
 
-            /*TODO remove test
-            if ($this->totumTries < 1) {
-                $this->Totum->getConfig()->getSql(true)->exec('update tables set updated=\'"' . rand(
-                        0,
-                        111
-                    ) . '"\' where id='.$this->Table->getTableRow()['id']);
-            }*/
-
             /** @var string $method */
             $result = $Actions->$method();
 

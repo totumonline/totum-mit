@@ -579,6 +579,9 @@ class Calculate
             $this->error = $e->getMessage();
 
             $table->calcLog($Log, 'error', $this->error);
+            if (get_called_class()!==Calculate::class) {
+                throw $e;
+            }
         } catch (\Exception $e) {
             $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
             if (is_a($e, SqlException::class)) {

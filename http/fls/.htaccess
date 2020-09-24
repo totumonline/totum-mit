@@ -8,6 +8,7 @@ RewriteEngine On
 RewriteCond %{HTTP_HOST} ^(www\.)?(.+)$ [NC]
 RewriteCond %{QUERY_STRING} !(nr=1)
 RewriteCond %{REQUEST_FILENAME} !(no-img.jpg)
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^([^/]+)$ /fls/%2/$1
 
 RewriteCond %{REQUEST_FILENAME} !-f

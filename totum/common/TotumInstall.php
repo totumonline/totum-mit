@@ -121,7 +121,7 @@ CONF;
 
         eval($this->confClassCode);
         $Conf = new Conf("dev", false);
-        if ($multyPhp) {
+        if ($post['multy']==='1') {
             $Conf->setHostSchema($host);
         }
         return $Conf;

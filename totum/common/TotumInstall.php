@@ -973,6 +973,7 @@ CONF;
 
 
             if ($schemaRow['code']) {
+                $this->consoleLog('exec code: '.substr($schemaRow['code'], 0, strpos($schemaRow['code'], "\n")).'...', 3);
                 $Log = $TablesTable->calcLog(['name' => "CODE FROM SCHEMA", 'code' => $schemaRow['code']]);
                 $action = new CalculateAction($schemaRow['code']);
                 $r = $action->execAction(
@@ -989,7 +990,7 @@ CONF;
         }
 
 
-        $this->consoleLog('update @ttm__updates.h_matches', 2);
+        $this->consoleLog('update @ttm__updates.h_matches/'.$matchName, 2);
         $ttmUpdates = $this->Totum->getTable('ttm__updates');
         if (!key_exists('h_matches', $ttmUpdates->getFields())) {
             $matchesField = ['category' => 'param', 'table_id' => $ttmUpdates->getTableRow()['id'], 'name' => 'h_matches', 'data_src' => ['type' => ['isOn' => true, 'Val' => 'listRow']]];

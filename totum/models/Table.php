@@ -150,6 +150,10 @@ class Table extends Model
                     throw new errorException('Нельзя удалять системные таблицы');
                 }
 
+                $this->Totum->getNamedModel(TablesFields::class)->delete(['table_id' => $tableRow['id']]);
+                $this->Totum->getConfig()->clearRowsCache();
+
+
                 switch ($tableType) {
                     case 'cycles':
                         $this->Totum->getTable($tableRow)->deleteTable();
@@ -168,8 +172,6 @@ class Table extends Model
                         break;
                 }
 
-                $this->Totum->getNamedModel(TablesFields::class)->delete(['table_id' => $tableRow['id']]);
-                $this->Totum->getConfig()->clearRowsCache();
                 parent::delete(['id' => $tableRow['id']]);
             }
         }

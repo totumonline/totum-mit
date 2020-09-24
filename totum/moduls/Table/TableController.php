@@ -58,6 +58,8 @@ class TableController extends interfaceController
 
     public function actionMain(ServerRequestInterface $request)
     {
+        $tree = [];
+
         foreach (Table::init($this->Config)->getAll(
             ['id' => $this->User->getFavoriteTables()],
             'id, top, title, type',
@@ -362,7 +364,7 @@ class TableController extends interfaceController
             }
         } catch (\Exception $e) {
             if (!$this->isAjax) {
-                static::$contentTemplate = $this->Config::getTemplatesDir() . '/__error.php';
+                static::$contentTemplate = $this->Config->getTemplatesDir() . '/__error.php';
             }
             $message = $e->getMessage();
             if ($this->User && $this->User->isCreator() && key_exists(
@@ -470,7 +472,7 @@ class TableController extends interfaceController
             if (($types = $this->Totum->getCalculateLog()->getTypes())) {
                 $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
                 $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
-                 $result['treeLogs'] = $this->CalculateLog->getLodTree();
+                $result['treeLogs'] = $this->CalculateLog->getLodTree();
                 if (in_array('flds', $types)) {
                     $result['FieldLOGS'] = $this->CalculateLog->getFieldLogs();
                 }
@@ -512,7 +514,8 @@ class TableController extends interfaceController
         };
 
 
-        if (!empty($request->getParsedBody()['method']) && in_array($request->getParsedBody()['method'], ['getValue'])) {
+        if (!empty($request->getParsedBody()['method']) && in_array($request->getParsedBody()['method'],
+                ['getValue'])) {
             if (!empty($request->getParsedBody()['table_id'])) {
                 $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;

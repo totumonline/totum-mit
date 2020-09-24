@@ -93,7 +93,9 @@ class Auth
 
     public static function webInterfaceSetAuth($userId)
     {
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         $_SESSION['userId'] = $userId;
     }
 

@@ -26,14 +26,14 @@ class ListRow extends Field
             case 'web':
                 if ($this->data['category'] != "filter") {
                     $string = json_encode($valArray['v'], JSON_UNESCAPED_UNICODE);
-                    if ($this->table->getTableRow()['type'] !== 'tmp' && ($isBig = mb_strlen($string) > $this->data['viewTextMaxLength'])) {
-                        $valArray['v'] = mb_substr($string, 0, $this->data['viewTextMaxLength']) . '...';
+                    if ($this->table->getTableRow()['type'] !== 'tmp' && ($isBig = mb_strlen($string) > ($this->data['viewTextMaxLength']?? 500))) {
+                        $valArray['v'] = mb_substr($string, 0, $this->data['viewTextMaxLength'] ?? 500) . '...';
                     }
                 }
                 break;
             case 'print':
             case 'csv':
-            $valArray['v'] = base64_encode(json_encode($valArray['v'], JSON_UNESCAPED_UNICODE));
+                $valArray['v'] = base64_encode(json_encode($valArray['v'], JSON_UNESCAPED_UNICODE));
                 break;
             case 'xml':
                 $valArray['v'] = json_encode($valArray['v'], JSON_UNESCAPED_UNICODE);
@@ -41,6 +41,7 @@ class ListRow extends Field
         }
 
     }
+
     function getValueFromCsv($val)
     {
         return $val = json_decode(base64_decode($val), true);

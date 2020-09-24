@@ -180,13 +180,15 @@ class File extends Field
         }
         if (!$isCheck) {
             $deletedFiles = [];
-            foreach ($oldVal as $fOld) {
-                foreach ($modifyVal as $file) {
-                    if ($fOld['file'] === ($file['file'] ?? null)) {
-                        continue 2;
+            if (!empty($oldVal) && is_array($oldVal)) {
+                foreach ($oldVal as $fOld) {
+                    foreach ($modifyVal as $file) {
+                        if ($fOld['file'] === ($file['file'] ?? null)) {
+                            continue 2;
+                        }
                     }
+                    $deletedFiles[] = $fOld['file'];
                 }
-                $deletedFiles[] = $fOld['file'];
             }
 
             if ($deletedFiles) {

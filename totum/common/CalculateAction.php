@@ -101,7 +101,6 @@ class CalculateAction extends Calculate
         $pathDbPsql = $this->Table->getTotum()->getConfig()->getSshPostgreConnect('psql');
 
 
-
         $tmpFileName = tempnam(
             $this->Table->getTotum()->getConfig()->getTmpDir(),
             $this->Table->getTotum()->getConfig()->getSchema() . '.' . $this->Table->getTotum()->getUser()->getId() . '.'
@@ -171,13 +170,10 @@ class CalculateAction extends Calculate
             $this->Table->getTotum()->getUser(),
             null,
             $this->Table->getCalculateLog());
-        $TotumInstall->updateSchema($params['schema'],
-            $params['roles'] ?? [],
-            $params['categories'] ?? [],
-            $params['tree'] ?? [],
-            true);
 
+        $params['schema'] = TotumInstall::applyMatches($params['schema'], $params);
 
+        $TotumInstall->updateSchema($params['schema'], true);
     }
 
     protected function funcLinkToButtons($params)

@@ -10,6 +10,7 @@ use totum\commands\SchemaCrons;
 use totum\commands\SchemaDecode;
 use totum\commands\Install;
 use totum\commands\SchemasCrons;
+use totum\commands\SchemaUpdate;
 use totum\common\configs\MultiTrait;
 use totum\config\Conf;
 
@@ -27,6 +28,7 @@ if (class_exists(Conf::class)) {
 
     $app->add(new CleanTmps());
     $app->add(new CleanSchemaTmpTables());
+    $app->add(new SchemaUpdate());
 
     if(key_exists(MultiTrait::class, class_uses(Conf::class, false))){
         $app->add(new SchemasCrons());

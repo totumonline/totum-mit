@@ -247,40 +247,24 @@ CONF;
         $baseTablesIds = $this->installBaseTables($data);
 
 
-        $categories = $data['categories'];
-        foreach ($categories as &$category) {
-            $category['out_id'] = '';
-        }
-        unset($category);
-
-        $roles = $data['roles'];
-        foreach ($roles as $k => &$role) {
+        foreach ($data['roles'] as $k => &$role) {
             if ($role['id'] == 1) {
                 $role['favorite'] = [];
                 $this->consoleLog('Add role Creator');
                 $this->getTotum()->getTable('roles')->reCalculateFromOvers(['add' => [$role]]);
-                unset($roles[$k]);
-                continue;
+                unset($data['roles'][$k]);
+                break;
             }
-            $role['out_id'] = '';
         }
-
-
-        $tree = $data['tree'];
-        foreach ($tree as &$branch) {
-            $branch['out_id'] = '';
-        }
-        unset($branch);
+        $data = static::applyMatches($data, []);
 
         unset($data['tables_settings']['settings']);
         unset($data['fields_settings']);
 
         $this->consoleLog('Install other tables from schema file');
+
         list($schemaRows, $funcRoles, $funcTree, $funcCats) = $this->updateSchema(
-            $data,
-            $roles,
-            $categories,
-            $tree
+            $data
         );
 
         $this->consoleLog('Create views');
@@ -450,6 +434,19 @@ CONF;
         $schemaRow['tableId'] = $tableId;
     }
 
+    static public function applyMatches($schemaData, $matches)
+    {
+        foreach (['tree', 'categories', 'roles'] as $type) {
+            foreach ($schemaData[$type] as &$row) {
+                if (!key_exists('out_id', $row)) {
+                    $row['out_id'] = $matches[$type][$row['id']] ?? '';
+                }
+            }
+            unset($row);
+        }
+        return $schemaData;
+    }
+
     /**
      * @param array $schemaData
      * @param array $rolesIn
@@ -458,12 +455,12 @@ CONF;
      * @return mixed
      * @throws errorException
      */
-    public function updateSchema(array $schemaData, array $rolesIn, array $categoriesIn, array $treeIn, $withDataAndCodes = false)
+    public function updateSchema(array $schemaData, $withDataAndCodes = false, $matchesName = 'totum')
     {
-        $funcCategories = $this->getFuncCategories($categoriesIn);
+        $funcCategories = $this->getFuncCategories($schemaData['categories']);
 
-        $funcRoles = $this->getFuncRoles($rolesIn);
-        $getTreeId = $this->getFuncTree($treeIn);
+        $funcRoles = $this->getFuncRoles($schemaData['roles']);
+        $getTreeId = $this->getFuncTree($schemaData['tree'], $funcRoles);
 
         if (!empty($schemaFieldSettings = $schemaData['fields_settings'] ?? [])) {
             $this->consoleLog('Set fields of table tables_fields', 2);
@@ -549,9 +546,17 @@ CONF;
         $this->consoleLog('update roles favorites', 2);
         $this->updateRolesFavorites($schemaData['roles'], $funcRoles);
 
+        $this->consoleLog('Add tree links and anchors', 2);
+        $getTreeId('link and anchors');
+
+
         if ($withDataAndCodes) {
             $this->consoleLog('Load data to tables and exec codes from schema', 2);
-            $this->updateDataExecCodes($schemaRows, $funcCategories('all'), $funcRoles('all'), $getTreeId('all'));
+            $this->updateDataExecCodes($schemaRows,
+                $funcCategories('all'),
+                $funcRoles('all'),
+                $getTreeId('all'),
+                $matchesName);
         }
         $this->consoleLog('Set default tables and sort for new tree branches', 2);
         $getTreeId('set default tables and sort');
@@ -601,6 +606,7 @@ CONF;
     protected function caclsFilteredTables($fulterFunc, $calcTableFields, &$schemaRows, $funcRoles, $getTreeId, $funcCategories)
     {
         $tablesChanges = [];
+
         foreach ($schemaRows as &$schemaRow) {
             if ($fulterFunc($schemaRow)) {
                 $this->calcTableSettings(
@@ -637,11 +643,14 @@ CONF;
         /*Поля таблиц*/
         $fieldsAdd = [];
         $fieldsModify = [];
+        $n = 0;
         foreach ($schemaRows as $schemaRow) {
             if ($fulterFunc($schemaRow)) {
                 $calcTableFields($fieldsAdd, $fieldsModify, $schemaRow);
+                $n++;
             }
         }
+        $this->consoleLog('Add and modify fields for ' . $n . ' tables ', 2);
         $this->Totum->getTable('tables_fields')->reCalculateFromOvers(['add' => $fieldsAdd, 'modify' => $fieldsModify]);
         $this->Totum->clearTables();
     }
@@ -769,9 +778,9 @@ CONF;
      * @param $schemaRows
      * @param array $categoriesMatches
      * @param array $rolesMatches
-     * @param string $treeMatches
+     * @param array $treeMatches
      */
-    public function updateDataExecCodes($schemaRows, array $categoriesMatches, $rolesMatches, $treeMatches)
+    public function updateDataExecCodes($schemaRows, array $categoriesMatches, array $rolesMatches, array $treeMatches, $matchName = 'totum')
     {
         $TablesTable = $this->Totum->getTable('tables');
         $TablesTable->addCalculateLogInstance($this->CalculateLog);
@@ -964,7 +973,6 @@ CONF;
 
 
             if ($schemaRow['code']) {
-                $GLOBALS['test'] = 1;
                 $Log = $TablesTable->calcLog(['name' => "CODE FROM SCHEMA", 'code' => $schemaRow['code']]);
                 $action = new CalculateAction($schemaRow['code']);
                 $r = $action->execAction(
@@ -979,12 +987,34 @@ CONF;
                 $TablesTable->calcLog($Log, 'result', $r);
             }
         }
+
+
+        $this->consoleLog('update @ttm__updates.h_matches', 2);
+        $ttmUpdates = $this->Totum->getTable('ttm__updates');
+        if (!key_exists('h_matches', $ttmUpdates->getFields())) {
+            $matchesField = ['category' => 'param', 'table_id' => $ttmUpdates->getTableRow()['id'], 'name' => 'h_matches', 'data_src' => ['type' => ['isOn' => true, 'Val' => 'listRow']]];
+            $this->Totum->getTable('tables_fields')->reCalculateFromOvers(['add' => [$matchesField]]);
+        }
+        $matches = $ttmUpdates->getTbl()['params']['h_matches']['v'] ?? [];
+        $matches[$matchName] = [
+            'tree' => $treeMatches,
+            'categories' => $categoriesMatches,
+            'roles' => $rolesMatches
+        ];
+        $ttmUpdates->reCalculateFromOvers(['modify' => ['params' => ['h_matches' => $matches]]]);
     }
 
     protected function getFuncCategories(array $categoriesIn)
     {
+        $categoriesMatches = [];
+        foreach ($categoriesIn as $row) {
+            if (!empty($row['out_id'])) {
+                $categoriesMatches[$row['id']] = $row['out_id'];
+            }
+        }
+
         return function ($cat) use ($categoriesIn, &$categoriesMatches, &$Categories) {
-            $categoriesMatches = $categoriesMatches ?? [];
+
             if (key_exists(
                 $cat,
                 $categoriesMatches
@@ -998,17 +1028,11 @@ CONF;
                     $id = $row['id'];
                     $row['out_id'] = $row['out_id'] ?? null;
 
-                    if ($row['out_id'] === "") {
-                        unset($row['id']);
-                        $Categories = $Categories ?? $this->Totum->getTable('table_categories');
+                    unset($row['id']);
+                    $Categories = $Categories ?? $this->Totum->getTable('table_categories');
 
-                        $Categories->reCalculateFromOvers(['add' => [$row]]);
-                        $outId = array_key_last($Categories->getChangeIds()['added']);
-                    } elseif (ctype_digit(strval($row['out_id']))) {
-                        $outId = $row['out_id'];
-                    } else {
-                        throw new errorException("Категория $id не сопоставлена");
-                    }
+                    $Categories->reCalculateFromOvers(['add' => [$row]]);
+                    $outId = array_key_last($Categories->getChangeIds()['added']);
                     $categoriesMatches[$id] = $outId;
                     return $categoriesMatches[$id];
                 }
@@ -1020,8 +1044,15 @@ CONF;
 
     protected function getFuncRoles(array $rolesIn)
     {
+        $rolesMatch = [1 => 1];
+        foreach ($rolesIn as $row) {
+            if (!empty($row['out_id'])) {
+                $rolesMatch[$row['id']] = $row['out_id'];
+            }
+        }
+
         return function ($inId) use ($rolesIn, &$rolesMatch) {
-            $rolesMatch = $rolesMatch ?? [1 => 1];
+
             if (key_exists($inId, $rolesMatch)) {
                 return $rolesMatch[$inId];
             } elseif ($inId === 'all') {
@@ -1031,19 +1062,12 @@ CONF;
             foreach ($rolesIn as $k => $row) {
                 if ((string)$row['id'] === (string)$inId) {
                     $id = $row['id'];
-                    if (($row['out_id'] = $row['out_id'] ?? null) === "") {
-                        unset($row['id']);
-                        unset($row['favorite']);
+                    unset($row['id']);
+                    unset($row['favorite']);
 
-                        $Roles = $this->Totum->getTable('roles');
-                        $Roles->reCalculateFromOvers(['add' => [$row]]);
-                        $outId = array_key_last($Roles->getChangeIds()['added']);
-                    } elseif (ctype_digit(strval($row['out_id']))) {
-                        $outId = $row['out_id'];
-                    } else {
-                        echo "<pre>" . json_encode($rolesIn, JSON_PRETTY_PRINT) . "</pre>";
-                        throw new errorException("Роль $id не сопоставлена");
-                    }
+                    $Roles = $this->Totum->getTable('roles');
+                    $Roles->reCalculateFromOvers(['add' => [$row]]);
+                    $outId = array_key_last($Roles->getChangeIds()['added']);
                     $rolesMatch[$id] = $outId;
                     return $rolesMatch[$id];
                 }
@@ -1053,17 +1077,31 @@ CONF;
         };
     }
 
-    protected function getFuncTree(array $treeIn)
+    protected function getFuncTree(array $treeIn, \Closure $funcRoles)
     {
         $defaultTables = [];
         $addedBranches = [];
+        $treeMatches = [];
 
-        return $getTreeId = function ($tree_node_id) use (&$addedBranches, $treeIn, &$treeMatches, &$getTreeId, &$Tree, &$defaultTables) {
-            $treeMatches = $treeMatches ?? [];
+        foreach ($treeIn as $row) {
+            if (!empty($row['out_id'])) {
+                $treeMatches[$row['id']] = $row['out_id'];
+            }
+        }
+
+        return $getTreeId = function ($tree_node_id) use ($funcRoles, &$addedBranches, $treeIn, &$treeMatches, &$getTreeId, &$Tree, &$defaultTables) {
+
             if (key_exists($tree_node_id, $treeMatches)) {
                 return $treeMatches[$tree_node_id];
             } elseif ($tree_node_id === 'all') {
                 return $treeMatches;
+            } elseif ($tree_node_id === 'link and anchors') {
+                foreach ($treeIn as $row) {
+                    if ($row['type']) {
+                        $getTreeId($row['id']);
+                    }
+                }
+                return;
             } elseif ($tree_node_id === 'set default tables and sort') {
                 if ($defaultTables || $addedBranches) {
                     $modify = [];
@@ -1100,33 +1138,32 @@ CONF;
             foreach ($treeIn as $k => $row) {
                 if ((string)$row['id'] === (string)$tree_node_id) {
                     $id = $row['id'];
-                    if (($row['out_id'] = $row['out_id'] ?? null) === "") {
-                        unset($row['id']);
-                        if ($row['parent_id']) {
-                            $row['parent_id'] = $getTreeId($row['parent_id']);
-                        }
-                        if ($row['default_table']) {
-                            $defaultTable = $row['default_table'];
-                            $row['default_table'] = null;
-                        }
-
-                        $Tree = $Tree ?? $this->Totum->getTable('tree');
-                        $Tree->reCalculateFromOvers(['add' => [$row]]);
-                        $outId = array_key_last($Tree->getChangeIds()['added']);
-                        if (isset($defaultTable)) {
-                            $defaultTables[$outId] = $defaultTable;
-                        }
-                        $addedBranches[$id] = $outId;
-                    } elseif (ctype_digit(strval($row['out_id']))) {
-                        $outId = $row['out_id'];
-                    } else {
-                        throw new errorException("Ветка $id не сопоставлена");
+                    unset($row['id']);
+                    if ($row['parent_id']) {
+                        $row['parent_id'] = $getTreeId($row['parent_id']);
                     }
+                    if (!empty($row['default_table'])) {
+                        $defaultTable = $row['default_table'];
+                        $row['default_table'] = null;
+                    }
+                    if (!empty($row['roles'])) {
+                        foreach ($row['roles'] as &$role) {
+                            $role = $funcRoles($role);
+                        }
+                        unset($role);
+                    }
+
+                    $Tree = $Tree ?? $this->Totum->getTable('tree');
+                    $Tree->reCalculateFromOvers(['add' => [$row]]);
+                    $outId = array_key_last($Tree->getChangeIds()['added']);
+                    if (isset($defaultTable)) {
+                        $defaultTables[$outId] = $defaultTable;
+                    }
+                    $addedBranches[$id] = $outId;
                     $treeMatches[$id] = $outId;
                     return $treeMatches[$id];
                 }
             }
-
             throw new errorException("Ветка  $tree_node_id для сопоставления не найдена");
         };
     }

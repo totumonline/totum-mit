@@ -26,7 +26,8 @@ class WriteTableActions extends ReadTableActions
         $this->Table->setWebIdInterval(json_decode($this->post['ids'], true));
 
         $add = json_decode($this->post['data'], true) ?? [];
-        if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists('afterField', $this->post['tableData'])) {
+        if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists('afterField',
+                $this->post['tableData'])) {
             $this->Totum->getModel('tables_fields')->setAfterField($this->post['tableData']['afterField']);
         }
 
@@ -181,7 +182,7 @@ class WriteTableActions extends ReadTableActions
         if (!$this->Table->isUserCanAction('delete')) {
             throw new errorException('Удаление из этой таблицы вам запрещено');
         }
-        $ids = !empty($this->post['delete_ids']) ? json_decode($this->post['delete_ids'], true) : [];
+        $ids = (array)(!empty($this->post['delete_ids']) ? json_decode($this->post['delete_ids'], true) : []);
         return $this->modify(['remove' => $ids]);
     }
 

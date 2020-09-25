@@ -52,15 +52,6 @@ use totum\config\Conf;
                     class="form-control btn btn-default">Отправить новый пароль на email
             </button>
         <?php
-        } ?><?php
-        if ($with_register) { ?>
-            <input type="button"
-                   id="register"
-                   value="Зарегистрироваться"
-                   style=";margin-top:4px;"
-                   id="regiter"
-                   class="form-control btn btn-default"/>
-        <?php
         } ?>
     </div>
 </div>

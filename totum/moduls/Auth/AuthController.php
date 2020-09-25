@@ -31,11 +31,6 @@ class AuthController extends interfaceController
 
         $this->__addAnswerVar('with_pass_recover', $this->Config->getSettings('with_pass_recover'));
         $this->__addAnswerVar('schema_name', $this->Config->getSettings('totum_name') ?? $this->Config->getSchema());
-        $this->__addAnswerVar(
-            'with_register',
-            $with_register = ($this->Config->getSettings('h_service') && ($this->Config->getSettings('h_default_web_roles')))
-        );
-
 
         if (!empty($post)) {
             $SendLetter = function ($email, $login, $pass) {
@@ -75,35 +70,6 @@ class AuthController extends interfaceController
                     strlen($letters) - 1
                 )} . str_pad(mt_rand(1, 9999), 4, 0);
             };
-
-            if (!empty($post['register'])) {
-                if (!$with_register) {
-                    return ['error' => 'Регистрация для этой базы закрыта'];
-                }
-
-
-                $User = Auth::serviceUserStart($this->Config);
-                $Totum = new Totum($this->Config, $User);
-                $Totum->transactionStart();
-                $pass = $getNewPass();
-                $post['pass'] = trim($post['pass']);
-                if (!empty($post['pass'])) {
-                    $pass = $post['pass'];
-                }
-
-                try {
-                    $Totum->getTable('users')->actionInsert(['email' => strtolower($post['login']), 'pass' => $pass, 'login' => "", 'fio' => strtolower($post['login']), 'is_outer' => true]);
-                    Auth::webInterfaceRemoveAuth();
-                    $SendLetter(strtolower($post['login']), '', $pass);
-                    $Totum->transactionCommit();
-
-
-                    return ['error' => 'Письмо с новым паролем отправлено на указанный Email. Проверьте ваш ящик через пару минут.'];
-                } catch (Exception $e) {
-                    Auth::webInterfaceRemoveAuth();
-                    return ['error' => 'Письмо не отправлено: ' . $e->getMessage() . '; регистрация не удалась'];
-                }
-            }
 
             if (empty($post['login'])) {
                 return ['error' => 'Заполните поле Логин/Email'];

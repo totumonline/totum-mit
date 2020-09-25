@@ -153,9 +153,4 @@ class User
     {
         return $this->allData['id'];
     }
-
-    public function isOuter()
-    {
-        return $this->allData['is_outer'] === "true";
-    }
 }

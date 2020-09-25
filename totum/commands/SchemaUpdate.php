@@ -20,7 +20,7 @@ class SchemaUpdate extends Command
     {
 
         $this->setName('schema-update')
-            ->setDescription('Update new schema')
+            ->setDescription('Update schema')
             ->addOption('schema', 's', InputOption::VALUE_REQUIRED, 'Enter schema name', '')
             ->addArgument('name', InputOption::VALUE_REQUIRED, 'Enter source name', 'totum')
             ->addArgument('file', InputOption::VALUE_REQUIRED, 'Enter schema file', 'sys_update');

@@ -103,10 +103,7 @@ class AuthController extends interfaceController
             if (empty($post['recover']) && $ip = ($_SERVER['REMOTE_ADDR'] ?? null)) {
                 if ($authLogTableRow = $this->Config->getTableRow('auth_log')) {
                     $now_date = date_create();
-                    $settings = json_decode($authLogTableRow['header'], true);
-
-
-                    if (($vremya_blokirovki = $settings['h_time']['v']) && ($error_count = $settings['error_count']['v'])) {
+                    if (($vremya_blokirovki = $this->Config->getSettings('h_time')) && ($error_count = $this->Config->getSettings('error_count'))) {
                         $BlockDate = date_create()->modify('-' . $vremya_blokirovki . 'minutes');
                         $block_date = $BlockDate->format('Y-m-d H:i');
 

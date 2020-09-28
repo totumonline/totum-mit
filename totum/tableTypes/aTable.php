@@ -581,7 +581,6 @@ abstract class aTable
             if ($level > 20) {
                 throw new errorException('Больше 20 уровней вложенности изменения таблиц. Скорее всего зацикл пересчета');
             }
-
             $this->reCalculate($inVars);
             $result = $this->isTblUpdated($level);
             $this->calcLog($Log, 'result', $result ? 'changed' : 'no changed');
@@ -712,6 +711,7 @@ abstract class aTable
 
         $this->tbl = &$newTbl;
 
+
         foreach (['param', 'filter', 'column'] as $category) {
             if (!($columns = $this->sortedFields[$category] ?? []) && $category != "column") {
                 continue;
@@ -737,7 +737,7 @@ abstract class aTable
                         unset($modifyIds['params']);
 
                         $ids = array_merge(array_keys($modifyIds), $remove ?? []);
-                        if ($ids) {
+                        if ($ids && $channel !== 'inner') {
                             $this->tbl['rows'] = $oldTbl['rows'];
                             $this->checkIsUserCanViewIds($channel, $ids);
                             $this->tbl['rows'] = [];

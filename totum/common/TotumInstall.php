@@ -243,7 +243,7 @@ CONF;
         $this->consoleLog('Upload start sql');
         $this->applySql($getFilePath('start.sql'));
 
-        $data = static::getDataFromFile($getFilePath('start_' . $this->Totum->getConfig()->getLang() . '.json.gz'));
+        $data = static::getDataFromFile($getFilePath('start_' . $this->Totum->getConfig()->getLang() . '.json.gz.ttm'));
 
         $this->consoleLog('Install base tables');
         $baseTablesIds = $this->installBaseTables($data);
@@ -282,7 +282,12 @@ CONF;
         $this->insertUsersAndAuthAdmin($post);
 
         $this->consoleLog('Load data to tables and exec codes from schema');
-        $this->updateDataExecCodes($schemaRows, $funcCats('all'), $funcRoles('all'), $funcTree('all'), 'totum_' . $this->Totum->getConfig()->getLang());
+        $this->updateDataExecCodes($schemaRows,
+            $funcCats('all'),
+            $funcRoles('all'),
+            $funcTree('all'),
+            'totum_' . $this->Totum->getConfig()->getLang(),
+            true);
 
 
         /*
@@ -395,7 +400,9 @@ CONF;
                 }
 
                 $tablesChanges['modify'][$tableId] = $schemaRow['settings'];
+                $schemaRow['isTableCreated'] = false;
             } else /* Добавление */ {
+                $schemaRow['isTableCreated'] = true;
                 $this->consoleLog('Add table "' . $schemaRow['name'] . '"', 3);
                 $Log = $this->calcLog(['name' => "ADD TABLE {$schemaRow['name']}"]);
 
@@ -789,7 +796,7 @@ CONF;
      * @param array $rolesMatches
      * @param array $treeMatches
      */
-    public function updateDataExecCodes($schemaRows, array $categoriesMatches, array $rolesMatches, array $treeMatches, $matchName)
+    public function updateDataExecCodes($schemaRows, array $categoriesMatches, array $rolesMatches, array $treeMatches, $matchName, $isInstall = false)
     {
         $TablesTable = $this->Totum->getTable('tables');
         $TablesTable->addCalculateLogInstance($this->CalculateLog);
@@ -995,7 +1002,7 @@ CONF;
                     [],
                     [],
                     $TablesTable,
-                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $rolesMatches, 'tree' => $treeMatches]
+                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $rolesMatches, 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created'=>$schemaRow['isTableCreated']]
                 );
                 $TablesTable->calcLog($Log, 'result', $r);
             }

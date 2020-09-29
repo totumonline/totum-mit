@@ -2114,8 +2114,8 @@ abstract class aTable
             } else {
                 $filteredIds = $this->loadRowsByParams($params, $this->orderParamsForLoadRows());
                 $rows = $getRows($filteredIds);
-                $this->sortRowsBydefault($rows);
                 $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
+                $this->sortRowsBydefault($rows);
 
                 $result = ['rows' => $rows, 'offset' => 0, 'allCount' => count($filteredIds)];
             }
@@ -2135,44 +2135,22 @@ abstract class aTable
             && $orderFieldName != 'id'
             && $orderFieldName != 'n'
             && ($orderField = ($fields[$orderFieldName]))
-            && (!Totum::isRealTable($tableRow) || in_array($orderField['type'], ['select', 'tree']))
+            && in_array($orderField['type'], ['select', 'tree'])
         ) {
             $sortArray = [];
-
-            switch ($orderField['type']) {
-                case  'select':
-                case  'tree':
-                    $getOrderElement = function ($row) use ($orderFieldName) {
-                        return $row[$orderFieldName]['v_'][0] ?? $row[$orderFieldName]['v'];
-                    };
-                    break;
-                case  'date':
-                    $getOrderElement = function ($row) use ($orderFieldName) {
-                        if ($Datetime = Calculate::getDateObject($row[$orderFieldName]['v'])) {
-                            return $Datetime->format('Y-m-d H:i:s');
-                        }
-                        return null;
-                    };
-                    break;
-                default:
-                    $getOrderElement = function ($row) use ($orderFieldName) {
-                        return $row[$orderFieldName]['v'];
-                    };
-            }
-
             foreach ($rows as $row) {
-                $sortArray[] = $getOrderElement($row);
+                $sortArray[] = $row[$orderFieldName]['v_'][0] ?? $row[$orderFieldName]['v'];
             }
-
             array_multisort(
                 $sortArray,
                 SORT_NATURAL,
                 $rows
             );
+            if (!empty($tableRow['order_desc'])) {
+                $rows = array_reverse($rows);
+            }
         }
-        if (!empty($tableRow['order_desc'])) {
-            $rows = array_reverse($rows);
-        }
+
     }
 
     public function getLastUpdated()

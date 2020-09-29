@@ -17,7 +17,7 @@ class SchemaCrons extends Command
     {
 
         $this->setName('schema-crons')
-            ->setDescription('Execute totum codes of table settings')
+            ->setDescription('Execute totum codes of table crons')
             ->addArgument('datetime', InputOption::VALUE_REQUIRED, 'Enter datetime')
             ->addArgument('schema',  InputOption::VALUE_REQUIRED, 'Enter schema name')
             ;
@@ -54,7 +54,7 @@ class SchemaCrons extends Command
             , 'month' => $nowMonth
             , 'weekday' => $nowWeekDay
         ];
-        $crons = $Conf->getModel('settings')->getAll(['status' => "true"],
+        $crons = $Conf->getModel('crons')->getAll(['status' => "true"],
             'id,' . implode(',', array_keys($checkRules)));
         foreach ($crons as $rule) {
             foreach ($checkRules as $field => $val) {

@@ -23,7 +23,7 @@ class SchemaCron extends Command
     {
 
         $this->setName('schema-cron')
-            ->setDescription('Execute totum code of table settings')
+            ->setDescription('Execute totum code of table crons')
             ->addArgument('cronId', InputOption::VALUE_REQUIRED, 'Enter cron id')
             ->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
     }
@@ -38,7 +38,7 @@ class SchemaCron extends Command
         }
 
         if ($cronId = $input->getArgument('cronId')) {
-            if ($cronRow = $Conf->getModel('settings')->get(['id' => (int)$cronId, 'status' => 'true'])) {
+            if ($cronRow = $Conf->getModel('crons')->get(['id' => (int)$cronId, 'status' => 'true'])) {
                 $cronRow = Model::getClearValuesWithExtract($cronRow);
             }
         }
@@ -55,7 +55,7 @@ class SchemaCron extends Command
                 try {
                     $Totum = new Totum($Conf, $User);
                     $Totum->transactionStart();
-                    $Table = $Totum->getTable('settings');
+                    $Table = $Totum->getTable('crons');
                     $Calc = new CalculateAction($cronRow['code']);
                     $Calc->execAction('CRON', $cronRow, $cronRow, $Table->getTbl(), $Table->getTbl(), $Table, []);
                     $Totum->transactionCommit();

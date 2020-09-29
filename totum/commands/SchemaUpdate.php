@@ -22,7 +22,7 @@ class SchemaUpdate extends Command
         $this->setName('schema-update')
             ->setDescription('Update schema')
             ->addOption('schema', 's', InputOption::VALUE_REQUIRED, 'Enter schema name', '')
-            ->addArgument('name', InputOption::VALUE_REQUIRED, 'Enter source name', 'totum_'.(new Conf())->getLang())
+            ->addArgument('matches', InputOption::VALUE_REQUIRED, 'Enter source name', 'totum_'.(new Conf())->getLang())
             ->addArgument('file', InputOption::VALUE_REQUIRED, 'Enter schema file', 'sys_update');
     }
 
@@ -37,12 +37,12 @@ class SchemaUpdate extends Command
                 $Conf->setHostSchema(null, $schema);
             }
         }
-        $sourceName = $input->getArgument('name');
+        $sourceName = $input->getArgument('matches');
 
         $file = $input->getArgument('file');
 
         if ($file === 'sys_update')
-            $file = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'moduls' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . 'start_'.$Conf->getLang().'.json.gz';
+            $file = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'moduls' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . 'start_'.$Conf->getLang().'.json.gz.ttm';
 
         $TotumInstall = new TotumInstall($Conf,
             new User(['login' => 'service', 'roles' => ["1"], 'id' => 1], $Conf),

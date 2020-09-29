@@ -16,6 +16,9 @@
     <div style="padding-bottom: 40px; padding-top: 10px; font-size: 55px;"><img src="/imgs/365_100_file.png"></div>
 
     <div class="form-group">
+        <select name="lang" class="form-control"><option value="ru" <?=($_POST['lang']??'ru')==='ru'?'selected':''?>>Русский язык</option></select>
+    </div>
+    <div class="form-group">
         <select id="multy" name="multy" class="form-control"><option value="0" <?=($_POST['multy']??'0')==='0'?'selected':''?>>Одинарная установка</option><option value="1" <?=($_POST['multy']??'0')==='1'?'selected':''?>>Множественная установка</option></select>
     </div>
     <div class="form-group">

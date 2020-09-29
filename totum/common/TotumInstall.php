@@ -107,6 +107,8 @@ class Conf extends ConfParent{
     
     const ANONYM_ALIAS="An";
     
+    const LANG="{$post['lang']}";
+    
     function getDefaultSender(){
         return "no-reply@$host";
     }
@@ -241,7 +243,7 @@ CONF;
         $this->consoleLog('Upload start sql');
         $this->applySql($getFilePath('start.sql'));
 
-        $data = static::getDataFromFile($getFilePath('start.json.gz'));
+        $data = static::getDataFromFile($getFilePath('start_' . $this->Totum->getConfig()->getLang() . '.json.gz'));
 
         $this->consoleLog('Install base tables');
         $baseTablesIds = $this->installBaseTables($data);
@@ -265,7 +267,8 @@ CONF;
         $this->consoleLog('Install other tables from schema file');
 
         list($schemaRows, $funcRoles, $funcTree, $funcCats) = $this->updateSchema(
-            $data
+            $data,
+            false
         );
 
 
@@ -279,7 +282,7 @@ CONF;
         $this->insertUsersAndAuthAdmin($post);
 
         $this->consoleLog('Load data to tables and exec codes from schema');
-        $this->updateDataExecCodes($schemaRows, $funcCats('all'), $funcRoles('all'), $funcTree('all'));
+        $this->updateDataExecCodes($schemaRows, $funcCats('all'), $funcRoles('all'), $funcTree('all'), 'totum_' . $this->Totum->getConfig()->getLang());
 
 
         /*
@@ -450,13 +453,11 @@ CONF;
 
     /**
      * @param array $schemaData
-     * @param array $rolesIn
-     * @param array $categoriesIn
-     * @param array $treeIn
+     * @param bool $withDataAndCodes
      * @return mixed
      * @throws errorException
      */
-    public function updateSchema(array $schemaData, $withDataAndCodes = false, $matchesName = 'totum')
+    public function updateSchema(array $schemaData, $withDataAndCodes = false, $matchesName = '')
     {
         $funcCategories = $this->getFuncCategories($schemaData['categories']);
 
@@ -788,7 +789,7 @@ CONF;
      * @param array $rolesMatches
      * @param array $treeMatches
      */
-    public function updateDataExecCodes($schemaRows, array $categoriesMatches, array $rolesMatches, array $treeMatches, $matchName = 'totum')
+    public function updateDataExecCodes($schemaRows, array $categoriesMatches, array $rolesMatches, array $treeMatches, $matchName)
     {
         $TablesTable = $this->Totum->getTable('tables');
         $TablesTable->addCalculateLogInstance($this->CalculateLog);

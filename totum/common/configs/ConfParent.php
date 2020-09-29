@@ -31,6 +31,7 @@ abstract class ConfParent
     public static $MaxFileSizeMb = 10;
     public static $timeLimit = 30;
 
+    const LANG = "";
 
     /* Переменные работы конфига */
     protected static $handlersRegistered = false;
@@ -360,6 +361,11 @@ abstract class ConfParent
         return $this->CalculateExtensions->$funcName;
     }
 
+    public function getLang()
+    {
+        return static::LANG;
+    }
+
     protected function setLogIni()
     {
         ini_set('log_errors', 1);
@@ -382,7 +388,7 @@ abstract class ConfParent
     {
         if (!key_exists($type, $this->getDb())) {
 
-            errorException::criticalException('Не задан путь к ssh скрипту '.$type, $this);
+            errorException::criticalException('Не задан путь к ssh скрипту ' . $type, $this);
         }
         $pathPsql = $this->getDb()[$type];
         $dbConnect = sprintf(

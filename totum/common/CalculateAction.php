@@ -172,8 +172,11 @@ class CalculateAction extends Calculate
             $this->Table->getCalculateLog());
 
         $params['schema'] = TotumInstall::applyMatches($params['schema'], $params);
+        if(empty($params['matches_name'])){
+            throw new errorException('Не определен источник схемы');
+        }
 
-        $TotumInstall->updateSchema($params['schema'], true);
+        $TotumInstall->updateSchema($params['schema'], true, $params['matches_name']);
     }
 
     protected function funcLinkToButtons($params)

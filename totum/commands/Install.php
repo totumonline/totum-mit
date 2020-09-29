@@ -7,6 +7,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use totum\common\errorException;
+use totum\common\Totum;
 use totum\common\TotumInstall;
 use totum\config\Conf;
 
@@ -16,6 +18,7 @@ class Install extends Command
     {
         $this->setName('install')
             ->setDescription('install')
+            ->addArgument('lang', InputOption::VALUE_REQUIRED, 'language: type '.implode('/', Totum::LANGUAGES))
             ->addArgument('multi', InputOption::VALUE_REQUIRED, 'multi/no-multi')
             ->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name')
             ->addArgument('admin_email', InputOption::VALUE_REQUIRED, 'Enter admin email', '')
@@ -40,6 +43,11 @@ class Install extends Command
             throw new Exception('Conf exists');
         }
         $confs = [];
+        $confs['lang'] = $input->getArgument('lang');
+        if(!in_array($confs['lang'], Totum::LANGUAGES)){
+            throw new errorException('Language '.$confs['lang'].' is not supported');
+        }
+
         $confs['multy'] = $input->getArgument('multi') === 'multi' ? '1' : '0';
 
         if ($confs['multy'] === '1' && empty($input->getOption('schema_exists'))) {

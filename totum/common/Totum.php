@@ -42,6 +42,7 @@ class Totum
         'order_roles',
         'read_roles',
         'tree_off_roles'];
+    const LANGUAGES = ["ru"];
 
     protected $interfaceData = [];
 

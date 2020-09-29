@@ -274,7 +274,7 @@ class TableController extends interfaceController
                 $this->Config->getSettings('totum_name') ?? $this->Config->getSchema()
             );
 
-            $this->__addAnswerVar('notification_period', $this->Config->getSettings('notifications_period') ?? 0);
+            $this->__addAnswerVar('notification_period', $this->Config->getSettings('periodicity') ?? 0);
             $this->__addAnswerVar('topBranches', $this->getTopBranches());
             $this->__addAnswerVar('totumFooter', $this->Config->getTotumFooter());
 

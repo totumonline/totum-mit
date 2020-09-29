@@ -121,7 +121,7 @@ CONF;
 
         eval($this->confClassCode);
         $Conf = new Conf("dev", false);
-        if ($post['multy']==='1') {
+        if ($post['multy'] === '1') {
             $Conf->setHostSchema($host);
         }
         return $Conf;
@@ -251,6 +251,7 @@ CONF;
             if ($role['id'] == 1) {
                 $role['favorite'] = [];
                 $this->consoleLog('Add role Creator');
+
                 $this->getTotum()->getTable('roles')->reCalculateFromOvers(['add' => [$role]]);
                 unset($data['roles'][$k]);
                 break;
@@ -267,12 +268,12 @@ CONF;
             $data
         );
 
+
         $this->consoleLog('Create views');
         $this->applySql($getFilePath('start_views.sql'));
 
         $this->consoleLog('Update base tables tree and category');
         $this->updateSysTablesAfterInstall($funcTree, $funcCats);
-
 
         $this->consoleLog('Create default users');
         $this->insertUsersAndAuthAdmin($post);
@@ -533,6 +534,7 @@ CONF;
             $getTreeId,
             $funcCategories
         );
+
         $this->caclsFilteredTables(
             function ($schemaRow) {
                 return $schemaRow['type'] == 'calcs';
@@ -543,6 +545,12 @@ CONF;
             $getTreeId,
             $funcCategories
         );
+
+        $this->Totum->getModel('roles')->saveVars(
+            1,
+            ["tables=jsonb_set(tables, '{v}', to_jsonb(array(select id::text from tables order by name->>'v')))"]
+        );
+
         $this->consoleLog('update roles favorites', 2);
         $this->updateRolesFavorites($schemaData['roles'], $funcRoles);
 
@@ -973,7 +981,10 @@ CONF;
 
 
             if ($schemaRow['code']) {
-                $this->consoleLog('exec code: '.substr($schemaRow['code'], 0, strpos($schemaRow['code'], "\n")).'...', 3);
+                $this->consoleLog('exec code: ' . substr($schemaRow['code'],
+                        0,
+                        strpos($schemaRow['code'], "\n")) . '...',
+                    3);
                 $Log = $TablesTable->calcLog(['name' => "CODE FROM SCHEMA", 'code' => $schemaRow['code']]);
                 $action = new CalculateAction($schemaRow['code']);
                 $r = $action->execAction(
@@ -990,7 +1001,7 @@ CONF;
         }
 
 
-        $this->consoleLog('update @ttm__updates.h_matches/'.$matchName, 2);
+        $this->consoleLog('update @ttm__updates.h_matches/' . $matchName, 2);
         $ttmUpdates = $this->Totum->getTable('ttm__updates');
         if (!key_exists('h_matches', $ttmUpdates->getFields())) {
             $matchesField = ['category' => 'param', 'table_id' => $ttmUpdates->getTableRow()['id'], 'name' => 'h_matches', 'data_src' => ['type' => ['isOn' => true, 'Val' => 'listRow']]];

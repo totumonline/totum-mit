@@ -57,14 +57,6 @@ class Table extends Model
                 $table->createTable();
             }
 
-            try {
-                //Добавить к видимости роли Создатель - базовая настройка удаляется при пересчете - эту строку не трогать!
-                $this->Totum->getModel('roles')->saveVars(
-                    1,
-                    ["tables=jsonb_set(tables, '{v}', to_jsonb(array(select id::text from tables order by name->>'v')))"]
-                );
-            } catch (Exception $e) {
-            }
         } else {
             throw new errorException('Ошибка с таблицей');
         }
@@ -74,6 +66,7 @@ class Table extends Model
     public function update($params, $where, $oldRow = null): int
     {
         $this->Sql->transactionStart();
+
         if (empty($oldRow)) {
             if ($oldRow = static::executePrepared(true, $where, '*', null, '0,1')->fetch()) {
                 foreach ($oldRow as &$_) {

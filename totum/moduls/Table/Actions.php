@@ -154,16 +154,15 @@ class Actions
             }
             if ($actived) {
                 $result['deactivated'] = [];
-                if ($ids = ($model->executePrepared(
-                        true,
+                if ($ids = ($model->getColumn(
+                        'id',
                         ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'false']
-                    )->fetchAll() ?? [])) {
+                    ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
-                if ($ids = ($model->executePrepared(
-                        true,
+                if ($ids = ($model->getColumn('id',
                         ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'true', '>active_dt_from' => date('Y-m-d H:i')]
-                    )->fetchAll() ?? [])) {
+                    ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
                 if (empty($result['deactivated'])) {

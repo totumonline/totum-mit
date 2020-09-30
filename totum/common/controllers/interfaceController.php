@@ -89,9 +89,7 @@ abstract class interfaceController extends Controller
             foreach (['h_og_title', 'h_og_description', 'h_og_image', 'h_title'] as $var) {
                 $settings[$var] = $this->Config->getSettings($var);
             }
-            if (empty($settings['h_title'])) {
-                $settings['h_title'] = $this->Config->getSchema();
-            }
+
             $this->__addAnswerVar('settings', $settings);
         } catch (SqlException $e) {
             $this->Config->getLogger('sql')->error($e->getMessage(), $e->getTrace());

@@ -453,7 +453,11 @@ abstract class ConfParent
                     $this->settingsCache[$s_key] = $s_value;
                 }
             }
+            if (empty($this->settingsCache['totum_name'])) {
+                $this->settingsCache['totum_name'] = $this->getSchema();
+            }
         }
+
 
         if ($name) {
             return $this->settingsCache[$name] ?? null;

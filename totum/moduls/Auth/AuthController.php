@@ -30,7 +30,7 @@ class AuthController extends interfaceController
         $Totum = new Totum($this->Config);
 
         $this->__addAnswerVar('with_pass_recover', $this->Config->getSettings('with_pass_recover'));
-        $this->__addAnswerVar('schema_name', $this->Config->getSettings('totum_name') ?? $this->Config->getSchema());
+        $this->__addAnswerVar('schema_name', $this->Config->getSettings('totum_name'));
 
         if (!empty($post)) {
             $SendLetter = function ($email, $login, $pass) {

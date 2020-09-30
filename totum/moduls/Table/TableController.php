@@ -271,7 +271,7 @@ class TableController extends interfaceController
             }
             $this->__addAnswerVar(
                 'schema_name',
-                $this->Config->getSettings('totum_name') ?? $this->Config->getSchema()
+                $this->Config->getSettings('totum_name')
             );
 
             $this->__addAnswerVar('notification_period', $this->Config->getSettings('periodicity') ?? 0);

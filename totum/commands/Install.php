@@ -34,7 +34,7 @@ class Install extends Command
             ->addOption('pgdump', null, InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
             ->addOption('psql', null, InputOption::VALUE_REQUIRED, 'Enter psql(): ', '')
             ->addOption('schema_exists', 'e', InputOption::VALUE_OPTIONAL,'Install in existing schema')
-            ->addOption('db_string', null, InputOption::VALUE_OPTIONAL,'DBString: postgresql://user:pass@host/dbname');
+            ->addOption('db_string', 'd', InputOption::VALUE_OPTIONAL,'DBString: postgresql://user:pass@host/dbname');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

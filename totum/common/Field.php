@@ -9,6 +9,8 @@
 namespace totum\common;
 
 use totum\common\calculates\Calculate;
+use totum\common\calculates\CalculateAction;
+use totum\common\calculates\CalculcateFormat;
 use totum\fieldTypes\Checkbox;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Date;

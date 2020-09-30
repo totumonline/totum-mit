@@ -6,8 +6,10 @@
  * Time: 11:51
  */
 
-namespace totum\common;
+namespace totum\common\calculates;
 
+
+use totum\common\calculates\CalculateSelect;
 
 class CalculateSelectValue extends CalculateSelect
 {

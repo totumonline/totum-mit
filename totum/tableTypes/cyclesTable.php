@@ -8,7 +8,7 @@
 
 namespace totum\tableTypes;
 
-use totum\common\CalculateAction;
+use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Cycle;
 use totum\common\sql\SqlException;

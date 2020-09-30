@@ -4,12 +4,10 @@
 namespace totum\moduls\Table;
 
 
-use totum\common\Auth;
-use totum\common\CalculateAction;
+use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\models\Table;
 use totum\models\TablesFields;
-use totum\models\UserV;
 
 class AdminTableActions extends WriteTableActions
 {

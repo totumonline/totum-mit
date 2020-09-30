@@ -3,7 +3,7 @@
 namespace totum\moduls\SchemasManage;
 
 
-use totum\common\CalculateAction;
+use totum\common\calculates\CalculateAction;
 use totum\common\Controller;
 use totum\common\errorException;
 use totum\common\jsonController;

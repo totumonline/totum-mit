@@ -8,7 +8,7 @@
 
 namespace totum\common\configs;
 
-use totum\common\CalculateAction;
+use totum\common\calculates\CalculateAction;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\logs\Log;
@@ -79,11 +79,16 @@ abstract class ConfParent
             $env == self::ENV_LEVELS["production"] ? ['critical', 'emergency']
                 : ['error', 'debug', 'alert', 'critical', 'emergency', 'info', 'notice', 'warning'];
 
-        $this->baseDir = dirname((new \ReflectionClass(get_called_class()))->getFileName()) . DIRECTORY_SEPARATOR;
+        $this->baseDir = $this->getBaseDir();
         $this->tmpDirPath = $this->baseDir . $this->tmpDirPath;
         $this->tmpTableChangesDirPath = $this->baseDir . $this->tmpTableChangesDirPath;
         $this->logsDir = $this->baseDir . $this->logsDir;
         $this->env = $env;
+    }
+
+    public function getBaseDir()
+    {
+        return dirname((new \ReflectionClass(get_called_class()))->getFileName()) . DIRECTORY_SEPARATOR;
     }
 
     public function setLogIniAndHandlers()

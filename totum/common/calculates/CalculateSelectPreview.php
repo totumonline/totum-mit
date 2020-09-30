@@ -6,8 +6,9 @@
  * Time: 11:51
  */
 
-namespace totum\common;
+namespace totum\common\calculates;
 
+use totum\common\calculates\CalculateSelect;
 use totum\tableTypes\aTable;
 
 class CalculateSelectPreview extends CalculateSelect

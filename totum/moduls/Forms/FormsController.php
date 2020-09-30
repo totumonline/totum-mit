@@ -6,8 +6,8 @@ namespace totum\moduls\Forms;
 
 use totum\common\Auth;
 use totum\common\Calculate;
-use totum\common\CalculateAction;
-use totum\common\CalculcateFormat;
+use totum\common\calculates\CalculateAction;
+use totum\common\calculates\CalculcateFormat;
 use totum\common\Controller;
 use totum\common\Crypt;
 use totum\common\errorException;

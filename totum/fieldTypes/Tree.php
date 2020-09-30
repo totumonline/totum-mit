@@ -9,8 +9,8 @@
 namespace totum\fieldTypes;
 
 use totum\common\calculates\Calculate;
-use totum\common\CalculateSelect;
-use totum\common\CalculateSelectValue;
+use totum\common\calculates\CalculateSelect;
+use totum\common\calculates\CalculateSelectValue;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\tableTypes\aTable;

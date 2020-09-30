@@ -6,11 +6,15 @@
  * Time: 15:02
  */
 
-namespace totum\common;
+namespace totum\common\calculates;
 
 use SoapClient;
-use totum\common\calculates\Calculate;
+use totum\common\Crypt;
+use totum\common\errorException;
+use totum\common\FieldModifyItem;
+use totum\common\Formats;
 use totum\common\sql\SqlException;
+use totum\common\TotumInstall;
 use totum\tableTypes\RealTables;
 use \Exception;
 

@@ -3,7 +3,7 @@
 
 namespace totum\moduls\Table;
 
-use totum\common\CalculateAction;
+use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\fieldTypes\File;
 use totum\tableTypes\tmpTable;

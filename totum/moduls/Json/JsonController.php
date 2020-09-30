@@ -53,7 +53,7 @@ namespace totum\moduls\Json;
 
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
-use totum\common\CalculateAction;
+use totum\common\calculates\CalculateAction;
 use totum\common\controllers\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;

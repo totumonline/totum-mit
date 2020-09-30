@@ -6,9 +6,11 @@
  * Time: 11:21
  */
 
-namespace totum\common;
+namespace totum\common\calculates;
 
 use totum\common\calculates\Calculate;
+use totum\common\errorException;
+use totum\common\Field;
 use totum\common\sql\SqlException;
 use totum\models\Table;
 use totum\tableTypes\aTable;

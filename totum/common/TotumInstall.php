@@ -5,6 +5,7 @@ namespace totum\common;
 
 use PDO;
 use Symfony\Component\Console\Output\OutputInterface;
+use totum\common\calculates\CalculateAction;
 use totum\common\sql\Sql;
 use totum\config\Conf;
 use totum\fieldTypes\fieldParamsResult;

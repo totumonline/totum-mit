@@ -6,9 +6,10 @@
  * Time: 16:37
  */
 
-namespace totum\common;
+namespace totum\common\calculates;
 
-use totum\common\calculates\Calculate;
+use totum\common\Controller;
+use totum\common\errorException;
 use totum\common\sql\SqlException;
 use totum\moduls\Forms\FormsController;
 use totum\tableTypes\aTable;

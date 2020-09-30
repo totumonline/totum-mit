@@ -9,10 +9,10 @@
 namespace totum\fieldTypes;
 
 use totum\common\calculates\Calculate;
-use totum\common\CalculateSelect;
-use totum\common\CalculateSelectPreview;
-use totum\common\CalculateSelectValue;
-use totum\common\CalculateSelectViewValue;
+use totum\common\calculates\CalculateSelect;
+use totum\common\calculates\CalculateSelectPreview;
+use totum\common\calculates\CalculateSelectValue;
+use totum\common\calculates\CalculateSelectViewValue;
 use totum\common\Controller;
 use totum\common\errorException;
 use totum\common\Field;

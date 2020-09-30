@@ -5,7 +5,7 @@ namespace totum\moduls\Table;
 
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
-use totum\common\CalculateAction;
+use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Model;
 use totum\common\Totum;

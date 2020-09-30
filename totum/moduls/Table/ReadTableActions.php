@@ -5,8 +5,8 @@ namespace totum\moduls\Table;
 
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\calculates\Calculate;
-use totum\common\CalculateAction;
-use totum\common\CalculcateFormat;
+use totum\common\calculates\CalculateAction;
+use totum\common\calculates\CalculcateFormat;
 use totum\common\criticalErrorException;
 use totum\common\Crypt;
 use totum\common\errorException;

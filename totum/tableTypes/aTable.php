@@ -9,9 +9,8 @@
 namespace totum\tableTypes;
 
 use Exception;
-use totum\common\CalculateAction;
-use totum\common\calculates\Calculate;
-use totum\common\CalculcateFormat;
+use totum\common\calculates\CalculateAction;
+use totum\common\calculates\CalculcateFormat;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;

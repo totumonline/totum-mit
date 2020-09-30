@@ -104,6 +104,11 @@ class Actions
 
     public function checkForNotifications()
     {
+        /*TODO FOR MY TEST SERVER */
+        if ($_SERVER['HTTP_HOST'] === 'localhost:8080') {
+            die('test');
+        }
+
         $actived = $this->post['activeIds'] ?? [];
         $model = $this->Totum->getModel('notifications');
         $codes = $this->Totum->getModel('notification_codes');

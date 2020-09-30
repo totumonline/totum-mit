@@ -670,6 +670,7 @@ CONF;
         $this->consoleLog('Add and modify fields for ' . $n . ' tables ', 2);
         $this->Totum->getTable('tables_fields')->reCalculateFromOvers(['add' => $fieldsAdd, 'modify' => $fieldsModify]);
         $this->Totum->clearTables();
+        $this->Totum->getConfig()->clearRowsCache();
     }
 
     public function checkSchemaExists($schema_exists_conf)
@@ -1174,7 +1175,7 @@ CONF;
                         unset($role);
                     }
 
-                    $Tree = $Tree ?? $this->Totum->getTable('tree');
+                    $Tree = $this->Totum->getTable('tree');
                     $Tree->reCalculateFromOvers(['add' => [$row]]);
                     $outId = array_key_last($Tree->getChangeIds()['added']);
                     if (isset($defaultTable)) {

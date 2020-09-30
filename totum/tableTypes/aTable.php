@@ -2182,12 +2182,24 @@ abstract class aTable
     {
         $rowParams = [];
         $pParams = [];
-        foreach ($params as $f => $value) {
-            if (key_exists($f, $this->fields)) {
-                if ($this->fields[$f]['category'] == 'column') {
-                    $rowParams[$f] = $clear ? null : $value;
-                } else {
-                    $pParams[$f] = $clear ? null : $value;
+        if ($clear) {
+            foreach ($params as $f) {
+                if (key_exists($f, $this->fields)) {
+                    if ($this->fields[$f]['category'] == 'column') {
+                        $rowParams[$f] = null;
+                    } else {
+                        $pParams[$f] = null;
+                    }
+                }
+            }
+        } else {
+            foreach ($params as $f => $value) {
+                if (key_exists($f, $this->fields)) {
+                    if ($this->fields[$f]['category'] == 'column') {
+                        $rowParams[$f] = $clear ? null : $value;
+                    } else {
+                        $pParams[$f] = $clear ? null : $value;
+                    }
                 }
             }
         }
@@ -2213,6 +2225,7 @@ abstract class aTable
         if (!empty($pParams)) {
             $modify ['params'] = $pParams;
         }
+
         return $modify;
     }
 

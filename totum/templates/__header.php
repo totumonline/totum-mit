@@ -21,15 +21,13 @@ if (is_null($isCreatorView ?? null)) {
                 if ($isCreatorView) {
                     if ($Branch ?? false) { ?>
                         <li class="plus-top-branch"
-                            onClick="(new EditPanel("
-                            tree", BootstrapDialog.TYPE_DANGER, {id: <?= $Branch ?>})).then(function (json) { if (json) window.location.reload() })">
+                            onClick="(new EditPanel('tree', BootstrapDialog.TYPE_DANGER, {id: <?= $Branch ?>})).then(function (json) { if (json) window.location.reload() })">
                         <a><i class="fa fa-edit"></i></a></li>
                         <?php
                     }
                     ?>
                     <li class="plus-top-branch"
-                        onClick="(new EditPanel("
-                        tree", BootstrapDialog.TYPE_DANGER, {})).then(function (json) { if (json) window.location.href=('/Table/'+json.chdata.rows[Object.keys(json.chdata.rows)[0]].id+'/');})">
+                        onClick="(new EditPanel('tree', BootstrapDialog.TYPE_DANGER, {})).then(function (json) { if (json) window.location.href=('/Table/'+json.chdata.rows[Object.keys(json.chdata.rows)[0]].id+'/');})">
                     <a><i class="fa fa-plus"></i></a></li>
                     <?php
                 } ?>

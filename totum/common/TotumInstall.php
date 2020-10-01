@@ -196,6 +196,7 @@ CONF;
         foreach ($rows as &$row) {
             $row['tree_node_id'] = $funcTree($row['tree_node_id']);
             $row['category'] = $funcCats($row['category']);
+            unset($row['top']);
         }
         $this->Totum->getTable('tables')->reCalculateFromOvers(['modify' => $rows]);
     }
@@ -277,6 +278,7 @@ CONF;
         $this->applySql($getFilePath('start_views.sql'));
 
         $this->consoleLog('Update base tables tree and category');
+
         $this->updateSysTablesAfterInstall($funcTree, $funcCats);
 
         $this->consoleLog('Create default users');
@@ -744,6 +746,7 @@ CONF;
         $tablesIds = ['roles' => 3, 'tree' => 4, 'table_categories' => 5, 'settings' => 6];
         foreach ($data['tables'] as $_t) {
             if ($tablesIds[$_t['table']] ?? false) {
+                unset($_t['settings']['top']);
                 $table->reCalculateFromOvers(['modify' => [$tablesIds[$_t['table']] => $_t['settings']]]);
                 foreach ($_t['fields'] as $setting) {
                     if ($setting['category'] == 'column') {
@@ -1004,7 +1007,7 @@ CONF;
                     [],
                     [],
                     $TablesTable,
-                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $rolesMatches, 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created'=>$schemaRow['isTableCreated']]
+                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $rolesMatches, 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => $schemaRow['isTableCreated']]
                 );
                 $TablesTable->calcLog($Log, 'result', $r);
             }

@@ -24,7 +24,6 @@ use Symfony\Component\Console\Application;
 $app = new Application();
 if (class_exists(Conf::class)) {
     $app->add(new SchemaDecode());
-    $app->add(new SchemaAdd());
     $app->add(new SchemaCrons());
     $app->add(new SchemaCron());
 
@@ -39,6 +38,7 @@ if (class_exists(Conf::class)) {
         $app->add(new CleanSchemasTmpTables());
         $app->add(new SchemasUpdates());
         $app->add(new SchemaDuplicate());
+        $app->add(new SchemaAdd());
     }
 
 }else{

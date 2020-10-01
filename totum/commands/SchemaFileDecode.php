@@ -14,7 +14,7 @@ class SchemaFileDecode extends Command
 {
     protected function configure()
     {
-        $this->setName('decode')->addOption(
+        $this->setName('decode')->setDescription('TMP technical command. ')->addOption(
             'file',
             'f',
             InputOption::VALUE_REQUIRED,

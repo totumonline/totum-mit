@@ -32,13 +32,13 @@ if (class_exists(Conf::class)) {
     $app->add(new CleanTmps());
     $app->add(new CleanSchemaTmpTables());
     $app->add(new SchemaUpdate());
-    $app->add(new SchemaDuplicate());
     $app->add(new SchemaPasswd());
 
     if(key_exists(MultiTrait::class, class_uses(Conf::class, false))){
         $app->add(new SchemasCrons());
         $app->add(new CleanSchemasTmpTables());
         $app->add(new SchemasUpdates());
+        $app->add(new SchemaDuplicate());
     }
 
 }else{

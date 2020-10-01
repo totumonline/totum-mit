@@ -17,9 +17,9 @@ class Install extends Command
     protected function configure()
     {
         $this->setName('install')
-            ->setDescription('install')
-            ->addArgument('lang', InputOption::VALUE_REQUIRED, 'language: type '.implode('/', Totum::LANGUAGES))
-            ->addArgument('multi', InputOption::VALUE_REQUIRED, 'multi/no-multi')
+            ->setDescription('Install new schema and create Conf.php')
+            ->addArgument('lang', InputOption::VALUE_REQUIRED, 'Enter language ('.implode('/', Totum::LANGUAGES).')')
+            ->addArgument('multi', InputOption::VALUE_REQUIRED, 'Enter type of install (multi/no-multi)')
             ->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name')
             ->addArgument('admin_email', InputOption::VALUE_REQUIRED, 'Enter admin email', '')
             ->addArgument('totum_host', InputOption::VALUE_REQUIRED, 'Enter totum host')
@@ -33,8 +33,8 @@ class Install extends Command
 
             ->addOption('pgdump', null, InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
             ->addOption('psql', null, InputOption::VALUE_REQUIRED, 'Enter psql(): ', '')
-            ->addOption('schema_exists', 'e', InputOption::VALUE_OPTIONAL,'Install in existing schema')
-            ->addOption('db_string', 'd', InputOption::VALUE_OPTIONAL,'DBString: postgresql://user:pass@host/dbname');
+            ->addOption('schema_exists', 'e', InputOption::VALUE_OPTIONAL,'Enter Y for install in existing schema')
+            ->addOption('db_string', 'd', InputOption::VALUE_OPTIONAL,'Enter dbstring: postgresql://user:pass@host/dbname');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

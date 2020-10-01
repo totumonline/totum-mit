@@ -18,7 +18,7 @@ class SchemaCrons extends Command
     {
 
         $this->setName('schema-crons')
-            ->setDescription('Execute totum codes of table crons')
+            ->setDescription('Execute totum codes of table crons for single install')
             ->addArgument('datetime', InputOption::VALUE_REQUIRED, 'Enter datetime');
 
             if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
@@ -41,7 +41,7 @@ class SchemaCrons extends Command
             $date = date_create();
         }
         if (!$date) {
-            throw new \Exception('Формат даты неверен');
+            throw new \Exception('Date format is not correct');
         }
 
         $nowMinute = $date->format('i');

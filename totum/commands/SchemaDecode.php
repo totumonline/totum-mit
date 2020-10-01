@@ -16,7 +16,7 @@ class SchemaDecode extends Command
     protected function configure()
     {
         $this->setName('schema-decode')
-            ->setDescription('Decode old schemas from Config::getSchemas')
+            ->setDescription('TMP technical command. Decode old schemas from Config::getSchemas')
             ->addOption(
                 'schemas',
                 's',

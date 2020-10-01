@@ -8,6 +8,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use totum\common\configs\MultiTrait;
 use totum\config\Conf;
 
 class CleanSchemaTmpTables extends Command
@@ -15,8 +16,10 @@ class CleanSchemaTmpTables extends Command
     protected function configure()
     {
         $this->setName('clean-schema-tmp-tables')
-            ->setDescription('Remove old tmp tables')
-            ->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
+            ->setDescription('Clean tmp_tables in schemas. For single install. Set in crontab one time in 10 minutes.');
+            if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
+                $this->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
+            }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

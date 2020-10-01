@@ -20,8 +20,8 @@ class SchemaPasswd extends Command
     {
         $this->setName('schema-passwd')
             ->setDescription('Change password for schema user')
-            ->addArgument('login')
-            ->addArgument('password');
+            ->addArgument('login', InputOption::VALUE_REQUIRED, 'Enter user login')
+            ->addArgument('password', InputOption::VALUE_REQUIRED, 'Enter user new password');
         if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
             $this->addOption('schema', 's', InputOption::VALUE_REQUIRED, 'Enter schema name');
         }
@@ -40,10 +40,10 @@ class SchemaPasswd extends Command
         }
 
         if (empty($login = $input->getArgument('login'))) {
-            throw new errorException('Введите логин');
+            throw new errorException('Enter user login');
         }
         if (empty($pass = $input->getArgument('password'))) {
-            throw new errorException('Введите пароль');
+            throw new errorException('Enter new password');
         }
 
         $Totum = new Totum($Conf, Auth::loadAuthUserByLogin($Conf, 'service', false));

@@ -16,7 +16,7 @@ class SchemasCrons extends Command
     {
 
         $this->setName('schemas-crons')
-            ->setDescription('Execute crons of schemas');
+            ->setDescription('Execute crons of schemas for muti-install');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

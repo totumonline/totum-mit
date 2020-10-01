@@ -13,7 +13,8 @@ class CleanTmps extends Command
 {
     protected function configure()
     {
-        $this->setName('clean-tmp-dir');
+        $this->setName('clean-tmp-dir')
+            ->setDescription('Clean tmp dir. Set in crontab one time in 10 minutes.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

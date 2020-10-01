@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
+use totum\common\configs\MultiTrait;
 use totum\common\errorException;
 use totum\common\Model;
 use totum\common\tableSaveException;
@@ -22,9 +23,11 @@ class SchemaCron extends Command
     {
 
         $this->setName('schema-cron')
-            ->setDescription('Execute totum code of table crons')
-            ->addArgument('cronId', InputOption::VALUE_REQUIRED, 'Enter cron id')
-            ->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
+            ->setDescription('Execute exact totum code of table crons')
+            ->addArgument('cronId', InputOption::VALUE_REQUIRED, 'Enter cron id');
+             if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
+                 $this->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
+             }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -43,7 +46,7 @@ class SchemaCron extends Command
         }
 
         if (empty($cronRow)) {
-            throw new \Exception('Не задан или не найден ид крона');
+            throw new \Exception('Id of cron not found or empty');
         }
 
 

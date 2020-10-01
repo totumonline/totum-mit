@@ -16,7 +16,7 @@ class CleanSchemasTmpTables extends Command
     {
 
         $this->setName('clean-schemas-tmp-tables')
-            ->setDescription('Execute crons of schemas');
+            ->setDescription('Clean tmp_tables in schemas. For multi install. Set in crontab one time in 10 minutes.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

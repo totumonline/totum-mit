@@ -21,7 +21,7 @@ class SchemasUpdates extends Command
                 InputOption::VALUE_REQUIRED,
                 'Enter source name',
                 'totum_' . (new Conf())->getLang())
-            ->addArgument('file', InputOption::VALUE_REQUIRED, 'Enter schema file', 'sys_update');
+            ->addArgument('file', InputOption::VALUE_REQUIRED, 'Enter schema update filepath', 'sys_update');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

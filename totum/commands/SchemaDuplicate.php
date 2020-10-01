@@ -21,10 +21,10 @@ class SchemaDuplicate extends Command
     {
 
         $this->setName('schema-duplicate')
-            ->setDescription('Duplicate schema')
+            ->setDescription('Duplicate schema. You need install with psql and pg_dump in it. Change Conf.php if you installed totum without its.')
             ->addArgument('base', InputOption::VALUE_REQUIRED, 'Enter base schema name')
-            ->addArgument('name', InputOption::VALUE_REQUIRED, 'Enter schema name')
-            ->addArgument('host', InputOption::VALUE_REQUIRED, 'Enter schema host');
+            ->addArgument('name', InputOption::VALUE_REQUIRED, 'Enter new schema name')
+            ->addArgument('host', InputOption::VALUE_REQUIRED, 'Enter new schema host');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -37,10 +37,10 @@ class SchemaDuplicate extends Command
 
         $baseName = $input->getArgument('base');
         if (empty($baseName)) {
-            throw new errorException('Заполните имя схемы-источника');
+            throw new errorException('Enter base schema name');
         }
         if (!in_array($baseName, array_values($Conf::getSchemas()))) {
-            throw new errorException("$baseName схема не найдена в Conf");
+            throw new errorException("$baseName schema not found in Conf.php");
         }
         if(is_callable([$Conf, 'setHostSchema'])){
             $Conf->setHostSchema(null, $baseName);
@@ -48,11 +48,11 @@ class SchemaDuplicate extends Command
 
         $desName = $input->getArgument('name');
         if (empty($desName)) {
-            throw new errorException('Заполните имя схемы-дубля');
+            throw new errorException('Enter new schema name');
         }
 
         if (in_array($desName, array_values($Conf::getSchemas()))) {
-            throw new errorException("$desName схема уже есть в Conf");
+            throw new errorException("$desName schema exists in Conf.php");
         }
 
         $pgDump = $Conf->getSshPostgreConnect('pg_dump');
@@ -73,7 +73,7 @@ class SchemaDuplicate extends Command
             $tmpFileName = tempnam($Conf->getTmpDir(), 'schemaDuplicate.' . $baseName . '-dest');
 
             if (!($handleTmp = @fopen($tmpFileName, "a"))) {
-                throw new errorException('Временный файл ' . $tmpFileName . ' не получается открыть');
+                throw new errorException('Temporary file ' . $tmpFileName . ' not writeable');
             }
 
 

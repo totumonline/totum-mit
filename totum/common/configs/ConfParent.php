@@ -391,8 +391,7 @@ abstract class ConfParent
 
     public function getSshPostgreConnect($type)
     {
-        if (!key_exists($type, $this->getDb())) {
-
+        if (empty($this->getDb()[$type])) {
             errorException::criticalException('Не задан путь к ssh скрипту ' . $type, $this);
         }
         $pathPsql = $this->getDb()[$type];

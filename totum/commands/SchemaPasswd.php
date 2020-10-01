@@ -33,11 +33,13 @@ class SchemaPasswd extends Command
             $output->writeln('ERROR: config class not found');
         }
         $Conf = new Conf();
-        if ($schema = $input->getOption('schema')) {
-            if (is_callable([$Conf, 'setHostSchema'])) {
+
+        if (is_callable([$Conf, 'setHostSchema'])) {
+            if ($schema = $input->getOption('schema')) {
                 $Conf->setHostSchema(null, $schema);
             }
         }
+
 
         if (empty($login = $input->getArgument('login'))) {
             throw new errorException('Enter user login');

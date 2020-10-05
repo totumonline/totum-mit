@@ -252,7 +252,7 @@ CONF;
 
 
         foreach ($data['roles'] as $k => &$role) {
-            if ($role['id'] == 1) {
+            if ($role['id'] === 1) {
                 $role['favorite'] = [];
                 $this->consoleLog('Add role Creator');
 
@@ -319,7 +319,7 @@ CONF;
                         function ($matches) use ($funcRoles) {
                             $roles = '';
                             foreach ($matches[1] as $role) {
-                                if ($roles != '') {
+                                if ($roles !== '') {
                                     $roles .= '; ';
                                 }
                                 $roles .= 'role: ' . $funcRoles($role);
@@ -362,7 +362,7 @@ CONF;
         if (empty($schemaRow['type'])) {
             throw new errorException('Тип загружаемой таблицы должен быть не пуст');
         }
-        if ($schemaRow['type'] == 'calcs' && empty($schemaRow['version'])) {
+        if ($schemaRow['type'] === 'calcs' && empty($schemaRow['version'])) {
             throw new errorException('Версия загружаемой расчетной таблицы в цикле должен быть не пуст');
         }
 
@@ -387,7 +387,7 @@ CONF;
 
                 $tableId = $selectTableRow['id'];
 
-                if ($selectTableRow['type'] != $schemaRow['type']) {
+                if ($selectTableRow['type'] !== $schemaRow['type']) {
                     throw new errorException('Тип загружаемой и обновляемой таблиц разный - ' . $selectTableRow['name']);
                 }
                 unset($schemaRow['settings']['tree_node_id']);
@@ -410,7 +410,7 @@ CONF;
                 $Log = $this->calcLog(['name' => "ADD TABLE {$schemaRow['name']}"]);
 
                 $treeNodeId = null;
-                if ($schemaRow['type'] == 'calcs') {
+                if ($schemaRow['type'] === 'calcs') {
                     if (empty($schemaRow['cycles_table'])) {
                         throw new errorException('Не задана таблица циклов для добавления расчетной таблицы ' . $schemaRow['name']);
                     }
@@ -500,7 +500,7 @@ CONF;
                 )->fetchAll();
                 $selectFields = array_combine(array_column($selectFields, 'name'), $selectFields);
 
-                if ($schemaRow['type'] == 'calcs') {
+                if ($schemaRow['type'] === 'calcs') {
                     if ($vers = $this->Totum->getModel('calcstable_versions')->executePrepared(
                         true,
                         ['table_name' => $schemaRow['name'], 'version' => $schemaRow['version']],
@@ -537,7 +537,7 @@ CONF;
 
         $this->caclsFilteredTables(
             function ($schemaRow) {
-                return $schemaRow['type'] != 'calcs';
+                return $schemaRow['type'] !== 'calcs';
             },
             $calcTableFields,
             $schemaRows,
@@ -548,7 +548,7 @@ CONF;
 
         $this->caclsFilteredTables(
             function ($schemaRow) {
-                return $schemaRow['type'] == 'calcs';
+                return $schemaRow['type'] === 'calcs';
             },
             $calcTableFields,
             $schemaRows,
@@ -723,7 +723,7 @@ CONF;
 
         /*Заполняем поля таблицы Список таблиц */
         foreach ($data['tables_settings']['settings'] as $setting) {
-            if (!in_array($setting['name'], ['type', 'name']) && $setting['category'] == 'column') {
+            if (!in_array($setting['name'], ['type', 'name']) && $setting['category'] === 'column') {
                 $this->Sql->exec('ALTER TABLE "tables" ADD COLUMN "' . $setting['name'] . '" JSONB NOT NULL DEFAULT \'{"v":null}\' ');
             }
             $insertSysField(1, "tables", $setting);
@@ -749,7 +749,7 @@ CONF;
                 unset($_t['settings']['top']);
                 $table->reCalculateFromOvers(['modify' => [$tablesIds[$_t['table']] => $_t['settings']]]);
                 foreach ($_t['fields'] as $setting) {
-                    if ($setting['category'] == 'column') {
+                    if ($setting['category'] === 'column') {
                         if (!$this->Sql->exec('SELECT column_name FROM information_schema.columns WHERE table_schema=\'' . $this->Config->getSchema() . '\' and table_name=\'' . $_t['table'] . '\' and column_name=\'' . $setting['name'] . '\'')) {
                             $this->Sql->exec('ALTER TABLE "' . $_t['table'] . '" ADD COLUMN "' . $setting['name'] . '" JSONB NOT NULL DEFAULT \'{"v":null}\' ');
                         }
@@ -865,7 +865,7 @@ CONF;
                                                 $keys[$key],
                                                 JSON_UNESCAPED_UNICODE
                                             );
-                                        } elseif ($key != 'id') {
+                                        } elseif ($key !== 'id') {
                                             $keys[$key] = strval($keys[$key]);
                                         }
                                     }
@@ -884,14 +884,14 @@ CONF;
                                 $rowId = null;
                                 /*Изменение*/
                                 if ($selectedRowId) {
-                                    if ($schemaRow['change'] != "add") {
+                                    if ($schemaRow['change'] !== "add") {
                                         if ($_tableModel->saveVars($selectedRowId, $row)) {
                                             $changedIds[] = $selectedRowId;
                                         }
                                         $rowId = $selectedRowId;
                                     }
                                 } /*Добавление*/
-                                elseif ($schemaRow['change'] != "edit") {
+                                elseif ($schemaRow['change'] !== "edit") {
                                     $rowId = $_tableModel->insertPrepared($row);
                                     if (key_exists('id', $row)) {
                                         $rowId = $row['id'];

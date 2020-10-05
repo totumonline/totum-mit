@@ -143,11 +143,11 @@ class Model
         return $this->executePreparedSimple(
             true,
             'WITH RECURSIVE cte_name (id) AS ( select
-                                                    ' . ($bfield == 'id' ? '(id):: text' : $bfield . '->>\'v\'') . ' as id
+                                                    ' . ($bfield === 'id' ? '(id):: text' : $bfield . '->>\'v\'') . ' as id
                                                   from ' . $this->table . '
                                                   where is_del = false AND (' . $parentField . ' ->> \'v\') :: text=?
                                                   UNION select
-                                                          ' . ($bfield == 'id' ? '(tp.id) :: text' : 'tp.' . $bfield . '->>\'v\'') . ' as id
+                                                          ' . ($bfield === 'id' ? '(tp.id) :: text' : 'tp.' . $bfield . '->>\'v\'') . ' as id
                                                         from ' . $this->table . ' tp
                                                           JOIN cte_name c ON (tp.' . $parentField . ' ->> \'v\') :: text = c.id AND
                                                                              tp.is_del = false ) SELECT id
@@ -184,7 +184,7 @@ class Model
 
     protected function getPreprendSelectFields($fields)
     {
-        if (!$this->isServiceTable && $fields != '*') {
+        if (!$this->isServiceTable && $fields !== '*') {
             $fields = explode(',', $fields);
             foreach ($fields as &$f) {
                 if (!strpos($f, ' as ')) {
@@ -461,7 +461,7 @@ class Model
         }
 
         if ($r = $this->executePrepared(true, $where, $field, $order_by, $limit, $group_by)) {
-            if ($limit == '0,1') {
+            if ($limit === '0,1') {
                 return $r->fetchColumn();
             } else {
                 return $r->fetchAll(PDO::FETCH_COLUMN, 0);
@@ -578,7 +578,7 @@ class Model
 
     public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true)
     {
-        if ($returning == 'idFieldName') {
+        if ($returning === 'idFieldName') {
             $returning = $this->idFieldName;
         }
         if ($vars) {

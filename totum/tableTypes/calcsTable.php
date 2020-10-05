@@ -45,7 +45,7 @@ class calcsTable extends JsonTables
         $updateWhere = [
             'cycle_id' => $this->Cycle->getId()
         ];
-        if ($this->getTableRow()['actual'] != 'disable') {
+        if ($this->getTableRow()['actual'] !== 'disable') {
             $updateWhere['updated'] = $this->savedUpdated;
         }
 
@@ -124,7 +124,7 @@ class calcsTable extends JsonTables
 
     protected function addInSourceTables($SourceTableRow)
     {
-        if ($SourceTableRow['id'] != $this->tableRow['id']) {
+        if ($SourceTableRow['id'] !== $this->tableRow['id']) {
             $this->sourceTables[$SourceTableRow['id']] = true;
         }
     }
@@ -138,7 +138,7 @@ class calcsTable extends JsonTables
                 $this->loadedTbl = $this->savedTbl = $this->tbl;
 
                 $this->updated = $this->dataRow['updated'];
-            } elseif ($this->tableRow['tree_node_id'] == $this->Cycle->getCyclesTableId()) {
+            } elseif ((int)$this->tableRow['tree_node_id'] === $this->Cycle->getCyclesTableId()) {
                 $this->createCalcsTable();
                 $this->loadDataRow();
             } else {
@@ -175,7 +175,7 @@ class calcsTable extends JsonTables
         if ($receiverTables) {
             $Log = $this->calcLog(['name' => 'UPDATE RECEIVER TABLES']);
             foreach ($receiverTables as $receiverTableId => $aTable) {
-                if ($updateds[$receiverTableId] == $aTable->getSavedUpdated()) {
+                if ($updateds[$receiverTableId] === $aTable->getSavedUpdated()) {
                     $aTable->reCalculateFromOvers([], $this->CalculateLog, $level);
                 }
             }

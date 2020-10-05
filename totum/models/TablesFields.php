@@ -42,7 +42,7 @@ class TablesFields extends Model
                         throw new errorException('Нельзя удалять системные поля');
                     }
                     $tableRow = $this->Totum->getTableRow($fieldRow['table_id']);
-                    if ($tableRow['type'] != 'calcs') {
+                    if ($tableRow['type'] !== 'calcs') {
                         $this->Totum->getTable($tableRow, null)->deleteField($fieldRow);
                     }
 
@@ -74,7 +74,7 @@ class TablesFields extends Model
             }
             $tableRow = $this->Totum->getTableRow($oldRow['table_name']['v']);
 
-            if ($oldRow['category']['v'] == 'column' && Totum::isRealTable($tableRow)) {
+            if ($oldRow['category']['v'] === 'column' && Totum::isRealTable($tableRow)) {
                 $this->Sql->exec("ALTER TABLE {$oldRow['table_name']['v']} RENAME {$oldRow['name']['v']} TO {$name}");
             }
         }
@@ -82,11 +82,11 @@ class TablesFields extends Model
         $r = parent::update($params, $where);
 
         $table = $this->Totum->getTableRow($oldRow['table_id']['v']);
-        if ($table && $table['type'] != 'tmp' && $table['type'] != 'calcs') {
+        if ($table && $table['type'] !== 'tmp' && $table['type'] !== 'calcs') {
             $Table = $this->Totum->getTable($table);
             if (!empty($params['category'])) {
                 $newCategory = json_decode($params['category'], true)['v'];
-                if (!empty($params['category']) && $newCategory != $oldRow['category']['v']) {
+                if (!empty($params['category']) && $newCategory !== $oldRow['category']['v']) {
                     if ($oldRow['category']['v'] === 'column') {
                         $clearOldValue = array_map(
                             function ($v) {
@@ -130,7 +130,7 @@ class TablesFields extends Model
         if (!$decodedVars['table_id']) {
             throw new errorException('Выберите таблицу');
         }
-        if ($decodedVars['name'] == 'new_field') {
+        if ($decodedVars['name'] === 'new_field') {
             throw new errorException('Name поля не может быть new_field');
         }
         if (in_array($decodedVars['name'], Model::serviceFields)) {
@@ -205,7 +205,7 @@ class TablesFields extends Model
         $tableRow = $this->Totum->getTableRow($tableRowId);
 
 
-        if ($category == 'filter') {
+        if ($category === 'filter') {
             if (!in_array($tableRow['type'], ['calcs', 'globcalcs'])) {
 
                 //Для реальных таблиц проставить индексы через изменение таблицы "Список таблиц"
@@ -213,11 +213,11 @@ class TablesFields extends Model
                 $oldColumnName = $oldDataSrc['column']["Val"] ?? '';
                 $newColumnName = $newData['column']["Val"] ?? '';
 
-                if ($newColumnName != $oldColumnName) {
+                if ($newColumnName !== $oldColumnName) {
                     $fields = $this->Totum->getTable($tableRowId)->getFields();
                     $newIndexes = $tableRow['indexes'];
-                    if ($newColumnName != '') {
-                        if (!empty($fields[$newColumnName]) && $fields[$newColumnName]['category'] == 'column') {
+                    if (!empty($newColumnName)) {
+                        if (!empty($fields[$newColumnName]) && $fields[$newColumnName]['category'] === 'column') {
                             if (!in_array($newColumnName, $newIndexes)) {
                                 $newIndexes[] = $newColumnName;
                             }
@@ -248,14 +248,14 @@ class TablesFields extends Model
                 }
             }
         }
-        if ($newData['type']['Val'] == 'text') {
+        if ($newData['type']['Val'] === 'text') {
             $newData['viewTextMaxLength']['Val'] = (int)$newData['viewTextMaxLength']['Val'];
             if ($newData['viewTextMaxLength']['Val'] > 500) {
                 throw new errorException('Ограничение размера видимости текста в веб - не больше 500 символов');
             }
         }
 
-        if ($category == 'footer' && !is_subclass_of(Totum::getTableClass($tableRow), JsonTables::class)) {
+        if ($category === 'footer' && !is_subclass_of(Totum::getTableClass($tableRow), JsonTables::class)) {
             throw new errorException('Нельзя создать поле [[футера]] [[не для рассчетных]] таблиц');
         }
     }

@@ -181,7 +181,7 @@ class Actions
                 echo "\n";
                 flush();
 
-                if (connection_status() != CONNECTION_NORMAL) {
+                if (connection_status() !== CONNECTION_NORMAL) {
                     die;
                 }
                 if ($result = $getNotification()) {

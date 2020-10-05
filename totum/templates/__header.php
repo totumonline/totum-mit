@@ -14,7 +14,7 @@ if (is_null($isCreatorView ?? null)) {
                     ?>
                     <li class="<?= $branch['active'] ?? false ? 'active' : '' ?>">
                         <a href="<?= $branch['href'] ?>">
-                            <?= htmlspecialchars($branch['title']) ?>
+                            <?= $branch['title'] ?>
                         </a></li>
                     <?php
                 }
@@ -44,7 +44,7 @@ if (is_null($isCreatorView ?? null)) {
                 </li>
 
                 <li class="navbar-text"
-                    id="UserFio"><?= htmlspecialchars($UserName) ?></li>
+                    id="UserFio"><?= $UserName ?></li>
                 <li><a href="/Auth/logout/">Выход</a></li>
             </ul>
             <?php

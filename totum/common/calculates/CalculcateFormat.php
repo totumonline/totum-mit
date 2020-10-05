@@ -300,10 +300,10 @@ class CalculcateFormat extends Calculate
             if ($conditionTest) {
                 foreach (static::tableformats as $format) {
                     if (key_exists($format, $params)) {
-                        if ($format == 'fieldtitle') {
+                        if ($format === 'fieldtitle') {
                             foreach ($params[$format] as $fieldparam) {
                                 $fieldparam = $this->getCodes($fieldparam);
-                                if (count($fieldparam) != 3 || $fieldparam['comparison'] != '=') {
+                                if (count($fieldparam) !== 3 || $fieldparam['comparison'] !== '=') {
                                     throw new errorException('Неверное оформление параметра fieldtitle');
                                 }
                                 $fieldname = $this->__getValue($fieldparam[0]);

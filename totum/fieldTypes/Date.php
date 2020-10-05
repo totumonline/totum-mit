@@ -48,7 +48,7 @@ class Date extends Field
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
-        if ($viewType == 'print'){
+        if ($viewType === 'print'){
             $date = date_create($valArray['v']);
 
             if(!empty($this->data['dateFormat'])){

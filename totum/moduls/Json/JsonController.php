@@ -131,7 +131,7 @@ class JsonController extends Controller
             $this->Totum->transactionStart();
             foreach (['import', 'recalculate', 'remotes', 'export'] as $action) {
                 if (array_key_exists($action, $this->arrayIn)) {
-                    if (!$this->Table && $action != 'remotes') {
+                    if (!$this->Table && $action !== 'remotes') {
                         $this->throwError(14);
                     }
                     $this->{'json' . $action}();
@@ -172,7 +172,7 @@ class JsonController extends Controller
                 if (!is_array($where) || count(array_intersect_key(
                         $where,
                         ['field' => 1, 'operator' => '', 'value' => '']
-                    )) != 3) {
+                    )) !== 3) {
                     $this->throwError(9);
                 }
                 $params[] = $where;
@@ -320,7 +320,7 @@ class JsonController extends Controller
                     if (count(array_intersect_key(
                             $_where,
                             array_flip(['field', 'operator', 'value'])
-                        )) != 3) {
+                        )) !== 3) {
                         static::throwError(13);
                     }
                     $where[] = $_where;
@@ -352,7 +352,7 @@ class JsonController extends Controller
 
         foreach (static::$translates as $path => $category) {
             if ($itemsArray = ($this->arrayIn['import'][$path] ?? [])) {
-                if ($path == 'rows') {
+                if ($path === 'rows') {
                     if (!empty($itemsArray['remove'])) {
                         foreach ($itemsArray['remove'] as $id) {
                             $import['remove'][] = (int)$id;
@@ -518,7 +518,7 @@ class JsonController extends Controller
     protected function checkTable($isRequestForWrite)
     {
         try {
-            if ($this->inModuleUri == '') {
+            if ($this->inModuleUri === '') {
                 return;
             } elseif (preg_match('/^(\d+)\/(\d+)\/(\d+)$/', $this->inModuleUri, $match)) {
                 $cyclesTableId = $match[1];
@@ -589,7 +589,7 @@ class JsonController extends Controller
         } else {
             if ($this->Table) {
                 $this->arrayOut['updated'] = json_decode($this->Table->getLastUpdated(), true)['dt'];
-                if ($this->tableUpdatedOnLoad != $this->Table->getLastUpdated()) {
+                if ($this->tableUpdatedOnLoad !== $this->Table->getLastUpdated()) {
                     $this->arrayOut['changed'] = true;
                     if (!empty($this->addedIds)) {
                         $this->arrayOut['added_ids'] = array_unique($this->addedIds);

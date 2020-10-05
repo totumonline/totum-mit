@@ -51,7 +51,7 @@ class Select extends Field
         if (!empty($checkedVals)) {
             if (empty($this->data['multiple'])) {
                 $mm = $checkedVals;
-                if (array_key_exists($mm, $list) && $list[$mm][1] == 0) {
+                if (array_key_exists($mm, $list) && $list[$mm][1] === 0) {
                     $v = $list[$mm];
                     unset($list[$mm]);
                     $list = [$mm => $v] + $list;
@@ -59,7 +59,7 @@ class Select extends Field
                 }
             } else {
                 foreach ((array)$checkedVals as $mm) {
-                    if (array_key_exists($mm, $list) && $list[$mm][1] == 0) {
+                    if (array_key_exists($mm, $list) && $list[$mm][1] === 0) {
                         $v = $list[$mm];
                         unset($list[$mm]);
                         $list = [$mm => $v] + $list;
@@ -84,7 +84,7 @@ class Select extends Field
         };
 
         foreach ($list as $k => $v) {
-            if (($v[1] ?? 0) == 1) {
+            if (($v[1] ?? 0) === 1) {
                 unset($list[$k]);
             }
         }
@@ -263,7 +263,7 @@ class Select extends Field
             if (is_array($list)) {
                 if (!empty($this->data['multiple'])) {
                     $return = '';
-                    if ($val != $this->data['errorText']) {
+                    if ($val !== $this->data['errorText']) {
                         foreach ($val ?? [] as $v) {
                             if (!empty($return)) {
                                 $return .= ', ';
@@ -487,7 +487,7 @@ class Select extends Field
             foreach ($fVar['v'] as $v) {
                 $value = $paramInXml->addChild('value', $v);
                 $value->addAttribute('title', $v_[$v][0]);
-                $value->addAttribute('correct', $v_[$v][0] == 1 ? '0' : '1');
+                $value->addAttribute('correct', $v_[$v][0] === 1 ? '0' : '1');
             }
         } else {
             if (is_array($fVar['v'])) {
@@ -529,7 +529,7 @@ class Select extends Field
                 if (is_array($list)) {
                     if (!empty($this->data['multiple'])) {
                         $v_ = [];
-                        if ($v != $this->data['errorText'] && (is_null($v) || is_array($v))) {
+                        if ($v !== $this->data['errorText'] && (is_null($v) || is_array($v))) {
                             foreach (($v ?? []) as $_v) {
                                 if (empty($list[$_v])) {
                                     $v_[] = [$_v, 1, $_v];
@@ -604,7 +604,7 @@ class Select extends Field
                 } else {
                     if ($this->data['multiple']) {
                         if ($valArray['v']) {
-                            if (count($valArray['v']) == 1) {
+                            if (count($valArray['v']) === 1) {
                                 $valArray['v'] = $func(
                                     $valArray['v'][count($valArray['v']) - 1],
                                     $valArray['v_'][count($valArray['v_']) - 1]
@@ -640,7 +640,7 @@ class Select extends Field
 
             case 'web':
                 if (array_key_exists('c', $valArray)) {
-                    if ($valArray['c'] != $valArray['v']) {
+                    if ($valArray['c'] !== $valArray['v']) {
                         $valArrayTmp = $valArray;
                         $valArrayTmp['v'] = $valArrayTmp['c'];
 
@@ -662,7 +662,7 @@ class Select extends Field
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
-        if (($this->data['multiple'] ?? false) == true && !is_array($val)) {
+        if (($this->data['multiple'] ?? false) === true && !is_array($val)) {
             if (is_numeric($val)) {
                 $val = [strval($val)];
             } elseif (is_null($val)) {
@@ -683,7 +683,7 @@ class Select extends Field
             }
         } else {
             if (is_array($val)) {
-                if (count($val) == 0) {
+                if (count($val) === 0) {
                     $val = null;
                 } else {
                     $val = strval($val[0]);
@@ -693,7 +693,7 @@ class Select extends Field
             }
         }
 
-        if ($val === "" && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] == true)) {
+        if ($val === "" && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] === true)) {
             $val = null;
         }
     }

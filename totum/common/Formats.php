@@ -69,7 +69,7 @@ class Formats
     {
         $ostDel = $number % 10;
         if ($number > 5 && $number < 21 || in_array($ostDel, [5, 6, 7, 8, 9, 0])) return $ImRodRoded[1];
-        elseif ($ostDel == 1) return $ImRodRoded[0];
+        elseif ($ostDel === 1) return $ImRodRoded[0];
         elseif (in_array($ostDel, [2, 3, 4])) return $ImRodRoded[2];
     }
 
@@ -127,7 +127,7 @@ class Formats
         if ($n > 10 && $n < 20) return $f5;
         $n = $n % 10;
         if ($n > 1 && $n < 5) return $f2;
-        if ($n == 1) return $f1;
+        if ($n === 1) return $f1;
         return $f5;
     }
     static function translit($s)

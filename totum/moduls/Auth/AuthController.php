@@ -30,7 +30,7 @@ class AuthController extends interfaceController
         $Totum = new Totum($this->Config);
 
         $this->__addAnswerVar('with_pass_recover', $this->Config->getSettings('with_pass_recover'));
-        $this->__addAnswerVar('schema_name', $this->Config->getSettings('totum_name'));
+        $this->__addAnswerVar('schema_name', $this->Config->getSettings('totum_name'), true);
 
         if (!empty($post)) {
             $SendLetter = function ($email, $login, $pass) {
@@ -84,7 +84,7 @@ class AuthController extends interfaceController
                 }
 
                 /*блокируем возможность авторизоваться под сервисными логинами*/
-                if ($post['login'] == 'cron' || $post['login'] == 'service') {
+                if ($post['login'] === 'cron' || $post['login'] === 'service') {
                     $userRow = false;
                 } elseif (strpos($post['login'], '@') !== false) {
                     $userRow = User::init($this->Config)->get(['email' => strtolower($post['login']), 'is_del' => false, 'interface' => 'web']);
@@ -114,7 +114,7 @@ class AuthController extends interfaceController
                             if (($userRow = $getUserRow()) && json_decode(
                                 $userRow['pass'],
                                 true
-                            )['v'] == md5($post['pass'])) {
+                            )['v'] === md5($post['pass'])) {
                                 $status = 0;
                             } else {
                                 $count = $this->Config->getModel('auth_log')->getField(

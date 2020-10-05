@@ -168,7 +168,7 @@ class Cycle
             $mainFieldName = $CyclesTableRow['main_field'];
         }
 
-        if ($mainFieldName != 'id') {
+        if ($mainFieldName !== 'id') {
             $CyclesTable = $this->Totum->getTable($CyclesTableRow);
             $fData = $CyclesTable->getFields()[$mainFieldName];
             if (in_array($fData['type'], ['select', 'tree'])) {
@@ -199,7 +199,7 @@ class Cycle
         if (is_null($this->cyclesTableRow)) {
             if ($this->cycleId && $this->cyclesTableId) {
                 $cycleTableRow = $this->Totum->getTableRow($this->cyclesTableId);
-                if (!$cycleTableRow || $cycleTableRow['type'] != 'cycles') {
+                if (!$cycleTableRow || $cycleTableRow['type'] !== 'cycles') {
                     throw new errorException('Таблица циклов не найдена');
                 }
                 if ($row = $this->Totum->getModel($cycleTableRow['name'])->get(['id' => $this->cycleId, 'is_del' => false])) {
@@ -230,10 +230,12 @@ class Cycle
         }
 
         if ($tableRow['type'] !== 'calcs') {
-            errorException::criticalException('Через Cycle создаются только расчетные таблицы цикла', $this->getCyclesTable());
+            errorException::criticalException('Через Cycle создаются только расчетные таблицы цикла',
+                $this->getCyclesTable());
         }
-        if ($tableRow['tree_node_id'] != $this->getCyclesTableId()) {
-            errorException::criticalException('Ошибка обращения к таблице не своей циклической таблицы', $this->getCyclesTable());
+        if ((int)$tableRow['tree_node_id'] !== $this->getCyclesTableId()) {
+            errorException::criticalException('Ошибка обращения к таблице не своей циклической таблицы',
+                $this->getCyclesTable());
         }
 
         list($tableRow['__version'], $tableRow['__auto_recalc']) = $this->getVersionForTable($tableRow['name']);
@@ -306,7 +308,7 @@ class Cycle
 
         $cyclesTable = $this->Totum->getTable($this->cyclesTableId);
         foreach ($tables as $t) {
-            if ($tablesUpdates[$t->getTableRow()["id"]] == $t->getLastUpdated()) {
+            if ($tablesUpdates[$t->getTableRow()["id"]] === $t->getLastUpdated()) {
                 /** @var calcsTable $t */
                 $t->reCalculateFromOvers(
                     ['isTableAdding' => $isAdding],

@@ -9,6 +9,6 @@ $settings['h_og_image'] = empty($settings['h_og_image'][0]['file']) ? 'imgs/hand
 <title><?= (empty($title) ? '' : $title . ' — ') . $settings['h_title'] ?></title>
 <meta property="og:image" content="<?= $host . $settings['h_og_image'] ?>"/>
 <meta property="og:url" content="<?= $host ?>"/>
-<meta property="og:title" content="<?= htmlspecialchars($settings['h_og_title']) ?>"/>
+<meta property="og:title" content="<?= ($settings['h_og_title']) ?>"/>
 <meta property="og:description"
-      content="<?= htmlspecialchars($settings['h_og_description']) ?>"/>
+      content="<?= ($settings['h_og_description']) ?>"/>

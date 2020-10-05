@@ -21,11 +21,12 @@ class AdminTableActions extends WriteTableActions
         if (!$this->Totum->getTableRow('ttm__charts'))
             throw new errorException('Таблица графиков не надена');
         $result['chartTypes'] = [];
-        foreach ($this->Totum->getModel('ttm__charts')->executePrepared(true, [],
-                implode(', ', ['type', 'title', 'default_options', 'format'])) as $row){
-            $row['default_options']=json_decode($row['default_options'], true);
-            $row['format']=json_decode($row['format'], true);
-            $result['chartTypes'][]=$row;
+        foreach ($this->Totum->getModel('ttm__charts')->executePrepared(true,
+            [],
+            implode(', ', ['type', 'title', 'default_options', 'format'])) as $row) {
+            $row['default_options'] = json_decode($row['default_options'], true);
+            $row['format'] = json_decode($row['format'], true);
+            $result['chartTypes'][] = $row;
         }
         return $result;
     }
@@ -41,10 +42,10 @@ class AdminTableActions extends WriteTableActions
             $tFields = [];
             $fieldsForSobaka = [];
             foreach ($fields as $v) {
-                if ($v['table_id'] == $tRow['id']) {
+                if ((int)$v['table_id'] === $tRow['id']) {
                     $tFields[$v['name']] = $v['title'];
                     if (!in_array($v['category'], ['filter', 'column']) && json_decode($v['data'],
-                            true)['type'] != 'button') {
+                            true)['type'] !== 'button') {
                         $fieldsForSobaka[] = $v['name'];
                     }
                 }

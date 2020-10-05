@@ -101,9 +101,9 @@ class tmpTable extends JsonTables
                 if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                     $this->changeIds['deleted'][$id] = null;
                 } elseif (!empty($oldRow) && empty($row['is_del'])) {
-                    if ($oldRow != $row) {
+                    if ($oldRow !== $row) {
                         foreach ($row as $k => $v) {
-                            if (($oldRow[$k] ?? null) != $v) {//Здесь проставляется changed для web (только ли это в web нужно?)
+                            if (($oldRow[$k] ?? null) !== $v) {//Здесь проставляется changed для web (только ли это в web нужно?)
                                 $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                 $this->changeIds['changed'][$id][$k] = null;
                             }

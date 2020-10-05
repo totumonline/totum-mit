@@ -22,7 +22,7 @@ class Password extends Field
     }
     function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
-        if ($viewType != 'edit') {
+        if ($viewType !== 'edit') {
             $valArray['v'] = '';
         }
     }

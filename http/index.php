@@ -40,6 +40,6 @@ if (class_exists($controllerClass)) {
 
 
     die;
-} else die('Не найдено ' . $controllerClass);
+} else die('Не найдено ' . htmlspecialchars($controllerClass));
 
 ?>

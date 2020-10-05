@@ -76,7 +76,7 @@ abstract class ConfParent
         $this->mktimeStart = microtime(true);
         set_time_limit(static::$timeLimit);
         $this->logLevels =
-            $env == self::ENV_LEVELS["production"] ? ['critical', 'emergency']
+            $env === self::ENV_LEVELS["production"] ? ['critical', 'emergency']
                 : ['error', 'debug', 'alert', 'critical', 'emergency', 'info', 'notice', 'warning'];
 
         $this->baseDir = $this->getBaseDir();

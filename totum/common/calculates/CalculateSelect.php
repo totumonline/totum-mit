@@ -131,7 +131,7 @@ class CalculateSelect extends Calculate
                 $parentList = $ParentField->calculateSelectList($v, $rows[0], $sourceTable);
                 unset($parentList['previewdata']);
 
-                if ($ParentField->getData('type') == 'tree') {
+                if ($ParentField->getData('type') === 'tree') {
                     foreach ($parentList as $val => $_r) {
                         $treeRows[] = ['value' => $treeListPrep . $val, 'title' => $_r[0], 'is_del' => $_r['1'], 'parent' => $_r[3] ? $treeListPrep . $_r[3] : null];
                     }

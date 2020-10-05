@@ -18,7 +18,7 @@ class Chart extends NoValueField
     {
         parent::__construct($fieldData, $table);
 
-        if (!empty($this->data['codeChart']) && $this->data['codeChart'] != '=:') {
+        if (!empty($this->data['codeChart']) && $this->data['codeChart'] !== '=:') {
             $this->chartFormat = new Calculate($this->data['codeChart']);
         }
     }
@@ -37,7 +37,7 @@ class Chart extends NoValueField
     {
         parent::addFormat($valArray, $row, $tbl);
         if ($this->chartFormat) {
-            $Log=$this->table->calcLog(['field' => $this->data['name'], 'cType' => 'format', 'itemId' => $row['id'] ?? null]);
+            $Log = $this->table->calcLog(['field' => $this->data['name'], 'cType' => 'format', 'itemId' => $row['id'] ?? null]);
             if ($format = $this->chartFormat->exec($this->data, [], $row, $row, $tbl, $tbl, $this->table, [])) {
                 $valArray['ch'] = $format;
             }

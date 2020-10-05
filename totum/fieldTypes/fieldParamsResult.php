@@ -40,10 +40,10 @@ class fieldParamsResult extends Field
         return $val;
     }
 
-    /*Легаси для старых баз*/
+    /*TODO check and remove Легаси для старых баз*/
     public function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
     {
-        if (!empty($oldRow['id']) && $oldRow['id'] == 4) {
+        if (!empty($oldRow['id']) && $oldRow['id'] === 4) {
             $newVal = ['v' => ["type" => "fieldParamsResult", "showInWeb" => false]];
             return;
         }

@@ -50,7 +50,7 @@ class Table extends Model
 
         $id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt);
         if ($id && ($row = $this->Totum->getTableRow($id))) {
-            if ($row['type'] == 'calcs') {
+            if ($row['type'] === 'calcs') {
                 calcsTable::__createTable($row['name'], $this->Totum);
             } else {
                 $table = $this->Totum->getTable($row);
@@ -177,7 +177,7 @@ class Table extends Model
                 $v = $v['v'];
             }
         }
-        if ($row['type'] == 'calcs') {
+        if ($row['type'] === 'calcs') {
             $newVersion = $baseVersion = $this->Totum->getNamedModel(CalcsTablesVersions::class)->executePrepared(
                 true,
                 ['table_name' => $baseRow['name']['v'], 'is_default' => 'true'],

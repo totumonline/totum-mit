@@ -28,7 +28,8 @@
   "require-dev": {
     "phpunit/phpunit": "^5.7",
     "friendsofphp/php-cs-fixer": "^2.16",
-    "totumonline/totum-front": "dev-dev"
+    "totumonline/totum-front": "dev-dev",
+    "pheromone/phpcs-security-audit": "dev-master"
   },
   "autoload": {
     "psr-4": {

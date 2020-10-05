@@ -23,7 +23,7 @@ use totum\config\Conf;
     </style>
 
     <div style="text-align: center; font-size: 30px; padding-bottom: 2vh;padding-top: 2vh;"
-         class="login-brand"><?= htmlspecialchars($schema_name) ?> </div>
+         class="login-brand"><?= $schema_name ?> </div>
     <div class="center-block"
          style="width: 300px; ">
         <form method="post"

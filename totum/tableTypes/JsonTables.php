@@ -9,16 +9,11 @@
 namespace totum\tableTypes;
 
 use totum\common\calculates\Calculate;
-use totum\common\Controller;
 use totum\common\errorException;
 use totum\common\Field;
-use totum\common\logs\Log;
 use totum\common\Model;
-use totum\common\Cycle;
-use totum\common\sql\Sql;
 use totum\common\Totum;
 use totum\fieldTypes\File;
-use totum\models\Table;
 
 abstract class JsonTables extends aTable
 {
@@ -116,7 +111,7 @@ abstract class JsonTables extends aTable
             $children = [];
             //DOTO упростить функцию - выкинуть лишний перебор
             foreach ($this->tbl['rows'] as $row) {
-                if ($bfield == 'id') {
+                if ($bfield === 'id') {
                     $bval = (string)$row['id'];
                 } else {
                     $bval = (string)$row[$bfield]['v'];
@@ -178,9 +173,10 @@ abstract class JsonTables extends aTable
                     if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                         $this->changeIds['deleted'][$id] = null;
                     } elseif (!empty($oldRow) && empty($row['is_del'])) {
-                        if ($oldRow != $row) {
+                        //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
+                        if (Calculate::compare('==', $oldRow, $row)) {
                             foreach ($row as $k => $v) {
-                                if ($k != 'n' && ($oldRow[$k] ?? null) != $v) {//Здесь проставляется changed для web (только ли это в web нужно?)
+                                if ($k !== 'n' && ($oldRow[$k] ?? null) !== $v) {
                                     $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                     $this->changeIds['changed'][$id][$k] = null;
                                 }
@@ -251,14 +247,14 @@ abstract class JsonTables extends aTable
 
     protected function _copyTableData(&$table, $settings)
     {
-        if ($settings['copy_params'] != 'none' && $settings['copy_data'] != 'none') {
+        if ($settings['copy_params'] !== 'none' && $settings['copy_data'] !== 'none') {
             $table['tbl'] = $this->tbl;
-            if ($settings['copy_params'] == 'none') {
+            if ($settings['copy_params'] === 'none') {
                 unset($table['tbl']['params']);
             }
 
 
-            if ($settings['copy_data'] == 'none') {
+            if ($settings['copy_data'] === 'none') {
                 unset($table['tbl']['rows']);
             } else {
                 foreach ($table['tbl']['rows'] as $k => $row) {
@@ -266,7 +262,7 @@ abstract class JsonTables extends aTable
                         unset($table['tbl']['rows'][$k]);
                     }
                 }
-                if ($settings['copy_data'] == 'ids') {
+                if ($settings['copy_data'] === 'ids') {
                     $funcIsInInterval = $this->getIntervalsfunction($settings['intervals']);
                     foreach ($table['tbl']['rows'] as $k => $row) {
                         if (!$funcIsInInterval($row['id'])) {
@@ -310,7 +306,7 @@ abstract class JsonTables extends aTable
         /***insert field list***/
         $insertList = [];
         if ($insertField = $this->fields['insert'] ?? null) {
-            if ($insertField['category'] == 'column' && !empty($insertField['code'])) {
+            if ($insertField['category'] === 'column' && !empty($insertField['code'])) {
                 $insertCalcs = new Calculate($insertField['code']);
                 $insertList = $insertCalcs->exec(
                     $insertField,
@@ -344,7 +340,7 @@ abstract class JsonTables extends aTable
                 if (count(array_unique(
                     $insertList,
                     $type
-                )) != count($insertList)) {
+                )) !== count($insertList)) {
                     throw new errorException('Поле [[insert]] должно возвращать list с уникальными значениями - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
                 }
             } else {
@@ -399,7 +395,7 @@ abstract class JsonTables extends aTable
                 }
 
                 $aLogDelete = function ($id) use ($channel) {
-                    if ($this->tableRow['type'] != 'tmp'
+                    if ($this->tableRow['type'] !== 'tmp'
                         && (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog)
                     ) {
                         $this->Totum->totumActionsLogger()->delete(
@@ -413,7 +409,7 @@ abstract class JsonTables extends aTable
 
                 switch ($this->tableRow['deleting']) {
                     case 'none':
-                        if ($channel != 'inner') {
+                        if ($channel !== 'inner') {
                             throw new errorException('В таблице запрещено удаление');
                         }
                     // no break
@@ -471,7 +467,7 @@ abstract class JsonTables extends aTable
                         $modify[$newRow['id']][$field['name']] = $row[$field['name']]['v'];
                         continue;
                     }
-                    if (is_null($field['default']) && empty($field['code']) && $field['type'] != "comments") {
+                    if (is_null($field['default']) && empty($field['code']) && $field['type'] !== "comments") {
                         $modify[$newRow['id']][$field['name']] = $row[$field['name']]['v'];
                     }
                 }
@@ -500,7 +496,7 @@ abstract class JsonTables extends aTable
                         throw new errorException('id ' . $id . ' в таблице уже существует. Нельзя добавить повторно');
                     }
                 } else {
-                    if ($isCheck && $channel == 'web') {
+                    if ($isCheck && $channel === 'web') {
                         return '';
                     }
                     $id = ++$this->tbl['nextId'];
@@ -511,7 +507,7 @@ abstract class JsonTables extends aTable
             if ($this->tableRow['with_order_field']
                 &&
                 (!is_null($addAfter) ||
-                    ($channel != 'inner' && ($this->issetActiveFilters($channel) || $this->webIdInterval) &&
+                    ($channel !== 'inner' && ($this->issetActiveFilters($channel) || $this->webIdInterval) &&
                         ($filteredIds = $this->loadFilteredRows($channel, $this->webIdInterval))))) {
                 if (!is_null($addAfter)) {
                     $after = $addAfter;
@@ -541,7 +537,7 @@ abstract class JsonTables extends aTable
                     $this->setIsTableDataChanged(true);
                 }
             }
-            if ($channel == 'web' && $isCheck == true) {
+            if ($channel === 'web' && $isCheck === true) {
                 $this->tbl['insertedId'] = $newRow['id'];
             }
             $this->changeIds['added'][$newRow['id']] = null;
@@ -1038,7 +1034,7 @@ abstract class JsonTables extends aTable
         foreach ($editData as $k => $v) {
             if (is_array($v) && array_key_exists('v', $v)) {
                 if (array_key_exists('h', $v)) {
-                    if ($v['h'] == false) {
+                    if ($v['h'] === false) {
                         $dataSetToDefault[$k] = true;
                         continue;
                     }
@@ -1062,14 +1058,14 @@ abstract class JsonTables extends aTable
             return (in_array(
                 $field,
                 Model::serviceFields
-            ) || $this->fields[$field]['type'] == 'numeric' ? 'numeric' : 'text');
+            ) || $this->fields[$field]['type'] === 'numeric' ? 'numeric' : 'text');
         };
 
         if (array_key_exists('order', $params)) {
             $orders = [];
             foreach ($params['order'] as $of) {
                 $field = $of['field'];
-                $AscDesc = $of['ad'] == 'desc' ? -1 : 1;
+                $AscDesc = $of['ad'] === 'desc' ? -1 : 1;
 
                 if (!array_key_exists($field, $this->sortedFields['column']) && !Model::isServiceField($field)) {
                     throw new errorException('Поля [[' . $field . ']] в строчной части таблицы [[' . $this->tableRow['name'] . ']] не существует');
@@ -1084,10 +1080,10 @@ abstract class JsonTables extends aTable
                         $row1[$k] = $row1[$k]['v'];
                         $row2[$k] = $row2[$k]['v'];
                     }
-                    if ($row1[$k] != $row2[$k]) {
+                    if ($row1[$k] !== $row2[$k]) {
                         $o = $ord['acsDesc'] * (Calculate::compare('>', $row1[$k], $row2[$k]) ? 1 : -1);
                     }
-                    if ($o != 0) {
+                    if ($o !== 0) {
                         return $o;
                     }
                 }
@@ -1141,9 +1137,9 @@ abstract class JsonTables extends aTable
         $isDelInFields = in_array(
             'is_del',
             $params['field']
-        ) || (count($where) == 1 && $where[0]['field'] == 'id' && $where[0]['operator'] == '=');
+        ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
 
-        if ($returnType == 'field' || $returnType == 'row') {
+        if ($returnType === 'field' || $returnType === 'row') {
             if (isset($fOrdering)) {
                 usort($array, $fOrdering);
             }
@@ -1199,7 +1195,7 @@ abstract class JsonTables extends aTable
 
             $list = [];
             foreach ($array as $row) {
-                if ($returnType != 'rows' && !key_exists($params['field'][0], $row)) {
+                if ($returnType !== 'rows' && !key_exists($params['field'][0], $row)) {
                     continue;
                 }
                 if (!empty($row['is_del'])) {
@@ -1227,8 +1223,8 @@ abstract class JsonTables extends aTable
                     continue;
                 }
 
-                if ($returnType == 'rows') {
-                    if ($params['field'] == ['__all__']) {
+                if ($returnType === 'rows') {
+                    if ($params['field'] === ['__all__']) {
                         $list[] = $row;
                     } else {
                         $return = [];
@@ -1257,7 +1253,7 @@ abstract class JsonTables extends aTable
                     $list[$row['id']] = array_merge($row, ['_VAL' => $val]);
                 }
 
-                if ($limit !== "" && count($list) == $limit) {
+                if ($limit !== "" && (string)count($list) === $limit) {
                     break;
                 }
             }
@@ -1271,7 +1267,7 @@ abstract class JsonTables extends aTable
             switch ($returnType) {
                 case 'list':
                 case 'rows':
-                    if ($params['field'] == ['__all__']) {
+                    if ($params['field'] === ['__all__']) {
                         return $list;
                     }
 

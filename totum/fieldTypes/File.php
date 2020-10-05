@@ -25,18 +25,6 @@ class File extends Field
         switch ($viewType) {
             case 'csv':
                 throw new errorException('Поле типа файл нельзя использовать в csv-экспорт');
-
-                $data = [];
-
-                foreach ($valArray['v'] as $fileData) {
-                    $data[] = [
-                        'name' => $fileData['name'],
-                        'filestringbase64' => base64_encode(file_get_contents(File::getFilePath($fileData['file'])))
-                    ];
-                }
-
-                $valArray['v'] = base64_encode(json_encode($data, true));
-                break;
             case 'print':
                 $func = function ($array) use (&$func) {
                     if (!$array) return '';
@@ -96,7 +84,7 @@ class File extends Field
         if (in_array($ext = preg_replace('/^.*\.([a-z0-9]{2,5})$/', '$1', strtolower($name)),
             ['jpg', 'jpeg', 'png'])) {
             $thumbName = $tmpFileName . '_thumb.jpg';
-            if ($ext == 'png') {
+            if ($ext === 'png') {
                 $source = imagecreatefrompng($tmpFileName);
             } else {
                 $source = imagecreatefromjpeg($tmpFileName);
@@ -167,10 +155,10 @@ class File extends Field
     protected function _getFprefix($rowId = null)
     {
         return $this->table->getTableRow()['id'] . '_' //Таблица
-            . ($this->table->getTableRow()['type'] == 'calcs' ? $this->table->getCycle()->getId() . '_' : '') //цикл
+            . ($this->table->getTableRow()['type'] === 'calcs' ? $this->table->getCycle()->getId() . '_' : '') //цикл
             . ($rowId ? $rowId . '_' : '') //Строка
             . ($this->data['name']) //Поле
-            . ($this->table->getTableRow()['type'] == 'tmp' ? '!tmp!' : '');
+            . ($this->table->getTableRow()['type'] === 'tmp' ? '!tmp!' : '');
     }
 
     protected function modifyValue($modifyVal, $oldVal, $isCheck)
@@ -286,7 +274,7 @@ class File extends Field
                 } while ($unlinked || (!@fopen($fname, 'x') && $fnum < 1030));
 
 
-                if ($fnum == 1030) {
+                if ($fnum === 1030) {
                     die('Не удалось создать файл для записи в ячейку');
                 }
                 return $fname;

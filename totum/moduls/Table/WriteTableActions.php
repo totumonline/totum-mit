@@ -81,10 +81,10 @@ class WriteTableActions extends ReadTableActions
                 $val = $this->Table->getTbl()['params'][$columnFilter[$v['name']]]['v'];
 
                 if (isset($columnFilter[$v['name']])
-                    && $val != '*ALL*'
-                    && $val != ['*ALL*']
-                    && $val != '*NONE*'
-                    && $val != ['*NONE*']
+                    && $val !== '*ALL*'
+                    && $val !== ['*ALL*']
+                    && $val !== '*NONE*'
+                    && $val !== ['*NONE*']
                 ) {
                     $filtered = $val ?? null;
                 }

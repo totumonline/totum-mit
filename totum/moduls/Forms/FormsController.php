@@ -4,22 +4,18 @@
 namespace totum\moduls\Forms;
 
 
+use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
-use totum\common\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
-use totum\common\Controller;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
-use totum\common\interfaceController;
+use totum\common\controllers\interfaceController;
 use totum\common\Model;
-use totum\common\Sql;
-use totum\fieldTypes\File;
 use totum\fieldTypes\Select;
 use totum\models\Table;
 use totum\tableTypes\aTable;
-use totum\tableTypes\tableTypes;
 use totum\tableTypes\tmpTable;
 
 class FormsController extends interfaceController
@@ -68,7 +64,7 @@ class FormsController extends interfaceController
             header('Access-Control-Max-Age: 86400');    // cache for 1 day
         }
 // Access-Control headers are received during OPTIONS requests
-        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
             if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
                 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -86,15 +82,13 @@ class FormsController extends interfaceController
         static::$pageTemplate = __DIR__ . '/__template.php';
     }
 
-    function doIt($action)
+    function doIt(ServerRequestInterface $request, bool $output)
     {
         $action = 'Actions';
         try {
             $this->FormsTableData = $this->checkTableByStr($this->inModuleUri);
 
             Auth::loadAuthUser($this->FormsTableData['call_user'], false);
-
-            parent::doIt($action);
         } catch (errorException $e) {
             echo json_encode(['error' => $e->getMessage()]);
         }
@@ -441,7 +435,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $width = 0;
 
             foreach ($fields as $field) {
-                if ($field['category'] == $category) {
+                if ($field['category'] === $category) {
                     if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
                         $width = $settings['fields'][$field['name']];
                         if ($table) {
@@ -470,7 +464,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $table = [];
         $width = 0;
         foreach ($fields as $field) {
-            if ($field['category'] == 'column') {
+            if ($field['category'] === 'column') {
                 if (!$table) {
                     $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     if (array_key_exists('id', $settings['fields'])) {

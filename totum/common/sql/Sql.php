@@ -369,7 +369,7 @@ class Sql
     {
         try {
             $PDO = new PDO($conf['dsn'], $conf['username'], $conf['password'], [PDO::ATTR_EMULATE_PREPARES => false]);
-            if ($PDO->errorInfo()[0] != 0) {
+            if ($PDO->errorInfo()[0] !== '00000') {
                 throw new SqlException($PDO->errorInfo()[2]);
             }
             if (empty($conf['schema'])) {
@@ -378,7 +378,7 @@ class Sql
             $this->Log->debug('SET search_path TO "' . $conf['schema'] . '"');
             $PDO->exec('SET search_path TO "' . $conf['schema'] . '"');
 
-            if ($PDO->errorInfo()[0] != 0) {
+            if ($PDO->errorInfo()[0] !== '00000') {
                 throw new Exception($PDO->errorInfo()[2]);
             }
         } catch (Exception $e) {

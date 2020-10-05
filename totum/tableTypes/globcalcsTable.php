@@ -20,7 +20,7 @@ class globcalcsTable extends JsonTables
 {
     public function saveTable()
     {
-        if ($this->savedUpdated == $this->updated) return;
+        if ($this->savedUpdated === $this->updated) return;
 
         /*if(empty($GLOBALS['test'])){
             $GLOBALS['test']=1;
@@ -31,7 +31,7 @@ class globcalcsTable extends JsonTables
         $updateWhere = [
             'tbl_name' => $this->tableRow['name']
         ];
-        if ($this->getTableRow()['actual'] != 'disable') {
+        if ($this->getTableRow()['actual'] !== 'disable') {
             $updateWhere['updated'] = $this->savedUpdated;
         }
 

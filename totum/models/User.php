@@ -87,7 +87,7 @@ class User extends Model
 
     protected function checkCanBeBoss($id, $bossId)
     {
-        if ($id != $bossId && !$this->Sql->get('with RECURSIVE subUsers AS
+        if ((int)$id !== (int)$bossId && !$this->Sql->get('with RECURSIVE subUsers AS
 (
     select id, boss_id
     from users__v

@@ -89,7 +89,7 @@ class Calculate
 
                 $line = preg_replace_callback('/(?|(math|json)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
                     function ($matches) use (&$strings) {
-                        if ($matches[1] == "") return '""';
+                        if ($matches[1] === "") return '""';
                         $stringNum = count($strings);
                         $strings[] = $matches[1] . $matches[2];
                         return '"' . $stringNum . '"';
@@ -99,7 +99,7 @@ class Calculate
 
                 if ($table_name && preg_match_all('/(.?)#([a-z_0-9]+)/', $line, $matches)) {
                     foreach ($matches[2] as $i => $m) {
-                        if ($matches[1][$i] != '$') {
+                        if ($matches[1][$i] !== '$') {
                             $tableParams[$table_name][$m] = 1;
                         }
                     }
@@ -107,7 +107,7 @@ class Calculate
 
                 $line = preg_replace_callback('/{([^}]+)}/',
                     function ($matches) use (&$lineParams) {
-                        if ($matches[1] == "") return '{}';
+                        if ($matches[1] === "") return '{}';
                         $Num = count($lineParams);
                         $lineParams[] = $matches[1];
                         return '{' . $Num . '}';
@@ -208,7 +208,7 @@ class Calculate
 
                     if (is_null($key)) {
                         foreach ($n2 as $nItem) {
-                            if ($n == static::__compare_normalize($nItem)) {
+                            if ($n === static::__compare_normalize($nItem)) {
                                 $r = true;
                                 break;
                             }
@@ -216,7 +216,7 @@ class Calculate
                     } else {
                         $key = strval($key);
                         foreach ($n2 as $nKey => $nItem) {
-                            if (strval($nKey) == $key && $n == static::__compare_normalize($nItem)) {
+                            if (strval($nKey) === $key && $n === static::__compare_normalize($nItem)) {
                                 $r = true;
                                 break;
                             }
@@ -236,7 +236,7 @@ class Calculate
 
                     if (is_null($key)) {
                         foreach ($n2 as $nItem) {
-                            if ($n == static::__compare_normalize($nItem)) {
+                            if ($n === static::__compare_normalize($nItem)) {
                                 $r = true;
                                 break;
                             }
@@ -244,7 +244,7 @@ class Calculate
                     } else {
                         $key = strval($key);
                         foreach ($n2 as $nKey => $nItem) {
-                            if (strval($nKey) == $key && $n == static::__compare_normalize($nItem)) {
+                            if (strval($nKey) === $key && $n === static::__compare_normalize($nItem)) {
                                 $r = true;
                                 break;
                             }
@@ -286,8 +286,8 @@ class Calculate
             switch ($operator) {
                 case '!==':
                     $r = false;
-                    if (count($n) == count($n2)) {
-                        if ($n == $n2) {
+                    if (count($n) === count($n2)) {
+                        if ($n === $n2) {
                             static::__compare_array_normalize($n);
                             static::__compare_array_normalize($n2);
                             $r = $n == $n2;
@@ -297,16 +297,16 @@ class Calculate
                     break;
                 case '==':
                     $r = false;
-                    if (count($n) == count($n2)) {
-                        if ($n == $n2) {
+                    if (count($n) === count($n2)) {
+                        if ($n === $n2) {
                             static::__compare_array_normalize($n);
                             static::__compare_array_normalize($n2);
-                            $r = $n == $n2;
+                            $r = $n === $n2;
                         }
                     }
                     break;
                 case '=':
-                    if (count($n) == 0 && count($n2) == 0) $r = true;
+                    if (count($n) === 0 && count($n2) === 0) $r = true;
                     else {
                         $r = false;
 
@@ -319,7 +319,7 @@ class Calculate
                     }
                     break;
                 case '!=':
-                    if (count($n) == 0 && count($n2) == 0) $r = false;
+                    if (count($n) === 0 && count($n2) === 0) $r = false;
                     else {
                         $r = true;
 
@@ -396,7 +396,7 @@ class Calculate
             $code = [];
             $string = $stringIN;
 
-            while ($done && ($i < 100) && $string != "") {
+            while ($done && ($i < 100) && $string !== "") {
 
 
                 $done = 0;
@@ -428,7 +428,7 @@ class Calculate
                                     'type' => 'string',
                                     'string' => $number
                                 ];
-                                if (substr($number, -1, 1) == '%') {
+                                if (substr($number, -1, 1) === '%') {
                                     $cn['percent'] = true;
                                     $cn['string'] = trim(substr($number, 0, -1));
                                 } elseif (is_numeric($cn['string'])) {
@@ -492,7 +492,7 @@ class Calculate
                     1);
 
                 $string = trim($string);
-                if ($done == 0 && $string) {
+                if ($done === 0 && $string) {
 
                     throw new errorException('Ошибка кода [[' . $string . ']] - не подходит по формату');
                 }
@@ -677,7 +677,7 @@ class Calculate
                 $result = pow($left, $right);
                 break;
             case '/':
-                if ($right == 0) {
+                if ($right === 0) {
                     throw new errorException('Деление на ноль');
                 }
                 $result = $left / $right;
@@ -977,7 +977,7 @@ SQL;
                                 $a)) throw new errorException('Поля ' . $o['field'] . ' в данных не обраружено');
                             if ($a[$o['field']] != $b[$o['field']]) {
                                 $r = $a[$o['field']] < $b[$o['field']] ? -1 : 1;
-                                if ($o['ad'] == 'desc') return -$r;
+                                if ($o['ad'] === 'desc') return -$r;
                                 return $r;
                             }
                         }
@@ -1218,7 +1218,7 @@ SQL;
                     ['table' => $paramArray['table'], 'field' => $paramArray['field']],
                     'field',
                     $this->row['id'] ?? null,
-                    get_class($this) == Calculate::class
+                    get_class($this) === Calculate::class
                 );
                 $isHashtag = true;
                 break;
@@ -1406,7 +1406,7 @@ SQL;
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {
                             $rowVar = ['v' => null];
                         } elseif ($nameVar === 'id' && key_exists($this->varName,
-                                $this->Table->getFields()) && $this->Table->getFields()[$this->varName]['category'] == 'column') {
+                                $this->Table->getFields()) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
                             $rowVar = null;
                         } else {
                             throw new errorException('Параметр [[' . $nameVar . ']] не найден');
@@ -1460,7 +1460,7 @@ SQL;
             if (preg_match_all('/\[(.*?)(?:\]\]|\])/', $paramArray['items'], $items)) {
                 foreach ($items[0] as $_item) {
                     $_item = substr($_item, 1, -1);
-                    $isSection = $_item{0} == '[' && substr($_item, -1, 1) == ']';
+                    $isSection = $_item[0] === '[' && substr($_item, -1, 1) === ']';
                     if ($isSection) {
                         $_item = substr($_item, 1, -1);
                     }
@@ -2123,7 +2123,7 @@ SQL;
             ,
             $this->row['id'] ?? null
             ,
-            get_class($this) == Calculate::class);
+            get_class($this) === Calculate::class);
 
     }
 
@@ -2291,7 +2291,7 @@ SQL;
 
         switch ($params['key'] ?? 'value') {
             case 'key':
-                if (!empty($params['direction']) && $params['direction'] == 'desc') {
+                if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     $isAssoc = (array_keys($params['list']) !== range(0,
                                 count($params['list']) - 1)) && count($params['list']) > 0;
 
@@ -2305,7 +2305,7 @@ SQL;
             case 'item':
                 if (is_null($params['item'] ?? null)) throw new errorException('Параметр item не определен');
 
-                if (!empty($params['direction']) && $params['direction'] == 'desc') $sort = SORT_DESC;
+                if (!empty($params['direction']) && $params['direction'] === 'desc') $sort = SORT_DESC;
                 else $sort = SORT_ASC;
                 $column = array_column($params['list'], $params['item']);
                 array_multisort($column, $flags, $sort, $params['list']);
@@ -2314,7 +2314,7 @@ SQL;
             case 'value':
                 $isAssoc = (array_keys($params['list']) !== range(0,
                             count($params['list']) - 1)) && count($params['list']) > 0;
-                if (!empty($params['direction']) && $params['direction'] == 'desc') {
+                if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     if ($isAssoc) arsort($params['list'], $flags);
                     else rsort($params['list'], $flags);
                 } elseif ($isAssoc) asort($params['list'], $flags);
@@ -2762,7 +2762,7 @@ SQL;
         $row = $this->Table->getSelectByParams($params,
             'row',
             $this->row['id'] ?? null,
-            get_class($this) == Calculate::class
+            get_class($this) === Calculate::class
         );
         if (!empty($row['__sectionFunction'])) {
             $row = $row['__sectionFunction']();
@@ -2787,7 +2787,7 @@ SQL;
             'rows',
             $this->row['id'] ?? null
             ,
-            get_class($this) == Calculate::class);
+            get_class($this) === Calculate::class);
     }
 
     protected function funcRowCreateByLists($params)

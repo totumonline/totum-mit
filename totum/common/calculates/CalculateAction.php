@@ -143,7 +143,7 @@ class CalculateAction extends Calculate
         if ($params = $this->getParamsArray($params)) {
             $tableRow = $this->__checkTableIdOrName($params['table'], 'table', '$table->reCalculate(reCalculate');
 
-            if ($tableRow['type'] != 'cycles') {
+            if ($tableRow['type'] !== 'cycles') {
                 throw new errorException('Функция принимает только таблицы циклов');
             }
 
@@ -421,7 +421,7 @@ class CalculateAction extends Calculate
 
         if ($tableRow['type'] === 'calcs') {
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
-                if ($this->Table->getTableRow()['type'] === 'calcs' && $tableRow['tree_node_id'] == $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
+                if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] == $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
                 } else {
                     $this->__checkNumericParam($params['cycle'], 'cycle', 'LinkToPanel');
@@ -543,7 +543,7 @@ class CalculateAction extends Calculate
                                         }
                                         break;
                                     case 'number':
-                                        if (count($formatData) == 2) {
+                                        if (count($formatData) === 2) {
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     if (is_numeric($value)) {
@@ -560,7 +560,7 @@ class CalculateAction extends Calculate
                                         }
                                         break;
                                     case 'date':
-                                        if (count($formatData) == 2) {
+                                        if (count($formatData) === 2) {
                                             if ($date = date_create($value)) {
                                                 if (strpos($formatData[1], 'F') !== false) {
                                                     $formatData[1] = str_replace(
@@ -583,7 +583,7 @@ class CalculateAction extends Calculate
                                     case 'checkbox':
                                         if (is_bool($value)) {
                                             $sings = [];
-                                            if (count($formatData) == 2) {
+                                            if (count($formatData) === 2) {
                                                 $sings = explode('|', $formatData[1] ?? '');
                                             }
 
@@ -671,7 +671,7 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
-        if ($tableRow['type'] != "tmp") {
+        if ($tableRow['type'] !== "tmp") {
             throw new errorException('Только для временных таблиц');
         }
         $d = [];
@@ -758,7 +758,7 @@ class CalculateAction extends Calculate
 
         if ($tableRow['type'] === 'calcs') {
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
-                if ($this->Table->getTableRow()['type'] === 'calcs' && $tableRow['tree_node_id'] == $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
+                if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
                 } else {
                     $this->__checkNumericParam($params['cycle'], 'cycle', 'LinkToTable');
@@ -782,7 +782,7 @@ class CalculateAction extends Calculate
         if (!empty($params['filter'])) {
             $filters = [];
             foreach ($params['filter'] as $i => $f) {
-                if ($f['field'] == 'id' || !empty($fields[$f['field']])) {
+                if ($f['field'] === 'id' || !empty($fields[$f['field']])) {
                     $filters[$f['field']] = $f['value'];
                 }
             }
@@ -948,7 +948,7 @@ class CalculateAction extends Calculate
                 $fieldValue = $this->__getValue($fc[2] ?? $fc[1]);
 
                 if (in_array(strtolower($funcName), ['set', 'setlist', 'setlistextended'])) {
-                    if ($fc[1]['type'] == 'operator') {
+                    if ($fc[1]['type'] === 'operator') {
                         $percent = $fc[2]['percent'] ?? false;
                         $fieldValue = new FieldModifyItem($fc[1]['operator'], $fieldValue, $percent);
                     } elseif (empty($fc['comparison'])) {
@@ -1031,7 +1031,7 @@ class CalculateAction extends Calculate
             if (!($field = $table->getFields()[$params['field']])) {
                 throw new errorException('Поле [[' . $params['field'] . ']] не найдено в таблице ' . $table->getTableRow()['name']);
             }
-            if ($field['category'] == 'column') {
+            if ($field['category'] === 'column') {
                 if (!is_numeric($params['id'])) {
                     throw new errorException('Поле id должно быть числовым');
                 }

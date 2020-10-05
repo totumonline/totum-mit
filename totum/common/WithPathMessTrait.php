@@ -11,7 +11,7 @@ trait WithPathMessTrait
 
     function addPath($path)
     {
-        if ($this->pathMess == '') $this->pathMess = $path;
+        if (empty($this->pathMess)) $this->pathMess = $path;
         else {
             $this->pathMess = $this->getPathMess() . '; ' . $path;
         }

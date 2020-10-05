@@ -12,7 +12,7 @@ trait WebInterfaceTrait
 {
     public function changeFieldsSets($func = null)
     {
-        if ($this->getTableRow()['type'] == 'calcs') {
+        if ($this->getTableRow()['type'] === 'calcs') {
             $tableVersions = $this->getTotum()->getTable('calcstable_versions');
             $vIdSet = $tableVersions->getByParams(
                 ['where' => [['field' => 'table_name', 'operator' => '=', 'value' => $this->getTableRow()['name']],
@@ -51,7 +51,7 @@ trait WebInterfaceTrait
         $table = ['ok' => 1];
 
         $this->reCalculate(
-            ['channel' => 'web', 'modifyCalculated' => (($import['codedFields'] ?? null) == 2 ? 'all' : 'handled')
+            ['channel' => 'web', 'modifyCalculated' => ((int)($import['codedFields'] ?? null) == 2 ? 'all' : 'handled')
                 , 'add' => ($import['add'] ?? [])
                 , 'modify' => ($import['modify'] ?? [])
                 , 'remove' => ($import['remove'] ?? [])
@@ -59,7 +59,7 @@ trait WebInterfaceTrait
         );
         $oldUpdated = $this->updated;
         $this->isTblUpdated(0);
-        if ($oldUpdated != $this->updated) {
+        if ($oldUpdated !== $this->updated) {
             $table['updated'] = $this->updated;
         }
         return $table;
@@ -69,7 +69,7 @@ trait WebInterfaceTrait
     {
         $this->checkTableUpdated($tableData);
 
-        if ($idsString && $idsString != '[]') {
+        if ($idsString && $idsString !== '[]') {
             $ids = json_decode($idsString, true);
             if ($this->sortedFields['filter']) {
                 $this->reCalculate();
@@ -137,7 +137,7 @@ trait WebInterfaceTrait
             $inVars['modify'] = $inVars['modify'] + array_flip($refresh);
         }
         foreach ($inVars['modify'] as $itemId => &$editData) {//Для  saveRow
-            if ($itemId == 'params') {
+            if ($itemId === 'params') {
                 continue;
             }
             if (!is_array($editData)) {//Для  refresh
@@ -148,7 +148,7 @@ trait WebInterfaceTrait
             foreach ($editData as $k => &$v) {
                 if (is_array($v) && array_key_exists('v', $v)) {
                     if (array_key_exists('h', $v)) {
-                        if ($v['h'] == false) {
+                        if ($v['h'] === false) {
                             $inVars['setValuesToDefaults'][$itemId][$k] = true;
                             unset($editData[$k]);
                             continue;
@@ -190,7 +190,7 @@ trait WebInterfaceTrait
 
         $csvString = stream_get_contents(fopen($csvString, 'r'));
 
-        if (substr($csvString, 0, 3) == pack('CCC', 0xef, 0xbb, 0xbf)) {
+        if (substr($csvString, 0, 3) === pack('CCC', 0xef, 0xbb, 0xbf)) {
             $csvString = substr($csvString, 3);
         } else {
             if (!mb_check_encoding($csvString, 'utf-8') && mb_check_encoding($csvString, 'windows-1251')) {
@@ -230,7 +230,7 @@ trait WebInterfaceTrait
 //Проверка та ли таблица
                 if ($checkQuestion(
                     1,
-                    $csvArray[$rowNumName][0] != $this->tableRow['title'],
+                    $csvArray[$rowNumName][0] !== $this->tableRow['title'],
                     'Файл таблицы [[' . $csvArray[$rowNumName][0] . ']] вы пытаетесь загрузить в таблицу [[' . $this->tableRow['title'] . ']]'
                 )) {
                     return $question;
@@ -246,7 +246,7 @@ trait WebInterfaceTrait
                     return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumCodes + 1) . ' отсутствует код изменения таблицы'];
                 } else {
                     $updated = json_decode($this->updated, true);
-                    if ($checkQuestion(2, $matchCode[1] != $updated['code'], 'Таблица была изменена')) {
+                    if ($checkQuestion(2, $matchCode[1] !== $updated['code'], 'Таблица была изменена')) {
                         return $question;
                     }
                 }
@@ -261,7 +261,7 @@ trait WebInterfaceTrait
                 } else {
                     if ($checkQuestion(
                         3,
-                        $matchCode[1] != $this->getStructureUpdatedJSON()['code'],
+                        $matchCode[1] !== $this->getStructureUpdatedJSON()['code'],
                         'Была изменена структура таблицы. Возможно несовпадение порядка полей.'
                     )) {
                         return $question;
@@ -279,7 +279,7 @@ trait WebInterfaceTrait
                 } else {
                     if ($checkQuestion(
                         4,
-                        (isset($this->Cycle) && $this->Cycle->getId() ? $this->Cycle->getId() : 'Вне циклов') != $matchCode[1],
+                        strval(isset($this->Cycle) && $this->Cycle->getId() ? $this->Cycle->getId() : 'Вне циклов') !== $matchCode[1],
                         'Таблица из другого цикла или вне циклов'
                     )) {
                         return $question;
@@ -288,7 +288,7 @@ trait WebInterfaceTrait
 
 
 //Ручные значения
-                if (($string = $csvArray[$rowNumSectionHandl][0] ?? '') != 'Ручные значения') {
+                if (($string = $csvArray[$rowNumSectionHandl][0] ?? '') !== 'Ручные значения') {
                     return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumSectionHandl + 1) . ' отсутствует заголовок секции Ручные значения'];
                 }
                 if (!in_array(
@@ -301,7 +301,7 @@ trait WebInterfaceTrait
                 $import['codedFields'] = $string;
 
 //Хэдер
-                if (($string = $csvArray[$rowNumSectionHeader][0] ?? '') != 'Хедер') {
+                if (($string = $csvArray[$rowNumSectionHeader][0] ?? '') !== 'Хедер') {
                     return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumSectionHeader + 1) . ' отсутствует заголовок секции Хедер'];
                 }
                 $headerFields = $csvArray[$rowNumSectionHeader + 2];
@@ -311,7 +311,7 @@ trait WebInterfaceTrait
                         continue;
                     }
                     if (($field = $this->fields[$fieldName]) && !in_array($field['type'], ['comments', 'button'])) {
-                        if ($import['codedFields'] == 0 && !empty($field['code']) && empty($field['codeOnlyInAdd'])) ; else {
+                        if ($import['codedFields'] === '0' && !empty($field['code']) && empty($field['codeOnlyInAdd'])) ; else {
                             $import['modify']['params'][$field['name']] = $getCsvVal(
                                 $csvArray[$rowNumSectionHeader + 3][$i],
                                 $field
@@ -321,7 +321,7 @@ trait WebInterfaceTrait
                 }
 
 //Фильтр
-                if (($string = $csvArray[$rowNumFilter][0] ?? '') != 'Фильтр') {
+                if (($string = $csvArray[$rowNumFilter][0] ?? '') !== 'Фильтр') {
                     return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumFilter + 1) . ' отсутствует заголовок секции Фильтр'];
                 }
                 if (!empty($sortedVisibleFields["filter"])) {
@@ -334,7 +334,7 @@ trait WebInterfaceTrait
 
 
 //Строчная часть
-                if (($string = $csvArray[$rowNumSectionRows][0] ?? '') != 'Строчная часть') {
+                if (($string = $csvArray[$rowNumSectionRows][0] ?? '') !== 'Строчная часть') {
                     return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumSectionRows + 1) . ' отсутствует заголовок секции Строчная часть'];
                 }
                 $numRow = $rowNumSectionRows + 3;
@@ -375,10 +375,10 @@ trait WebInterfaceTrait
                                 ['comments', 'button']
                             )) {
                                 if (!empty($field['code']) && empty($field['codeOnlyInAdd'])) {
-                                    if ($import['codedFields'] == 0) {
+                                    if ($import['codedFields'] === '0') {
                                         continue;
                                     }
-                                    if ($import['codedFields'] == 1 && empty($id)) {
+                                    if ($import['codedFields'] === '1' && empty($id)) {
                                         continue;
                                     }
                                 }
@@ -411,8 +411,8 @@ trait WebInterfaceTrait
                                     $field['type'],
                                     ['comments', 'button']
                                 )) {
-                                    if ($field['category'] == 'footer') {
-                                        if ($import['codedFields'] == 0 && !empty($field['code']) && empty($field['codeOnlyInAdd'])) {
+                                    if ($field['category'] === 'footer') {
+                                        if ($import['codedFields'] === '0' && !empty($field['code']) && empty($field['codeOnlyInAdd'])) {
                                             continue;
                                         }
                                         $val = $csvArray[$numRow + 1][$i];
@@ -429,7 +429,7 @@ trait WebInterfaceTrait
 
 //Футер
                 if (is_a($this, JsonTables::class)) {
-                    if (($string = $csvArray[$numRow][0] ?? '') != 'Футер') {
+                    if (($string = $csvArray[$numRow][0] ?? '') !== 'Футер') {
                         return ['error' => $NotCorrectFormat . 'в строке через одну после Строчной части отсутствует заголовок секции Футер' . var_export(
                             $csvArray[$numRow],
                             1
@@ -445,7 +445,7 @@ trait WebInterfaceTrait
                             $field['type'],
                             ['comments', 'button']
                         )) {
-                            if ($import['codedFields'] == 0 && !empty($field['code']) && empty($field['codeOnlyInAdd'])) {
+                            if ($import['codedFields'] === '0' && !empty($field['code']) && empty($field['codeOnlyInAdd'])) {
                                 continue;
                             }
                             $import['modify']['params'][$field['name']] = $getCsvVal(
@@ -510,7 +510,7 @@ trait WebInterfaceTrait
             $csv[] = ['от ' . date_create($updated['dt'])->format('d.m H:i') . '', 'code:' . $updated['code'] . '', 'structureCode:' . $this->getStructureUpdatedJSON()['code']];
 
             //id Проекта    Название проекта
-            if ($this->tableRow['type'] == 'calcs') {
+            if ($this->tableRow['type'] === 'calcs') {
                 $csv[] = [$this->Cycle->getId(), $this->Cycle->getRowName()];
             } else {
                 $csv[] = ['Вне циклов'];

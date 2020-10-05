@@ -18,10 +18,10 @@ class cyclesTable extends RealTables
     protected function reCalculate($inVars = [])
     {
         if (in_array($inVars['channel'] ?? null, ['web', 'edit'])) {
-            if ($this->getTableRow()['cycles_access_type'] == 1 && isset($this->fields['creator_id']) && !$this->getUser()->isCreator()) {
+            if ($this->getTableRow()['cycles_access_type'] === '1' && isset($this->fields['creator_id']) && !$this->getUser()->isCreator()) {
                 $where = '';
                 foreach ($this->User->getConnectedUsers() as $uId) {
-                    if ($where != '') {
+                    if ($where !== '') {
                         $where .= ' OR ';
                     }
                     $where .= 'creator_id->\'v\' @>\'["' . $uId . '"]\'::JSONB';
@@ -123,7 +123,7 @@ class cyclesTable extends RealTables
     protected function loadRowsByParams($params, $order = null, $offset = 0, $limit = null)
     {
         /*Вопрос насколько тут нужно проверять вебность интерфейса*/
-        if (!$this->User->isCreator() && $this->tableRow['cycles_access_type'] == 1 && $this->User->getInterface() == 'web') {
+        if (!$this->User->isCreator() && $this->tableRow['cycles_access_type'] === '1' && $this->User->getInterface() === 'web') {
             $params[] = ['field' => 'creator_id', 'operator' => '=', 'value' => $this->User->getConnectedUsers()];
         }
         return parent::loadRowsByParams($params, $order, $offset, $limit);
@@ -136,7 +136,7 @@ class cyclesTable extends RealTables
         if (!$fromDuplicate && !$isCheck) {
             $this->changeIds['rowOperations'][] = function () use ($addedRow, $channel) {
                 $Cycle = Cycle::create($this->tableRow['id'], $addedRow['id'], $this->Totum);
-                if ($channel == 'web' && $Cycle->getFirstTableId()) {
+                if ($channel === 'web' && $Cycle->getFirstTableId()) {
                     $action = new CalculateAction('=: linkToTable(table: ' . $Cycle->getFirstTableId() . '; cycle: ' . $addedRow['id'] . ')');
                     $action->execAction('addingRow', [], [], [], [], $this);
                 }

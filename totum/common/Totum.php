@@ -207,7 +207,7 @@ class Totum
         if ($forceNew) {
             unset($this->tablesInstances[$cacheString]);
         }
-        if ($tableRow['type'] == 'tmp' && empty($extraData)) {
+        if ($tableRow['type'] === 'tmp' && empty($extraData)) {
             /** @var tmpTable $tableTmp */
             /** @var tmpTable $table */
             $tableTmp = tmpTable::init($this, $tableRow, $this->getCycle(0, 0), $light, $extraData);

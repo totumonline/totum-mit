@@ -82,7 +82,7 @@ class Tree extends Field
             if (is_array($list)) {
                 if (!empty($this->data['multiple'])) {
                     $return = '';
-                    if ($val != $this->data['errorText']) {
+                    if ($val !== $this->data['errorText']) {
                         foreach ($val ?? [] as $v) {
                             if (!empty($return)) {
                                 $return .= ', ';
@@ -210,7 +210,7 @@ class Tree extends Field
             foreach ($fVar['v'] as $v) {
                 $value = $paramInXml->addChild('value', $v);
                 $value->addAttribute('title', $v_[$v][0]);
-                $value->addAttribute('correct', $v_[$v][0] == 1 ? '0' : '1');
+                $value->addAttribute('correct', $v_[$v][0] === 1 ? '0' : '1');
             }
         } else {
             if (is_array($fVar['v'])) {
@@ -416,7 +416,7 @@ class Tree extends Field
                 if (is_array($list)) {
                     if (!empty($this->data['multiple'])) {
                         $v_ = [];
-                        if ($v != $this->data['errorText'] && (is_null($v) || is_array($v))) {
+                        if ($v !== $this->data['errorText'] && (is_null($v) || is_array($v))) {
                             foreach (($v ?? []) as $_v) {
                                 $v_[] = $getTreeItem($_v);
                             }
@@ -482,7 +482,7 @@ class Tree extends Field
                 } else {
                     if ($this->data['multiple']) {
                         if ($valArray['v']) {
-                            if (count($valArray['v']) == 1) {
+                            if (count($valArray['v']) === 1) {
                                 $valArray['v'] = $func(
                                     $valArray['v'][count($valArray['v']) - 1],
                                     $valArray['v_'][count($valArray['v_']) - 1]
@@ -518,7 +518,7 @@ class Tree extends Field
                 break;
             case 'web':
                 if (array_key_exists('c', $valArray)) {
-                    if ($valArray['c'] != $valArray['v']) {
+                    if ($valArray['c'] !== $valArray['v']) {
                         $valArrayTmp = $valArray;
                         $valArrayTmp['v'] = $valArrayTmp['c'];
 
@@ -540,7 +540,7 @@ class Tree extends Field
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
-        if (($this->data['multiple'] ?? false) == true && !is_array($val)) {
+        if (($this->data['multiple'] ?? false) === true && !is_array($val)) {
             if (is_numeric($val)) {
                 $val = [strval($val)];
             } elseif (is_null($val)) {
@@ -561,7 +561,7 @@ class Tree extends Field
             }
         } else {
             if (is_array($val)) {
-                if (count($val) == 0) {
+                if (count($val) === 0) {
                     $val = null;
                 } else {
                     $val = strval($val[0]);

@@ -27,7 +27,7 @@ abstract class RealTables extends aTable
 
     public function getChildrenIds($id, $parentField, $bfield)
     {
-        if (!array_key_exists($parentField, $this->fields) || $this->fields[$parentField]['category'] != 'column') {
+        if (!array_key_exists($parentField, $this->fields) || $this->fields[$parentField]['category'] !== 'column') {
             throw new errorException('Поле [' . $parentField . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
         }
         if ($bfield !== 'id' && !key_exists($bfield, $this->fields)) {
@@ -63,7 +63,7 @@ abstract class RealTables extends aTable
         foreach ($editData as $k => $v) {
             if (is_array($v) && array_key_exists('v', $v)) {
                 if (array_key_exists('h', $v)) {
-                    if ($v['h'] == false) {
+                    if ($v['h'] === false) {
                         $dataSetToDefault[$k] = true;
                         continue;
                     }
@@ -103,28 +103,28 @@ abstract class RealTables extends aTable
     public function addField($fieldId)
     {
         $field = static::getFullField($this->Totum->getModel('tables_fields__v', true)->getById($fieldId));
-        if ($field['category'] == 'column') {
+        if ($field['category'] === 'column') {
             $this->Totum->getModel($this->tableRow['name'])->addColumn($field['name']);
         }
     }
 
     public function createIndex($columnName)
     {
-        if ($columnName != 'id') {
+        if ($columnName !== 'id') {
             $this->Totum->getModel($this->tableRow['name'])->createIndexOnJsonbField($columnName);
         }
     }
 
     public function removeIndex($columnName)
     {
-        if ($columnName != 'id') {
+        if ($columnName !== 'id') {
             $this->Totum->getModel($this->tableRow['name'])->removeIndex($columnName);
         }
     }
 
     public function deleteField($fieldRow)
     {
-        if ($fieldRow['category'] == 'column') {
+        if ($fieldRow['category'] === 'column') {
             $this->Totum->getModel($this->tableRow['name'])->dropColumn($fieldRow['name']);
         } elseif ($fieldRow['category'] === 'filter') {
             $data = json_decode($fieldRow['data'], true);
@@ -150,7 +150,7 @@ abstract class RealTables extends aTable
         $tbl = $this->getTblForSave();
 
         $savedTbl = $this->savedTbl;
-        if ($force || $this->isTableDataChanged || $tbl['__nTailLength'] != $this->nTailLength) {
+        if ($force || $this->isTableDataChanged || $tbl['__nTailLength'] !== $this->nTailLength) {
             $this->updated = $this->getUpdatedJson();
             $this->savedTbl['params'] = $tbl;
 
@@ -246,7 +246,7 @@ abstract class RealTables extends aTable
                 $normalizeFunc = function ($r) {
                     return json_decode($r, true);
                 };
-            } elseif ($field['type'] == 'checkbox') {
+            } elseif ($field['type'] === 'checkbox') {
                 $normalizeFunc = function ($r) {
                     return $r === 'false' ? false :
                         ($r === 'true' ? true
@@ -293,18 +293,18 @@ abstract class RealTables extends aTable
                 }
 
                 $field = $of['field'];
-                $AscDesc = $of['ad'] == 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
+                $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
                 if ((!array_key_exists($field, $fields) && !in_array(
                     $field,
                     Model::serviceFields
-                )) || (empty($this->tableRow['with_order_field']) && $field == 'n')) {
+                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
                     throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
                 }
                 if (in_array($field, Model::serviceFields)) {
                     $order .= $field . ' ' . $AscDesc;
                 } else {
-                    $orderType = ($fields[$field]['type'] == 'number' ? 'NUMERIC' : 'TEXT');
+                    $orderType = ($fields[$field]['type'] === 'number' ? 'NUMERIC' : 'TEXT');
                     $order .= "($field->>'v')::$orderType $AscDesc";
                 }
             }
@@ -327,7 +327,7 @@ abstract class RealTables extends aTable
                     throw new errorException('Параметр limit должен быть целым числом');
                 }
                 $limit = $offset . ',' . $limit_;
-                if ($limit == ',') {
+                if ($limit === ',') {
                     $limit = null;
                 }
 
@@ -346,10 +346,10 @@ abstract class RealTables extends aTable
         }
 
 
-        if ($returnType == 'rows' || $returnType == 'row') {
+        if ($returnType === 'rows' || $returnType === 'row') {
 
             //техническая выборка - не трогать
-            if ($params['field'] == ['__all__']) {
+            if ($params['field'] === ['__all__']) {
                 return $this->model->executePrepared(
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
@@ -360,7 +360,7 @@ abstract class RealTables extends aTable
             }
 
 
-            if ($returnType == 'rows') {
+            if ($returnType === 'rows') {
                 $rows = $this->model->executePrepared(
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
@@ -401,7 +401,7 @@ abstract class RealTables extends aTable
                 $limit
             )->fetchAll();
 
-            if ($returnType == 'field') {
+            if ($returnType === 'field') {
                 if ($r) {
                     return $sectionReplaces($r[0])[$params['field'][0]];
                 }
@@ -451,7 +451,7 @@ abstract class RealTables extends aTable
                 $old = $oldRow[$field['name']]['v'] ?? null;
                 $new = $row[$field['name']]['v'] ?? null;
 
-                if ($action != 'Change' || Calculate::compare('!==', $old, $new)) {
+                if ($action !== 'Change' || Calculate::compare('!==', $old, $new)) {
                     $this->changeIds['rowOperations'][] = function () use ($field, $oldRow, $row) {
                         Field::init($field, $this)->action(
                             $oldRow,
@@ -475,7 +475,7 @@ abstract class RealTables extends aTable
             case 'Change':
                 $changedKeys = [];
                 foreach ($row as $k => $v) {
-                    if (($oldRow[$k] ?? null) != $v) {
+                    if (($oldRow[$k] ?? null) !== $v) {
                         $changedKeys[] = $k;
                     }
                 }
@@ -530,7 +530,7 @@ abstract class RealTables extends aTable
     {
         $where = ['id' => $this->tableRow['id']];
 
-        if ($this->getTableRow()['actual'] != 'disable') {
+        if ($this->getTableRow()['actual'] !== 'disable') {
             $where['updated'] = $this->savedUpdated;
         }
 
@@ -646,23 +646,23 @@ abstract class RealTables extends aTable
 
     protected function _copyTableData(&$table, $settings)
     {
-        if ($settings['copy_params'] != 'none' || $settings['copy_data'] != 'none') {
+        if ($settings['copy_params'] !== 'none' || $settings['copy_data'] !== 'none') {
             $table['tbl'] = $this->tbl;
-            if ($settings['copy_params'] == 'none') {
+            if ($settings['copy_params'] === 'none') {
                 unset($table['tbl']['params']);
             }
 
 
-            if ($settings['copy_data'] != 'none') {
+            if ($settings['copy_data'] !== 'none') {
                 $where = $this->elseWhere;
-                if ($settings['copy_data'] == 'ids') {
+                if ($settings['copy_data'] === 'ids') {
                     $intervals = $this->_getIntervals($settings['intervals']);
                     $whereids = '';
                     foreach ($intervals as $i) {
-                        if ($whereids != '') {
+                        if ($whereids !== '') {
                             $whereids .= ' OR ';
                         }
-                        if ($i[0] == $i[1]) {
+                        if ($i[0] === $i[1]) {
                             $whereids .= 'id=' . $i[0];
                         } else {
                             $whereids .= '(id>=' . $i[0] . ' AND id<=' . $i[1] . ')';
@@ -697,7 +697,7 @@ abstract class RealTables extends aTable
             }
 
             foreach ($old_order_arrays as $i => $orderRow) {
-                if ($orderRow['id'] == $reorder[0]) {
+                if ($orderRow['id'] === $reorder[0]) {
                     array_splice($reorder, 0, 1);
                     unset($old_order_arrays[$i]);
                 } else {
@@ -708,7 +708,7 @@ abstract class RealTables extends aTable
                 $old_order_arrays_rev = array_reverse($old_order_arrays);
                 $reorder_rev = array_reverse($reorder);
                 foreach ($old_order_arrays_rev as $i => $orderRow) {
-                    if ($orderRow['id'] == $reorder_rev[0]) {
+                    if ($orderRow['id'] === $reorder_rev[0]) {
                         array_splice($reorder_rev, 0, 1);
                         unset($old_order_arrays_rev[$i]);
                     } else {
@@ -781,7 +781,7 @@ abstract class RealTables extends aTable
 
         if ($add) {
             if (!empty($this->tableRow['with_order_field'])) {
-                $fIds = $channel != 'inner' ? $this->loadFilteredRows(
+                $fIds = $channel !== 'inner' ? $this->loadFilteredRows(
                     $channel,
                     $this->webIdInterval
                 ) : [];
@@ -982,7 +982,7 @@ abstract class RealTables extends aTable
         unset($changedData['id']);
         unset($changedData['n']);
 
-        if ($saveIt == false) {
+        if ($saveIt === false) {
             return array_merge($oldRow, $changedData);
         }
 
@@ -1028,7 +1028,7 @@ abstract class RealTables extends aTable
                 )->fetch();
                 $row = static::decodeRow($row);
 
-                if ($row != $oldRow) {
+                if ($row !== $oldRow) {
                     $this->setIsTableDataChanged(true);
                     $this->rowChanged($oldRow, $row, 'Change');
 
@@ -1080,7 +1080,7 @@ abstract class RealTables extends aTable
                 $newRowData[$field['name']] = $baseRow[$field['name']]['v'];
                 continue;
             }
-            if (!key_exists('default', $field) && empty($field['code']) && $field['type'] != "comments") {
+            if (!key_exists('default', $field) && empty($field['code']) && $field['type'] !== "comments") {
                 $newRowData[$field['name']] = $baseRow[$field['name']]['v'];
             }
         }
@@ -1151,7 +1151,7 @@ abstract class RealTables extends aTable
                     $diff,
                     ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
                     $scaleDiff > $len ? $scaleDiff : $len
-                ) != 1) {
+                ) !== 1) {
                     $len += 4;
                 }
 
@@ -1159,7 +1159,7 @@ abstract class RealTables extends aTable
                 $n = bcadd($prevN, $nPlus, $len < $scalePrev ? $scalePrev : $len);
                 $scaleN = static::getNSize($n);
                 $scaleComp = $scaleN > $scaleNext ? $scaleN : $scaleNext;
-                if (bccomp($n, $nextN, $scaleComp) != -1) {
+                if (bccomp($n, $nextN, $scaleComp) !== -1) {
                     throw new SqlException("Ошибка логики n: $n>=$nextN");
                 }
                 if ($this->nTailLength < $scaleComp) {
@@ -1277,7 +1277,7 @@ abstract class RealTables extends aTable
 
         $fields = $this->fields;
 
-        if ($withoutDeleted && count($paramsWhere) == 1 && $paramsWhere[0]["field"] == 'id' && $paramsWhere[0]["operator"] == '=') {
+        if ($withoutDeleted && count($paramsWhere) === 1 && $paramsWhere[0]["field"] === 'id' && $paramsWhere[0]["operator"] === '=') {
             $withoutDeleted = false;
         }
 
@@ -1370,7 +1370,7 @@ abstract class RealTables extends aTable
                             $where[] = "($fieldQuoted is NULL OR $fieldQuoted='' OR $fieldQuoted='[]') = $trueFalse";
                         } /*Сравнение с листом*/
                         elseif (is_array($value)) {
-                            if ($fields[$wI['field']]['type'] == 'listRow') {
+                            if ($fields[$wI['field']]['type'] === 'listRow') {
                                 $isAssoc = (array_keys($value) !== range(0, count($value) - 1));
 
                                 $where_tmp = '';
@@ -1429,7 +1429,7 @@ abstract class RealTables extends aTable
                             $params[] = json_encode([(string)$value], JSON_UNESCAPED_UNICODE);
                             $params[] = (string)$value;
 
-                            if ($fields[$wI['field']]['type'] == 'listRow' && is_numeric((string)$value)) {
+                            if ($fields[$wI['field']]['type'] === 'listRow' && is_numeric((string)$value)) {
                                 /*равно или содержит числовой вариант*/
                                 $q .= "$fieldQuotedJsonb @> ?::jsonb";
                                 $params[] = "[$value]";
@@ -1459,7 +1459,7 @@ abstract class RealTables extends aTable
                     case '!=':
                         /*Если на вход пришел пустой массив*/
                         if (empty($value)) {
-                            if ($operator == '=') {
+                            if ($operator === '=') {
                                 $where[] = 'FALSE';
                             } else {
                                 $where[] = 'TRUE';
@@ -1479,14 +1479,14 @@ abstract class RealTables extends aTable
                                         return !(is_null($v) || $v === '');
                                     }
                                 );
-                                $q .= "$fieldQuoted  IS " . ($operator == '=' ? '' : 'NOT') . " NULL ";
+                                $q .= "$fieldQuoted  IS " . ($operator === '=' ? '' : 'NOT') . " NULL ";
                             }
                             /*если есть непустые значения*/
                             if (!empty($value)) {
                                 if ($q) {
                                     $q .= " OR ";
                                 }
-                                $q .= "$fieldQuoted " . ($operator == '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
+                                $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
                                     ',?',
                                     count($value) - 1
                                 ) . ')';
@@ -1528,7 +1528,7 @@ abstract class RealTables extends aTable
                             break;
                     }
                 } else {
-                    if ($operator == '!=') {
+                    if ($operator === '!=') {
                         $operator = 'IS DISTINCT FROM';
                     }
 

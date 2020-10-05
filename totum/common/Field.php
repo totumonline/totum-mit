@@ -97,12 +97,12 @@ class Field
         if (!empty($fieldData['linkTableName'])) {
             if (empty($fieldData['linkFieldError'])) {
                 $params = 'table: \'' . $fieldData['linkTableName'] . '\'; field: \'' . $fieldData['linkFieldName'] . '\'; ';
-                if ($this->table->getTableRow()['type'] == 'cycles') {
+                if ($this->table->getTableRow()['type'] === 'cycles') {
                     $tableWhere = $this->table->getTotum()->getTableRow($fieldData['linkTableName']);
-                    if ($tableWhere['type'] == 'calcs') {
+                    if ($tableWhere['type'] === 'calcs') {
                         $params .= 'cycle: #id';
                     }
-                    if ($tableWhere['name'] == 'cycles_access') {
+                    if ($tableWhere['name'] === 'cycles_access') {
                         $params .= 'where: \'cycle__id\'=#id; where: \'cycles_table_id\'="' . $this->table->getTableRow()['id'] . '"';
                     }
                 }
@@ -118,7 +118,7 @@ class Field
             $this->CalculateCode = new Calculate($this->data['code']);
         }
 
-        if (!empty($this->data['format']) && $this->data['format'] != 'f1=:') {
+        if (!empty($this->data['format']) && $this->data['format'] !== 'f1=:') {
             $this->CalculateFormat = new CalculcateFormat($this->data['format']);
         }
         if (empty($this->data['errorText'])) {
@@ -134,7 +134,7 @@ class Field
     public static function init($fieldData, aTable $table)
     {
         $staticName = $table->getTableRow()['id'] . '/' . $fieldData['name'];
-        if ($table->getTableRow()['type'] == 'calcs') {
+        if ($table->getTableRow()['type'] === 'calcs') {
             $staticName .= '/' . $table->getCycle()->getId();
         }
         return $table->getTotum()->fieldObjectsCaches($staticName,
@@ -231,7 +231,7 @@ class Field
             return Field::CHANGED_FLAGS['setToDefault'];
         } elseif (isset($newVal) || $newValExists) {
             if ($modifyCalculated !== true) {
-                if ($oldVal && ($oldVal['v'] == $newVal)) {
+                if ($oldVal && (Calculate::compare('==', $oldVal['v'] , $newVal))) {
                     return false;
                 }
                 switch ($modifyCalculated) {
@@ -310,14 +310,14 @@ class Field
             case 'insert':
                 if ($insertable = !empty($this->data['insertable'])) {
                     if (!$this->table->getUser()->isCreator() && !empty($this->data['webRoles'])) {
-                        if (count(array_intersect($this->data['webRoles'], $this->table->getUser()->getRoles())) == 0) {
+                        if (count(array_intersect($this->data['webRoles'], $this->table->getUser()->getRoles())) === 0) {
                             $insertable = false;
                         }
                     }
                     if ($insertable && !empty($this->data['addRoles']) && count(array_intersect(
                             $this->data['addRoles'],
                             $this->table->getUser()->getRoles()
-                        )) == 0) {
+                        )) === 0) {
                         $insertable = false;
                     }
                 }
@@ -328,14 +328,14 @@ class Field
 
                     //Для фильтров не применять webRoles
                     if (!$this->table->getUser()->isCreator() && $this->data['category'] !== 'filter' && !empty($this->data['webRoles'])) {
-                        if (count(array_intersect($this->data['webRoles'], $this->table->getUser()->getRoles())) == 0) {
+                        if (count(array_intersect($this->data['webRoles'], $this->table->getUser()->getRoles())) === 0) {
                             $editable = false;
                         }
                     }
                     if ($editable && !empty($this->data['editRoles']) && count(array_intersect(
                             $this->data['editRoles'],
                             $this->table->getUser()->getRoles()
-                        )) == 0) {
+                        )) === 0) {
                         $editable = false;
                     }
                 }
@@ -358,7 +358,7 @@ class Field
             case 'insert':
                 if ($insertable = !empty($this->data['apiInsertable'])) {
                     if (!empty($this->data['xmlRoles'])) {
-                        if (count(array_intersect($this->data['xmlRoles'], $this->table->getUser()->getRoles())) == 0) {
+                        if (count(array_intersect($this->data['xmlRoles'], $this->table->getUser()->getRoles())) === 0) {
                             $insertable = false;
                         }
                     }
@@ -368,13 +368,13 @@ class Field
             case 'modify':
                 if ($editable = !empty($this->data['apiEditable'])) {
                     if (!$this->table->getTotum()->getUser()->isCreator() && !empty($this->data['xmlRoles'])) {
-                        if (count(array_intersect($this->data['xmlRoles'], $this->table->getUser()->getRoles())) == 0) {
+                        if (count(array_intersect($this->data['xmlRoles'], $this->table->getUser()->getRoles())) === 0) {
                             $editable = false;
                         }
                         if ($editable && !empty($this->data['xmlEditRoles']) && count(array_intersect(
                                 $this->data['xmlEditRoles'],
                                 $this->table->getUser()->getRoles()
-                            )) == 0) {
+                            )) === 0) {
                             $editable = false;
                         }
                     }
@@ -451,7 +451,7 @@ class Field
         }
 
         if (!empty($newVal['h'])) {
-            if (is_null($newVal['v']) || !array_key_exists('c', $newVal) || $newVal['c'] == $newVal['v']) {
+            if (is_null($newVal['v']) || !array_key_exists('c', $newVal) || $newVal['c'] === $newVal['v']) {
                 unset($newVal['h']);
             }
         }
@@ -483,7 +483,7 @@ class Field
 
                 $newVal = ['v' => $newVal, 'h' => true];
 
-                if (!($newVal['v'] === '' && $this->data['type'] == 'select' && !empty($this->data['withEmptyVal']))) {
+                if (!($newVal['v'] === '' && $this->data['type'] === 'select' && !empty($this->data['withEmptyVal']))) {
                     $newVal['v'] =
                         $this->modifyValue(
                             $newVal['v'],
@@ -566,7 +566,7 @@ class Field
         switch ($viewType) {
             case 'print':
             case 'web':
-                if (array_key_exists('c', $valArray) && (empty($valArray['h']) || $valArray['c'] == $valArray['v'])) {
+                if (array_key_exists('c', $valArray) && (empty($valArray['h']) || $valArray['c'] === $valArray['v'])) {
                     unset($valArray['c']);
                 }
                 break;
@@ -648,7 +648,7 @@ class Field
     {
 
         //Поле инсерта расчетных таблиц
-        if ($this->data['name'] == 'insert' && is_subclass_of($this->table, JsonTables::class)) {
+        if ($this->data['name'] === 'insert' && is_subclass_of($this->table, JsonTables::class)) {
             $newVal['c'] = $row['insert']['c'] ?? null;
             if (!($newVal['h'] ?? null)) {
                 $newVal['v'] = $newVal['c'];

@@ -24,41 +24,41 @@ class Number extends Field
 
     protected static function modifyNumberValue($modifyVal, $oldValue)
     {
-        if (($modifyVal==="" || is_null($modifyVal)) && empty($sign)) {
+        if (($modifyVal === "" || is_null($modifyVal)) && empty($sign)) {
             return $modifyVal;
         }
 
         if (is_object($modifyVal)) {
             $sign = $modifyVal->sign;
-            $diffVal=$modifyVal->val;
-            $percent=$modifyVal->percent;
+            $diffVal = $modifyVal->val;
+            $percent = $modifyVal->percent;
             if (!$percent && preg_match('/%$/', $diffVal)) {
-                $diffVal=substr($diffVal, 0, -1);
-                $percent=true;
+                $diffVal = substr($diffVal, 0, -1);
+                $percent = true;
             }
             if (!is_numeric(strval($diffVal))) {
-                throw new errorException('В числовое поле должно идти число, а не [['.strval($diffVal).']]');
+                throw new errorException('В числовое поле должно идти число, а не [[' . strval($diffVal) . ']]');
             }
             if ($percent) {
                 $diffVal = floatval($oldValue) / 100 * floatval($diffVal);
             }
-            if ($sign=='-') {
-                $sign='+';
-                $diffVal*=-1;
+            if ($sign === '-') {
+                $sign = '+';
+                $diffVal *= -1;
             }
         } elseif (preg_match(
-            '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
-            $modifyVal,
-            $matches
-        ) || preg_match(
-                    '/^(\-|\+|\/|:|\*)(\-?[\d]+(\.[\d]+)?)(%?)$/',
-                    $modifyVal,
-                    $matches
-                )
+                '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
+                $modifyVal,
+                $matches
+            ) || preg_match(
+                '/^(\-|\+|\/|:|\*)(\-?[\d]+(\.[\d]+)?)(%?)$/',
+                $modifyVal,
+                $matches
+            )
         ) {
-            if (!empty($matches[4]) && $matches[4] == '%') {
+            if (!empty($matches[4]) && $matches[4] === '%') {
                 $diffVal = floatval($oldValue) / 100 * floatval($matches[2]);
-                if ($matches[1] == '-') {
+                if ($matches[1] === '-') {
                     $diffVal *= -1;
                 }
                 $sign = '+';
@@ -67,22 +67,22 @@ class Number extends Field
                 $diffVal = floatval($matches[2]);
             }
         }
-        switch ($sign??'') {
-                 /*case '-':
-                      $modifyVal = floatval($oldValue) - floatval($diffVal);
-                      break;*/
-                case '+':
-                    $modifyVal = floatval($oldValue) + floatval($diffVal);
-                    break;
-                case '*':
-                    $modifyVal = floatval($oldValue) * floatval($diffVal);
-                    break;
-                case '\\':
-                case '/':
-                case ':':
-                    $modifyVal = floatval($oldValue) / floatval($diffVal);
-                    break;
-            }
+        switch ($sign ?? '') {
+            /*case '-':
+                 $modifyVal = floatval($oldValue) - floatval($diffVal);
+                 break;*/
+            case '+':
+                $modifyVal = floatval($oldValue) + floatval($diffVal);
+                break;
+            case '*':
+                $modifyVal = floatval($oldValue) * floatval($diffVal);
+                break;
+            case '\\':
+            case '/':
+            case ':':
+                $modifyVal = floatval($oldValue) / floatval($diffVal);
+                break;
+        }
 
         return $modifyVal;
     }
@@ -104,7 +104,7 @@ class Number extends Field
 
 
                     if (!is_null($valArray['v']) && !empty($this->data['unitType'])) {
-                        $valArray['v'].=' '.$this->data['unitType'];
+                        $valArray['v'] .= ' ' . $this->data['unitType'];
                     }
                     break;
                 case 'csv':
@@ -144,15 +144,16 @@ class Number extends Field
             throw new errorException('Поле [[' . $this->data['title'] . ']] должно содержать число, а не [[' . $val . ']]');
         }
         if (!empty($this->data['regexp']) && !preg_match(
-            "/" . str_replace(
-            '/',
-            '\/',
-            $this->data['regexp']
-        ) . "/",
-            $val
-        )
+                "/" . str_replace(
+                    '/',
+                    '\/',
+                    $this->data['regexp']
+                ) . "/",
+                $val
+            )
         ) {
-            errorException::criticalException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"', $this->table);
+            errorException::criticalException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"',
+                $this->table);
         }
 
 

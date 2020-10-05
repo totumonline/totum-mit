@@ -85,7 +85,7 @@ class FieldParams extends Field
 
     final protected function checkValByType(&$val, $row, $isCheck = false)
     {
-        if ($this->table->getTableRow()['id'] != 2) {
+        if ($this->table->getTableRow()['id'] !== 2) {
             throw new errorException('Тип поля Параметры допустим только для таблицы Состав полей');
         }
         /*$val = json_decode('{"type": {"Val": "fieldParamsResult", "isOn": true}, "width": {"Val": 250, "isOn": true}, "showInWeb": {"Val": false, "isOn": true}}',
@@ -100,7 +100,7 @@ class FieldParams extends Field
             $tableRow = $this->table->getTotum()->getTableRow($row['table_id']['v']);
 
 
-            if ($category == 'filter' && !$isCheck) {
+            if ($category === 'filter' && !$isCheck) {
                 if (Totum::isRealTable($tableRow)) {
 
                     //Для реальных таблиц проставить индексы через изменение таблицы "Список таблиц"
@@ -113,12 +113,12 @@ class FieldParams extends Field
                             true)['column']['Val'] ?? '' : '';
 
                     $newColumnName = $val['column']["Val"] ?? '';
-                    if ($newColumnName != $oldColumnName) {
+                    if ($newColumnName !== $oldColumnName) {
                         $fields = $this->table->getTotum()->getTable($row['table_id']['v'], null, false)->getFields();
 
 
-                        if ($newColumnName != '') {
-                            if (empty($fields[$newColumnName]) || $fields[$newColumnName]['category'] != 'column') ;
+                        if (!empty($newColumnName)) {
+                            if (empty($fields[$newColumnName]) || $fields[$newColumnName]['category'] !== 'column') ;
                             elseif (!in_array($newColumnName, $this->table->getTableRow()['indexes'] ?? [])) {
                                 $this->table->getTotum()->getTable('tables')->reCalculateFromOvers(
                                     ['modify' => [$tableRow['id'] => ['indexes' => '+' . $newColumnName]]]
@@ -141,11 +141,11 @@ class FieldParams extends Field
 
             }
         }
-        if ($val['type']['Val'] == 'text') {
+        if ($val['type']['Val'] === 'text') {
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
         }
 
-        if ($category == 'footer' && !is_subclass_of(Totum::getTableClass($tableRow),
+        if ($category === 'footer' && !is_subclass_of(Totum::getTableClass($tableRow),
                 JsonTables::class)) {
             throw new errorException('Нельзя создать поле [[футера]] [[не для рассчетных]] таблиц');
         }

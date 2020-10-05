@@ -30,7 +30,7 @@ class Text extends Field
             $paramInXml->addAttribute('error', $fVar['e']);
         }
         if (isset($fVar['c'])) {
-            $paramInXml->addAttribute('c', $fVar['c'] != $fVar['v'] ? 'Текст изменен' : 'Текст соответствует');
+            $paramInXml->addAttribute('c', $fVar['c'] !== $fVar['v'] ? 'Текст изменен' : 'Текст соответствует');
             $paramInXml->addAttribute('h', isset($fVar['h']) ? '1' : '0');
         }
     }
@@ -63,7 +63,7 @@ class Text extends Field
                     $valArray['v'] = mb_substr($valArray['v'], 0, $this->data['viewTextMaxLength']) . '...';
                 }
                 $valArray['v'] = htmlspecialchars($valArray['v']);
-                if($this->data['textType']=='text'){
+                if($this->data['textType']==='text'){
                     $valArray['v'] = nl2br($valArray['v']);
                 }
 
@@ -92,7 +92,7 @@ class Text extends Field
             } elseif (is_array($val)) {
                 $valTmp = "";
                 foreach ($val as $v) {
-                    if ($valTmp != '') $valTmp .= "\n";
+                    if ($valTmp !== '') $valTmp .= "\n";
                     $valTmp .= $v;
                 }
                 $val = $valTmp;
@@ -103,7 +103,7 @@ class Text extends Field
     protected function modifyValue($modifyVal, $oldVal, $isCheck)
     {
         if (is_object($modifyVal)) {
-            if($modifyVal->sign =='+'){
+            if($modifyVal->sign === '+'){
                 $modifyVal =  $oldVal.(string)$modifyVal->val;
             }
             else $modifyVal = (string)$modifyVal->val;

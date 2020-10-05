@@ -24,7 +24,7 @@ class ListRow extends Field
 
         switch ($viewType) {
             case 'web':
-                if ($this->data['category'] != "filter") {
+                if ($this->data['category'] !== "filter") {
                     $string = json_encode($valArray['v'], JSON_UNESCAPED_UNICODE);
                     if ($this->table->getTableRow()['type'] !== 'tmp' && ($isBig = mb_strlen($string) > ($this->data['viewTextMaxLength']?? 500))) {
                         $valArray['v'] = mb_substr($string, 0, $this->data['viewTextMaxLength'] ?? 500) . '...';

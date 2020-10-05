@@ -167,10 +167,10 @@ class AnController extends interfaceController
             } else {
                 $tableRow = $this->Totum->getTableRow($tableId);
                 $extradata = null;
-                if ($tableRow['type'] != 'tmp') {
+                if ($tableRow['type'] !== 'tmp') {
                     $this->__addAnswerVar('error', 'Доступ через модуль только для временных таблиц');
                 } else {
-                    $this->onlyRead = $this->User->getTables()[$tableId] == 0;
+                    $this->onlyRead = $this->User->getTables()[$tableId] === 0;
                     if ($this->isAjax && empty($this->Request->getParsedBody()['tableData']['sess_hash'] ?? null)) {
                         $this->__addAnswerVar('error', 'Ошибка доступа к таблице');
                     } else {

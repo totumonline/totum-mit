@@ -43,7 +43,7 @@ class Comments extends Field
 
     public function modify($channel, $changeFlag, $newVal, $oldRow, $row = [], $oldTbl = [], $tbl = [], $isCheck = false)
     {
-        if ($channel == 'web') {
+        if ($channel === 'web') {
             $newVal = strval($newVal);
         }
         return parent::modify($channel, $changeFlag, $newVal, $oldRow, $row, $oldTbl, $tbl, $isCheck);
@@ -81,7 +81,7 @@ class Comments extends Field
             case 'web':
                 $n = count($valArray['v']);
                 $isCuted = false;
-                if ($n > 0 && ($valArray['v'][$n - 1][1] != $this->table->getTotum()->getUser()->getId())) {
+                if ($n > 0 && ($valArray['v'][$n - 1][1] !== $this->table->getTotum()->getUser()->getId())) {
                     $notViewed = $n - $this->getViewed($row['id'] ?? null);
                 }
 

@@ -22,6 +22,8 @@ class AuthController extends interfaceController
     public function actionLogin(ServerRequestInterface $request)
     {
         $post=$request->getParsedBody();
+
+        $this->Config->setSessionCookieParams();
         session_start();
         if (!empty($_SESSION['userId'])) {
             $this->location();

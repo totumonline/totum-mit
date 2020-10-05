@@ -56,7 +56,7 @@ class Actions
         if (!$user) {
             throw new errorException('Пользователь не найден');
         }
-        Auth::reUserFromCreator($user['id'], $this->User->getId());
+        Auth::reUserFromCreator($this->Totum->getConfig(), $user['id'], $this->User->getId());
 
         $this->Totum->addToInterfaceLink($this->Request->getParsedBody()['location'], 'self', 'reload');
 

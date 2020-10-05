@@ -86,6 +86,18 @@ abstract class ConfParent
         $this->env = $env;
     }
 
+    public function setSessionCookieParams()
+    {
+        session_set_cookie_params([
+           // 'lifetime' => $maxlifetime,
+            'path' => '/',
+            'domain' => $this->hostName,
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'Strict'
+        ]);
+    }
+
     public function getBaseDir()
     {
         return dirname((new \ReflectionClass(get_called_class()))->getFileName()) . DIRECTORY_SEPARATOR;

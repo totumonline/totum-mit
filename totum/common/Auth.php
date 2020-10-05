@@ -33,6 +33,7 @@ class Auth
     public static function webInterfaceSessionStart($Config, $close = true)
     {
         $User = null;
+        $Config->setSessionCookieParams();
         session_start();
         if (!empty($_SESSION['userId'])) {
             if (!($User = static::loadAuthUser($Config, $_SESSION['userId'], true))) {
@@ -46,6 +47,7 @@ class Auth
         }
         return $User;
     }
+
 
     protected static function getUserWhere(Conf $Config, $where, $UpdateActive = true)
     {
@@ -105,8 +107,9 @@ class Auth
         session_destroy();
     }
 
-    public static function reUserFromCreator($id, $creatorId)
+    public static function reUserFromCreator($Config, $id, $creatorId)
     {
+        $Config->setSessionCookieParams();
         session_start();
         if (empty($_SESSION['CretorId'])) {
             $_SESSION['CretorId'] = $creatorId;

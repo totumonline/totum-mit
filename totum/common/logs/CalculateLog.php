@@ -174,7 +174,7 @@ class CalculateLog
             $times = round(microtime(true) - $this->startMicrotime, 6);
             $this->params['times'] = $times;
 
-           // echo str_repeat(' ', $this->level) . '('.spl_object_id($this).") $key: ".substr($v=json_encode($value, JSON_UNESCAPED_UNICODE), 0, 30).(strlen($v) > 30 ? '...' : '')."\n\n";
+            // echo str_repeat(' ', $this->level) . '('.spl_object_id($this).") $key: ".substr($v=json_encode($value, JSON_UNESCAPED_UNICODE), 0, 30).(strlen($v) > 30 ? '...' : '')."\n\n";
         }
         $this->params[$key] = $value;
     }

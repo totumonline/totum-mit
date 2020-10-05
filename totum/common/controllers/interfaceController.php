@@ -90,7 +90,6 @@ abstract class interfaceController extends Controller
                 $settings[$var] = $this->Config->getSettings($var);
             }
             $this->__addAnswerVar('settings', $settings, true);
-
         } catch (SqlException $e) {
             $this->Config->getLogger('sql')->error($e->getMessage(), $e->getTrace());
             $error = "Ошибка базы данных";

@@ -1,1 +1,1 @@
-<?php include static::$contentTemplate; ?>
+<?php include static::$contentTemplate;

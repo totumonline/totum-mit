@@ -8,7 +8,6 @@
 
 namespace totum\tableTypes;
 
-
 use totum\common\Controller;
 use totum\common\errorException;
 use totum\common\Model;
@@ -20,7 +19,9 @@ class globcalcsTable extends JsonTables
 {
     public function saveTable()
     {
-        if ($this->savedUpdated === $this->updated) return;
+        if ($this->savedUpdated === $this->updated) {
+            return;
+        }
 
         /*if(empty($GLOBALS['test'])){
             $GLOBALS['test']=1;
@@ -35,11 +36,13 @@ class globcalcsTable extends JsonTables
             $updateWhere['updated'] = $this->savedUpdated;
         }
 
-        if (!$this->model->update([
+        if (!$this->model->update(
+            [
             'tbl' => $this->getPreparedTbl(),
             'updated' => $this->updated
         ],
-            $updateWhere)
+            $updateWhere
+        )
         ) {
             errorException::tableUpdatedException($this);
         }
@@ -55,13 +58,13 @@ class globcalcsTable extends JsonTables
         return true;
     }
 
-    function createTable()
+    public function createTable()
     {
         $this->model->insertPrepared(['tbl_name' => $this->tableRow['name'], 'updated' => $updated = $this->getUpdatedJson()]);
         $this->savedUpdated = $this->updated = $updated;
     }
 
-    function loadDataRow($fromConstructor = false, $force = false)
+    public function loadDataRow($fromConstructor = false, $force = false)
     {
         if (empty($this->dataRow) || $force) {
             $this->dataRow = $this->model->getById($this->tableRow['name']);
@@ -77,5 +80,4 @@ class globcalcsTable extends JsonTables
     {
         $this->model = $this->Totum->getNamedModel(NonProjectCalcs::class);
     }
-
 }

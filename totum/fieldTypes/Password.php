@@ -8,19 +8,19 @@
 
 namespace totum\fieldTypes;
 
-
 use totum\common\Field;
 
 class Password extends Field
 {
-    function getModifiedLogValue($val){
-        return "---";
-    }
-    function getLogValue($val, $row, $tbl = [])
+    public function getModifiedLogValue($val)
     {
         return "---";
     }
-    function addViewValues($viewType, array &$valArray, $row, $tbl = [])
+    public function getLogValue($val, $row, $tbl = [])
+    {
+        return "---";
+    }
+    public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         if ($viewType !== 'edit') {
             $valArray['v'] = '';
@@ -29,7 +29,9 @@ class Password extends Field
 
     protected function modifyValue($modifyVal, $oldVal, $isCheck)
     {
-        if ($modifyVal === '') $modifyVal = $oldVal;
+        if ($modifyVal === '') {
+            $modifyVal = $oldVal;
+        }
         return $modifyVal;
     }
 

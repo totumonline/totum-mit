@@ -80,9 +80,9 @@ class SchemaDecode extends Command
                 $cipher = "AES-128-CBC",
                 openssl_get_cipher_methods()
             ) && !in_array(
-                        $cipher = strtolower($cipher),
-                        openssl_get_cipher_methods()
-                    )) {
+                $cipher = strtolower($cipher),
+                openssl_get_cipher_methods()
+            )) {
                 throw new \Exception('Метод шифрования ' . $cipher . ' не поддержвается вашим PHP');
             }
             $options = OPENSSL_RAW_DATA;

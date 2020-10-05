@@ -13,7 +13,9 @@ namespace totum\common;
  * */
 class FieldModifyItem
 {
-    protected $sign, $val, $percent;
+    protected $sign;
+    protected $val;
+    protected $percent;
 
     public function __construct($sign, $val, $percent = false)
     {
@@ -21,9 +23,8 @@ class FieldModifyItem
         $this->sign = $sign;
         $this->percent = $percent;
     }
-    function __get($name)
+    public function __get($name)
     {
         return $this->$name;
     }
-
 }

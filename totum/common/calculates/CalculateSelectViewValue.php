@@ -8,15 +8,12 @@
 
 namespace totum\common\calculates;
 
-
 use totum\common\calculates\CalculateSelect;
 
 class CalculateSelectViewValue extends CalculateSelect
 {
-    protected
-    function funcSelectListAssoc($params)
+    protected function funcSelectListAssoc($params)
     {
-
         $params = $this->getParamsArray($params, ['where', 'order'], ['section', 'preview']);
 
 
@@ -26,10 +23,8 @@ class CalculateSelectViewValue extends CalculateSelect
         return parent::funcSelectListAssoc($params);
     }
 
-    protected
-    function funcSelectRowListForSelect($params)
+    protected function funcSelectRowListForSelect($params)
     {
-
         $params = $this->getParamsArray($params, ['where', 'order'], ['section', 'preview', 'previewscode']);
 
         unset($params['section']);
@@ -40,21 +35,20 @@ class CalculateSelectViewValue extends CalculateSelect
 
     protected function getPreparedList($rows)
     {
-
         $selectList = [];
         if (array_key_exists('parent', $rows[0] ?? [])) {
             foreach ($rows as $row) {
-
                 $r = [$row['title'] //0
                     , empty($row['is_del']) ? 0 : 1 //1
                     , null //2
                     , $row['parent'] //3
                     // disabled //4
                 ];
-                if ($row['disabled'] ?? false) $r[] = 1;
+                if ($row['disabled'] ?? false) {
+                    $r[] = 1;
+                }
                 $selectList[$row['value']] = $r;
             }
-
         } else {
             foreach ($rows as $row) {
                 $selectList[$row['value']] = [$row['title']];                   //0
@@ -63,5 +57,4 @@ class CalculateSelectViewValue extends CalculateSelect
         }
         return $selectList;
     }
-
 }

@@ -33,7 +33,7 @@ class Chart extends NoValueField
         return ["v" => null];
     }
 
-    function addFormat(&$valArray, $row, $tbl)
+    public function addFormat(&$valArray, $row, $tbl)
     {
         parent::addFormat($valArray, $row, $tbl);
         if ($this->chartFormat) {

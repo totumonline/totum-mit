@@ -8,22 +8,24 @@
 
 namespace totum\fieldTypes;
 
-
 use totum\tableTypes\aTable;
 
 class TableNameField extends Unic
 {
     protected function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
     {
-        $newVal['c'] = $this->CalculateCode->exec($this->data,
+        $newVal['c'] = $this->CalculateCode->exec(
+            $this->data,
             $newVal,
             $oldRow,
             $row,
             $oldTbl,
             $tbl,
-            $this->table);
+            $this->table
+        );
 
-        if ($newVal['h'] ?? null) ;
-        else $newVal['v'] = $newVal['c'];
+        if ($newVal['h'] ?? null) ; else {
+            $newVal['v'] = $newVal['c'];
+        }
     }
 }

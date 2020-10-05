@@ -26,8 +26,10 @@ class WriteTableActions extends ReadTableActions
         $this->Table->setWebIdInterval(json_decode($this->post['ids'], true));
 
         $add = json_decode($this->post['data'], true) ?? [];
-        if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists('afterField',
-                $this->post['tableData'])) {
+        if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists(
+            'afterField',
+            $this->post['tableData']
+        )) {
             $this->Totum->getModel('tables_fields')->setAfterField($this->post['tableData']['afterField']);
         }
 
@@ -47,9 +49,9 @@ class WriteTableActions extends ReadTableActions
         }
 
         if (!empty($this->post['ids']) && ($orderedIds = json_decode(
-                $this->post['orderedIds'],
-                true
-            ))) {
+            $this->post['orderedIds'],
+            true
+        ))) {
             return $this->modify(['reorder' => $orderedIds ?? []]);
         } else {
             throw new errorException('Таблица пуста');
@@ -99,7 +101,6 @@ class WriteTableActions extends ReadTableActions
         $data = ['rows' => [$this->Table->checkInsertRow($this->post['tableData'] ?? [], $addData)]];
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit');
         return ['row' => $data['rows'][0]];
-
     }
 
     public function checkEditRow()
@@ -167,9 +168,9 @@ class WriteTableActions extends ReadTableActions
                 }
             } else {
                 $this->modify(['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => json_decode(
-                        $this->post['data'],
-                        true
-                    ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
+                    $this->post['data'],
+                    true
+                ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
             }
 
             return $this->getTableClientChangedData([]);/*$this->getTableClientData($this->post['offset'] ?? null,

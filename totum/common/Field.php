@@ -137,7 +137,8 @@ class Field
         if ($table->getTableRow()['type'] === 'calcs') {
             $staticName .= '/' . $table->getCycle()->getId();
         }
-        return $table->getTotum()->fieldObjectsCaches($staticName,
+        return $table->getTotum()->fieldObjectsCaches(
+            $staticName,
             (function () use ($fieldData, $table) {
                 switch ($fieldData['type']) {
                     case 'select':
@@ -198,7 +199,8 @@ class Field
                         throw new errorException('Тип поля не определен');
                 }
                 return new $model($fieldData, $table);
-            }));
+            })
+        );
     }
 
     public function getValueFromCsv($val)
@@ -231,7 +233,7 @@ class Field
             return Field::CHANGED_FLAGS['setToDefault'];
         } elseif (isset($newVal) || $newValExists) {
             if ($modifyCalculated !== true) {
-                if ($oldVal && (Calculate::compare('==', $oldVal['v'] , $newVal))) {
+                if ($oldVal && (Calculate::compare('==', $oldVal['v'], $newVal))) {
                     return false;
                 }
                 switch ($modifyCalculated) {
@@ -250,7 +252,6 @@ class Field
     public function action($oldRow, $newRow, $oldTbl, $newTbl, $vars = [])
     {
         if (!empty($this->data['codeAction'])) {
-
             $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
             try {
                 $res = $CalculateCodeAction->execAction(
@@ -315,9 +316,9 @@ class Field
                         }
                     }
                     if ($insertable && !empty($this->data['addRoles']) && count(array_intersect(
-                            $this->data['addRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                        $this->data['addRoles'],
+                        $this->table->getUser()->getRoles()
+                    )) === 0) {
                         $insertable = false;
                     }
                 }
@@ -333,9 +334,9 @@ class Field
                         }
                     }
                     if ($editable && !empty($this->data['editRoles']) && count(array_intersect(
-                            $this->data['editRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                        $this->data['editRoles'],
+                        $this->table->getUser()->getRoles()
+                    )) === 0) {
                         $editable = false;
                     }
                 }
@@ -372,9 +373,9 @@ class Field
                             $editable = false;
                         }
                         if ($editable && !empty($this->data['xmlEditRoles']) && count(array_intersect(
-                                $this->data['xmlEditRoles'],
-                                $this->table->getUser()->getRoles()
-                            )) === 0) {
+                            $this->data['xmlEditRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                             $editable = false;
                         }
                     }
@@ -633,8 +634,10 @@ class Field
         $val = &$newVal['v'];
 
         if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val === null)) {
-            errorException::criticalException('Поле [[' . $this->data['title'] . ']] таблицы [[' . ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name']) . ']] должно быть заполнено',
-                $this->table);
+            errorException::criticalException(
+                'Поле [[' . $this->data['title'] . ']] таблицы [[' . ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name']) . ']] должно быть заполнено',
+                $this->table
+            );
         }
 
         if (!in_array($this->data['type'], ['string', 'text']) && $val === '' && $this->data['category'] !== 'filter') {

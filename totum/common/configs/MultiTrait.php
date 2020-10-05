@@ -3,7 +3,6 @@
 
 namespace totum\common\configs;
 
-
 trait MultiTrait
 {
     public function getFilesDir()

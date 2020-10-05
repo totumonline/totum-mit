@@ -160,7 +160,7 @@ class TableController extends interfaceController
                     ]
                 ]
                 + (
-                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
+                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
                 );
             if ($t['type'] !== "link") {
                 $branchIds[] = $t['id'];
@@ -365,9 +365,9 @@ class TableController extends interfaceController
             }
             $message = $e->getMessage();
             if ($this->User && $this->User->isCreator() && key_exists(
-                    WithPathMessTrait::class,
-                    class_uses(get_class($e))
-                )) {
+                WithPathMessTrait::class,
+                class_uses(get_class($e))
+            )) {
                 $message .= "<br/>" . $e->getPathMess();
             }
             $this->__addAnswerVar('error', $message);
@@ -434,9 +434,9 @@ class TableController extends interfaceController
 
         $result['isCreatorView'] = $this->User->isCreator();
         $result['checkIsUpdated'] = ($result['type'] === 'tmp' || in_array(
-                $this->Table->getTableRow()['actual'],
-                ['none', 'disable']
-            )) ? 0 : 1;
+            $this->Table->getTableRow()['actual'],
+            ['none', 'disable']
+        )) ? 0 : 1;
 
         $result['isMain'] = true;
         if (!empty($a = ($request->getQueryParams()['a'] ?? null))) {
@@ -511,8 +511,10 @@ class TableController extends interfaceController
         };
 
 
-        if (!empty($request->getParsedBody()['method']) && in_array($request->getParsedBody()['method'],
-                ['getValue'])) {
+        if (!empty($request->getParsedBody()['method']) && in_array(
+            $request->getParsedBody()['method'],
+            ['getValue']
+        )) {
             if (!empty($request->getParsedBody()['table_id'])) {
                 $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;
@@ -521,10 +523,10 @@ class TableController extends interfaceController
 
 
         if ($tableUri && (preg_match(
-                    '/^(\d+)\/(\d+)\/(\d+)/',
-                    $tableUri,
-                    $tableMatches
-                ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
+            '/^(\d+)\/(\d+)\/(\d+)/',
+            $tableUri,
+            $tableMatches
+        ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
             if (empty($tableMatches[3])) {
                 $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
@@ -564,14 +566,14 @@ class TableController extends interfaceController
                 //Проверка доступа к циклу
 
                 if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
-                        $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                        [1, 2, 3]
-                    )) {
+                    $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                    [1, 2, 3]
+                )) {
                     //Если не связанный пользователь
                     if (count(array_intersect(
-                            $this->Cycle->getRow()['creator_id']['v'],
-                            $this->User->getConnectedUsers()
-                        )) === 0) {
+                        $this->Cycle->getRow()['creator_id']['v'],
+                        $this->User->getConnectedUsers()
+                    )) === 0) {
                         if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {

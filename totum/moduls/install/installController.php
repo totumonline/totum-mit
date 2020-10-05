@@ -63,5 +63,4 @@ class installController extends interfaceController
 
         include dirname(__FILE__) . DIRECTORY_SEPARATOR . 'page_install_template.php';
     }
-
 }

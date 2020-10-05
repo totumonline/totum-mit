@@ -3,7 +3,6 @@
 
 namespace totum\commands;
 
-
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -21,13 +20,12 @@ class SchemaCron extends Command
 {
     protected function configure()
     {
-
         $this->setName('schema-cron')
             ->setDescription('Execute exact totum code of table crons')
             ->addArgument('cronId', InputOption::VALUE_REQUIRED, 'Enter cron id');
-             if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
-                 $this->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
-             }
+        if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
+            $this->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
+        }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

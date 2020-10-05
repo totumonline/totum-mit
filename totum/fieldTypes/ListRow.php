@@ -8,15 +8,12 @@
 
 namespace totum\fieldTypes;
 
-
 use totum\common\Field;
 
 class ListRow extends Field
 {
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
-
-
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         if ($viewType === 'web' && array_key_exists('c', $valArray)) {
             $valArray['c'] = 'Изменено';
@@ -39,10 +36,9 @@ class ListRow extends Field
                 $valArray['v'] = json_encode($valArray['v'], JSON_UNESCAPED_UNICODE);
                 break;
         }
-
     }
 
-    function getValueFromCsv($val)
+    public function getValueFromCsv($val)
     {
         return $val = json_decode(base64_decode($val), true);
     }

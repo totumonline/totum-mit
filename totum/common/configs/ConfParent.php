@@ -108,20 +108,23 @@ abstract class ConfParent
             $Totum = new Totum($this, $User);
             $Table = $Totum->getTable('settings');
             $Cacl = new CalculateAction('=: insert(table: "notifications"; field: \'user_id\'=1; field: \'active\'=true; field: \'title\'="Ошибка крона"; field: \'code\'="admin_text"; field: "vars"=$#vars)');
-            $Cacl->execAction('kod',
+            $Cacl->execAction(
+                'kod',
                 $cronRow,
                 $cronRow,
                 $Table->getTbl(),
                 $Table->getTbl(),
                 $Table,
-                ['vars' => ['text' => 'Ошибка крона <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]);
+                ['vars' => ['text' => 'Ошибка крона <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]
+            );
         } catch (\Exception $e) {
         }
 
-        $this->sendMail(static::adminEmail,
+        $this->sendMail(
+            static::adminEmail,
             'Ошибка крона ' . $this->getSchema() . ' ' . ($cronRow['descr'] ?? $cronRow['id']),
-            $exception->getMessage());
-
+            $exception->getMessage()
+        );
     }
 
     public function getTemplatesDir()
@@ -276,7 +279,6 @@ abstract class ConfParent
                 if (static::$CalcLogs) {
                     $this->getLogger('sql')->error(static::$CalcLogs);
                 }
-
             } else {
                 $errorStr = $errstr;
             }

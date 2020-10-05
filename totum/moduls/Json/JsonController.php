@@ -114,8 +114,10 @@ class JsonController extends Controller
         $jsonString = $request->getBody()->getContents();
 
         try {
-            $this->arrayIn = json_decode($jsonString, true) ?? json_decode($request->getParsedBody()['data'] ?? "",
-                    true);
+            $this->arrayIn = json_decode($jsonString, true) ?? json_decode(
+                $request->getParsedBody()['data'] ?? "",
+                true
+            );
             if (!is_array($this->arrayIn)) {
                 $this->throwError(1);
             }
@@ -170,9 +172,9 @@ class JsonController extends Controller
             $params = [];
             foreach ($this->arrayIn['recalculate'] as $where) {
                 if (!is_array($where) || count(array_intersect_key(
-                        $where,
-                        ['field' => 1, 'operator' => '', 'value' => '']
-                    )) !== 3) {
+                    $where,
+                    ['field' => 1, 'operator' => '', 'value' => '']
+                )) !== 3) {
                     $this->throwError(9);
                 }
                 $params[] = $where;
@@ -318,9 +320,9 @@ class JsonController extends Controller
                 $where = [];
                 foreach ($set['where'] as $_where) {
                     if (count(array_intersect_key(
-                            $_where,
-                            array_flip(['field', 'operator', 'value'])
-                        )) !== 3) {
+                        $_where,
+                        array_flip(['field', 'operator', 'value'])
+                    )) !== 3) {
                         static::throwError(13);
                     }
                     $where[] = $_where;
@@ -402,15 +404,15 @@ class JsonController extends Controller
         $import['channel'] = 'xml';
 
         if ($import['add'] && !Table::isUserCanAction(
-                'insert',
-                $this->Table->getTableRow()
-            )) {
+            'insert',
+            $this->Table->getTableRow()
+        )) {
             throw new errorException('Добавление в эту таблицу вам запрещено');
         }
         if ($import['remove'] && !Table::isUserCanAction(
-                'delete',
-                $this->Table->getTableRow()
-            )) {
+            'delete',
+            $this->Table->getTableRow()
+        )) {
             throw new errorException('Удаление из этой таблицы вам запрещено');
         }
 

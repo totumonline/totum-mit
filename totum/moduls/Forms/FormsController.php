@@ -3,7 +3,6 @@
 
 namespace totum\moduls\Forms;
 
-
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
@@ -63,16 +62,16 @@ class FormsController extends interfaceController
             header('Access-Control-Allow-Credentials: true');
             header('Access-Control-Max-Age: 86400');    // cache for 1 day
         }
-// Access-Control headers are received during OPTIONS requests
+        // Access-Control headers are received during OPTIONS requests
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-
-            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
+            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
                 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+            }
 
-            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
+            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
                 header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+            }
             die;
-
         }
 
         $this->_INPUT = json_decode(file_get_contents('php://input'), true);
@@ -82,7 +81,7 @@ class FormsController extends interfaceController
         static::$pageTemplate = __DIR__ . '/__template.php';
     }
 
-    function doIt(ServerRequestInterface $request, bool $output)
+    public function doIt(ServerRequestInterface $request, bool $output)
     {
         $action = 'Actions';
         try {
@@ -94,9 +93,8 @@ class FormsController extends interfaceController
         }
     }
 
-    function actionAjaxActions()
+    public function actionAjaxActions()
     {
-
         $method = $this->_INPUT['method'] ?? null;
         $_POST = $this->_INPUT;
 
@@ -108,9 +106,12 @@ class FormsController extends interfaceController
 
 
         try {
-            if ($this->onlyRead && !in_array($method,
-                    ['refresh', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect']))
+            if ($this->onlyRead && !in_array(
+                $method,
+                ['refresh', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect']
+            )) {
                 return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+            }
 
 
             Sql::transactionStart();
@@ -130,7 +131,6 @@ class FormsController extends interfaceController
                 case 'edit':
                     $data = [];
                     if ($this->onlyRead) {
-
                         $filterFields = $this->Table->getSortedFields()['filter'] ?? [];
                         foreach ($_POST['data']["params"] as $fName => $fData) {
                             if (array_key_exists($fName, $filterFields)) {
@@ -145,7 +145,6 @@ class FormsController extends interfaceController
                         if (empty($data)) {
                             return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
                         }
-
                     } else {
                         $data = $_POST['data'];
                     }
@@ -169,13 +168,17 @@ class FormsController extends interfaceController
                     break;
 
                 case 'saveOrder':
-                    if (!empty($_POST['ids']) && ($orderedIds = json_decode($_POST['orderedIds'],
-                            true))) {
+                    if (!empty($_POST['ids']) && ($orderedIds = json_decode(
+                        $_POST['orderedIds'],
+                        true
+                    ))) {
                         $result = $this->modify(
                             $_POST['tableData'] ?? [],
                             ['reorder' => $orderedIds ?? []]
                         );
-                    } else throw new errorException('Таблица пуста');
+                    } else {
+                        throw new errorException('Таблица пуста');
+                    }
                     break;
                 case 'getValue':
                     $result = $this->Table->getValue($_POST['data'] ?? []);
@@ -192,7 +195,8 @@ class FormsController extends interfaceController
 
                     break;
                 case 'selectSourceTableAction':
-                    $result = $this->Table->selectSourceTableAction($_POST['field_name'],
+                    $result = $this->Table->selectSourceTableAction(
+                        $_POST['field_name'],
                         $_POST['data'] ?? []
                     );
                     break;
@@ -202,10 +206,12 @@ class FormsController extends interfaceController
 
                     break;
                 case 'getEditSelect':
-                    $result = $this->getEditSelect(['field' => $_POST['data']['field'], 'item' => $_POST['data']['item']],
+                    $result = $this->getEditSelect(
+                        ['field' => $_POST['data']['field'], 'item' => $_POST['data']['item']],
                         $_POST['data']['q'] ?? '',
                         $_POST['data']['parentId'] ?? null,
-                        $_POST['data']['viewtype'] ?? null);
+                        $_POST['data']['viewtype'] ?? null
+                    );
                     break;
                 case 'loadPreviewHtml':
                     $result = $this->getPreviewHtml($_POST['data'] ?? []);
@@ -224,16 +230,17 @@ class FormsController extends interfaceController
                         if (!empty($this->Table->getTableRow()['on_duplicate'])) {
                             try {
                                 Sql::transactionStart();
-                                $Calc->execAction('__ON_ROW_DUPLICATE',
+                                $Calc->execAction(
+                                    '__ON_ROW_DUPLICATE',
                                     [],
                                     [],
                                     $this->Table->getTbl(),
                                     $this->Table->getTbl(),
                                     $this->Table,
-                                    ['ids' => $ids]);
+                                    ['ids' => $ids]
+                                );
                                 Sql::transactionCommit();
                                 Controller::addLogVar($this->Table, ['__ON_ROW_DUPLICATE'], 'a', $Calc->getLogVar());
-
                             } catch (errorException $e) {
                                 if (Auth::isCreator()) {
                                     $e->addPath('Таблица [[' . $this->Table->getTableRow()['name'] . ']]; КОД ПРИ ДУБЛИРОВАНИИ');
@@ -243,16 +250,13 @@ class FormsController extends interfaceController
                                 Controller::addLogVar($this->Table, ['__ON_ROW_DUPLICATE'], 'a', $Calc->getLogVar());
                                 throw $e;
                             }
-
-
                         } else {
                             $result = $this->modify(
                                 $_POST['tableData'] ?? [],
-                                ['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => $_POST['data']], 'addAfter' => ($_POST['insertAfter'] ?? null)]);
+                                ['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => $_POST['data']], 'addAfter' => ($_POST['insertAfter'] ?? null)]
+                            );
                         }
                         $result = $this->Table->getTableDataForRefresh();
-
-
                     }
                     break;
                 case 'refresh_rows':
@@ -269,14 +273,20 @@ class FormsController extends interfaceController
                             $_POST['sorted_ids'] ?? '[]',
                             json_decode($_POST['visibleFields'] ?? '[]', true)
                         );
-                    } else throw new errorException('У вас нет доступа для csv-выкрузки');
+                    } else {
+                        throw new errorException('У вас нет доступа для csv-выкрузки');
+                    }
                     break;
                 case 'csvImport':
                     if (Table::isUserCanAction('csv_edit', $this->Table->getTableRow())) {
-                        $result = $this->Table->csvImport($_POST['tableData'] ?? [],
+                        $result = $this->Table->csvImport(
+                            $_POST['tableData'] ?? [],
                             $_POST['csv'] ?? '',
-                            $_POST['answers'] ?? []);
-                    } else throw new errorException('У вас нет доступа для csv-изменений');
+                            $_POST['answers'] ?? []
+                        );
+                    } else {
+                        throw new errorException('У вас нет доступа для csv-изменений');
+                    }
                     break;
                 default:
                     $result = ['error' => 'Метод [[' . $method . ']] в этом модуле не определен'];
@@ -293,7 +303,9 @@ class FormsController extends interfaceController
                 $result['interfaceDatas'] = $links;
             }
 
-            if (!empty($result)) $this->__setAnswerArray($result);
+            if (!empty($result)) {
+                $this->__setAnswerArray($result);
+            }
 
             Sql::transactionCommit();
         } catch (errorException $exception) {
@@ -301,17 +313,21 @@ class FormsController extends interfaceController
         }
     }
 
-    function getEditSelect($data, $q, $parentId, $viewtype = null)
+    public function getEditSelect($data, $q, $parentId, $viewtype = null)
     {
-
         $type = $viewtype;
 
         $fields = $this->Table->getFields();
 
-        if (!($field = $fields[$data['field']] ?? null))
+        if (!($field = $fields[$data['field']] ?? null)) {
             throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
-        if (!in_array($field['type'],
-            ['select', 'tree'])) throw new errorException('Ошибка - поле не типа select/tree');
+        }
+        if (!in_array(
+            $field['type'],
+            ['select', 'tree']
+        )) {
+            throw new errorException('Ошибка - поле не типа select/tree');
+        }
 
         $this->Table->loadDataRow();
 
@@ -332,9 +348,11 @@ class FormsController extends interfaceController
         if ($type) {
             $list = [];
             $indexed = [];
-            foreach ($Field->calculateSelectListWithPreviews($row[$field['name']],
+            foreach ($Field->calculateSelectListWithPreviews(
+                $row[$field['name']],
                 $row,
-                $this->Table->getTbl()) as $val => $data) {
+                $this->Table->getTbl()
+            ) as $val => $data) {
                 if (!empty($data['2'])) {
                     $data['2'] = $data['2']();
                 }
@@ -382,21 +400,19 @@ class FormsController extends interfaceController
         return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
     }
 
-    static private function _getHttpFilePath()
+    private static function _getHttpFilePath()
     {
         return static::$path ?? (static::$path = (
-                (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://') . \totum\config\Conf::getFullHostName() . '/fls/'
-            ));
-
+            (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://') . \totum\config\Conf::getFullHostName() . '/fls/'
+        ));
     }
 
-    function actionMain()
+    public function actionMain()
     {
         $this->__addAnswerVar('css', $this->FormsTableData['css']);
     }
 
-    private
-    function printTable()
+    private function printTable()
     {
         $template = ['styles' => '@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600|Roboto:400,400i,700,700i,500|Roboto+Mono:400,700&amp;subset=cyrillic");
 body { font-family: \'Roboto\', sans-serif;}
@@ -439,25 +455,31 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
                         $width = $settings['fields'][$field['name']];
                         if ($table) {
-                            $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                                    $table['head']) . $table[2] . implode('',
-                                    $table['body']) . $table[3];
+                            $tableAll[] = $table[0] . $width . $table[1] . implode(
+                                '',
+                                $table['head']
+                            ) . $table[2] . implode(
+                                        '',
+                                        $table['body']
+                                    ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
-
                     } else {
                         $width += $settings['fields'][$field['name']];
                     }
 
                     $table['head'][] = $getTdTitle($field);
                     $table['body'][] = '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $result['params'][$field['name']]['v'] . '</span></td>';
-
                 }
             }
             if ($table) {
-                $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                        $table['head']) . $table[2] . implode('',
-                        $table['body']) . $table[3];
+                $tableAll[] = $table[0] . $width . $table[1] . implode(
+                    '',
+                    $table['head']
+                ) . $table[2] . implode(
+                            '',
+                            $table['body']
+                        ) . $table[3];
             }
         }
 
@@ -478,7 +500,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         if ($table) {
             foreach ($result['rows'] as $id => $row) {
-
                 $tr = '<tr>';
                 if (array_key_exists('id', $settings['fields'])) {
                     $tr .= '<td class="f-id"><span>' . $id . '</span></td>';
@@ -493,11 +514,17 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
 
 
-            if ($columnFooters = array_filter($fields,
+            if ($columnFooters = array_filter(
+                $fields,
                 function ($field) use ($fields) {
-                    if ($field['category'] == 'footer' && $field['column'] && array_key_exists($field['column'],
-                            $fields)) return true;
-                })) {
+                    if ($field['category'] == 'footer' && $field['column'] && array_key_exists(
+                        $field['column'],
+                        $fields
+                    )) {
+                        return true;
+                    }
+                }
+            )) {
                 while ($columnFooters) {
                     $tr_names = '<tr>';
                     $tr_values = '<tr>';
@@ -505,10 +532,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         if ($field['category'] == 'column') {
                             $column = $field['name'];
 
-                            if ($thisColumnFooters = array_filter($columnFooters,
+                            if ($thisColumnFooters = array_filter(
+                                $columnFooters,
                                 function ($field) use ($column) {
-                                    if ($field['column'] == $column) return true;
-                                })) {
+                                    if ($field['column'] == $column) {
+                                        return true;
+                                    }
+                                }
+                            )) {
                                 $name = array_keys($thisColumnFooters)[0];
                                 $thisColumnFooter = $columnFooters[$name];
 
@@ -516,7 +547,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 $tr_values .= '<td class="f-' . $thisColumnFooter['type'] . ' n-' . $thisColumnFooter['name'] . '">' . $result['params'][$thisColumnFooter['name']]['v'] . '</td>';
 
                                 unset($columnFooters[$name]);
-
                             } else {
                                 $tr_names .= '<td></td>';
                                 $tr_values .= '<td></td>';
@@ -532,9 +562,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 }
             }
 
-            $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                    $table['head']) . $table[2] . implode('',
-                    $table['body']) . $table[3];
+            $tableAll[] = $table[0] . $width . $table[1] . implode(
+                '',
+                $table['head']
+            ) . $table[2] . implode(
+                        '',
+                        $table['body']
+                    ) . $table[3];
         }
 
 
@@ -544,17 +578,19 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         foreach ($fields as $field) {
             if ($field['category'] == 'footer' && empty($field['column'])) {
-
                 if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
                     if ($table) {
-                        $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                                $table['head']) . $table[2] . implode('',
-                                $table['body']) . $table[3];
+                        $tableAll[] = $table[0] . $width . $table[1] . implode(
+                            '',
+                            $table['head']
+                        ) . $table[2] . implode(
+                                    '',
+                                    $table['body']
+                                ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
                     $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
-
                 } else {
                     $width += $settings['fields'][$field['name']];
                 }
@@ -564,26 +600,32 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
         }
         if ($table) {
-            $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                    $table['head']) . $table[2] . implode('',
-                    $table['body']) . $table[3];
+            $tableAll[] = $table[0] . $width . $table[1] . implode(
+                '',
+                $table['head']
+            ) . $table[2] . implode(
+                        '',
+                        $table['body']
+                    ) . $table[3];
         }
 
         $style = $template['styles'];
         $body = str_replace(
             '{table}',
             '<div class="table-' . $this->Table->getTableRow()['name'] . '">' . implode('', $tableAll) . '</div>',
-            $template['html']);
+            $template['html']
+        );
 
-        Controller::addToInterfaceDatas('print',
+        Controller::addToInterfaceDatas(
+            'print',
             [
                 'styles' => $style,
                 'body' => $body
-            ]);
+            ]
+        );
     }
 
-    protected
-    function checkTableByStr($form)
+    protected function checkTableByStr($form)
     {
         if ($form) {
             Auth::ServiceUserStart();
@@ -592,7 +634,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     ['field' => 'path_code', 'operator' => '=', 'value' => $form],
                     ['field' => 'on_off', 'operator' => '=', 'value' => true]],
                     'field' => ['table_name', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code']],
-                'row');
+                'row'
+            );
             if (!$tableData) {
                 $this->__addAnswerVar('error', 'Доступ к таблице запрещен');
             } else {
@@ -636,8 +679,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if (key_exists('h_input', $this->Table->getFields())) {
                 $add_tbl_data["params"]['h_input'] = $_POST['input'] ?? '';
             }
-            if (!empty($_GET['d']) && ($d = Crypt::getDeCrypted($_GET['d'],
-                    false)) && ($d = json_decode($d, true))) {
+            if (!empty($_GET['d']) && ($d = Crypt::getDeCrypted(
+                $_GET['d'],
+                false
+            )) && ($d = json_decode($d, true))) {
                 if (!empty($d['d'])) {
                     $add_tbl_data["tbl"] = $d['d'];
                 }
@@ -653,7 +698,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $visibleFields = [];
         foreach ($this->Table->getFields() as $field) {
-            if ($field['category'] === 'column') continue;
+            if ($field['category'] === 'column') {
+                continue;
+            }
 
             if (!Auth::isCreator() && !empty($field['webRoles']) && $field['category'] !== 'filter') {
                 if (count(array_intersect($field['webRoles'], Auth::$aUser->getRoles())) == 0) {
@@ -732,12 +779,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $this->CalcTableFormat = new CalculcateFormat($this->Table->getTableRow()['table_format']);
         $this->CalcRowFormat = new CalculcateFormat($this->Table->getTableRow()['row_format']);
 
-        if ($this->FormsTableData['section_statuses_code'] && !preg_match('/^\s*=\s*:\s*$/',
-                $this->FormsTableData['section_statuses_code'])) {
+        if ($this->FormsTableData['section_statuses_code'] && !preg_match(
+            '/^\s*=\s*:\s*$/',
+            $this->FormsTableData['section_statuses_code']
+        )) {
             $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
-
         }
-
     }
 
     private function modify(array $tableData, array $data)
@@ -750,14 +797,30 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $tableRow = $this->Table->getTableRow();
 
-        if ($add && !Table::isUserCanAction('insert',
-                $tableRow)) throw new errorException('Добавление в эту таблицу вам запрещено');
-        if ($remove && !Table::isUserCanAction('delete',
-                $tableRow)) throw new errorException('Удаление из этой таблицы вам запрещено');
-        if ($duplicate && !Table::isUserCanAction('duplicate',
-                $tableRow)) throw new errorException('Дублирование в этой таблице вам запрещено');
-        if ($reorder && !Table::isUserCanAction('reorder',
-                $tableRow)) throw new errorException('Сортировка в этой таблице вам запрещена');
+        if ($add && !Table::isUserCanAction(
+            'insert',
+            $tableRow
+        )) {
+            throw new errorException('Добавление в эту таблицу вам запрещено');
+        }
+        if ($remove && !Table::isUserCanAction(
+            'delete',
+            $tableRow
+        )) {
+            throw new errorException('Удаление из этой таблицы вам запрещено');
+        }
+        if ($duplicate && !Table::isUserCanAction(
+            'duplicate',
+            $tableRow
+        )) {
+            throw new errorException('Дублирование в этой таблице вам запрещено');
+        }
+        if ($reorder && !Table::isUserCanAction(
+            'reorder',
+            $tableRow
+        )) {
+            throw new errorException('Сортировка в этой таблице вам запрещена');
+        }
 
         $click = $data['click'] ?? [];
         $refresh = $data['refresh'] ?? [];
@@ -781,21 +844,28 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($refresh) {
             $inVars['modify'] = $inVars['modify'] + array_flip($refresh);
         }
-        $fieldFormatEditable = $this->getTableFormats(true,
-            array_intersect_key($this->Table->getTbl()['rows'], $inVars['modify']));
+        $fieldFormatEditable = $this->getTableFormats(
+            true,
+            array_intersect_key($this->Table->getTbl()['rows'], $inVars['modify'])
+        );
 
-        if (empty($fieldFormatEditable['t']['blockadd']))
+        if (empty($fieldFormatEditable['t']['blockadd'])) {
             $inVars['add'] = !is_null($add) ? [$add] : [];
-        if (empty($fieldFormatEditable['t']['blockdelete']))
+        }
+        if (empty($fieldFormatEditable['t']['blockdelete'])) {
             $inVars['remove'] = $remove;
+        }
         if (empty($fieldFormatEditable['t']['blockduplicate'])) {
             $inVars['duplicate'] = $duplicate;
         }
-        if (empty($fieldFormatEditable['t']['blockorder']))
+        if (empty($fieldFormatEditable['t']['blockorder'])) {
             $inVars['reorder'] = $reorder;
+        }
 
-        if (!empty($data['addAfter']) && in_array($data['addAfter'],
-                $duplicate['ids']) && !(empty($inVars['duplicate']))) {
+        if (!empty($data['addAfter']) && in_array(
+            $data['addAfter'],
+            $duplicate['ids']
+        ) && !(empty($inVars['duplicate']))) {
             $inVars['addAfter'] = $data['addAfter'];
         }
 
@@ -836,32 +906,36 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         unset($editData);
         $return = ['chdata' => []];
         if ($click) {
-
             $this->Table->reCalculateFilters('web');
 
             $clickItem = array_key_first($click);
             $clickFieldName = array_key_first($click[$clickItem]);
             if ($clickItem === 'params') {
-                if (!key_exists($clickFieldName,
-                        $fieldFormatEditable) && !($this->clientFields[$clickFieldName]['pressableOnOnlyRead'] ?? false))
+                if (!key_exists(
+                    $clickFieldName,
+                    $fieldFormatEditable
+                ) && !($this->clientFields[$clickFieldName]['pressableOnOnlyRead'] ?? false)) {
                     throw new errorException('Таблица была изменена. Обновите таблицу для проведения изменений');
+                }
                 $row = $this->Table->getTbl()['params'];
             } else {
-                if (!key_exists($clickFieldName, $fieldFormatEditable[$clickItem] ?? []))
+                if (!key_exists($clickFieldName, $fieldFormatEditable[$clickItem] ?? [])) {
                     throw new errorException('Таблица была изменена. Обновите таблицу для проведения изменений');
+                }
 
                 $row = $this->tbl['rows'][$clickItem] ?? null;
-                if (!$row || !empty($row['is_del'])) throw new errorException('Таблица была изменена. Обновите таблицу для проведения изменений');
+                if (!$row || !empty($row['is_del'])) {
+                    throw new errorException('Таблица была изменена. Обновите таблицу для проведения изменений');
+                }
             }
             try {
-
-
-                Field::init($this->Table->getFields()[$clickFieldName], $this->Table)->action($row,
+                Field::init($this->Table->getFields()[$clickFieldName], $this->Table)->action(
+                    $row,
                     $row,
                     $this->Table->getTbl(),
                     $this->Table->getTbl(),
-                    ['ids' => $click['checked_ids'] ?? []]);
-
+                    ['ids' => $click['checked_ids'] ?? []]
+                );
             } catch (\ErrorException $e) {
                 throw $e;
             }
@@ -875,8 +949,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $return['chdata']['rows'] = [];
 
         if ($this->Table->getChangeIds()['added']) {
-            $return['chdata']['rows'] = array_intersect_key($this->Table->getTbl()['rows'],
-                $this->Table->getChangeIds()['added']);
+            $return['chdata']['rows'] = array_intersect_key(
+                $this->Table->getTbl()['rows'],
+                $this->Table->getChangeIds()['added']
+            );
         }
 
         if ($this->Table->getChangeIds()['deleted']) {
@@ -890,7 +966,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         if (($modify += $this->Table->getChangeIds()['changed']) && $fieldFormatS['r']) {
             foreach ($modify as $id => $changes) {
-                if (empty($this->Table->getTbl()['rows'][$id]) || !empty($fieldFormatS['r'][$id]['hidden'])) continue;
+                if (empty($this->Table->getTbl()['rows'][$id]) || !empty($fieldFormatS['r'][$id]['hidden'])) {
+                    continue;
+                }
                 $return['chdata']['rows'][$id] = $this->Table->getTbl()['rows'][$id];
                 $return['chdata']['rows'][$id]['id'] = $id;
             }
@@ -912,13 +990,15 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $tableJsonFromRow = $this->FormsTableData['format_static'];
 
         if ($this->CalcSectionStatuses) {
-            $sectionFormats = $this->CalcSectionStatuses->exec([],
+            $sectionFormats = $this->CalcSectionStatuses->exec(
+                [],
                 null,
                 [],
                 $this->Table->getTbl()['params'],
                 [],
                 $this->Table->getTbl(),
-                $this->Table);
+                $this->Table
+            );
             if ($sectionFormats && is_array($sectionFormats)) {
                 foreach ($sectionFormats as $k => $status) {
                     $tableFormats['sections'][$k]['status'] = $status;
@@ -928,7 +1008,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
 
         if (!empty($tableFormats['rowstitle'])) {
-
             if (preg_match('/^([a-z0-9_]{1,})\s*\:\s*(.*)/', $tableFormats['rowstitle'], $matches)) {
                 $tableFormats['rowsTitle'] = $matches[2];
                 $tableFormats['rowsName'] = $matches[1];
@@ -936,14 +1015,17 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $tableFormats['rowsName'] = "";
                 $tableFormats['rowsTitle'] = $tableFormats['rowstitle'];
             }
-
         }
         unset($tableFormats['rowstitle']);
 
         /*2-edit; 1- view; 0 - hidden*/
         $getSectionEditType = function ($sectionName) use ($tableFormats) {
-            if (!$sectionName || !key_exists($sectionName,
-                    $tableFormats['sections'])) return 2;
+            if (!$sectionName || !key_exists(
+                $sectionName,
+                $tableFormats['sections']
+            )) {
+                return 2;
+            }
             switch ($tableFormats['sections'][$sectionName]['status'] ?? null) {
                 case 'edit':
                     return 2;
@@ -952,7 +1034,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 default:
                     return 0;
             }
-
         };
 
 
@@ -966,25 +1047,29 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             if ($st = $getSectionEditType($section['name'])) {
 
                                 /*Если секция редактируемая*/
-                                if ($st == 2)
-
+                                if ($st == 2) {
                                     foreach ($rows as $row) {
-                                        $rowFormat = $this->CalcRowFormat->getFormat('ROW',
+                                        $rowFormat = $this->CalcRowFormat->getFormat(
+                                            'ROW',
                                             $row,
                                             $this->Table->getTbl(),
-                                            $this->Table);
+                                            $this->Table
+                                        );
                                         if (empty($rowFormat['block'])) {
                                             foreach ($section['fields'] as $fieldName) {
-
-                                                if (!key_exists($fieldName, $this->clientFields)) continue;
+                                                if (!key_exists($fieldName, $this->clientFields)) {
+                                                    continue;
+                                                }
 
                                                 $FieldFormat = $this->CalcFieldFormat[$fieldName]
                                                     ?? ($this->CalcFieldFormat[$fieldName]
                                                         = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
-                                                $format = $FieldFormat->getFormat($fieldName,
+                                                $format = $FieldFormat->getFormat(
+                                                    $fieldName,
                                                     $row,
                                                     $this->Table->getTbl(),
-                                                    $this->Table);
+                                                    $this->Table
+                                                );
 
                                                 if (empty($format['block']) && empty($format['hidden'])) {
                                                     $result[$row['id']][$fieldName] = true;
@@ -992,29 +1077,34 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                             }
                                         }
                                     }
+                                }
                             }
                             break;
                         default:
                             foreach ($sec as $section) {
-
                                 if ($st = $getSectionEditType($section['name'])) {
                                     /*Если секция редактируемая*/
-                                    if ($st == 2)
+                                    if ($st == 2) {
                                         foreach ($section['fields'] as $fieldName) {
-                                            if (!key_exists($fieldName, $this->clientFields)) continue;
+                                            if (!key_exists($fieldName, $this->clientFields)) {
+                                                continue;
+                                            }
 
                                             $FieldFormat = $this->CalcFieldFormat[$fieldName]
                                                 ?? ($this->CalcFieldFormat[$fieldName]
                                                     = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
-                                            $format = $FieldFormat->getFormat($fieldName,
+                                            $format = $FieldFormat->getFormat(
+                                                $fieldName,
                                                 $this->Table->getTbl()['params'],
                                                 $this->Table->getTbl(),
-                                                $this->Table);
+                                                $this->Table
+                                            );
 
                                             if (empty($format['block']) && empty($format['hidden'])) {
                                                 $result[$fieldName] = true;
                                             }
                                         }
+                                    }
                                 }
                             }
                             break;
@@ -1025,12 +1115,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             $result = ['t' => $tableFormats] + $result;
         } else {
-
-
             $result = ['t' => $tableFormats, 'r' => [], 'p' => []];
 
             foreach ($this->sections as $category => $sec) {
-
                 switch ($category) {
                     /*case 'rows':
                         $section = $sec;
@@ -1071,18 +1158,20 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         foreach ($sec as $section) {
                             $sectionStatus = $getSectionEditType($section['name']);
                             foreach ($section['fields'] as $fieldName) {
-
-                                if (!key_exists($fieldName, $this->clientFields)) continue;
+                                if (!key_exists($fieldName, $this->clientFields)) {
+                                    continue;
+                                }
 
                                 if ($sectionStatus) {
-
                                     $FieldFormat = $this->CalcFieldFormat[$fieldName]
                                         ?? ($this->CalcFieldFormat[$fieldName]
                                             = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
-                                    $format = $FieldFormat->getFormat($fieldName,
+                                    $format = $FieldFormat->getFormat(
+                                        $fieldName,
                                         $this->Table->getTbl()['params'],
                                         $this->Table->getTbl(),
-                                        $this->Table);
+                                        $this->Table
+                                    );
                                     if (empty($format['hidden'])) {
                                         $result['p'][$fieldName] = $format;
                                     } else {
@@ -1098,13 +1187,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
             $result['t']['s'] = $result['t']['sections'] ?? [];
             unset($result['t']['sections']);
-
         }
         return array_replace_recursive($tableJsonFromRow, $result);
     }
 
-    private
-    function getValuesForClient($data, &$formats, $isFirstLoad = false)
+    private function getValuesForClient($data, &$formats, $isFirstLoad = false)
     {
         /*foreach (($data['rows'] ?? []) as $i => $row) {
 
@@ -1129,10 +1216,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
                 switch ($field['type']) {
                     case 'file':
-                        Field::init($field, $this->Table)->addViewValues('edit',
+                        Field::init($field, $this->Table)->addViewValues(
+                            'edit',
                             $value,
                             $this->Table->getTbl()['params'],
-                            $this->Table->getTbl());
+                            $this->Table->getTbl()
+                        );
 
                         $value['v_'] = [];
                         foreach ($value['v'] as $val) {
@@ -1144,36 +1233,46 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         switch (strval($formats['p'][$fName]['viewtype'])) {
                             case 'viewimage':
                                 $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
-                                $fileData = $Field->getPreviewHtml($data['params'][$fName]['v'],
+                                $fileData = $Field->getPreviewHtml(
+                                    $data['params'][$fName]['v'],
                                     $this->Table->getTbl()['params'],
                                     $this->Table->getTbl(),
-                                    true);
+                                    true
+                                );
                                 $data['params'][$fName]['v_'] = static::_getHttpFilePath() . ($fileData[$formats['p'][$fName]['viewdata']['picture_name'] ?? ''][1][0]['file'] ?? '');
                                 break 2;
                             case "":
-                                Field::init($field, $this->Table)->addViewValues('edit',
+                                Field::init($field, $this->Table)->addViewValues(
+                                    'edit',
                                     $value,
                                     $this->Table->getTbl()['params'],
-                                    $this->Table->getTbl());
+                                    $this->Table->getTbl()
+                                );
                                 break;
                             default:
                                 if ($isFirstLoad || $field['codeSelectIndividual']) {
-                                    $formats['p'][$fName]['selects'] = $this->getEditSelect(['field' => $fName, 'item' => array_map(function ($val) {
+                                    $formats['p'][$fName]['selects'] = $this->getEditSelect(
+                                        ['field' => $fName, 'item' => array_map(
+                                        function ($val) {
                                         return $val['v'];
                                     },
-                                        $this->Table->getTbl()['params'])],
+                                        $this->Table->getTbl()['params']
+                                    )],
                                         '',
                                         null,
-                                        $formats['p'][$fName]['viewtype']);
-
+                                        $formats['p'][$fName]['viewtype']
+                                    );
                                 }
                         }
 
+                        // no break
                     default:
-                        Field::init($field, $this->Table)->addViewValues('edit',
+                        Field::init($field, $this->Table)->addViewValues(
+                            'edit',
                             $value,
                             $this->Table->getTbl()['params'],
-                            $this->Table->getTbl());
+                            $this->Table->getTbl()
+                        );
                 }
             }
             unset($value);
@@ -1182,13 +1281,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $data;
     }
 
-    private
-    function getTableData()
+    private function getTableData()
     {
-
-
         try {
-
             $inVars = ['calculate' => aTable::CalcInterval['changed']
                 , 'channel' => 'web'
                 , 'isTableAdding' => ($this->Table->getTableRow()['type'] === 'tmp' && $this->Table->isTableAdding())
@@ -1210,7 +1305,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $data['params'] = array_intersect_key($tbl['params'], $formats['p']);
         $data['rows'] = [];
         foreach ($tbl['rows'] as $row) {
-            if (!empty($row['is_del'])) continue;
+            if (!empty($row['is_del'])) {
+                continue;
+            }
             if (key_exists($row['id'], $formats['r'])) {
                 $newRow = ['id' => $row['id']];
                 foreach ($row as $k => $v) {
@@ -1242,14 +1339,22 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     private function getTableControls()
     {
         $result = [];
-        $result['deleting'] = !$this->onlyRead && Table::isUserCanAction('delete',
-                $this->Table->getTableRow());
-        $result['adding'] = !$this->onlyRead && Table::isUserCanAction('insert',
-                $this->Table->getTableRow());
-        $result['duplicating'] = !$this->onlyRead && Table::isUserCanAction('duplicate',
-                $this->Table->getTableRow());
-        $result['sorting'] = !$this->onlyRead && Table::isUserCanAction('reorder',
-                $this->Table->getTableRow());
+        $result['deleting'] = !$this->onlyRead && Table::isUserCanAction(
+            'delete',
+            $this->Table->getTableRow()
+        );
+        $result['adding'] = !$this->onlyRead && Table::isUserCanAction(
+            'insert',
+            $this->Table->getTableRow()
+        );
+        $result['duplicating'] = !$this->onlyRead && Table::isUserCanAction(
+            'duplicate',
+            $this->Table->getTableRow()
+        );
+        $result['sorting'] = !$this->onlyRead && Table::isUserCanAction(
+            'reorder',
+            $this->Table->getTableRow()
+        );
         $result['editing'] = !$this->onlyRead;
         return $result;
     }

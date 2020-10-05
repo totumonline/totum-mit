@@ -3,7 +3,6 @@
 
 namespace totum\common\logs;
 
-
 class CalculateLogEmpty extends CalculateLog
 {
     public function getChildInstance($params)

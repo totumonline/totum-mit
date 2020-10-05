@@ -13,10 +13,10 @@ namespace totum\moduls\Xml;
  *
 <?xml version="1.0" encoding="UTF-8"?>
 <request type="import">
-	<authorization login="xml" password="1234"/>
-	<import>
-	<header><h_data2 h="1">55</h_data2></header>
-	</import>
+    <authorization login="xml" password="1234"/>
+    <import>
+    <header><h_data2 h="1">55</h_data2></header>
+    </import>
 </request>
 
  */
@@ -42,7 +42,8 @@ class XmlController extends Controller
     /**
      * @var SimpleXMLElement
      */
-    protected $xmlObject, $outXmlObject;
+    protected $xmlObject;
+    protected $outXmlObject;
     protected $inModuleUri;
     /**
      * @var aTable
@@ -54,15 +55,14 @@ class XmlController extends Controller
     protected $aUser;
 
 
-    function __construct($modulName, $inModuleUri, Conf $Config)
+    public function __construct($modulName, $inModuleUri, Conf $Config)
     {
         parent::__construct($modulName, $inModuleUri, $Config);
         $this->inModuleUri = $inModuleUri;
     }
 
-    function doIt($action)
+    public function doIt($action)
     {
-
         $xmlString = file_get_contents('php://input');
 
         $this->outXmlObject = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><totumXml></totumXml>');
@@ -98,8 +98,6 @@ class XmlController extends Controller
                     $this->xmlRecalc();
                     break;
             }
-
-
         }
         /*catch (tableSaveException $e){
             tableTypes::$tables=[];
@@ -111,13 +109,11 @@ class XmlController extends Controller
         catch (errorException $e) {
             $error = $e->getCode();
             $errorDescription = $e->getMessage();
-
         }
 
         $this->sendXml($error ?? 0, $errorDescription ?? '');
 
-        foreach (Controller::getLinks()??[] as $link){
-
+        foreach (Controller::getLinks()??[] as $link) {
             $data =http_build_query($link['postData']);
 
             $context = stream_context_create(
@@ -129,15 +125,16 @@ class XmlController extends Controller
                     )
                 )
             );
-            $contents = file_get_contents($link['uri'], false ,$context);
+            $contents = file_get_contents($link['uri'], false, $context);
         }
     }
 
-    protected function xmlRecalc(){
+    protected function xmlRecalc()
+    {
         $recalcXmlObject = $this->xmlObject->xpath('recalc')[0];
         $inVars = [];
         $inVars['modify']=[];
-        foreach ($recalcXmlObject->xpath('ids/id') as $idObj){
+        foreach ($recalcXmlObject->xpath('ids/id') as $idObj) {
             $inVars['modify'][strval($idObj)]=[];
         }
         $updatedOld = $this->Table->updated;
@@ -148,12 +145,10 @@ class XmlController extends Controller
         if ($updatedOld != $this->Table->updated) {
             $this->outXmlObject->addAttribute('updated', json_decode($this->Table->updated, true)['dt']);
         }
-
     }
     protected function getXmlData()
     {
         $import = [];
-
     }
 
 
@@ -183,9 +178,12 @@ class XmlController extends Controller
 
 
         $addValToImportNoColumn = function (SimpleXMLElement $v, $field) use (&$import, $checkStringFromImport) {
-
-            if (empty($field['apiEditable'])) throw new errorException('Поле [[' . $field['name'] . ']] запрещено для редактирования через Api',
-                11);
+            if (empty($field['apiEditable'])) {
+                throw new errorException(
+                    'Поле [[' . $field['name'] . ']] запрещено для редактирования через Api',
+                    11
+                );
+            }
 
             $attributes = [];
             foreach ($v->attributes() as $kA => $vA) {
@@ -195,8 +193,12 @@ class XmlController extends Controller
             if ($field['type'] === 'select' || $field['type'] === 'tree') {
                 if (!empty($field['multiple'])) {
                     $vTmp = [];
-                    if (strval($v) !== '') throw new errorException('Поле [[' . $field['name'] . ']] должно содержать множественный селект',
-                        11);
+                    if (strval($v) !== '') {
+                        throw new errorException(
+                            'Поле [[' . $field['name'] . ']] должно содержать множественный селект',
+                            11
+                        );
+                    }
 
                     if ($vVals = $v->xpath('value')) {
                         foreach ($vVals as $kS => $vS) {
@@ -205,8 +207,12 @@ class XmlController extends Controller
                     }
                     $v = $vTmp;
                 } else {
-                    if ($v->count()) throw new errorException('Поле [[' . $field['name'] . ']]  должно содержать значение',
-                        11);
+                    if ($v->count()) {
+                        throw new errorException(
+                            'Поле [[' . $field['name'] . ']]  должно содержать значение',
+                            11
+                        );
+                    }
                     $v = strval($v);
                 }
             } else {
@@ -232,11 +238,19 @@ class XmlController extends Controller
         foreach (['header' => 'param', 'footer' => 'footer'] as $path => $category) {
             if ($header = $importXmlObject->xpath($path)[0] ?? null) {
                 foreach ($header->children() as $k => $v) {
-                    if (empty($fields[$k]) || $fields[$k]['category'] !== $category) throw new errorException('Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
-                        11);
+                    if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
+                        throw new errorException(
+                            'Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
+                            11
+                        );
+                    }
                     $field = $fields[$k];
-                    if (empty($field['showInXml']) || empty($field['apiEditable'])) throw new errorException('Поля [[' . $k . ']] недоступно для изменения из Api',
-                        11);
+                    if (empty($field['showInXml']) || empty($field['apiEditable'])) {
+                        throw new errorException(
+                            'Поля [[' . $k . ']] недоступно для изменения из Api',
+                            11
+                        );
+                    }
                     $addValToImportNoColumn($v, $field);
                 };
             }
@@ -245,12 +259,17 @@ class XmlController extends Controller
         if ($columnFooters[0] ?? false) {
             /** @var SimpleXMLElement $v */
             foreach ($columnFooters[0]->children() as $columnName => $v) {
-                if (empty($fields[$columnName]) || $fields[$columnName]['category'] !== 'column')
+                if (empty($fields[$columnName]) || $fields[$columnName]['category'] !== 'column') {
                     throw new errorException('Колонки [[' . $columnName . ']] в таблице не существует', 11);
+                }
 
                 foreach ($v->children() as $fName => $vals) {
-                    if (empty($fields[$fName]) || $fields[$fName]['category'] !== 'footer' || empty($fields[$fName]['column']) || $fields[$fName]['column'] != $columnName) throw new errorException('Поля [[' . $fName . ']] в футере колонки [[' . $columnName . ']] таблицы не существует',
-                        11);
+                    if (empty($fields[$fName]) || $fields[$fName]['category'] !== 'footer' || empty($fields[$fName]['column']) || $fields[$fName]['column'] != $columnName) {
+                        throw new errorException(
+                            'Поля [[' . $fName . ']] в футере колонки [[' . $columnName . ']] таблицы не существует',
+                            11
+                        );
+                    }
                     $addValToImportNoColumn($vals, $fields[$fName]);
                 }
             }
@@ -271,30 +290,41 @@ class XmlController extends Controller
                     if ($attributes['remove'] === 'true') {
                         $import['remove'][] = $id;
                         continue;
-
                     } else {
                         throw new errorException('Некорректное значение аттрибута "remove"', 11);
                     }
-
                 }
                 $modifyTmp = &$import['modify'][$id];
                 $defaultTmp = &$import['setValuesToDefaults'][$id];
             }
             /** @var SimpleXMLElement $v */
             foreach ($v->children() as $fName => $v) {
+                if ($fName == 'id') {
+                    continue;
+                }
 
-                if ($fName == 'id') continue;
-
-                if (empty($fields[$fName]) || $fields[$fName]['category'] !== 'column') throw new errorException('Колонки [[' . $fName . ']] не существует',
-                    11);
+                if (empty($fields[$fName]) || $fields[$fName]['category'] !== 'column') {
+                    throw new errorException(
+                        'Колонки [[' . $fName . ']] не существует',
+                        11
+                    );
+                }
                 $field = $fields[$fName];
 
                 if ($id == '0') {
-                    if (empty($field['apiInsertable'])) throw new errorException('Поле [[' . $field['name'] . ']] запрещено для добавления через Api',
-                        11);
+                    if (empty($field['apiInsertable'])) {
+                        throw new errorException(
+                            'Поле [[' . $field['name'] . ']] запрещено для добавления через Api',
+                            11
+                        );
+                    }
                 } else {
-                    if (empty($field['apiEditable'])) throw new errorException('Поле [[' . $field['name'] . ']] запрещено для редактирования через Api',
-                        11);
+                    if (empty($field['apiEditable'])) {
+                        throw new errorException(
+                            'Поле [[' . $field['name'] . ']] запрещено для редактирования через Api',
+                            11
+                        );
+                    }
                 }
 
                 $attributes = [];
@@ -305,8 +335,12 @@ class XmlController extends Controller
                 if ($field['type'] === 'select' || $field['type'] === 'tree') {
                     if (!empty($field['multiple'])) {
                         $vTmp = [];
-                        if (strval($v) !== '') throw new errorException('Поле [[' . $field['name'] . ']] должно содержать множественный селект',
-                            11);
+                        if (strval($v) !== '') {
+                            throw new errorException(
+                                'Поле [[' . $field['name'] . ']] должно содержать множественный селект',
+                                11
+                            );
+                        }
 
                         if ($vVals = $v->xpath('value')) {
                             foreach ($vVals as $kS => $vS) {
@@ -316,8 +350,12 @@ class XmlController extends Controller
                         }
                         $v = $vTmp;
                     } else {
-                        if ($v->count()) throw new errorException('Поле [[' . $field['name'] . ']]  должно содержать значение',
-                            11);
+                        if ($v->count()) {
+                            throw new errorException(
+                                'Поле [[' . $field['name'] . ']]  должно содержать значение',
+                                11
+                            );
+                        }
                         $v = strval($v);
                         $v = $checkStringFromImport($v, $field);
                     }
@@ -334,7 +372,6 @@ class XmlController extends Controller
                         if ($id != 0) {
                             $defaultTmp[$field['name']] = null;
                         }
-
                     } else {
                         $modifyTmp[$field['name']] = $v;
                     }
@@ -348,20 +385,28 @@ class XmlController extends Controller
         $updatedOld = $this->Table->getLastUpdated();
 
 
-        if ($import['add'] && !Table::isUserCanAction( 'insert', $this->Table->getTableRow())) throw new errorException('Добавление в эту таблицу вам запрещено');
-        if ($import['remove'] && !Table::isUserCanAction( 'delete', $this->Table->getTableRow())) throw new errorException('Удаление из этой таблицы вам запрещено');
+        if ($import['add'] && !Table::isUserCanAction('insert', $this->Table->getTableRow())) {
+            throw new errorException('Добавление в эту таблицу вам запрещено');
+        }
+        if ($import['remove'] && !Table::isUserCanAction('delete', $this->Table->getTableRow())) {
+            throw new errorException('Удаление из этой таблицы вам запрещено');
+        }
 
 
         $this->Table->reCalculateFromOvers($import);
         $addedIds = $this->Table->addedIds;
         if (!empty($addedIds)) {
             $added_row_id = $importOutXmlObject->addChild('addedRowIds');
-            foreach ($addedIds as $id) $added_row_id->addChild('id', $id);
+            foreach ($addedIds as $id) {
+                $added_row_id->addChild('id', $id);
+            }
         }
         $deleted = $this->Table->deletedIds;
         if (!empty($deleted)) {
             $added_row_id = $importOutXmlObject->addChild('deletedRowIds');
-            foreach ($deleted as $id) $added_row_id->addChild('id', $id);
+            foreach ($deleted as $id) {
+                $added_row_id->addChild('id', $id);
+            }
         }
         if ($updatedOld != $this->Table->getLastUpdated()) {
             $importOutXmlObject->addAttribute('updated', json_decode($this->Table->getLastUpdated(), true)['dt']);
@@ -406,7 +451,7 @@ class XmlController extends Controller
             $xmlRow = $xmlElement->addChild('row');
 
             $xmlRow->addChild('id', $row['id']);
-            if($this->Table->getTableRow()['order_field']==='n'){
+            if ($this->Table->getTableRow()['order_field']==='n') {
                 $xmlRow->addChild('n', $row['n']);
             }
             foreach ($sortedXmlFields['column'] ?? [] as $fName => $field) {
@@ -433,7 +478,6 @@ class XmlController extends Controller
                 $addFieldToXml($xmlElement, $field, $table['params'][$fName]);
             }
         }
-
     }
 
     protected function checkRequestType()
@@ -457,7 +501,6 @@ class XmlController extends Controller
 
                 $Cycle = Cycle::init($cycleId, $cyclesTableId);
                 $this->Table = $Cycle->getTable($tableRow);
-
             } elseif (preg_match('/^(\d+)$/', $this->inModuleUri, $match)) {
                 $tableId = $match[1];
 
@@ -466,11 +509,9 @@ class XmlController extends Controller
                 }
 
                 $this->Table = tableTypes::getTable($tableRow);
-
             } else {
                 throw new errorException('');
             }
-
         } catch (errorException $errorException) {
             throw new errorException('Путь не верный', 6);
         }
@@ -482,8 +523,6 @@ class XmlController extends Controller
         if ($type == 'import' && empty($userTables[$tableRow['id']])) {
             throw new errorException('Доступ к таблице на запись запрещен', 10);
         }
-
-
     }
 
     protected function parseXml($xmlString)
@@ -498,28 +537,33 @@ class XmlController extends Controller
 
     protected function authUser()
     {
-
-        if (!($authorization = $this->xmlObject->xpath('authorization')))
+        if (!($authorization = $this->xmlObject->xpath('authorization'))) {
             throw new errorException('Узел authorization не найден', '2');
+        }
         $authorization = $authorization[0];
-        if (!isset($authorization['login'])) throw new errorException('Атрибут login не найден', 3);
-        if (!isset($authorization['password'])) throw new errorException('Атрибут password не найден', 4);
+        if (!isset($authorization['login'])) {
+            throw new errorException('Атрибут login не найден', 3);
+        }
+        if (!isset($authorization['password'])) {
+            throw new errorException('Атрибут password не найден', 4);
+        }
 
-        if (!($userId = User::init()->getField('id',
-            ['login' => (string)$authorization['login'], 'pass' => md5((string)$authorization['password']), 'interface' => 'xmljson', 'is_del' => false]))
+        if (!($userId = User::init()->getField(
+            'id',
+            ['login' => (string)$authorization['login'], 'pass' => md5((string)$authorization['password']), 'interface' => 'xmljson', 'is_del' => false]
+        ))
         ) {
-            throw new errorException('Пользователь с такими данными не найден. Возможно, ему не включен доступ к xml-интерфейсу',
-                5);
+            throw new errorException(
+                'Пользователь с такими данными не найден. Возможно, ему не включен доступ к xml-интерфейсу',
+                5
+            );
         }
 
         $this->aUser = Auth::xmlInterfaceAuth($userId);
-
-
     }
 
     protected function sendXml($error, $errorDescription)
     {
-
         $this->outXmlObject->addAttribute('error', $error);
         $this->outXmlObject->addAttribute('errorDescription', $errorDescription);
 

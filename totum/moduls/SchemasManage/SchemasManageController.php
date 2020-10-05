@@ -2,7 +2,6 @@
 
 namespace totum\moduls\SchemasManage;
 
-
 use totum\common\calculates\CalculateAction;
 use totum\common\Controller;
 use totum\common\errorException;
@@ -15,10 +14,9 @@ class SchemasManageController extends jsonController
 {
     protected function __runAction($action)
     {
-
-
-        if (!defined(Conf::class . '::schemasPass') || ($_POST['pass'] ?? null) != Conf::schemasPass)
+        if (!defined(Conf::class . '::schemasPass') || ($_POST['pass'] ?? null) != Conf::schemasPass) {
             throw new errorException('Ошибка доступа. Неверен пароль к схемам');
+        }
 
         if (empty(Conf::getSchema())) {
             Conf::setSchema('.');
@@ -63,14 +61,20 @@ ORDER BY "disk_space"');
 
     protected function action_setSchemaHost()
     {
-        if (empty($schema = $_POST['schema'])) throw new errorException('Не указано имя схемы');
+        if (empty($schema = $_POST['schema'])) {
+            throw new errorException('Не указано имя схемы');
+        }
         $host = ($_POST['host'] ?? "");
 
         $hosts = Conf::getSchemas();
         $schemas = static::getSchemas(array_flip(Conf::getSchemas()));
 
-        if (empty($schemas[$schema])) throw new errorException('Схема [[' . $schema . ']] не найдена');
-        if (!empty($hosts[$host])) throw new errorException('Хост [[' . $host . ']] занят под схему [[' . $hosts[$host] . ']]. Выставьте хост схемы в пусто и попробуйте еще раз.');
+        if (empty($schemas[$schema])) {
+            throw new errorException('Схема [[' . $schema . ']] не найдена');
+        }
+        if (!empty($hosts[$host])) {
+            throw new errorException('Хост [[' . $host . ']] занят под схему [[' . $hosts[$host] . ']]. Выставьте хост схемы в пусто и попробуйте еще раз.');
+        }
 
         if (empty($host)) {
             if ($schemas[$schema]['host'] != "") {
@@ -83,8 +87,10 @@ ORDER BY "disk_space"');
             $hosts[$host] = $schema;
         }
 
-        file_put_contents(dirname((new \ReflectionClass(Conf::class))->getFileName()) . '/ConfSchemas.php',
-            '<?php return ' . var_export($hosts, 1) . ';?>');
+        file_put_contents(
+            dirname((new \ReflectionClass(Conf::class))->getFileName()) . '/ConfSchemas.php',
+            '<?php return ' . var_export($hosts, 1) . ';?>'
+        );
 
         sleep(2);
 
@@ -92,7 +98,7 @@ ORDER BY "disk_space"');
     }
     protected function action_uploadSchema()
     {
-        if(empty(Conf::getDb()['pg_dump']) || empty(Conf::getDb()['psql'])) {
+        if (empty(Conf::getDb()['pg_dump']) || empty(Conf::getDb()['psql'])) {
             echo json_encode(['error'=>'Настройте параметры pg_dump и psql в секции db файла Conf']);
             die;
         }
@@ -110,25 +116,32 @@ ORDER BY "disk_space"');
         $tmpErrors = tempnam(Conf::getTmpLoadedFilesDir(), 'schema_errors_');
         `$pathPsql --dbname="$dbFrom" -q -1 -v ON_ERROR_STOP=1 -f $tmpFileName 2>$tmpErrors`;
         $data=file_get_contents($tmpErrors);
-        if (strlen($data)>0){
+        if (strlen($data)>0) {
             echo json_encode(['error'=>$data]);
             die;
         }
         unlink($tmpFileName);
         $this->__addAnswerVar('schemas', static::getSchemas(array_flip(Conf::getSchemas())));
-
     }
     protected function action_schemaDuplicate()
     {
-        if (empty($schemaFrom = $_POST['duplicate'])) throw new errorException('Не указано имя схемы для дублирования');
+        if (empty($schemaFrom = $_POST['duplicate'])) {
+            throw new errorException('Не указано имя схемы для дублирования');
+        }
         $schemas = static::getSchemas(array_flip(Conf::getSchemas()));
-        if (!array_key_exists($schemaFrom, $schemas)) throw new errorException('Схема [[' . $schemaFrom . ']] не найдена');
-        if (empty($schemaTo = $_POST['new_name'])) throw new errorException('Не указано имя новой схемы');
+        if (!array_key_exists($schemaFrom, $schemas)) {
+            throw new errorException('Схема [[' . $schemaFrom . ']] не найдена');
+        }
+        if (empty($schemaTo = $_POST['new_name'])) {
+            throw new errorException('Не указано имя новой схемы');
+        }
 
-        if (array_key_exists($schemaTo, $schemas)) throw new errorException('Схема [[' . $schemaTo . ']] существует');
+        if (array_key_exists($schemaTo, $schemas)) {
+            throw new errorException('Схема [[' . $schemaTo . ']] существует');
+        }
 
 
-        if(empty(Conf::getDb()['pg_dump']) || empty(Conf::getDb()['psql'])) {
+        if (empty(Conf::getDb()['pg_dump']) || empty(Conf::getDb()['psql'])) {
             echo json_encode(['error'=>'Настройте параметры pg_dump и psql в секции db файла Conf']);
             die;
         }
@@ -142,11 +155,9 @@ ORDER BY "disk_space"');
         $pathDump = Conf::getDb()['pg_dump'];
 
 
-        try{
-
+        try {
             `$pathDump --dbname="$dbFrom" -O --schema $schemaFrom --no-tablespaces $withLogData > $tmpFileNameOld`;
-
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             throw new errorException($e->getMessage());
         }
 
@@ -194,11 +205,15 @@ ORDER BY "disk_space"');
 
     protected function action_schemaDump()
     {
-        if (empty($schemaFrom = $_POST['schema'])) throw new errorException('Не указано имя схемы для выгрузки');
+        if (empty($schemaFrom = $_POST['schema'])) {
+            throw new errorException('Не указано имя схемы для выгрузки');
+        }
         $schemas = static::getSchemas(array_flip(Conf::getSchemas()));
-        if (!array_key_exists($schemaFrom, $schemas)) throw new errorException('Схема [[' . $schemaFrom . ']] не найдена');
+        if (!array_key_exists($schemaFrom, $schemas)) {
+            throw new errorException('Схема [[' . $schemaFrom . ']] не найдена');
+        }
 
-        if(empty(Conf::getDb()['pg_dump']) || empty(Conf::getDb()['psql'])) {
+        if (empty(Conf::getDb()['pg_dump']) || empty(Conf::getDb()['psql'])) {
             echo json_encode(['error'=>'Настройте параметры pg_dump и psql в секции db файла Conf']);
             die;
         }
@@ -217,5 +232,4 @@ ORDER BY "disk_space"');
         unlink($tmpFileName);*/
         die;
     }
-
 }

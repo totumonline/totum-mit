@@ -3,14 +3,13 @@
 
 namespace totum\common\configs;
 
-
 use PHPMailer\PHPMailer\PHPMailer;
 
 trait WithPhpMailerTrait
 {
     abstract protected function getDefaultSender(): string;
 
-    function sendMail($to, $title, $body, $attachments = [], $from = null)
+    public function sendMail($to, $title, $body, $attachments = [], $from = null)
     {
         list($body, $attachments) = $this->mailBodyAttachments($body, $attachments);
 
@@ -29,18 +28,17 @@ trait WithPhpMailerTrait
             foreach ($attachments as $innrName => $fileString) {
                 if (preg_match('/jpg|gif|png$/', $innrName)) {
                     $mail->addEmbeddedImage($fileString, $innrName, $innrName);
-                } else
+                } else {
                     $mail->addAttachment($fileString, $innrName);
+                }
             }
             //Content
             $mail->isHTML(true);                                  // Set email format to HTML
             $mail->Subject = $title;
             $mail->Body = $body;
             return $mail->send();
-
         } catch (\Exception $e) {
             throw new \ErrorException($mail->ErrorInfo);
         }
     }
-
 }

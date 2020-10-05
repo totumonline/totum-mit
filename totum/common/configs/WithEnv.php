@@ -3,12 +3,11 @@
 
 namespace totum\common\configs;
 
-
 trait WithEnv
 {
-    protected function getEnvSettings(){
+    protected function getEnvSettings()
+    {
 
         /*dsdfsfsdf*/
     }
-
 }

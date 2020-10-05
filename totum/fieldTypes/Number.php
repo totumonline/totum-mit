@@ -47,10 +47,10 @@ class Number extends Field
                 $diffVal *= -1;
             }
         } elseif (preg_match(
-                '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
-                $modifyVal,
-                $matches
-            ) || preg_match(
+            '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
+            $modifyVal,
+            $matches
+        ) || preg_match(
                 '/^(\-|\+|\/|:|\*)(\-?[\d]+(\.[\d]+)?)(%?)$/',
                 $modifyVal,
                 $matches
@@ -144,16 +144,18 @@ class Number extends Field
             throw new errorException('Поле [[' . $this->data['title'] . ']] должно содержать число, а не [[' . $val . ']]');
         }
         if (!empty($this->data['regexp']) && !preg_match(
-                "/" . str_replace(
+            "/" . str_replace(
                     '/',
                     '\/',
                     $this->data['regexp']
                 ) . "/",
-                $val
-            )
+            $val
+        )
         ) {
-            errorException::criticalException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"',
-                $this->table);
+            errorException::criticalException(
+                'Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"',
+                $this->table
+            );
         }
 
 

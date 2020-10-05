@@ -248,7 +248,6 @@ class Totum
         }
 
         if ($isNewTable) {
-
             $this->tablesInstances[$cacheString]->addCalculateLogInstance($this->CalculateLog->getChildInstance(['table' => $this->tablesInstances[$cacheString]]));
         }
         return $this->tablesInstances[$cacheString];

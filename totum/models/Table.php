@@ -56,7 +56,6 @@ class Table extends Model
                 $table = $this->Totum->getTable($row);
                 $table->createTable();
             }
-
         } else {
             throw new errorException('Ошибка с таблицей');
         }

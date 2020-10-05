@@ -8,7 +8,6 @@
 
 namespace totum\common\calculates;
 
-
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Formats;
@@ -26,8 +25,19 @@ class Calculate
     protected static $initCodes = [];
 
     protected $cachedCodes = [];
-    protected $oldRow, $oldTbl;
-    protected $newVal, $row, $tbl, $code, $dectimalPlaces, $varName, $log, $error, $varData, $newLog, $newLogParent;
+    protected $oldRow;
+    protected $oldTbl;
+    protected $newVal;
+    protected $row;
+    protected $tbl;
+    protected $code;
+    protected $dectimalPlaces;
+    protected $varName;
+    protected $log;
+    protected $error;
+    protected $varData;
+    protected $newLog;
+    protected $newLogParent;
     protected $whileIterators = [];
     /**
      * @var aTable
@@ -67,34 +77,41 @@ class Calculate
                 if ($table_name) {
                     if (preg_match_all('/\(.*?table:\s*\'([a-z0-9_]+)\'.*?\)/', $line, $matches)) {
                         foreach ($matches[1] as $i => $t_name) {
-                            if (preg_match_all('/(field|where|order|sfield|bfield|tfield|preview|parent|section|table|filter):\s*\'([a-z0-9_]+)\'/',
+                            if (preg_match_all(
+                                '/(field|where|order|sfield|bfield|tfield|preview|parent|section|table|filter):\s*\'([a-z0-9_]+)\'/',
                                 $matches[0][$i],
-                                $mches))
+                                $mches
+                            )) {
                                 foreach ($mches[2] as $field) {
                                     $tableParams[$t_name][$field] = 1;
                                 }
+                            }
                         }
                     }
                     if (preg_match_all('/\(.*?table:\s*\$#ntn.*?\)/', $line, $matches)) {
                         foreach ($matches[0] as $i => $t_name) {
-                            if (preg_match_all('/(field|where|order):\s*\'([a-z0-9_]+)\'/', $matches[0][$i], $mches))
+                            if (preg_match_all('/(field|where|order):\s*\'([a-z0-9_]+)\'/', $matches[0][$i], $mches)) {
                                 foreach ($mches[2] as $field) {
                                     $tableParams[$table_name][$field] = 1;
                                 }
+                            }
                         }
                     }
-
                 }
 
 
-                $line = preg_replace_callback('/(?|(math|json)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
+                $line = preg_replace_callback(
+                    '/(?|(math|json)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
                     function ($matches) use (&$strings) {
-                        if ($matches[1] === "") return '""';
+                        if ($matches[1] === "") {
+                            return '""';
+                        }
                         $stringNum = count($strings);
                         $strings[] = $matches[1] . $matches[2];
                         return '"' . $stringNum . '"';
                     },
-                    $line);
+                    $line
+                );
                 $line = str_replace(' ', '', $line);
 
                 if ($table_name && preg_match_all('/(.?)#([a-z_0-9]+)/', $line, $matches)) {
@@ -105,16 +122,19 @@ class Calculate
                     }
                 }
 
-                $line = preg_replace_callback('/{([^}]+)}/',
+                $line = preg_replace_callback(
+                    '/{([^}]+)}/',
                     function ($matches) use (&$lineParams) {
-                        if ($matches[1] === "") return '{}';
+                        if ($matches[1] === "") {
+                            return '{}';
+                        }
                         $Num = count($lineParams);
                         $lineParams[] = $matches[1];
                         return '{' . $Num . '}';
                     },
-                    $line);
+                    $line
+                );
                 $c[$lineName] = $line;
-
             }
         }
 
@@ -136,7 +156,6 @@ class Calculate
 
     public function __construct($code)
     {
-
         if (!is_array($code)) {
             if (!array_key_exists($code, static::$initCodes)) {
                 static::$initCodes[$code] = static::parseTotumCode($code);
@@ -153,7 +172,6 @@ class Calculate
         unset($code['==strings==']);
         unset($code['==lineParams==']);
         $this->code = $code;
-
     }
 
     protected static function __compare_normalize($n)
@@ -174,7 +192,9 @@ class Calculate
                 unset($_);
                 return $n;
         }
-        if ($n === "0" || $n === 0) return "000000";
+        if ($n === "0" || $n === 0) {
+            return "000000";
+        }
         return $n;
     }
 
@@ -188,7 +208,6 @@ class Calculate
 
     protected static function _compare_n_array($operator, $n, array $n2, $key = null, $isTopLevel = false)
     {
-
         switch ($operator) {
             case '!==':
                 $r = true;
@@ -200,8 +219,9 @@ class Calculate
                 if (count($n2) === 0) {
                     if ($isTopLevel && (($n ?? "") === "")) {
                         $r = true;
-                    } else
+                    } else {
                         $r = false;
+                    }
                 } else {
                     $r = false;
                     $n = static::__compare_normalize($n);
@@ -228,8 +248,9 @@ class Calculate
                 if (count($n2) === 0) {
                     if ($isTopLevel && (($n ?? "") === "")) {
                         $r = true;
-                    } else
+                    } else {
                         $r = false;
+                    }
                 } else {
                     $r = false;
                     $n = static::__compare_normalize($n);
@@ -306,8 +327,9 @@ class Calculate
                     }
                     break;
                 case '=':
-                    if (count($n) === 0 && count($n2) === 0) $r = true;
-                    else {
+                    if (count($n) === 0 && count($n2) === 0) {
+                        $r = true;
+                    } else {
                         $r = false;
 
                         foreach ($n as $key => $nItem) {
@@ -319,8 +341,9 @@ class Calculate
                     }
                     break;
                 case '!=':
-                    if (count($n) === 0 && count($n2) === 0) $r = false;
-                    else {
+                    if (count($n) === 0 && count($n2) === 0) {
+                        $r = false;
+                    } else {
                         $r = true;
 
                         foreach ($n as $key => $nItem) {
@@ -335,7 +358,6 @@ class Calculate
                     throw new errorException('Для сравнения листов только =, == и !=, !==, не ' . $operator);
 
             }
-
         } elseif (is_numeric($n) && is_numeric($n2)) {
             switch ($n <=> $n2) {
                 case 0:
@@ -347,7 +369,6 @@ class Calculate
                 default:
                     $r = in_array($operator, ['<=', '<', '!=', '!==']) ? true : false;
             }
-
         } elseif ($n2IsArray) {
             return static::_compare_n_array($operator, $n, $n2, null, true);
         } elseif ($nIsArray) {
@@ -371,10 +392,14 @@ class Calculate
     public static function getDateObject($dateFromParams)
     {
         $date = null;
-        if (is_array($dateFromParams)) debug_print_backtrace();
+        if (is_array($dateFromParams)) {
+            debug_print_backtrace();
+        }
         foreach (['Y-m-d', 'd.m.y', 'd.m.Y', 'Y-m-d H:i', 'd.m.y H:i', 'd.m.Y H:i', 'Y-m-d H:i:s'] as $format) {
             if ($date = date_create_from_format($format, $dateFromParams)) {
-                if (!strpos($format, 'H')) $date->setTime(0, 0);
+                if (!strpos($format, 'H')) {
+                    $date->setTime(0, 0);
+                }
                 return $date;
             }
         }
@@ -383,7 +408,6 @@ class Calculate
 
     protected function getCodes($stringIN)
     {
-
         $cacheString =& self::$codes;
 
         /*if (strpos($stringIN, '"') !== false || strpos($stringIN, '{') !== false) {
@@ -397,8 +421,6 @@ class Calculate
             $string = $stringIN;
 
             while ($done && ($i < 100) && $string !== "") {
-
-
                 $done = 0;
                 $i++;
                 $string = preg_replace_callback(
@@ -413,7 +435,6 @@ class Calculate
                     //dog,dog_table, dog_field,dog_items
 
                     function ($matches) use (&$done, &$code) {
-
                         if ($matches[0] !== '') {
                             if ($matches['func'] && ($funcName = $matches['func_name'])) {
                                 $code[] = [
@@ -421,7 +442,6 @@ class Calculate
                                     'func' => $funcName,
                                     'params' => $matches['func_params']
                                 ];
-
                             } elseif ($matches['num'] !== '') {
                                 $number = $matches['num'];
                                 $cn = [
@@ -436,7 +456,6 @@ class Calculate
                                 }
                                 //$code[] = $number;
                                 $code[] = $cn;
-
                             } elseif ($operator = $matches['operator']) {
                                 $code[] = [
                                     'type' => 'operator',
@@ -455,12 +474,14 @@ class Calculate
                                     ];
                                 }
                             } elseif ($comparison = $matches['comparison']) {
-                                if (array_key_exists('comparison', $code))
-                                    throw new errorException('Оператор сравнения может быть только один в строке' . print_r($matches,
-                                            1));
+                                if (array_key_exists('comparison', $code)) {
+                                    throw new errorException('Оператор сравнения может быть только один в строке' . print_r(
+                                        $matches,
+                                        1
+                                    ));
+                                }
 
                                 $code['comparison'] = $comparison;
-
                             } elseif ($param = $matches['bool']) {
                                 $code[] = [
                                     'type' => 'boolean',
@@ -480,7 +501,6 @@ class Calculate
                                     'field' => $matches['dog_field'],
                                     'items' => $matches['dog_items']
                                 ];
-
                             }
 
 
@@ -489,11 +509,11 @@ class Calculate
                         return '';
                     },
                     $string,
-                    1);
+                    1
+                );
 
                 $string = trim($string);
                 if ($done === 0 && $string) {
-
                     throw new errorException('Ошибка кода [[' . $string . ']] - не подходит по формату');
                 }
             }
@@ -503,7 +523,7 @@ class Calculate
         return $cacheString[$stringIN];
     }
 
-    function getLogVar()
+    public function getLogVar()
     {
         return $this->newLog;
     }
@@ -537,10 +557,12 @@ class Calculate
                 };
 
                 return [$xml->getName() => $getData($xml)];
-
-            } else throw new errorException('Ошибка формата XML');
-
-        } else throw new errorException('Ошибка параметров функции');
+            } else {
+                throw new errorException('Ошибка формата XML');
+            }
+        } else {
+            throw new errorException('Ошибка параметров функции');
+        }
     }
 
     public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
@@ -614,14 +636,16 @@ class Calculate
                     foreach ($params['var'] ?? [] as $v) {
                         $Vars = array_merge($Vars, $this->getExecParamVal($v));
                     }
-                    $r = $CA->exec($this->varData,
+                    $r = $CA->exec(
+                        $this->varData,
                         $this->newVal,
                         $this->oldRow,
                         $this->row,
                         $this->oldTbl,
                         $this->tbl,
                         $this->Table,
-                        $Vars);
+                        $Vars
+                    );
 
                     $this->newLogParent['children'][] = $CA->getLogVar();
                     return $r;
@@ -696,15 +720,22 @@ class Calculate
 
     public function getReadCodeForLog($code)
     {
-        $code = preg_replace_callback('/{(.*?)}/',
+        $code = preg_replace_callback(
+            '/{(.*?)}/',
             function ($m) {
-                if ($m[1] === "") return '{}';
+                if ($m[1] === "") {
+                    return '{}';
+                }
                 return '{' . $this->CodeLineParams[$m[1]] . '}';
             },
-            $code);
-        $code = preg_replace_callback('/"(.*?)"/',
+            $code
+        );
+        $code = preg_replace_callback(
+            '/"(.*?)"/',
             function ($m) {
-                if ($m[1] === "") return '""';
+                if ($m[1] === "") {
+                    return '""';
+                }
                 $qoute = $this->CodeStrings[$m[1]]{0};
                 switch ($qoute) {
                     case '"':
@@ -712,25 +743,24 @@ class Calculate
                         return $qoute . substr($this->CodeStrings[$m[1]], 1) . $qoute;
                         break;
                     default:
-                        return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr($this->CodeStrings[$m[1]],
-                                4) . '`';
+                        return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr(
+                            $this->CodeStrings[$m[1]],
+                            4
+                        ) . '`';
                 }
-
             },
-            $code);
+            $code
+        );
         return $code;
     }
 
     protected function execSubCode($code, $codeName, $notLoging = false, $inVars = [])
     {
-
         $Log = $this->Table->calcLog(['name' => $codeName, 'code' => function () use ($code) {
             return $this->getReadCodeForLog($code);
         }]);
 
         try {
-
-
             $pastVals = [];
             foreach ($inVars as $k => $v) {
                 if (array_key_exists($k, $this->vars)) {
@@ -834,28 +864,30 @@ class Calculate
                     $operator = null;
                 } else {
                     if (!is_null($res)) {
-                        throw new errorException('Ошибка кода - отсутствие оператора в выражении [[' . $code . ']] ' . var_export($codes,
-                                1));
+                        throw new errorException('Ошибка кода - отсутствие оператора в выражении [[' . $code . ']] ' . var_export(
+                            $codes,
+                            1
+                        ));
                     }
 
                     $res = $rTmp;
                 }
-
             }
 
             if ($comparison) {
-
                 $r = static::compare($comparison, $result, $result2);
                 $result = $r;
             }
 
             foreach ($pastVals as $k => $v) {
-                if (!$v[0]) unset($this->vars[$k]);
-                else $this->vars[$k] = $v[1];
+                if (!$v[0]) {
+                    unset($this->vars[$k]);
+                } else {
+                    $this->vars[$k] = $v[1];
+                }
             }
 
             $this->Table->calcLog($Log, 'result', $result);
-
         } catch (\Exception $e) {
             $this->Table->calcLog($Log, 'error', $e->getMessage());
             throw $e;
@@ -869,7 +901,9 @@ class Calculate
     {
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'getUsingFields');
-        if (empty($params['field']) || !is_string($params['field'])) throw new errorException('Параметр field - обязателен и должен быть строкой');
+        if (empty($params['field']) || !is_string($params['field'])) {
+            throw new errorException('Параметр field - обязателен и должен быть строкой');
+        }
 
         $query = <<<SQL
 select table_name->>'v' as table_name, name->>'v' as name, version->>'v' as version from tables_fields where data->'v'->'code'->'==usedFields=='-> :table ->> :field = '1'
@@ -878,29 +912,39 @@ select table_name->>'v' as table_name, name->>'v' as name, version->>'v' as vers
 SQL;
 
 
-        return TablesFields::init($this->Table->getTotum()->getConfig(), true)->executePreparedSimple(false,
+        return TablesFields::init($this->Table->getTotum()->getConfig(), true)->executePreparedSimple(
+            false,
             $query,
-            ['table' => $tableRow['name'], 'field' => $params['field']])->fetchAll();
+            ['table' => $tableRow['name'], 'field' => $params['field']]
+        )->fetchAll();
     }
 
     protected function funcStrSplit($params)
     {
         $params = $this->getParamsArray($params);
-        if (!key_exists('str', $params)) throw new errorException('Параметр str является обязательным');
-        if (is_array($params['str'])) throw new errorException('Параметр str не может быть массивом');
+        if (!key_exists('str', $params)) {
+            throw new errorException('Параметр str является обязательным');
+        }
+        if (is_array($params['str'])) {
+            throw new errorException('Параметр str не может быть массивом');
+        }
 
-        if (!key_exists('separator', $params)) $list = [$params['str']];
-        elseif ($params['separator'] === '' || is_null($params['separator'])) $list = str_split($params['str']);
-        elseif (is_array($params['separator'])) throw new errorException('Параметр separator не может быть массивом');
-        else {
+        if (!key_exists('separator', $params)) {
+            $list = [$params['str']];
+        } elseif ($params['separator'] === '' || is_null($params['separator'])) {
+            $list = str_split($params['str']);
+        } elseif (is_array($params['separator'])) {
+            throw new errorException('Параметр separator не может быть массивом');
+        } else {
             $list = explode($params['separator'], $params['str']);
         }
         if (key_exists('limit', $params)) {
-            if (!ctype_digit(strval($params['limit']))) throw new errorException('Параметр limit должен быть числом');
+            if (!ctype_digit(strval($params['limit']))) {
+                throw new errorException('Параметр limit должен быть числом');
+            }
             if ($params['limit'] < count($list)) {
                 $list = array_slice($list, 0, $params['limit']);
             }
-
         }
 
         return $list;
@@ -919,7 +963,8 @@ SQL;
         $date_from = $date_from->format('Y-m-d');
         $data = [];
         if ($params['users']) {
-            $slqData = $this->Table->getTotum()->getModel('_log', true)->executePrepared(true,
+            $slqData = $this->Table->getTotum()->getModel('_log', true)->executePrepared(
+                true,
                 ['userid' => $params['users'], '>=dt' => $date_from, '<dt' => $date_to],
                 'tableid, cycleid,rowid,field,modify_text,v,action,userid,dt',
                 'dt'
@@ -947,7 +992,6 @@ SQL;
                         if ($t['field']) {
                             $fields[$t['field']] = [$t['v'], $t['modify_text']];
                         }
-
                     }
 
                     $data[] = ['userid' => $row['userid'], 'tableid' => $tmp_data[0]['tableid'], 'cycleid' => $tmp_data[0]['cycleid'], 'rowid' => $tmp_data[0]['rowid'], 'action' => $tmp_data[0]['action'], 'dt' => $tmp_data[0]['dt'], 'fields' => $fields];
@@ -956,7 +1000,6 @@ SQL;
 
 
                 $action = $tmp_action;
-
             }
 
             if (!empty($tmp_data)) {
@@ -970,19 +1013,27 @@ SQL;
             }
 
             if (!empty($params['order'])) {
-                usort($data,
+                usort(
+                    $data,
                     function ($a, $b) use ($params) {
                         foreach ($params['order'] as $o) {
-                            if (!key_exists($o['field'],
-                                $a)) throw new errorException('Поля ' . $o['field'] . ' в данных не обраружено');
+                            if (!key_exists(
+                                $o['field'],
+                                $a
+                            )) {
+                                throw new errorException('Поля ' . $o['field'] . ' в данных не обраружено');
+                            }
                             if ($a[$o['field']] != $b[$o['field']]) {
                                 $r = $a[$o['field']] < $b[$o['field']] ? -1 : 1;
-                                if ($o['ad'] === 'desc') return -$r;
+                                if ($o['ad'] === 'desc') {
+                                    return -$r;
+                                }
                                 return $r;
                             }
                         }
                         return 0;
-                    });
+                    }
+                );
             }
         }
         return $data;
@@ -1015,8 +1066,9 @@ SQL;
             case '/':
 
                 $func = function ($l, $num) {
-                    if (empty($num))
+                    if (empty($num)) {
                         throw new errorException('Деление на ноль');
+                    }
                     return round($l / $num, 10);
                 };
                 break;
@@ -1028,14 +1080,22 @@ SQL;
             $list2 = $params['list'][$i] ?? false;
             $this->__checkListParam($list2, 'list2', 'listMath');
             foreach ($list as $k => &$l) {
-                if (empty($l)) $l = 0;
+                if (empty($l)) {
+                    $l = 0;
+                }
 
-                if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
+                if (!is_numeric((string)$l)) {
+                    throw new errorException('Нечисловой параметр в листе');
+                }
                 if (!key_exists($k, $list2)) {
                     throw new errorException("Не существует ключа $k в листе " . ($i + 1));
                 }
-                if (empty($list2[$k])) $list2[$k] = 0;
-                if (!is_numeric((string)$list2[$k])) throw new errorException('Нечисловой параметр в листе ' . ($i + 1));
+                if (empty($list2[$k])) {
+                    $list2[$k] = 0;
+                }
+                if (!is_numeric((string)$list2[$k])) {
+                    throw new errorException('Нечисловой параметр в листе ' . ($i + 1));
+                }
 
                 $l = $func($l, $list2[$k]);
             }
@@ -1047,8 +1107,12 @@ SQL;
             $num = $params['num'];
             $this->__checkNumericParam($num, 'num', 'listMath');
             foreach ($list as &$l) {
-                if (empty($l)) $l = 0;
-                if (!is_numeric((string)$l)) throw new errorException('Нечисловой параметр в листе');
+                if (empty($l)) {
+                    $l = 0;
+                }
+                if (!is_numeric((string)$l)) {
+                    throw new errorException('Нечисловой параметр в листе');
+                }
                 $l = $func($l, $num);
             }
             unset($l);
@@ -1059,7 +1123,9 @@ SQL;
     protected function funcFileGetContent($params)
     {
         $params = $this->getParamsArray($params);
-        if (empty($params['file'])) throw new errorException('Параметр file обязателен и не должен быть пустым');
+        if (empty($params['file'])) {
+            throw new errorException('Параметр file обязателен и не должен быть пустым');
+        }
 
         return File::getContent($params['file'], $this->Table->getTotum()->getConfig());
     }
@@ -1068,12 +1134,13 @@ SQL;
     {
         $params = $this->getParamsArray($params);
 
-        if ($r = preg_match('/' . str_replace('/', '\/', $params['template']) . '/'
+        if ($r = preg_match(
+            '/' . str_replace('/', '\/', $params['template']) . '/'
             . ($params['flags'] ?? 'u')
             ,
-            $params['str']
-            ,
-            $matches)) {
+            $params['str'],
+            $matches
+        )) {
             if ($params['matches'] ?? null) {
                 $this->vars[$params['matches']] = $matches;
             }
@@ -1088,12 +1155,13 @@ SQL;
     {
         $params = $this->getParamsArray($params);
 
-        if ($r = preg_match_all('/' . str_replace('/', '\/', $params['template']) . '/'
+        if ($r = preg_match_all(
+            '/' . str_replace('/', '\/', $params['template']) . '/'
             . ($params['flags'] ?? 'u')
             ,
-            $params['str']
-            ,
-            $matches)) {
+            $params['str'],
+            $matches
+        )) {
             $this->vars[$params['matches']] = $matches;
         }
         if ($r === false) {
@@ -1104,10 +1172,11 @@ SQL;
 
     protected function funcWhile($params)
     {
-        if ($vars = $this->getParamsArray($params,
+        if ($vars = $this->getParamsArray(
+            $params,
             ['action', 'preaction', 'postaction'],
-            ['action', 'preaction', 'postaction', 'limit'])) {
-
+            ['action', 'preaction', 'postaction', 'limit']
+        )) {
             $iteratorName = $vars['iterator'] ?? '';
 
             //Типа транзаккция
@@ -1121,17 +1190,18 @@ SQL;
                 }
 
                 if (!empty($vars['action'])) {
-
                     $limit = (int)array_key_exists('limit', $vars) ? $this->execSubCode($vars['limit'], 'limit') : 1;
                     $whileIterator = 0;
                     $isPostaction = false;
 
                     while ($limit-- > 0) {
+                        if ($iteratorName) {
+                            $this->whileIterators[$iteratorName] = $whileIterator;
+                        }
 
-                        if ($iteratorName) $this->whileIterators[$iteratorName] = $whileIterator;
-
-                        if (!isset($vars['condition'])) $conditionTest = true;
-                        else {
+                        if (!isset($vars['condition'])) {
+                            $conditionTest = true;
+                        } else {
                             $conditionTest = true;
                             foreach ($vars['condition'] as $i => $c) {
                                 $condition = $this->execSubCode($c, 'condition' . (1 + $i));
@@ -1150,8 +1220,9 @@ SQL;
                                 $return = $this->execSubCode($action, 'action' . (++$i));
                             }
                             $isPostaction = true;
-
-                        } else break;
+                        } else {
+                            break;
+                        }
 
 
                         $whileIterator++;
@@ -1165,20 +1236,18 @@ SQL;
                 }
 
                 return $return;
-
             } catch (errorException $e) {
                 throw $e;
-
             }
-
-        } else throw new errorException('Ошибка параметров функции While');
+        } else {
+            throw new errorException('Ошибка параметров функции While');
+        }
     }
 
     protected function getExecParamVal($paramVal)
     {
         try {
             $codes = $this->getCodes($paramVal);
-
         } catch (errorException $e) {
             throw new errorException('Неправильно оформлено [[' . $paramVal . ']]');
         }
@@ -1199,12 +1268,10 @@ SQL;
             $value = $codes[1];
         }
         return [$varName => $value];
-
     }
 
     protected function getParam($param, $paramArray)
     {
-
         $r = null;
         $isHashtag = false;
         if (strlen($param) === 0) {
@@ -1224,7 +1291,6 @@ SQL;
                 break;
             case '$':
                 if ($param{1} === '#') {
-
                     $nameVar = substr($param, 2);
                     switch ($nameVar) {
                         case 'nh':
@@ -1289,8 +1355,10 @@ SQL;
                     $isHashtag = true;
                 } else {
                     if ($param{1} === '$') {
-                        $codeName = $this->getParam($param = substr($param, 1),
-                            ['type' => 'param', 'param' => $param]);
+                        $codeName = $this->getParam(
+                            $param = substr($param, 1),
+                            ['type' => 'param', 'param' => $param]
+                        );
                     } else {
                         $codeName = substr($param, 1);
                     }
@@ -1306,24 +1374,24 @@ SQL;
                             }
                         }
                         $codeName = substr($codeName, 0, $varsStart);
-
                     }
 
-                    if (!array_key_exists($codeName, $this->code))
+                    if (!array_key_exists($codeName, $this->code)) {
                         throw new errorException('Код [[' . $codeName . ']] не найден');
+                    }
 
                     /** ~codeName **/
                     if (in_array($codeName, $this->fixedCodeNames)) {
                         $cacheCodeName = $codeName . json_encode($inVars, JSON_UNESCAPED_UNICODE);
                         if (!array_key_exists($cacheCodeName, $this->fixedCodeVars)) {
-                            $this->fixedCodeVars[$cacheCodeName] = $this->execSubCode($this->code[$codeName],
+                            $this->fixedCodeVars[$cacheCodeName] = $this->execSubCode(
+                                $this->code[$codeName],
                                 $param,
                                 false,
-                                $inVars);
+                                $inVars
+                            );
                         }
                         $r = $this->fixedCodeVars[$cacheCodeName];
-
-
                     } else {
                         try {
                             $r = $this->execSubCode($this->code[$codeName], $param, false, $inVars);
@@ -1332,8 +1400,6 @@ SQL;
                             throw $e;
                         }
                     }
-
-
                 }
                 break;
             case '#':
@@ -1345,7 +1411,6 @@ SQL;
 
 
                 if (array_key_exists($nameVar, $this->whileIterators)) {
-
                     $r = $this->whileIterators[$nameVar];
                 } else {
                     if (preg_match('/^old\./i', $nameVar)) {
@@ -1365,10 +1430,11 @@ SQL;
                                 $paramArray['param'] = '#' . $fName;
 
                                 $Field = Field::init($selectField, $this->Table);
-                                $r = $Field->getSelectValue($this->getParam($paramArray['param'], $paramArray),
+                                $r = $Field->getSelectValue(
+                                    $this->getParam($paramArray['param'], $paramArray),
                                     $this->row,
-                                    $this->tbl);
-
+                                    $this->tbl
+                                );
                             }
                         }
                     } elseif (preg_match('/^prv\./i', $nameVar)) {
@@ -1379,9 +1445,7 @@ SQL;
                         } else {
                             $rowVar = $this->row['PrevRow'][$nameVar] ?? "";
                         }
-
                     } else {
-
                         switch (substr($nameVar, 0, 2)) {
                             case 'h.':
                                 $nameVar = substr($nameVar, 2);
@@ -1399,27 +1463,32 @@ SQL;
                             $rowVar = $this->row[$nameVar];
                         } elseif (key_exists($nameVar, $this->tbl['params'] ?? [])) {
                             $rowVar = $this->tbl['params'][$nameVar];
-                        } elseif (key_exists($nameVar,
-                                $this->oldRow ?? []) && !key_exists($nameVar,
-                                $this->row ?? [])) {
+                        } elseif (key_exists(
+                            $nameVar,
+                            $this->oldRow ?? []
+                        ) && !key_exists(
+                                    $nameVar,
+                                    $this->row ?? []
+                                )) {
                             $rowVar = ['v' => null];
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {
                             $rowVar = ['v' => null];
-                        } elseif ($nameVar === 'id' && key_exists($this->varName,
-                                $this->Table->getFields()) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
+                        } elseif ($nameVar === 'id' && key_exists(
+                            $this->varName,
+                            $this->Table->getFields()
+                        ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
                             $rowVar = null;
                         } else {
                             throw new errorException('Параметр [[' . $nameVar . ']] не найден');
                         }
-
                     }
                     if (isset($rowVar)) {
-
                         if (in_array($nameVar, Model::serviceFields)) {
                             $r = $rowVar;
                         } else {
-                            if (is_string($rowVar))
+                            if (is_string($rowVar)) {
                                 $rowVar = json_decode($rowVar, true);
+                            }
 
                             switch ($typeVal ?? null) {
                                 case 'h':
@@ -1467,25 +1536,29 @@ SQL;
                     $item = $this->getParam($_item, ['type' => 'param', 'param' => $_item]);
                     $itemsNames .= "[$item]";
 
-                    if (is_numeric($item)) $item = (string)$item;
+                    if (is_numeric($item)) {
+                        $item = (string)$item;
+                    }
 
                     if ($isSection) {
-
                         if (is_array($r)) {
-                            $r = array_map(function ($_ri) use ($item) {
-                                if (!is_array($_ri) || !key_exists($item,
-                                        $_ri)) {
+                            $r = array_map(
+                                function ($_ri) use ($item) {
+                                if (!is_array($_ri) || !key_exists(
+                                    $item,
+                                    $_ri
+                                )) {
                                     throw new errorException('Ключ [[' . $item . ']] не обнаружен в одном из элементов массива');
                                 }
                                 return $_ri[$item];
                             },
-                                $r);
+                                $r
+                            );
                         } else {
                             $itemsNames .= '...';
                             $r = null;
                             break;
                         }
-
                     } elseif (is_array($r) && array_key_exists($item, $r)) {
                         $r = $r[$item];
                     } else {
@@ -1511,10 +1584,12 @@ SQL;
         $value = (string)($params['num'] ?? null);
 
         if (is_numeric($value)) {
-            return number_format($value,
-                    $params['dectimals'] ?? 0,
-                    $params['decsep'] ?? ',',
-                    $params['thousandssep'] ?? '')
+            return number_format(
+                $value,
+                $params['dectimals'] ?? 0,
+                $params['decsep'] ?? ',',
+                $params['thousandssep'] ?? ''
+            )
                 . ($params['unittype'] ?? '');
         }
     }
@@ -1533,7 +1608,6 @@ SQL;
 
     protected function diffDates($date1, $date2, $unit)
     {
-
         switch ($unit) {
             case 'year':
                 $diff = $date1->diff($date2);
@@ -1555,11 +1629,11 @@ SQL;
     protected function funcIf($params)
     {
         if ($vars = $this->getParamsArray($params)) {
-
-            if (empty($vars['condition'])) throw new errorException('Не задан condition');
+            if (empty($vars['condition'])) {
+                throw new errorException('Не задан condition');
+            }
             $conditionTest = true;
             foreach ($vars['condition'] as $i => $c) {
-
                 $condition = $this->execSubCode($c, 'condition' . (1 + $i));
                 if (!is_bool($condition)) {
                     throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
@@ -1571,36 +1645,45 @@ SQL;
             }
 
             if ($conditionTest) {
-                if (array_key_exists('then', $vars)) return $this->execSubCode($vars['then'], 'then');
-                else return null;
-            } elseif (array_key_exists('else', $vars)) return $this->execSubCode($vars['else'], 'else');
-            else return null;
-
-        } else throw new errorException('Ошибка параметров функции If');
+                if (array_key_exists('then', $vars)) {
+                    return $this->execSubCode($vars['then'], 'then');
+                } else {
+                    return null;
+                }
+            } elseif (array_key_exists('else', $vars)) {
+                return $this->execSubCode($vars['else'], 'else');
+            } else {
+                return null;
+            }
+        } else {
+            throw new errorException('Ошибка параметров функции If');
+        }
     }
 
     protected function funcStrBaseEncode($params)
     {
-
         $params = $this->getParamsArray($params);
-        if (empty($params['str'])) throw new errorException('Параметр str пуст');
+        if (empty($params['str'])) {
+            throw new errorException('Параметр str пуст');
+        }
         return base64_encode($params['str']);
-
     }
 
     protected function funcStrBaseDecode($params)
     {
-
         $params = $this->getParamsArray($params);
-        if (empty($params['str'])) throw new errorException('Параметр str пуст');
+        if (empty($params['str'])) {
+            throw new errorException('Параметр str пуст');
+        }
         return base64_decode($params['str']);
-
     }
 
     protected function funcDiffDates($params)
     {
         $vars = $this->getParamsArray($params, ['date']);
-        if (empty($vars['date']) || count($vars['date']) != 2) throw new errorException('Должно быть два параметра [[date]] в функции [[diffDates]]');
+        if (empty($vars['date']) || count($vars['date']) != 2) {
+            throw new errorException('Должно быть два параметра [[date]] в функции [[diffDates]]');
+        }
 
         $date1 = $this->__checkGetDate($vars['date'][0], 'date - 1', 'diffDates');
         $date2 = $this->__checkGetDate($vars['date'][1], 'date - 2', 'diffDates');
@@ -1642,7 +1725,9 @@ SQL;
                 default:
                     $characters += strval($params['numbers']);
             }
-        } else $characters .= $numbers;
+        } else {
+            $characters .= $numbers;
+        }
 
         if (array_key_exists('letters', $params)) {
             switch ($params['letters']) {
@@ -1678,8 +1763,7 @@ SQL;
         return $randomString;
     }
 
-    protected
-    function funcStrAdd($params)
+    protected function funcStrAdd($params)
     {
         if (($vars = $this->getParamsArray($params, ['str'])) && !empty($vars['str']) || count($vars['str']) > 1) {
             ksort($vars);
@@ -1687,34 +1771,37 @@ SQL;
             $str = '';
 
             foreach ($vars['str'] as $v) {
-
-                if (is_array($v)) throw new errorException('Фукция StrAdd не принимает в качестве параметра List');
+                if (is_array($v)) {
+                    throw new errorException('Фукция StrAdd не принимает в качестве параметра List');
+                }
                 $str .= $v;
             }
 
             return $str;
-
-        } else throw new errorException('Ошибка параметров функции StrAdd');
+        } else {
+            throw new errorException('Ошибка параметров функции StrAdd');
+        }
     }
 
-    protected
-    function funcStrGz($params)
+    protected function funcStrGz($params)
     {
         if (($params = $this->getParamsArray($params)) && array_key_exists('str', $params)) {
             return gzencode($params['str']);
-        } else throw new errorException('Ошибка параметров функции StrGz');
+        } else {
+            throw new errorException('Ошибка параметров функции StrGz');
+        }
     }
 
-    protected
-    function funcStrUnGz($params)
+    protected function funcStrUnGz($params)
     {
         if (($params = $this->getParamsArray($params)) && array_key_exists('str', $params)) {
             return gzdecode($params['str']);
-        } else throw new errorException('Ошибка параметров функции StrUnGz');
+        } else {
+            throw new errorException('Ошибка параметров функции StrUnGz');
+        }
     }
 
-    protected
-    function funcNowDate($params)
+    protected function funcNowDate($params)
     {
         $params = $this->getParamsArray($params);
         $format = $params['format'] ?? 'Y-m-d H:i';
@@ -1722,75 +1809,82 @@ SQL;
         return date($format);
     }
 
-    protected
-    function funcNowField()
+    protected function funcNowField()
     {
-        if (empty($this->varName)) throw new errorException('В этом типе кода не подключен NowField. Мы исправимся - напишите нам');
+        if (empty($this->varName)) {
+            throw new errorException('В этом типе кода не подключен NowField. Мы исправимся - напишите нам');
+        }
         return $this->varName;
     }
 
-    protected
-    function funcNowFieldValue()
+    protected function funcNowFieldValue()
     {
-        if (empty($this->varName)) throw new errorException('В этом типе кода не подключен NowField. Мы исправимся - напишите нам');
+        if (empty($this->varName)) {
+            throw new errorException('В этом типе кода не подключен NowField. Мы исправимся - напишите нам');
+        }
 
         return $this->getParam('#' . $this->varName, ['type' => 'param', 'param' => '#' . $this->varName]);
     }
 
 
-    protected
-    function funcNowTableName()
+    protected function funcNowTableName()
     {
         return $this->Table->getTableRow()['name'];
     }
 
-    protected
-    function funcNowTableId()
+    protected function funcNowTableId()
     {
         return $this->Table->getTableRow()['id'];
     }
 
-    protected
-    function funcNowTableUpdatedDt()
+    protected function funcNowTableUpdatedDt()
     {
         return json_decode($this->Table->getSavedUpdated(), true)['dt'];
     }
 
 
-    protected
-    function funcNowCycleId()
+    protected function funcNowCycleId()
     {
-        if ($this->Table->getTableRow()['type'] != 'calcs') throw new errorException('[[NowCycleId]] работает только из расчетной таблицы в цикле.');
+        if ($this->Table->getTableRow()['type'] != 'calcs') {
+            throw new errorException('[[NowCycleId]] работает только из расчетной таблицы в цикле.');
+        }
         return $this->Table->getCycle()->getId();
     }
 
     protected function funcErrorExeption($params)
     {
         if ($params = $this->getParamsArray($params)) {
-            if (!empty($params['text'])) throw new errorException((string)$params['text']);
+            if (!empty($params['text'])) {
+                throw new errorException((string)$params['text']);
+            }
         }
     }
 
     protected function funcStrReplace($params)
     {
-
         if ($params = $this->getParamsArray($params)) {
-
-            if (!array_key_exists('str', $params)) throw new errorException('Ошибка параметрa str StrReplace');
-            if (!array_key_exists('from', $params)) throw new errorException('Ошибка параметрa from StrReplace');
-            if (!array_key_exists('to', $params)) throw new errorException('Ошибка параметрa to StrReplace');
+            if (!array_key_exists('str', $params)) {
+                throw new errorException('Ошибка параметрa str StrReplace');
+            }
+            if (!array_key_exists('from', $params)) {
+                throw new errorException('Ошибка параметрa from StrReplace');
+            }
+            if (!array_key_exists('to', $params)) {
+                throw new errorException('Ошибка параметрa to StrReplace');
+            }
 
             return str_replace($params['from'], $params['to'], $params['str']);
-
-        } else throw new errorException('Ошибка параметров функции StrReplace');
+        } else {
+            throw new errorException('Ошибка параметров функции StrReplace');
+        }
     }
 
     protected function funcStrTransform($params)
     {
-
         if ($params = $this->getParamsArray($params)) {
-
-            if (!array_key_exists('str', $params)) throw new errorException('Ошибка параметрa str StrTransform');
+            if (!array_key_exists('str', $params)) {
+                throw new errorException('Ошибка параметрa str StrTransform');
+            }
 
             switch ($params['to'] ?? '') {
                 case 'upper':
@@ -1802,62 +1896,81 @@ SQL;
                 default:
                     throw new errorException('Ошибка параметрa to StrTransform');
             }
-
-        } else throw new errorException('Ошибка параметров функции StrTransform');
+        } else {
+            throw new errorException('Ошибка параметров функции StrTransform');
+        }
     }
 
     protected function funcStrRepeat($params)
     {
-
         if ($params = $this->getParamsArray($params)) {
-            if (!array_key_exists('str', $params)) throw new errorException('Ошибка параметрa str StrRepeat');
-            if (!array_key_exists('num', $params)) throw new errorException('Ошибка count num StrRepeat');
+            if (!array_key_exists('str', $params)) {
+                throw new errorException('Ошибка параметрa str StrRepeat');
+            }
+            if (!array_key_exists('num', $params)) {
+                throw new errorException('Ошибка count num StrRepeat');
+            }
 
             return str_repeat($params['str'], (int)$params['num']);
-
-        } else throw new errorException('Ошибка параметров функции StrRepeat');
+        } else {
+            throw new errorException('Ошибка параметров функции StrRepeat');
+        }
     }
 
     protected function funcListRepeat($params)
     {
-
         if ($params = $this->getParamsArray($params)) {
-            if (!array_key_exists('item', $params)) throw new errorException('Ошибка параметрa item ListRepeat');
-            if (!array_key_exists('num', $params)) throw new errorException('Ошибка count num ListRepeat');
+            if (!array_key_exists('item', $params)) {
+                throw new errorException('Ошибка параметрa item ListRepeat');
+            }
+            if (!array_key_exists('num', $params)) {
+                throw new errorException('Ошибка count num ListRepeat');
+            }
 
             return array_fill(0, (int)$params['num'], $params['item']);
-
-        } else throw new errorException('Ошибка параметров функции ListRepeat');
+        } else {
+            throw new errorException('Ошибка параметров функции ListRepeat');
+        }
     }
 
     protected function funcStrLength($params)
     {
-
         if ($params = $this->getParamsArray($params)) {
-            if (!array_key_exists('str',
-                    $params) || is_array($params["str"])) throw new errorException('Ошибка параметрa str strLength');
+            if (!array_key_exists(
+                'str',
+                $params
+            ) || is_array($params["str"])) {
+                throw new errorException('Ошибка параметрa str strLength');
+            }
 
             return mb_strlen($params['str'], 'utf-8');
-
-        } else throw new errorException('Ошибка параметров функции strLength');
+        } else {
+            throw new errorException('Ошибка параметров функции strLength');
+        }
     }
 
     protected function funcStrMd5($params)
     {
-
         if ($params = $this->getParamsArray($params)) {
-            if (!array_key_exists('str',
-                    $params) || is_array($params["str"])) throw new errorException('Ошибка параметрa str strMdF');
+            if (!array_key_exists(
+                'str',
+                $params
+            ) || is_array($params["str"])) {
+                throw new errorException('Ошибка параметрa str strMdF');
+            }
 
             return md5($params['str']);
-
-        } else throw new errorException('Ошибка параметров функции strMdF');
+        } else {
+            throw new errorException('Ошибка параметров функции strMdF');
+        }
     }
 
     protected function funcExecSSH($params)
     {
         $params = $this->getParamsArray($params);
-        if (empty($params['ssh'])) throw new errorException('Параметр ssh обязателен');
+        if (empty($params['ssh'])) {
+            throw new errorException('Параметр ssh обязателен');
+        }
         $string = $params['ssh'];
         if ($params['vars'] ?? null) {
             if (!is_array($params['vars'])) {
@@ -1876,8 +1989,7 @@ SQL;
         return shell_exec($string);
     }
 
-    protected
-    function funcDateAdd($params)
+    protected function funcDateAdd($params)
     {
         if ($params = $this->getParamsArray($params)) {
             $date = $this->__checkGetDate($params['date'], 'date', 'dateAdd');
@@ -1888,14 +2000,17 @@ SQL;
                     $this->__checkNumericParam($params[$period], $period, 'dateAdd');
 
                     $periodVal = intval($params[$period]);
-                    if ($periodVal > 0) $periodVal = '+' . $periodVal;
+                    if ($periodVal > 0) {
+                        $periodVal = '+' . $periodVal;
+                    }
 
                     $date->modify($periodVal . ' ' . $datePeriodStr);
                 }
             }
             return $date->format($params['format'] ?? 'Y-m-d H:i');
-
-        } else throw new errorException('Ошибка параметров функции DateAdd');
+        } else {
+            throw new errorException('Ошибка параметров функции DateAdd');
+        }
     }
 
     protected function funcJsonExtract($params)
@@ -1921,36 +2036,40 @@ SQL;
         }
     }
 
-    protected
-    function __checkGetDate($dateFromParams, $paramName, $funcName)
+    protected function __checkGetDate($dateFromParams, $paramName, $funcName)
     {
-        if (empty($dateFromParams) || !($date = static::getDateObject($dateFromParams)))
+        if (empty($dateFromParams) || !($date = static::getDateObject($dateFromParams))) {
             throw new errorException('Ошибка формата параметра [[' . $paramName . ' = "' . $dateFromParams . '"]] функции [[' . $funcName . ']] [[' . $this->Table->getTableRow()['name'] . ']]');
+        }
         return $date;
     }
 
-    protected
-    function funcDateFormat($params)
+    protected function funcDateFormat($params)
     {
         if ($params = $this->getParamsArray($params)) {
-            if (($params['date'] ?? '') === '') return '';
+            if (($params['date'] ?? '') === '') {
+                return '';
+            }
             $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
 
-            if (empty($params['format']) || !($formated = $date->format(strval($params['format']))))
+            if (empty($params['format']) || !($formated = $date->format(strval($params['format'])))) {
                 throw new errorException('Ошибка  параметра format функции [[DateFormat]]');
+            }
 
             return $formated;
-        } else throw new errorException('Ошибка параметров функции DateFormat');
+        } else {
+            throw new errorException('Ошибка параметров функции DateFormat');
+        }
     }
 
-    protected
-    function funcDateWeekDay($params)
+    protected function funcDateWeekDay($params)
     {
         if ($params = $this->getParamsArray($params)) {
             $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
 
-            if (empty($params['format']) || !in_array($params['format'], ['number', 'short', 'full']))
+            if (empty($params['format']) || !in_array($params['format'], ['number', 'short', 'full'])) {
                 throw new errorException('Ошибка  параметра format функции [[DateFormat]]');
+            }
 
             switch ($params['format']) {
                 case 'number':
@@ -1967,11 +2086,12 @@ SQL;
             }
 
             return $formated;
-        } else throw new errorException('Ошибка параметров функции DateFormat');
+        } else {
+            throw new errorException('Ошибка параметров функции DateFormat');
+        }
     }
 
-    protected
-    function funcNowUser()
+    protected function funcNowUser()
     {
         return strval($this->Table->getTotum()->getUser()->getId());
     }
@@ -1989,16 +2109,13 @@ SQL;
         return false;
     }
 
-    protected
-    function funcNowRoles()
+    protected function funcNowRoles()
     {
         return $this->Table->getTotum()->getUser()->getRoles();
     }
 
-    protected
-    function funcListMax($params)
+    protected function funcListMax($params)
     {
-
         $params = $this->getParamsArray($params);
 
         $this->__checkListParam($params['list'], 'list', 'ListMax');
@@ -2011,7 +2128,6 @@ SQL;
                 continue;
             }
             if (is_numeric($l) && is_numeric($max)) {
-
                 if (floatval($max) < floatval($l)) {
                     $max = $l;
                 }
@@ -2020,7 +2136,9 @@ SQL;
             }
         }
         if (is_null($max)) {
-            if (array_key_exists('default', $params)) return $params['default'];
+            if (array_key_exists('default', $params)) {
+                return $params['default'];
+            }
 
             throw new errorException('Нет значений для выборки максимального');
         }
@@ -2031,9 +2149,13 @@ SQL;
     protected function funcGetVar($params)
     {
         $params = $this->getParamsArray($params, [], ['default']);
-        if (empty($params['name'])) throw new errorException('Параметр  name должен быть заполнен');
-        if (!array_key_exists($params['name'],
-            $this->vars)) {
+        if (empty($params['name'])) {
+            throw new errorException('Параметр  name должен быть заполнен');
+        }
+        if (!array_key_exists(
+            $params['name'],
+            $this->vars
+        )) {
             if (array_key_exists('default', $params)) {
                 $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
             } else {
@@ -2046,20 +2168,25 @@ SQL;
     protected function funcSetVar($params)
     {
         $params = $this->getParamsArray($params);
-        if (empty($params['name'])) throw new errorException('Параметр  name должен быть заполнен');
-        if (!array_key_exists('value', $params)) throw new errorException('Параметр  value должен быть заполнен');
+        if (empty($params['name'])) {
+            throw new errorException('Параметр  name должен быть заполнен');
+        }
+        if (!array_key_exists('value', $params)) {
+            throw new errorException('Параметр  value должен быть заполнен');
+        }
         return $this->vars[$params['name']] = $params['value'];
     }
 
     protected function funcVar($params)
     {
         $params = $this->getParamsArray($params, [], ['default']);
-        if (empty($params['name'])) throw new errorException('Параметр  name должен быть заполнен');
+        if (empty($params['name'])) {
+            throw new errorException('Параметр  name должен быть заполнен');
+        }
 
         if (array_key_exists('value', $params)) {
             $this->vars[$params['name']] = $params['value'];
-        } elseif (array_key_exists($params['name'], $this->vars)) ;
-        elseif (array_key_exists('default', $params)) {
+        } elseif (array_key_exists($params['name'], $this->vars)) ; elseif (array_key_exists('default', $params)) {
             $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
         } else {
             throw new errorException('Параметр [[' . $params['name'] . ']] не был установлен в этом коде');
@@ -2068,10 +2195,8 @@ SQL;
     }
 
 
-    protected
-    function funcListMin($params)
+    protected function funcListMin($params)
     {
-
         $params = $this->getParamsArray($params);
 
         $this->__checkListParam($params['list'], 'list', 'ListMin');
@@ -2092,7 +2217,9 @@ SQL;
             }
         }
         if (is_null($min)) {
-            if (array_key_exists('default', $params)) return $params['default'];
+            if (array_key_exists('default', $params)) {
+                return $params['default'];
+            }
 
             throw new errorException('Нет значений для выборки минимального');
         }
@@ -2100,14 +2227,14 @@ SQL;
         return $min;
     }
 
-    protected
-    function funcListItem($params)
+    protected function funcListItem($params)
     {
-
         $params = $this->getParamsArray($params);
 
         $this->__checkListParam($params['list'], 'list', 'ListItem');
-        if (is_null($params['item'])) throw new errorException('Не передан параметр item');
+        if (is_null($params['item'])) {
+            throw new errorException('Не передан параметр item');
+        }
 
 
         return $params['list'][$params['item']] ?? null;
@@ -2115,26 +2242,29 @@ SQL;
 
     protected function funcGetTableSource($params)
     {
-
         $params = $this->getParamsArray($params);
-        return $this->Table->getSelectByParams($params
+        return $this->Table->getSelectByParams(
+            $params
             ,
             "table"
             ,
-            $this->row['id'] ?? null
-            ,
-            get_class($this) === Calculate::class);
-
+            $this->row['id'] ?? null,
+            get_class($this) === Calculate::class
+        );
     }
 
     protected function funcGetTableUpdated($params)
     {
         $params = $this->getParamsArray($params);
-        if (empty($params['table'])) throw new errorException('Не задан параметр таблица');
+        if (empty($params['table'])) {
+            throw new errorException('Не задан параметр таблица');
+        }
 
         $sourceTableRow = $this->Table->getTotum()->getTableRow($params['table']);
 
-        if (!$sourceTableRow) throw new errorException('Таблица [[' . $params['table'] . ']] не найдена');
+        if (!$sourceTableRow) {
+            throw new errorException('Таблица [[' . $params['table'] . ']] не найдена');
+        }
 
         if ($sourceTableRow['type'] === 'calcs') {
             $SourceCycle = $this->Table->getTotum()->getCycle($params['cycle'], $sourceTableRow['tree_node_id']);
@@ -2145,10 +2275,8 @@ SQL;
         return json_decode($SourceTable->getSavedUpdated(), true);
     }
 
-    protected
-    function funcListSum($params)
+    protected function funcListSum($params)
     {
-
         $params = $this->getParamsArray($params);
         $this->__checkListParam($params['list'], 'list', 'ListSum');
 
@@ -2160,11 +2288,8 @@ SQL;
         return round($sum, 10);
     }
 
-    protected
-    function funcListCount($params)
+    protected function funcListCount($params)
     {
-
-
         $params = $this->getParamsArray($params);
 
         $this->__checkListParam($params['list'], 'list', 'ListCount');
@@ -2172,10 +2297,8 @@ SQL;
         return count($params['list']);
     }
 
-    protected
-    function funcListCut($params)
+    protected function funcListCut($params)
     {
-
         $params = $this->getParamsArray($params);
 
         $this->__checkListParam($params['list'], 'list', 'ListCut');
@@ -2200,8 +2323,7 @@ SQL;
         return $list;
     }
 
-    protected
-    function funcListJoin($params)
+    protected function funcListJoin($params)
     {
         $params = $this->getParamsArray($params);
         $this->__checkListParam($params['list'], 'list', 'ListJoin');
@@ -2209,50 +2331,54 @@ SQL;
         return implode(($params['str'] ?? ''), $params['list']);
     }
 
-    protected
-    function funcListTrain($params)
+    protected function funcListTrain($params)
     {
         $params = $this->getParamsArray($params);
         $this->__checkListParam($params['list'], 'list', 'ListJoin');
 
         $mainlist = [];
         foreach ($params['list'] as $list) {
-            if (!is_array($list)) throw new errorException('Один из элементов списка не список');
+            if (!is_array($list)) {
+                throw new errorException('Один из элементов списка не список');
+            }
             $mainlist = array_merge($mainlist, $list);
         }
 
         return $mainlist;
     }
 
-    protected
-    function funcListCreate($params)
+    protected function funcListCreate($params)
     {
         $params = $this->getParamsArray($params, ['item']);
         return $params['item'] ?? [];
     }
 
-    protected
-    function funcListUniq($params)
+    protected function funcListUniq($params)
     {
         $params = $this->getParamsArray($params);
 
         if ($params['list']) {
             $this->__checkListParam($params['list'], 'list', 'ListUniq');
             return array_values(
-                array_unique($params['list'],
-                    is_array($params['list'][0] ?? null) ? SORT_REGULAR : SORT_STRING)
+                array_unique(
+                    $params['list'],
+                    is_array($params['list'][0] ?? null) ? SORT_REGULAR : SORT_STRING
+                )
             );
-        } else return [];
+        } else {
+            return [];
+        }
     }
 
-    protected
-    function funcListMinus($params)
+    protected function funcListMinus($params)
     {
         $params = $this->getParamsArray($params, ['list', 'item']);
 
         $MainList = null;
 
-        if (!$params['list'][0]) return [];
+        if (!$params['list'][0]) {
+            return [];
+        }
 
         foreach ($params['list'] as $i => $list) {
             if ($list) {
@@ -2271,8 +2397,7 @@ SQL;
         return array_values($MainList);
     }
 
-    protected
-    function funcListSort($params)
+    protected function funcListSort($params)
     {
         $params = $this->getParamsArray($params, [], [], []);
 
@@ -2292,33 +2417,51 @@ SQL;
         switch ($params['key'] ?? 'value') {
             case 'key':
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    $isAssoc = (array_keys($params['list']) !== range(0,
-                                count($params['list']) - 1)) && count($params['list']) > 0;
+                    $isAssoc = (array_keys($params['list']) !== range(
+                        0,
+                        count($params['list']) - 1
+                    )) && count($params['list']) > 0;
 
-                    if ($isAssoc) krsort($params['list'], $flags);
-                    else $params['list'] = array_reverse($params['list'], $flags);
+                    if ($isAssoc) {
+                        krsort($params['list'], $flags);
+                    } else {
+                        $params['list'] = array_reverse($params['list'], $flags);
+                    }
                 } else {
                     ksort($params['list'], $flags);
                 }
 
                 break;
             case 'item':
-                if (is_null($params['item'] ?? null)) throw new errorException('Параметр item не определен');
+                if (is_null($params['item'] ?? null)) {
+                    throw new errorException('Параметр item не определен');
+                }
 
-                if (!empty($params['direction']) && $params['direction'] === 'desc') $sort = SORT_DESC;
-                else $sort = SORT_ASC;
+                if (!empty($params['direction']) && $params['direction'] === 'desc') {
+                    $sort = SORT_DESC;
+                } else {
+                    $sort = SORT_ASC;
+                }
                 $column = array_column($params['list'], $params['item']);
                 array_multisort($column, $flags, $sort, $params['list']);
 
                 break;
             case 'value':
-                $isAssoc = (array_keys($params['list']) !== range(0,
-                            count($params['list']) - 1)) && count($params['list']) > 0;
+                $isAssoc = (array_keys($params['list']) !== range(
+                    0,
+                    count($params['list']) - 1
+                )) && count($params['list']) > 0;
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    if ($isAssoc) arsort($params['list'], $flags);
-                    else rsort($params['list'], $flags);
-                } elseif ($isAssoc) asort($params['list'], $flags);
-                else sort($params['list'], $flags);
+                    if ($isAssoc) {
+                        arsort($params['list'], $flags);
+                    } else {
+                        rsort($params['list'], $flags);
+                    }
+                } elseif ($isAssoc) {
+                    asort($params['list'], $flags);
+                } else {
+                    sort($params['list'], $flags);
+                }
 
                 break;
             default:
@@ -2330,8 +2473,7 @@ SQL;
     }
 
 
-    protected
-    function funcListCross($params)
+    protected function funcListCross($params)
     {
         $params = $this->getParamsArray($params, ['list']);
 
@@ -2349,10 +2491,8 @@ SQL;
         return array_values($MainList);
     }
 
-    protected
-    function funcListAdd($params)
+    protected function funcListAdd($params)
     {
-
         $params = $this->getParamsArray($params, ['list', 'item']);
 
 
@@ -2374,8 +2514,7 @@ SQL;
         return array_values($MainList);
     }
 
-    protected
-    function funcRowAdd($params)
+    protected function funcRowAdd($params)
     {
         $params = $this->getParamsArray($params, ['row', 'field'], ['field']);
 
@@ -2407,8 +2546,9 @@ SQL;
         $this->__checkNumericParam($params['max'], 'max');
         $this->__checkNumericParam($params['step'], 'step');
 
-        if ($params['step'] == 0) throw new errorException('step не может равняться 0');
-        elseif ($params['step'] > 0) {
+        if ($params['step'] == 0) {
+            throw new errorException('step не может равняться 0');
+        } elseif ($params['step'] > 0) {
             $list = [$next = $params['min']];
             while (($next += $params['step']) < $params['max']) {
                 $list[] = $next;
@@ -2424,8 +2564,7 @@ SQL;
         return $list;
     }
 
-    protected
-    function funcRowListAdd($params)
+    protected function funcRowListAdd($params)
     {
         $params = $this->getParamsArray($params, ['rowlist', 'field'], ['field']);
 
@@ -2445,12 +2584,10 @@ SQL;
             $k = array_keys($field)[0];
             $v = array_values($field)[0];
             if (is_array($v) && array_key_exists(0, $v)) {
-
                 $max = count($MainList) > count($v) ? count($MainList) : count($v);
                 for ($i = 0; $i < $max; $i++) {
                     $MainList[$i] = array_replace($MainList[$i] ?? [], [$k => $v[$i] ?? null]);
                 }
-
             } else {
                 $max = count($MainList);
                 for ($i = 0; $i < $max; $i++) {
@@ -2461,28 +2598,25 @@ SQL;
         return $MainList;
     }
 
-    protected
-    function select($params, $mode, $withOutSection = false, $codeNameForLog = '')
+    protected function select($params, $mode, $withOutSection = false, $codeNameForLog = '')
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'sfield']);
 
         if ($withOutSection) {
             unset($params['section']);
         }
-        return $this->Table->getSelectByParams($params
+        return $this->Table->getSelectByParams(
+            $params
             ,
             $mode
             ,
-            $this->row['id'] ?? null
-            ,
-            get_class($this) == Calculate::class);
-
+            $this->row['id'] ?? null,
+            get_class($this) == Calculate::class
+        );
     }
 
-    protected
-    function funcSelect($params, $codeNameForLog)
+    protected function funcSelect($params, $codeNameForLog)
     {
-
         return $this->select($params, 'field', false, $codeNameForLog);
     }
 
@@ -2530,21 +2664,28 @@ SQL;
         }
 
         return $row;
-
     }
 
     protected function funcRowKeysReplace($params)
     {
         $params = $this->getParamsArray($params, []);
         $this->__checkListParam($params['row'], 'row', 'Row');
-        if (!array_key_exists('from', $params)) throw new errorException('Ошибка параметрa from ');
-        if (!array_key_exists('to', $params)) throw new errorException('Ошибка параметрa to ');
-
-        if (is_array($params['from']) && is_array($params['to'])) {
-            if (count($params['from']) != count($params['to'])) throw new errorException('Количество from не равно количеству to');
+        if (!array_key_exists('from', $params)) {
+            throw new errorException('Ошибка параметрa from ');
+        }
+        if (!array_key_exists('to', $params)) {
+            throw new errorException('Ошибка параметрa to ');
         }
 
-        if (is_array($params['to']) && !is_array($params['from'])) throw new errorException('from не лист при to листе не имеет смысла');
+        if (is_array($params['from']) && is_array($params['to'])) {
+            if (count($params['from']) != count($params['to'])) {
+                throw new errorException('Количество from не равно количеству to');
+            }
+        }
+
+        if (is_array($params['to']) && !is_array($params['from'])) {
+            throw new errorException('from не лист при to листе не имеет смысла');
+        }
 
         $recursive = $params['recursive'] ?? false;
 
@@ -2567,7 +2708,9 @@ SQL;
             };
         } else {
             $funcKeyReplace = function ($k) use ($params) {
-                if (strval($k) == $params['from']) return $params['to'];
+                if (strval($k) == $params['from']) {
+                    return $params['to'];
+                }
                 return $k;
             };
         }
@@ -2600,7 +2743,9 @@ SQL;
     {
         $params = $this->getParamsArray($params, []);
         $this->__checkListParam($params['list'], 'list', 'listFilter');
-        if (empty($params['key'])) throw new errorException('Параметр [[key]] обязателен');
+        if (empty($params['key'])) {
+            throw new errorException('Параметр [[key]] обязателен');
+        }
         $isGerExp = $params['regexp'] ?? false;
 
         if ($isGerExp) {
@@ -2650,13 +2795,17 @@ SQL;
 
                 $filter = function ($k, $v) use ($params, $skip, $getCompare) {
                     if (!is_array($v)) {
-                        if (!$skip)
+                        if (!$skip) {
                             throw new errorException('Параметр не соответствует условиям фильтрации - значение не list');
+                        }
                         return false;
-                    } elseif (!array_key_exists($params['item'],
-                        $v)) {
-                        if (!$skip)
+                    } elseif (!array_key_exists(
+                        $params['item'],
+                        $v
+                    )) {
+                        if (!$skip) {
                             throw new errorException('Параметр не соответствует условиям фильтрации - item не найден');
+                        }
                         return false;
                     }
                     return $getCompare($v[$params['item']]);
@@ -2691,12 +2840,19 @@ SQL;
     {
         $params = $this->getParamsArray($params, []);
         $this->__checkListParam($params['list'], 'list', 'listFilter');
-        if (!array_key_exists('item', $params)) throw new errorException('Параметр [[item]] обязателен');
+        if (!array_key_exists('item', $params)) {
+            throw new errorException('Параметр [[item]] обязателен');
+        }
 
         $filter = function ($v) use ($params) {
-            if (!is_array($v)) throw new errorException('Параметр не соответствует условиям фильтрации - значение не list');
-            elseif (!array_key_exists($params['item'],
-                $v)) throw new errorException('Параметр не соответствует условиям фильтрации - ключ [[' . $params['item'] . ']] не найден');
+            if (!is_array($v)) {
+                throw new errorException('Параметр не соответствует условиям фильтрации - значение не list');
+            } elseif (!array_key_exists(
+                $params['item'],
+                $v
+            )) {
+                throw new errorException('Параметр не соответствует условиям фильтрации - ключ [[' . $params['item'] . ']] не найден');
+            }
             return $v[$params['item']];
         };
 
@@ -2713,7 +2869,9 @@ SQL;
     {
         $params = $this->getParamsArray($params, []);
         $this->__checkListParam($params['list'], 'list', 'listSearch');
-        if (empty($params['key'])) throw new errorException('Параметр [[key]] обязателен');
+        if (empty($params['key'])) {
+            throw new errorException('Параметр [[key]] обязателен');
+        }
 
 
         switch ($params['key']['field']) {
@@ -2723,12 +2881,19 @@ SQL;
                 };
                 break;
             case 'item':
-                if (!array_key_exists('item', $params)) throw new errorException('Параметр [[item]] не найден');
+                if (!array_key_exists('item', $params)) {
+                    throw new errorException('Параметр [[item]] не найден');
+                }
 
                 $filter = function ($k, $v) use ($params) {
-                    if (!is_array($v)) throw new errorException('Параметр не соответствует условиям поиска - значение не list');
-                    elseif (!array_key_exists($params['item'],
-                        $v)) throw new errorException('Параметр не соответствует условиям поиска - item не найден');
+                    if (!is_array($v)) {
+                        throw new errorException('Параметр не соответствует условиям поиска - значение не list');
+                    } elseif (!array_key_exists(
+                        $params['item'],
+                        $v
+                    )) {
+                        throw new errorException('Параметр не соответствует условиям поиска - item не найден');
+                    }
                     return Calculate::compare($params['key']['operator'], $v[$params['item']], $params['key']['value']);
                 };
                 break;
@@ -2746,10 +2911,8 @@ SQL;
         return $filtered;
     }
 
-    protected
-    function funcSelectRow($params, $codeNameForLog)
+    protected function funcSelectRow($params, $codeNameForLog)
     {
-
         $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
         if (!empty($params['fields'])) {
             $params['field'] = array_merge($params['field'] ?? [], $params['fields']);
@@ -2759,7 +2922,8 @@ SQL;
         }
         unset($params['section']);
 
-        $row = $this->Table->getSelectByParams($params,
+        $row = $this->Table->getSelectByParams(
+            $params,
             'row',
             $this->row['id'] ?? null,
             get_class($this) === Calculate::class
@@ -2770,10 +2934,8 @@ SQL;
         return $row;
     }
 
-    protected
-    function funcSelectRowList($params, $codeNameForLog)
+    protected function funcSelectRowList($params, $codeNameForLog)
     {
-
         $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
         if (!empty($params['fields'])) {
             $params['field'] = array_merge($params['field'] ?? [], $params['fields']);
@@ -2783,11 +2945,12 @@ SQL;
         }
         unset($params['section']);
 
-        return $this->Table->getSelectByParams($params,
+        return $this->Table->getSelectByParams(
+            $params,
             'rows',
-            $this->row['id'] ?? null
-            ,
-            get_class($this) === Calculate::class);
+            $this->row['id'] ?? null,
+            get_class($this) === Calculate::class
+        );
     }
 
     protected function funcRowCreateByLists($params)
@@ -2798,10 +2961,8 @@ SQL;
         return array_combine($params['keys'], $params['values']);
     }
 
-    protected
-    function funcRowCreate($params)
+    protected function funcRowCreate($params)
     {
-
         $params = $this->getParamsArray($params, ['field'], ['field']);
         $row = [];
         foreach ($params['field'] as $f) {
@@ -2816,10 +2977,8 @@ SQL;
         return $row;
     }
 
-    protected
-    function funcRowListCreate($params)
+    protected function funcRowListCreate($params)
     {
-
         $params = $this->getParamsArray($params, ['field'], ['field']);
 
         $rows = [];
@@ -2831,7 +2990,9 @@ SQL;
         $rowList = [];
         foreach ($rows as $f => $list) {
             if (is_array($rows[$f]) && key_exists(0, $rows[$f])) {
-                if (count($rows[$f]) > $listCount) $listCount = count($rows[$f]);
+                if (count($rows[$f]) > $listCount) {
+                    $listCount = count($rows[$f]);
+                }
             }
         }
         foreach ($rows as $f => &$list) {
@@ -2856,16 +3017,13 @@ SQL;
         return $rowList;
     }
 
-    protected
-    function funcRound($params)
+    protected function funcRound($params)
     {
-
         $params = $this->getParamsArray($params);
         $val = $params['num'] ?? 0;
 
         $func = 'round';
         if (!empty($params['type'])) {
-
             switch ($params['type']) {
                 case 'up':
                     $func = 'ceil';
@@ -2890,46 +3048,47 @@ SQL;
         return $val;
     }
 
-    protected
-    function funcModul($params)
+    protected function funcModul($params)
     {
         $params = $this->getParamsArray($params);
         $val = $params['num'] ?? 0;
         return abs($val);
     }
 
-    protected
-    function __checkTableIdOrName($tableId, $paramName, $funcName = null)
+    protected function __checkTableIdOrName($tableId, $paramName, $funcName = null)
     {
         if (empty($tableId)) {
             throw new errorException('Не найден параметр [[' . $paramName . ']]');
         }
 
         $table = $this->Table->getTotum()->getTableRow($tableId);
-        if (!$table) throw new errorException('Таблица [[' . $tableId . ']] не существует');
+        if (!$table) {
+            throw new errorException('Таблица [[' . $tableId . ']] не существует');
+        }
         return $table;
     }
 
-    protected
-    function __checkNumericParam($isDigit, $paramName, $funcName = null)
+    protected function __checkNumericParam($isDigit, $paramName, $funcName = null)
     {
-        if (empty($isDigit)) throw new errorException('Не найден параметр [[' . $paramName . ']]');
+        if (empty($isDigit)) {
+            throw new errorException('Не найден параметр [[' . $paramName . ']]');
+        }
         if (!is_numeric((string)$isDigit)) {
             throw new errorException('Параметр [[' . $paramName . ']] должен быть числом а не [[' . $isDigit . ']]');
         }
-
     }
 
-    protected
-    function __checkListParam(&$List, $paramName, $funcName = null)
+    protected function __checkListParam(&$List, $paramName, $funcName = null)
     {
-        if (is_null($List)) throw new errorException('Не найден параметр [[' . $paramName . ']]');//var_dump($List); die;
-        if (!is_array($List)) throw new errorException('Параметр [[' . $paramName . ']] должен быть листом');
-
+        if (is_null($List)) {
+            throw new errorException('Не найден параметр [[' . $paramName . ']]');
+        }//var_dump($List); die;
+        if (!is_array($List)) {
+            throw new errorException('Параметр [[' . $paramName . ']] должен быть листом');
+        }
     }
 
-    protected
-    function funcReCalculate($params)
+    protected function funcReCalculate($params)
     {
         if ($params = $this->getParamsArray($params)) {
             $tableRow = $this->__checkTableIdOrName($params['table'], 'table', '$table->reCalculate(reCalculate');
@@ -2951,51 +3110,49 @@ SQL;
                     $table->reCalculateFromOvers([], $this->Table->getCalculateLog(), 0);
                 }
             } elseif ($tableRow['type'] == 'tmp') {
-
                 if ($this->Table->getTableRow()['type'] === 'tmp' && $this->Table->getTableRow()['name'] === $tableRow['name']) {
-                    if (empty($params['hash'])) $table = $this->Table;
+                    if (empty($params['hash'])) {
+                        $table = $this->Table;
+                    }
                 }
-                if (empty($table)) $table = $this->Table->getTotum()->getTable($tableRow, $params['hash']);
+                if (empty($table)) {
+                    $table = $this->Table->getTotum()->getTable($tableRow, $params['hash']);
+                }
                 $table->reCalculateFromOvers([], $this->Table->getCalculateLog());
-
             } else {
-
                 $table = $this->Table->getTotum()->getTable($tableRow);
 
                 if (is_subclass_of($table, RealTables::class) && !empty($params['where'])) {
                     $ids = $table->getByParams(['where' => $params['where']]);
                     $table->reCalculateFromOvers([
-                        'modify' => array_map(function () {
+                        'modify' => array_map(
+                            function () {
                             return [];
                         },
                             array_flip($ids),
-                            $this->Table->getCalculateLog())
+                            $this->Table->getCalculateLog()
+                        )
                     ]);
                 } else {
                     $table->reCalculateFromOvers([], $this->Table->getCalculateLog());
                 }
-
             }
         }
     }
 
-    protected
-    function funcSelectTreeChildren($params)
+    protected function funcSelectTreeChildren($params)
     {
         $params = $this->getParamsArray($params);
         return $this->select($params, 'treeChildren');
     }
 
-    protected
-    function funcSelectList($params)
+    protected function funcSelectList($params)
     {
         return $this->select($params, 'list');
     }
 
-    protected
-    function __getValue($paramArray)
+    protected function __getValue($paramArray)
     {
-
         switch ($paramArray['type']) {
             case 'param':
                 return $this->getParam($paramArray['param'], $paramArray);
@@ -3018,6 +3175,7 @@ SQL;
                     default:
                         return substr($this->CodeStrings[$paramArray['string']], 1);
                 }
+                // no break
             case 'boolean':
                 return $paramArray['boolean'] == 'false' ? false : true;
             default:
@@ -3025,10 +3183,11 @@ SQL;
         }
     }
 
-    protected
-    function getParamsArray($paramsString, $arrayParams = [], $notExecParams = [], $threePartParams = ['where', 'filter', 'key'])
+    protected function getParamsArray($paramsString, $arrayParams = [], $notExecParams = [], $threePartParams = ['where', 'filter', 'key'])
     {
-        if (is_array($paramsString)) return $paramsString;
+        if (is_array($paramsString)) {
+            return $paramsString;
+        }
 
         $notExecParams = array_merge($notExecParams, ['condition', 'then', 'else']);
         $arrayParams = array_merge($arrayParams, ['where', 'order', 'filter', 'condition', 'preview']);
@@ -3048,16 +3207,17 @@ SQL;
                     $paramVal = &$params[$param];
                 }
                 if (isset($params[$param]) && !is_array($params[$param])) {
-
                     throw new errorException('Ошибка кода ' . $this->varName);
                 }
                 $paramVal = trim($match[2]);
 
                 switch ($param) {
                     case 'order':
-                        if (preg_match('/^(.*?)(?i:(asc|desc))?$/',
+                        if (preg_match(
+                            '/^(.*?)(?i:(asc|desc))?$/',
                             $paramVal,
-                            $matches)) {
+                            $matches
+                        )) {
                             $field = $this->execSubCode($matches[1], 'orderField');
                             $AscDesc = !empty($matches[2]) && strtolower($matches[2]) == 'desc' ? 'desc' : 'asc';
 
@@ -3072,8 +3232,6 @@ SQL;
                     default:
                         if (in_array($param, $notExecParams)) ;
                         elseif (in_array($param, $threePartParams)) {
-
-
                             try {
                                 $whereCodes = $this->getCodes($paramVal);
                             } catch (errorException $e) {
@@ -3102,13 +3260,12 @@ SQL;
                             }
 
                             $paramVal = [
-                                'field' => $this->getParam($field,
-                                    []), 'operator' => $whereCodes['comparison'], 'value' => $value
+                                'field' => $this->getParam(
+                                    $field,
+                                    []
+                                ), 'operator' => $whereCodes['comparison'], 'value' => $value
                             ];
-
-
                         } else {
-
                             $paramVal = $this->execSubCode($paramVal, $param, true);
                         }
                         break;
@@ -3125,32 +3282,46 @@ SQL;
 
         /*TODO убрать загрузку всех шаблонов, сделать подгрузку только требуемых*/
 
-        if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField([],
-                'styles, html, name',
-                'name')) || (!array_key_exists($params['template'],
-                $templates))) throw new errorException('Шаблон не найден');
+        if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
+            [],
+            'styles, html, name',
+            'name'
+        )) || (!array_key_exists(
+                    $params['template'],
+                    $templates
+                ))) {
+            throw new errorException('Шаблон не найден');
+        }
 
         $style = $templates[$params['template']]['styles'];
 
         $usedStyles = [];
 
         $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $templates, &$style, &$usedStyles) {
-            return preg_replace_callback('/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
+            return preg_replace_callback(
+                '/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
                 function ($matches) use ($data, $templates, &$funcReplaceTemplates, &$style, &$usedStyles) {
                     if (array_key_exists($matches[2], $data)) {
-
                         if (is_array($data[$matches[2]])) {
-
                             if (!empty($matches[3])) {
                                 $matches[3] = substr($matches[3], 2, -2);
-                                if (!array_key_exists($matches[3],
-                                    $data[$matches[2]])) throw new errorException('Не найден ключ ' . $matches[3] . ' в параметре [' . $matches[2] . ']');
+                                if (!array_key_exists(
+                                    $matches[3],
+                                    $data[$matches[2]]
+                                )) {
+                                    throw new errorException('Не найден ключ ' . $matches[3] . ' в параметре [' . $matches[2] . ']');
+                                }
                                 $value = $data[$matches[2]][$matches[3]];
                             } else {
-
-                                if (empty($data[$matches[2]]['template'])) throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
-                                if (!array_key_exists($data[$matches[2]]['template'],
-                                    $templates)) throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
+                                if (empty($data[$matches[2]]['template'])) {
+                                    throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
+                                }
+                                if (!array_key_exists(
+                                    $data[$matches[2]]['template'],
+                                    $templates
+                                )) {
+                                    throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
+                                }
                                 $template = $templates[$data[$matches[2]]['template']];
                                 $html = '';
                                 if (!in_array($template['name'], $usedStyles)) {
@@ -3163,20 +3334,20 @@ SQL;
                                         $html .= $funcReplaceTemplates($template['html'], $_data);
                                     }
                                 } else {
-                                    $html .= $funcReplaceTemplates($template['html'],
-                                        (array)$data[$matches[2]]['data']);
+                                    $html .= $funcReplaceTemplates(
+                                        $template['html'],
+                                        (array)$data[$matches[2]]['data']
+                                    );
                                 }
 
                                 return $html;
                             }
-
                         } else {
                             $value = $data[$matches[2]];
                         }
 
                         if (!empty($matches[4])) {
                             if ($formatData = explode(':', $matches[4], 2)) {
-
                                 switch ($formatData[0]) {
                                     case 'money':
                                         if (is_numeric($value)) {
@@ -3187,10 +3358,12 @@ SQL;
                                         if (count($formatData) == 2) {
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
-                                                    $value = number_format($value,
-                                                            $numberVals[0],
-                                                            $numberVals[1] ?? '.',
-                                                            $numberVals[2] ?? '')
+                                                    $value = number_format(
+                                                        $value,
+                                                        $numberVals[0],
+                                                        $numberVals[1] ?? '.',
+                                                        $numberVals[2] ?? ''
+                                                    )
                                                         . ($numberVals[3] ?? '');
                                                 }
                                             }
@@ -3200,17 +3373,20 @@ SQL;
                                         if (count($formatData) == 2) {
                                             if ($date = date_create($value)) {
                                                 if (strpos($formatData[1], 'F') !== false) {
-                                                    $formatData[1] = str_replace('F',
+                                                    $formatData[1] = str_replace(
+                                                        'F',
                                                         Formats::months[$date->format('n')],
-                                                        $formatData[1]);
+                                                        $formatData[1]
+                                                    );
                                                 }
                                                 if (strpos($formatData[1], 'f') !== false) {
-                                                    $formatData[1] = str_replace('f',
+                                                    $formatData[1] = str_replace(
+                                                        'f',
                                                         Formats::monthRods[$date->format('n')],
-                                                        $formatData[1]);
+                                                        $formatData[1]
+                                                    );
                                                 }
                                                 $value = $date->format($formatData[1]);
-
                                             }
                                         }
                                         break;
@@ -3237,28 +3413,37 @@ SQL;
 
                         return $value;
                     }
-
                 },
-                $html);
+                $html
+            );
         };
 
-        if ($style) return '<style>' . $style . '</style><body>' . $funcReplaceTemplates($templates[$params['template']]['html'],
-                $params['data'] ?? []) . '</body>';
-        else return $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []);
+        if ($style) {
+            return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
+                $templates[$params['template']]['html'],
+                $params['data'] ?? []
+            ) . '</body>';
+        } else {
+            return $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []);
+        }
     }
 
     protected function funcNowTableHash()
     {
-        if ($this->Table->getTableRow()['type'] != 'tmp') throw new errorException('Hash можно запросить только у Временной таблицы');
+        if ($this->Table->getTableRow()['type'] != 'tmp') {
+            throw new errorException('Hash можно запросить только у Временной таблицы');
+        }
         return $this->Table->getTableRow()['sess_hash'];
     }
 
     protected function getMathFromString($string)
     {
-        $actions = preg_split('`((?<=[^(+\-\^*/])[()+\-\^*/]|[(])`',
+        $actions = preg_split(
+            '`((?<=[^(+\-\^*/])[()+\-\^*/]|[(])`',
             $string,
             null,
-            PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+            PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
+        );
 
         $pack_Sc = function ($actions) {
             $sc = 0;
@@ -3271,30 +3456,37 @@ SQL;
                 }
                 switch ((string)$actions[$i]) {
                     case '(':
-                        if ($sc++ == 0)
+                        if ($sc++ == 0) {
                             $interval_start = $i;
+                        }
                         break;
                     case ')':
                         if ($sc < 1) {
                             throw new errorException('Непарная закрывающая скобка');
                         }
                         if (--$sc == 0) {
-                            $interval = ['type' => 'interval', 'data' => array_slice($actions,
+                            $interval = ['type' => 'interval', 'data' => array_slice(
+                                $actions,
                                 $interval_start + 1,
-                                $i - $interval_start - 1)];
+                                $i - $interval_start - 1
+                            )];
                             if (key_exists($interval_start - 1, $actions) && $actions[$interval_start - 1] === '-') {
                                 $interval['minus'] = true;
                                 $interval_start--;
-                                $interval['data'] = array_slice($actions,
+                                $interval['data'] = array_slice(
+                                    $actions,
                                     $interval_start + 1,
-                                    $i - $interval_start - 1);
+                                    $i - $interval_start - 1
+                                );
                             }
-                            array_splice($actions,
+                            array_splice(
+                                $actions,
                                 $interval_start,
                                 $i + 1 - $interval_start,
                                 [
                                     $interval
-                                ]);
+                                ]
+                            );
                             $i = $interval_start - 1;
                         }
                         break;

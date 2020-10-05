@@ -11,7 +11,6 @@ namespace totum\tableTypes;
 use totum\common\sql\Sql;
 use totum\common\Totum;
 
-
 class simpleTable extends RealTables
 {
 }

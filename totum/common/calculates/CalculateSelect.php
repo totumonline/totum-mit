@@ -20,7 +20,7 @@ class CalculateSelect extends Calculate
     public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
     {
         try {
-            $r=parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl,  $table, $vars);
+            $r=parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
             if (!$this->error && !is_array($r)) {
                 throw new errorException('Код должен возвращать rowList или то, что возвращает функция SelectListAssoc');
             }
@@ -69,20 +69,20 @@ class CalculateSelect extends Calculate
 
         $rows = array_map(
             function ($row) use ($params, $disabled, $baseField) {
-            $r = ['value' => $row[$baseField]
+                $r = ['value' => $row[$baseField]
                 , 'is_del' => $row['is_del']
                 , 'title' => $row[$params['field']]];
-            if (array_key_exists('parent', $params)) {
-                $r['parent'] = $row[$params['parent']];
-            }
-            if (array_key_exists($row[$baseField], $disabled)) {
-                $r['disabled'] = true;
-            }
-            if (!empty($params['section'])) {
-                $r['section'] = $row['__sectionFunction'] ?? $row[$params['section']];
-            }
-            return $r;
-        },
+                if (array_key_exists('parent', $params)) {
+                    $r['parent'] = $row[$params['parent']];
+                }
+                if (array_key_exists($row[$baseField], $disabled)) {
+                    $r['disabled'] = true;
+                }
+                if (!empty($params['section'])) {
+                    $r['section'] = $row['__sectionFunction'] ?? $row[$params['section']];
+                }
+                return $r;
+            },
             $rows
         );
 
@@ -181,15 +181,15 @@ class CalculateSelect extends Calculate
 
         $rows = array_map(
             function ($row) use ($params, $baseField) {
-            $r = ['value' => $row[$baseField]
+                $r = ['value' => $row[$baseField]
                 , 'is_del' => $row['is_del']
                 , 'title' => $row[$params['field']]];
 
-            if (!empty($params['section'])) {
-                $r['section'] = $row['__sectionFunction'] ?? $row[$params['section']];
-            }
-            return $r;
-        },
+                if (!empty($params['section'])) {
+                    $r['section'] = $row['__sectionFunction'] ?? $row[$params['section']];
+                }
+                return $r;
+            },
             $rows
         );
 

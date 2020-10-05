@@ -13,8 +13,10 @@
     if ($isCreatorView ?? null) { ?>
         <script src="/js/functions.json?v=9d17f34"></script>
         <?php
-        if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists($GLOBALS['CalculateExtentions'],
-                'jsTemplates')) {
+        if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists(
+    $GLOBALS['CalculateExtentions'],
+    'jsTemplates'
+)) {
             echo '<script>App.functions=App.functions.concat(' . $GLOBALS['CalculateExtentions']->jsTemplates . ')</script>';
         } ?>
         <?php

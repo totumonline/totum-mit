@@ -89,8 +89,8 @@ class Comments extends Field
                     && ($this->data['category'] !== 'column' && !($this->data['category'] === 'footer' && !empty($this->data['column'])))) {
                     $valArray['v'] = ['all' => true, 'n' => $n, 'c' => array_map(
                         function ($c) use (&$isCuted) {
-                        return $this->prepareComment($c, false, $isCuted);
-                    },
+                            return $this->prepareComment($c, false, $isCuted);
+                        },
                         $valArray['v']
                     )];
                 } else {

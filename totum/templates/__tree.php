@@ -1,5 +1,7 @@
 <?php
-if (is_null($isCreatorView ?? null)) return;
+if (is_null($isCreatorView ?? null)) {
+    return;
+}
 ?>
 <div class="Tree pull-left" id="LeftTree">
     <div id="TreeMaximizer"><span class="fa fa-bars"></span></div>
@@ -16,6 +18,8 @@ if (is_null($isCreatorView ?? null)) return;
     </div>
 </div>
 <script>
-    addTree('<?=$ModulePath?><?=!empty($Branch) ? $Branch . '/' : ''?>', <?php echo json_encode(($treeData ?? []),
-        JSON_UNESCAPED_UNICODE)?>, <?=json_encode($isCreatorView ?? false)?>);
+    addTree('<?=$ModulePath?><?=!empty($Branch) ? $Branch . '/' : ''?>', <?php echo json_encode(
+    ($treeData ?? []),
+    JSON_UNESCAPED_UNICODE
+)?>, <?=json_encode($isCreatorView ?? false)?>);
 </script>

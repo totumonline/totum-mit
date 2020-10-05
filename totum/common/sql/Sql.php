@@ -65,9 +65,9 @@ class Sql
         foreach ($vars as $k => $v) {
             $vars2['"' . $k . '"'] =
                 (
-                is_null($v) || $v === '[[NULL]]' ? 'null' :
+                    is_null($v) || $v === '[[NULL]]' ? 'null' :
                     (
-                    is_bool($v) ?
+                        is_bool($v) ?
                         ($v === false ? 'false' : 'true')
                         :
                         $this->quote($v)
@@ -76,9 +76,9 @@ class Sql
         }
         if ($vars2) {
             $query_string = 'insert into ' . $table . ' (' . implode(
-                    ',',
-                    array_keys($vars2)
-                ) . ') VALUES (' . implode(
+                ',',
+                array_keys($vars2)
+            ) . ') VALUES (' . implode(
                     ',',
                     array_values($vars2)
                 ) . ') '

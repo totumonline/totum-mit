@@ -8,7 +8,6 @@
 
 namespace totum\common;
 
-
 class SharedFileUsage
 {
     private $fOpen;
@@ -32,42 +31,48 @@ class SharedFileUsage
         return $this->unshifr($data);
     }
 
-    function update($update, $deleteFunc = null)
+    public function update($update, $deleteFunc = null)
     {
         flock($this->fOpen, LOCK_EX);
 
         if ($data = stream_get_contents($this->fOpen)) {
             $oldData = $this->unshifr($data);
-            if ($oldData === false) return false;
+            if ($oldData === false) {
+                return false;
+            }
         } else {
             $oldData = array();
         }
         rewind($this->fOpen);
         $update = $update + $oldData;
         if ($deleteFunc) {
-            array_map(function ($k, $v) use ($deleteFunc, &$update) {
+            array_map(
+                function ($k, $v) use ($deleteFunc, &$update) {
                 if ($deleteFunc($k, $v)) {
                     unset($update[$k]);
                 }
             },
                 array_keys($update),
-                array_values($update));
+                array_values($update)
+            );
         }
 
         if ($update != $oldData) {
-
             ftruncate($this->fOpen, 0);
             $len = fwrite($this->fOpen, $data = $this->shifr($update));
             rewind($this->fOpen);
             flock($this->fOpen, LOCK_UN);
             return $len === strlen($data);
-
-        } else return true;
+        } else {
+            return true;
+        }
     }
 
     private function unshifr($data)
     {
-        if (substr($data, -1, 1) !== '.') return false;
+        if (substr($data, -1, 1) !== '.') {
+            return false;
+        }
         $data = substr($data, 0, -1);
         $array = [];
 
@@ -82,10 +87,11 @@ class SharedFileUsage
     {
         $output = "";
         foreach ($data as $k => $v) {
-            if ($output != "") $output .= "\n";
+            if ($output != "") {
+                $output .= "\n";
+            }
             $output .= $k . ':' . $v;
         }
         return $output . '.';
     }
-
 }

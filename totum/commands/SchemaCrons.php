@@ -3,7 +3,6 @@
 
 namespace totum\commands;
 
-
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -16,21 +15,20 @@ class SchemaCrons extends Command
 {
     protected function configure()
     {
-
         $this->setName('schema-crons')
             ->setDescription('Execute totum codes of table crons for single install')
             ->addArgument('datetime', InputOption::VALUE_REQUIRED, 'Enter datetime');
 
-            if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
-                $this->addArgument('schema',  InputOption::VALUE_REQUIRED, 'Enter schema name');
-            }
+        if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
+            $this->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
+        }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $Conf = new Conf();
         if ($schema = $input->getArgument('schema')) {
-            if(is_callable([$Conf, 'setHostSchema'])){
+            if (is_callable([$Conf, 'setHostSchema'])) {
                 $Conf->setHostSchema(null, $schema);
             }
         }
@@ -57,12 +55,16 @@ class SchemaCrons extends Command
             , 'month' => $nowMonth
             , 'weekday' => $nowWeekDay
         ];
-        $crons = $Conf->getModel('crons')->getAll(['status' => "true"],
-            'id,' . implode(',', array_keys($checkRules)));
+        $crons = $Conf->getModel('crons')->getAll(
+            ['status' => "true"],
+            'id,' . implode(',', array_keys($checkRules))
+        );
         foreach ($crons as $rule) {
             foreach ($checkRules as $field => $val) {
                 $checkField = json_decode($rule[$field], true);
-                if (!empty($checkField) && !in_array($val, $checkField)) continue 2;
+                if (!empty($checkField) && !in_array($val, $checkField)) {
+                    continue 2;
+                }
             }
             $schemaName=$Conf->getSchema();
             $id=$rule['id'];

@@ -285,12 +285,14 @@ CONF;
         $this->insertUsersAndAuthAdmin($post);
 
         $this->consoleLog('Load data to tables and exec codes from schema');
-        $this->updateDataExecCodes($schemaRows,
+        $this->updateDataExecCodes(
+            $schemaRows,
             $funcCats('all'),
             $funcRoles('all'),
             $funcTree('all'),
             'totum_' . $this->Totum->getConfig()->getLang(),
-            true);
+            true
+        );
 
 
         /*
@@ -315,8 +317,8 @@ CONF;
             '/((?i:userInRoles))\(([^)]+)\)/',
             function ($matches) use ($funcRoles) {
                 return $matches[1] . '(' . preg_replace_callback(
-                        '/role:\s*(\d+)/',
-                        function ($matches) use ($funcRoles) {
+                    '/role:\s*(\d+)/',
+                    function ($matches) use ($funcRoles) {
                             $roles = '';
                             foreach ($matches[1] as $role) {
                                 if ($roles !== '') {
@@ -326,8 +328,8 @@ CONF;
                             }
                             return $roles;
                         },
-                        $matches[2]
-                    ) . ')';
+                    $matches[2]
+                ) . ')';
             },
             $code
         );
@@ -448,7 +450,7 @@ CONF;
         $schemaRow['tableId'] = $tableId;
     }
 
-    static public function applyMatches($schemaData, $matches)
+    public static function applyMatches($schemaData, $matches)
     {
         foreach (['tree', 'categories', 'roles'] as $type) {
             foreach ($schemaData[$type] as &$row) {
@@ -571,11 +573,13 @@ CONF;
 
         if ($withDataAndCodes) {
             $this->consoleLog('Load data to tables and exec codes from schema', 2);
-            $this->updateDataExecCodes($schemaRows,
+            $this->updateDataExecCodes(
+                $schemaRows,
                 $funcCategories('all'),
                 $funcRoles('all'),
                 $getTreeId('all'),
-                $matchesName);
+                $matchesName
+            );
         }
         $this->consoleLog('Set default tables and sort for new tree branches', 2);
         $getTreeId('set default tables and sort');
@@ -851,15 +855,15 @@ CONF;
                                 $selectedRowId = null;
 
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
-                                            'id',
-                                            $row
-                                        ) && $schemaRow['key_fields'] = ['id'])) {
+                                    'id',
+                                    $row
+                                ) && $schemaRow['key_fields'] = ['id'])) {
                                     $keys = [];
                                     foreach ($schemaRow['key_fields'] as $key) {
                                         $keys[$key] = (is_array($row[$key] ?? []) && key_exists(
-                                                'v',
-                                                $row[$key] ?? []
-                                            )) ? $row[$key]['v'] : $row[$key];
+                                            'v',
+                                            $row[$key] ?? []
+                                        )) ? $row[$key]['v'] : $row[$key];
                                         if (is_array($keys[$key])) {
                                             $keys[$key] = json_encode(
                                                 $keys[$key],
@@ -960,9 +964,9 @@ CONF;
                                                                 ['v' => $tName],
                                                                 JSON_UNESCAPED_UNICODE
                                                             ), 'cycles_table' => json_encode(
-                                                            ['v' => $tableId],
-                                                            JSON_UNESCAPED_UNICODE
-                                                        ),]
+                                                                ['v' => $tableId],
+                                                                JSON_UNESCAPED_UNICODE
+                                                            ),]
                                                     );
                                                 }
                                             }
@@ -994,10 +998,14 @@ CONF;
 
 
             if ($schemaRow['code']) {
-                $this->consoleLog('exec code: ' . substr($schemaRow['code'],
-                        0,
-                        strpos($schemaRow['code'], "\n")) . '...',
-                    3);
+                $this->consoleLog(
+                    'exec code: ' . substr(
+                    $schemaRow['code'],
+                    0,
+                    strpos($schemaRow['code'], "\n")
+                ) . '...',
+                    3
+                );
                 $Log = $TablesTable->calcLog(['name' => "CODE FROM SCHEMA", 'code' => $schemaRow['code']]);
                 $action = new CalculateAction($schemaRow['code']);
                 $r = $action->execAction(
@@ -1039,7 +1047,6 @@ CONF;
         }
 
         return function ($cat) use ($categoriesIn, &$categoriesMatches, &$Categories) {
-
             if (key_exists(
                 $cat,
                 $categoriesMatches
@@ -1077,7 +1084,6 @@ CONF;
         }
 
         return function ($inId) use ($rolesIn, &$rolesMatch) {
-
             if (key_exists($inId, $rolesMatch)) {
                 return $rolesMatch[$inId];
             } elseif ($inId === 'all') {
@@ -1115,7 +1121,6 @@ CONF;
         }
 
         return $getTreeId = function ($tree_node_id) use ($funcRoles, &$addedBranches, $treeIn, &$treeMatches, &$getTreeId, &$Tree, &$defaultTables) {
-
             if (key_exists($tree_node_id, $treeMatches)) {
                 return $treeMatches[$tree_node_id];
             } elseif ($tree_node_id === 'all') {
@@ -1146,9 +1151,11 @@ CONF;
                         foreach ($treeIn as $row) {
                             if (key_exists($row['id'], $addedBranches)) {
                                 if (!key_exists($row['parent_id'], $lastOrdParent)) {
-                                    $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField('ord',
-                                            ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
-                                            'ord desc') ?? 0;
+                                    $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField(
+                                        'ord',
+                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                        'ord desc'
+                                    ) ?? 0;
                                 }
                                 $lastOrdParent[$row['parent_id']] += 10;
                                 $modify[$addedBranches[$row['id']]]['ord'] = $lastOrdParent[$row['parent_id']];

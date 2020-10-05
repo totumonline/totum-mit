@@ -1,8 +1,9 @@
 <?php
 $host = 'http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/';
 $settings['h_og_title'] = $settings['h_og_title'] ?? 'Totum — конструктор CRM, ERP, XRM.';
-if (empty($settings['h_title']))
+if (empty($settings['h_title'])) {
     $settings['h_title'] = 'TOTUM';
+}
 $settings['h_og_description'] = $settings['h_og_description'] ?? 'Разрабатывайте управленческие инструменты х5 раз быстрее.';
 $settings['h_og_image'] = empty($settings['h_og_image'][0]['file']) ? 'imgs/hand.png' : 'fls/' . $settings['h_og_image'][0]['file'];
 ?>

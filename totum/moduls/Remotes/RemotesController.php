@@ -18,8 +18,10 @@ class RemotesController extends Controller
         $requestUri = preg_replace('/\?.*/', '', $request->getUri()->getPath());
         $requestPath = substr($requestUri, strlen($this->totumPrefix.'Remotes/'));
 
-        $remoteSelect = $this->Config->getModel( 'ttm__remotes')->get(['on_off' => 'true', 'name' => $requestPath],
-            '*');
+        $remoteSelect = $this->Config->getModel('ttm__remotes')->get(
+            ['on_off' => 'true', 'name' => $requestPath],
+            '*'
+        );
         $error = null;
         $data = null;
         if ($remoteSelect) {

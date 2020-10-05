@@ -18,7 +18,6 @@ class SchemaAdd extends Command
 {
     protected function configure()
     {
-
         $this->setName('schema-add')
             ->setDescription('Add new schema')
             ->addArgument('name', InputOption::VALUE_REQUIRED, 'Enter schema name')
@@ -43,7 +42,7 @@ class SchemaAdd extends Command
         $confs['user_pass'] = $input->getArgument('user_pass');
 
 
-        $TotumInstall->createSchema($confs, function($file){
+        $TotumInstall->createSchema($confs, function ($file) {
             return dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'moduls' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . $file;
         });
 
@@ -54,7 +53,7 @@ class SchemaAdd extends Command
         $ConfFile= (new \ReflectionClass(Conf::class))->getFileName();
         $ConfFileContent=file_get_contents($ConfFile);
 
-        if(!preg_match('~\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return([^$]*)\}[^$]*/\*\*\*getSchemasEnd\*\*\*/~', $ConfFileContent, $matches)){
+        if (!preg_match('~\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return([^$]*)\}[^$]*/\*\*\*getSchemasEnd\*\*\*/~', $ConfFileContent, $matches)) {
             throw new \Exception('Format of file not correct. Can\'t replace function getSchemas');
         }
         eval("\$schemas={$matches[1]}");
@@ -62,7 +61,5 @@ class SchemaAdd extends Command
         $ConfFileContent= preg_replace('~(\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return\s*)([^$]*)(\}[^$]*/\*\*\*getSchemasEnd\*\*\*/)~', '$1'.var_export($schemas, 1).';$3', $ConfFileContent);
         copy($ConfFile, $ConfFile.'_old');
         file_put_contents($ConfFile, $ConfFileContent);
-
-
     }
 }

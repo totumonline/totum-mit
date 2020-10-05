@@ -8,11 +8,9 @@
 
 namespace totum\models;
 
-
 use totum\common\Model;
 
 class TreeV extends Model
 {
     protected $isServiceTable=true;
-
 }

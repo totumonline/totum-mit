@@ -434,7 +434,6 @@ class Select extends Field
 
                 $this->table->calcLog($Log, 'result', $list);
             } catch (\Exception $e) {
-
                 $this->table->calcLog($Log, 'error', $e->getMessage());
                 throw $e;
             }
@@ -592,9 +591,9 @@ class Select extends Field
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
                         array_slice(
-                                $arrayVals,
-                                1
-                            ),
+                            $arrayVals,
+                            1
+                        ),
                         array_slice($arrayTitles, 1)
                     );
                 };

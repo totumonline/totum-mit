@@ -18,12 +18,14 @@
     <meta property="og:description"
           content="TOTUM — платформа для любой автоматизации в малом бизнесе. На ней можно собирать заточенные под клиента базы данных с готовым интерфейсом и настраиваемым доступом, узкоспециальные CRM, склады, расчеты и все, что придет в голову"/>
     <script>
-        DATA = <?=empty($_REQUEST['sess_hash']) ? json_encode([
+        DATA = <?=empty($_REQUEST['sess_hash']) ? json_encode(
+        [
             'post' => $_POST,
             'get' => $_GET,
             'input' => file_get_contents('php://input')
         ],
-            JSON_UNESCAPED_UNICODE) : '{}'?>
+        JSON_UNESCAPED_UNICODE
+    ) : '{}'?>
     </script>
     <style>
         <?=$css?>
@@ -38,10 +40,10 @@
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <div class="page_content">
     <?php if (!empty($error)) {
-        echo '<div class="panel panel-danger"><div class="panel-body">' . $error . '</div></div>';
-    } else {
-        echo '<div id="table"></div>';
-    } ?>
+                echo '<div class="panel panel-danger"><div class="panel-body">' . $error . '</div></div>';
+            } else {
+                echo '<div id="table"></div>';
+            } ?>
 </div>
 </body>
 </html>

@@ -33,8 +33,8 @@ class Install extends Command
 
             ->addOption('pgdump', null, InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
             ->addOption('psql', null, InputOption::VALUE_REQUIRED, 'Enter psql(): ', '')
-            ->addOption('schema_exists', 'e', InputOption::VALUE_OPTIONAL,'Enter Y for install in existing schema')
-            ->addOption('db_string', 'd', InputOption::VALUE_OPTIONAL,'Enter dbstring: postgresql://user:pass@host/dbname');
+            ->addOption('schema_exists', 'e', InputOption::VALUE_OPTIONAL, 'Enter Y for install in existing schema')
+            ->addOption('db_string', 'd', InputOption::VALUE_OPTIONAL, 'Enter dbstring: postgresql://user:pass@host/dbname');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -44,7 +44,7 @@ class Install extends Command
         }
         $confs = [];
         $confs['lang'] = $input->getArgument('lang');
-        if(!in_array($confs['lang'], Totum::LANGUAGES)){
+        if (!in_array($confs['lang'], Totum::LANGUAGES)) {
             throw new errorException('Language '.$confs['lang'].' is not supported');
         }
 
@@ -56,15 +56,16 @@ class Install extends Command
             $confs['schema_exists'] = $input->getOption('schema_exists') === 'Y';
         }
 
-        if(!empty($dbString=$input->getOption('db_string'))){
-            if(preg_match('/^postgresql:\/\/(?<USER>[^:]+):(?<PASS>[^@]+)@(?<HOST>[^\/]+)\/(?<DBNAME>.+)$/', $dbString, $matches)){
+        if (!empty($dbString=$input->getOption('db_string'))) {
+            if (preg_match('/^postgresql:\/\/(?<USER>[^:]+):(?<PASS>[^@]+)@(?<HOST>[^\/]+)\/(?<DBNAME>.+)$/', $dbString, $matches)) {
                 $confs['db_name'] = $matches['DBNAME'];
                 $confs['db_host'] = $matches['HOST'];
                 $confs['db_user_login'] = $matches['USER'];
                 $confs['db_user_password'] = $matches['PASS'];
-
-            }else throw new Exception('db_string not correct format');
-        }else{
+            } else {
+                throw new Exception('db_string not correct format');
+            }
+        } else {
             $confs['db_name'] = $input->getArgument('dbname');
             $confs['db_host'] = $input->getArgument('dbhost');
             $confs['db_user_login'] = $input->getArgument('dbuser');
@@ -72,7 +73,7 @@ class Install extends Command
         }
 
         $confs['db_schema'] = $input->getArgument('schema');
-         $confs['pg_dump'] = $input->getOption('pgdump');
+        $confs['pg_dump'] = $input->getOption('pgdump');
         $confs['psql'] = $input->getOption('psql');
         $confs['host'] = $input->getArgument('totum_host');
         $confs['user_login'] = $input->getArgument('user_login');

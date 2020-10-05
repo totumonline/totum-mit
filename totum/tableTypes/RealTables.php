@@ -551,7 +551,6 @@ abstract class RealTables extends aTable
         $this->cachedSelects = [];
 
         $this->Totum->tableChanged($this->tableRow['name']);
-
     }
 
     public function addOrderField()
@@ -576,7 +575,6 @@ abstract class RealTables extends aTable
     {
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
         if ($fieldsWithActionOnChange || !empty($this->changeIds['rowOperations'])) {
-
             $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
             if ($fieldsWithActionOnChange) {
                 foreach ($fieldsWithActionOnChange as $field) {

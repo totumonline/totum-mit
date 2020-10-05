@@ -8,13 +8,11 @@
 
 namespace totum\common\calculates;
 
-
 use totum\common\calculates\CalculateSelect;
 
 class CalculateSelectValue extends CalculateSelect
 {
-    protected
-    function funcSelectListAssoc($params)
+    protected function funcSelectListAssoc($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order']);
         unset($params['section']);
@@ -23,8 +21,7 @@ class CalculateSelectValue extends CalculateSelect
         return parent::funcSelectListAssoc($params);
     }
 
-    protected
-    function funcSelectRowListForSelect($params)
+    protected function funcSelectRowListForSelect($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order'], ['previewscode', 'section', 'preview']);
         unset($params['section']);
@@ -32,12 +29,12 @@ class CalculateSelectValue extends CalculateSelect
 
         return parent::funcSelectRowListForSelect($params);
     }
-    protected function getPreparedList($rows){
+    protected function getPreparedList($rows)
+    {
         $selectList = [];
-        foreach ($rows as $row){
+        foreach ($rows as $row) {
             $selectList[$row['value']]=$row['title'];
         }
         return $selectList;
     }
-
 }

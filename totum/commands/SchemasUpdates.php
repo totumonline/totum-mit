@@ -3,7 +3,6 @@
 
 namespace totum\commands;
 
-
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -14,13 +13,14 @@ class SchemasUpdates extends Command
 {
     protected function configure()
     {
-
         $this->setName('schemas-updates')
             ->setDescription('Update schemas')
-            ->addArgument('matches',
+            ->addArgument(
+                'matches',
                 InputOption::VALUE_REQUIRED,
                 'Enter source name',
-                'totum_' . (new Conf())->getLang())
+                'totum_' . (new Conf())->getLang()
+            )
             ->addArgument('file', InputOption::VALUE_REQUIRED, 'Enter schema update filepath', 'sys_update');
     }
 
@@ -33,10 +33,10 @@ class SchemasUpdates extends Command
             $output->writeln('update ' . $schemaName." with source $matches from $file");
 
             $p=popen("bin/totum schema-update $matches $file -s $schemaName", 'r');
-            while(is_resource($p) && $p && !feof($p))
+            while (is_resource($p) && $p && !feof($p)) {
                 $output->write("  ".fread($p, 1024));
+            }
             pclose($p);
         }
-
     }
 }

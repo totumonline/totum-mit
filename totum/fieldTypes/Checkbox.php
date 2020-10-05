@@ -8,12 +8,11 @@
 
 namespace totum\fieldTypes;
 
-
 use totum\common\Field;
 
 class Checkbox extends Field
 {
-    function getValueFromCsv($val)
+    public function getValueFromCsv($val)
     {
         switch ($val) {
             case '[0]':
@@ -30,7 +29,7 @@ class Checkbox extends Field
         return $val;
     }
 
-    function addViewValues($viewType, array &$valArray, $row, $tbl = [])
+    public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
 
@@ -63,12 +62,10 @@ class Checkbox extends Field
                 $valArray['v'] = $val;
                 break;
         }
-        
     }
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
         $val = ($val === 'true' || $val === true ? true : false);
-
     }
 }

@@ -30,20 +30,21 @@ class Log implements LoggerInterface
 
     public function __construct(string $path, $levels = null, $templateCallback = null)
     {
-        if (!$levels)
+        if (!$levels) {
             $levels = static::$defaultLevels;
+        }
         $this->levels = array_flip($levels);
 
         $this->logFilePath = $path;
         $this->templateInit($templateCallback);
-
     }
 
     protected function templateInit($templateCallback = null)
     {
         if ($templateCallback) {
-            if (!is_callable($templateCallback))
+            if (!is_callable($templateCallback)) {
                 throw new \Exception('Ошибка инициализации Логгера');
+            }
         } else {
             $templateCallback = function ($level, $message) {
                 $date = date('d.m H:i');
@@ -62,13 +63,11 @@ class Log implements LoggerInterface
         $message = preg_replace('/[\r\n\t ]+/m', ' ', $message);
         $row = ($this->templateCallback)($level, $message);
         $this->writeRow($row);
-
     }
 
     protected function writeRow($row)
     {
         if (empty($this->logFileResource)) {
-
             $this->logFileResource = fopen($this->logFilePath, 'a');
             fwrite($this->logFileResource, "-------" . PHP_EOL);
         }
@@ -86,6 +85,4 @@ class Log implements LoggerInterface
             $this->printToFile($level, $message, $context);
         }
     }
-
-
 }

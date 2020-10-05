@@ -19,7 +19,6 @@ class SchemaDuplicate extends Command
 {
     protected function configure()
     {
-
         $this->setName('schema-duplicate')
             ->setDescription('Duplicate schema. You need install with psql and pg_dump in it. Change Conf.php if you installed totum without its.')
             ->addArgument('base', InputOption::VALUE_REQUIRED, 'Enter base schema name')
@@ -42,7 +41,7 @@ class SchemaDuplicate extends Command
         if (!in_array($baseName, array_values($Conf::getSchemas()))) {
             throw new errorException("$baseName schema not found in Conf.php");
         }
-        if(is_callable([$Conf, 'setHostSchema'])){
+        if (is_callable([$Conf, 'setHostSchema'])) {
             $Conf->setHostSchema(null, $baseName);
         }
 
@@ -104,20 +103,23 @@ class SchemaDuplicate extends Command
             unlink($tmpFileName);
 
             if ($host = $input->getArgument('host')) {
-
                 $ConfFile = (new \ReflectionClass(Conf::class))->getFileName();
                 $ConfFileContent = file_get_contents($ConfFile);
 
-                if (preg_match('~\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return([^$]*)\}[^$]*/\*\*\*getSchemasEnd\*\*\*/~',
+                if (preg_match(
+                    '~\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return([^$]*)\}[^$]*/\*\*\*getSchemasEnd\*\*\*/~',
                     $ConfFileContent,
-                    $matches)) {
+                    $matches
+                )) {
                     $output->writeln('save Conf.php');
 
                     eval("\$schemas={$matches[1]}");
                     $schemas[$host] = $desName;
-                    $ConfFileContent = preg_replace('~(\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return\s*)([^$]*)(\}[^$]*/\*\*\*getSchemasEnd\*\*\*/)~',
+                    $ConfFileContent = preg_replace(
+                        '~(\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return\s*)([^$]*)(\}[^$]*/\*\*\*getSchemasEnd\*\*\*/)~',
                         '$1' . var_export($schemas, 1) . ';$3',
-                        $ConfFileContent);
+                        $ConfFileContent
+                    );
                     copy($ConfFile, $ConfFile . '_old');
                     file_put_contents($ConfFile, $ConfFileContent);
                 }

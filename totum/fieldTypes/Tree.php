@@ -146,7 +146,6 @@ class Tree extends Field
                 }
                 $this->table->calcLog($Log, 'result', $list);
             } catch (\Exception $e) {
-
                 $this->table->calcLog($Log, 'error', $e->getMessage());
                 throw $e;
             }
@@ -469,12 +468,12 @@ class Tree extends Field
                         $v[1][0] .= ' ' . $this->data['unitType'];
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
-                            array_slice(
+                        array_slice(
                                 $arrayVals,
                                 1
                             ),
-                            array_slice($arrayTitles, 1)
-                        );
+                        array_slice($arrayTitles, 1)
+                    );
                 };
 
                 if ($this->data['multiple'] && ($this->data['printTextfull'] ?? false)) {

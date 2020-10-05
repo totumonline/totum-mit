@@ -365,10 +365,10 @@ class Model
                         }
                     } elseif (preg_match('/NOTIN$/', $k)) {
                         $where_str .= self::quoteWhereField(preg_replace(
-                                '/NOTIN$/',
-                                '',
-                                $k
-                            )) . ' NOT IN (' . implode(
+                            '/NOTIN$/',
+                            '',
+                            $k
+                        )) . ' NOT IN (' . implode(
                                 ',',
                                 $this->Sql->quote((array)$v, $k === 'id')
                             ) . ')';
@@ -583,9 +583,9 @@ class Model
         }
         if ($vars) {
             $strVars = '("' . implode('", "', array_keys($vars)) . '" )  VALUES (?' . str_repeat(
-                    ', ?',
-                    count($vars) - 1
-                ) . ') ';
+                ', ?',
+                count($vars) - 1
+            ) . ') ';
         } else {
             $strVars = ' DEFAULT VALUES ';
         }

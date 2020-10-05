@@ -3,7 +3,6 @@
 
 namespace totum\moduls\install;
 
-
 use totum\common\Auth;
 
 class startAuth extends Auth
@@ -13,13 +12,13 @@ class startAuth extends Auth
     protected function __construct($rowData)
     {
         $this->rowData=$rowData;
-
     }
-    static function startUser($rowData){
+    public static function startUser($rowData)
+    {
         static::$aUser=new startAuth($rowData);
     }
-    static function isCreator()
+    public static function isCreator()
     {
-      return true;
+        return true;
     }
 }

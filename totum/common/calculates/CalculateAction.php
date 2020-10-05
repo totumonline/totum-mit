@@ -170,13 +170,15 @@ class CalculateAction extends Calculate
     protected function funcSchemaUpdate($params)
     {
         $params = $this->getParamsArray($params);
-        $TotumInstall = new TotumInstall($this->Table->getTotum()->getConfig(),
+        $TotumInstall = new TotumInstall(
+            $this->Table->getTotum()->getConfig(),
             $this->Table->getTotum()->getUser(),
             null,
-            $this->Table->getCalculateLog());
+            $this->Table->getCalculateLog()
+        );
 
         $params['schema'] = TotumInstall::applyMatches($params['schema'], $params);
-        if(empty($params['matches_name'])){
+        if (empty($params['matches_name'])) {
             throw new errorException('Не определен источник схемы');
         }
 
@@ -290,9 +292,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-                'email',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'email',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -341,17 +343,17 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, [], []);
         if (array_key_exists(
-                'options',
-                $params
-            ) && !is_array($params['options'])) {
+            'options',
+            $params
+        ) && !is_array($params['options'])) {
             throw new errorException('options должно быть типа row');
         }
 
 
         $toBfl = $params['bfl'] ?? in_array(
-                'soap',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'soap',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,
@@ -471,10 +473,10 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-                [],
-                'styles, html, name',
-                'name'
-            )) || (!array_key_exists(
+            [],
+            'styles, html, name',
+            'name'
+        )) || (!array_key_exists(
                 $params['template'],
                 $templates
             ))) {
@@ -548,11 +550,11 @@ class CalculateAction extends Calculate
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     if (is_numeric($value)) {
                                                         $value = number_format(
-                                                                $value,
-                                                                $numberVals[0],
-                                                                $numberVals[1] ?? '.',
-                                                                $numberVals[2] ?? ''
-                                                            )
+                                                            $value,
+                                                            $numberVals[0],
+                                                            $numberVals[1] ?? '.',
+                                                            $numberVals[2] ?? ''
+                                                        )
                                                             . ($numberVals[3] ?? '');
                                                     }
                                                 }
@@ -683,8 +685,10 @@ class CalculateAction extends Calculate
         }
         $t = $tableRow['id'];
         if ($d) {
-            $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->getCryptSolt()));
+            $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
+                json_encode($d, JSON_UNESCAPED_UNICODE),
+                $this->Table->getTotum()->getConfig()->getCryptSolt()
+            ));
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
     }
@@ -724,9 +728,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!key_exists(
-                'num',
-                $params
-            ) || !is_numeric(strval($params['num']))) {
+            'num',
+            $params
+        ) || !is_numeric(strval($params['num']))) {
             throw new errorException('Параметр num обязателен и должен быть числом');
         }
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
@@ -787,7 +791,8 @@ class CalculateAction extends Calculate
                 }
             }
             if ($filters) {
-                $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));;
+                $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));
+                ;
                 $link .= '?f=' . urlencode($cripted);
                 $iParams = true;
             }
@@ -823,9 +828,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
+            '`https?://`',
+            $params['uri']
+        )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -851,9 +856,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
+            '`https?://`',
+            $params['uri']
+        )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -873,9 +878,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-                'script',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'script',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
 
         try {
             $r = $this->cURL(

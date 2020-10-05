@@ -19,19 +19,19 @@ class SchemaUpdate extends Command
 {
     protected function configure()
     {
-
         $this->setName('schema-update')
             ->setDescription('Update schema')
-            ->addArgument('matches',
+            ->addArgument(
+                'matches',
                 InputOption::VALUE_REQUIRED,
                 'Enter source name',
-                'totum_' . (new Conf())->getLang())
+                'totum_' . (new Conf())->getLang()
+            )
             ->addArgument('file', InputOption::VALUE_REQUIRED, 'Enter schema update filepath', 'sys_update');
 
         if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
             $this->addOption('schema', 's', InputOption::VALUE_REQUIRED, 'Enter schema name', '');
         }
-
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -49,15 +49,19 @@ class SchemaUpdate extends Command
 
         $file = $input->getArgument('file');
 
-        if ($file === 'sys_update')
+        if ($file === 'sys_update') {
             $file = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'moduls' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . 'start_' . $Conf->getLang() . '.json.gz.ttm';
+        }
 
-        $TotumInstall = new TotumInstall($Conf,
+        $TotumInstall = new TotumInstall(
+            $Conf,
             new User(['login' => 'service', 'roles' => ["1"], 'id' => 1], $Conf),
-            $output);
+            $output
+        );
 
-        if (!is_file($file))
+        if (!is_file($file)) {
             throw new errorException('File not found');
+        }
         if (!($cont = file_get_contents($file))) {
             throw new errorException('File is empty');
         }

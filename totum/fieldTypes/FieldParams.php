@@ -8,7 +8,6 @@
 
 namespace totum\fieldTypes;
 
-
 use totum\common\Auth;
 use totum\common\calculates\Calculate;
 use totum\common\errorException;
@@ -57,14 +56,16 @@ class FieldParams extends Field
     {
         $this->inVars = [];
 
-        $r = parent::modify($channel,
+        $r = parent::modify(
+            $channel,
             $changeFlag,
             $newVal,
             $oldRow,
             $row,
             $oldTbl,
             $tbl,
-            $isCheck);
+            $isCheck
+        );
         return $r;
     }
 
@@ -72,15 +73,16 @@ class FieldParams extends Field
     {
         $this->inVars = $vars;
 
-        $r = parent::add($channel,
+        $r = parent::add(
+            $channel,
             $inNewVal,
             $row,
             $oldTbl,
             $tbl,
             $isCheck,
-            $vars);
+            $vars
+        );
         return $r;
-
     }
 
     final protected function checkValByType(&$val, $row, $isCheck = false)
@@ -107,10 +109,14 @@ class FieldParams extends Field
 
 
                     $oldColumnName = $row['id'] ?
-                        json_decode($this->table->getTotum()->getNamedModel(TablesFields::class)->executePrepared(true,
-                                ['id' => $row['id']],
-                                'data_src')->fetchColumn() ?? '',
-                            true)['column']['Val'] ?? '' : '';
+                        json_decode(
+                            $this->table->getTotum()->getNamedModel(TablesFields::class)->executePrepared(
+                            true,
+                            ['id' => $row['id']],
+                            'data_src'
+                        )->fetchColumn() ?? '',
+                            true
+                        )['column']['Val'] ?? '' : '';
 
                     $newColumnName = $val['column']["Val"] ?? '';
                     if ($newColumnName !== $oldColumnName) {
@@ -118,8 +124,7 @@ class FieldParams extends Field
 
 
                         if (!empty($newColumnName)) {
-                            if (empty($fields[$newColumnName]) || $fields[$newColumnName]['category'] !== 'column') ;
-                            elseif (!in_array($newColumnName, $this->table->getTableRow()['indexes'] ?? [])) {
+                            if (empty($fields[$newColumnName]) || $fields[$newColumnName]['category'] !== 'column') ; elseif (!in_array($newColumnName, $this->table->getTableRow()['indexes'] ?? [])) {
                                 $this->table->getTotum()->getTable('tables')->reCalculateFromOvers(
                                     ['modify' => [$tableRow['id'] => ['indexes' => '+' . $newColumnName]]]
                                 );
@@ -128,7 +133,9 @@ class FieldParams extends Field
                         if ($oldColumnName) {
                             $countWithColumn = 0;
                             foreach ($fields as $k => $v) {
-                                if ($v['category'] === 'filter' && ($v['column'] ?? '') === $oldColumnName) $countWithColumn++;
+                                if ($v['category'] === 'filter' && ($v['column'] ?? '') === $oldColumnName) {
+                                    $countWithColumn++;
+                                }
                             }
                             if ($countWithColumn < 2) {
                                 $this->table->getTotum()->getTable('tables')->reCalculateFromOvers(
@@ -138,18 +145,17 @@ class FieldParams extends Field
                         }
                     }
                 }
-
             }
         }
         if ($val['type']['Val'] === 'text') {
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
         }
 
-        if ($category === 'footer' && !is_subclass_of(Totum::getTableClass($tableRow),
-                JsonTables::class)) {
+        if ($category === 'footer' && !is_subclass_of(
+            Totum::getTableClass($tableRow),
+            JsonTables::class
+        )) {
             throw new errorException('Нельзя создать поле [[футера]] [[не для рассчетных]] таблиц');
         }
-
-
     }
 }

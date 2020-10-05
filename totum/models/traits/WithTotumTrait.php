@@ -3,7 +3,6 @@
 
 namespace totum\models\traits;
 
-
 use totum\common\Totum;
 
 trait WithTotumTrait
@@ -13,7 +12,8 @@ trait WithTotumTrait
      */
     protected $Totum;
 
-    function addTotum(Totum $Totum){
+    public function addTotum(Totum $Totum)
+    {
         $this->Totum=$Totum;
     }
 }

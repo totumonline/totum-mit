@@ -8,7 +8,6 @@
 
 namespace totum\models;
 
-
 use totum\common\Model;
 use totum\config\Conf;
 
@@ -30,14 +29,16 @@ class Tree extends Model
     }
 
 
-    function update($params, $where, $oldRow = null): int
+    public function update($params, $where, $oldRow = null): int
     {
         $r = $params ? parent::update($params, $where, $oldRow) : 0;
         if (array_key_exists('parent_id', $params) || empty($oldRow['top']['v'])) {
-            $treeVModel = $this->treeVModel ?? $this->treeVModel = (new Model($this->Sql,
-                    Conf::getTableNameByModel(TreeV::class),
-                    null,
-                    true));
+            $treeVModel = $this->treeVModel ?? $this->treeVModel = (new Model(
+                $this->Sql,
+                Conf::getTableNameByModel(TreeV::class),
+                null,
+                true
+            ));
 
             foreach ($this->getColumn('id') as $id) {
                 $params = [];
@@ -58,16 +59,22 @@ class Tree extends Model
         return $r;
     }
 
-    function getBranchesByTables($branchId = null, array $tables = null, array $roles = null)
+    public function getBranchesByTables($branchId = null, array $tables = null, array $roles = null)
     {
-        if (empty($tables)) $tables = [0];
+        if (empty($tables)) {
+            $tables = [0];
+        }
         $rolesSql = '';
 
-        $quotedTables = implode(',',
-            $this->Sql->quote($tables));
+        $quotedTables = implode(
+            ',',
+            $this->Sql->quote($tables)
+        );
 
         if (!empty($roles)) {
-            foreach ($roles as &$role) $role = $this->Sql->quote(strval($role));
+            foreach ($roles as &$role) {
+                $role = $this->Sql->quote(strval($role));
+            }
             unset($role);
             $roles = implode(',', $roles);
             $rolesSql = <<<SQL
@@ -101,7 +108,7 @@ SQL;
         return $r;
     }
 
-    function getBranchesForCreator($branchId = null)
+    public function getBranchesForCreator($branchId = null)
     {
         return $this->Sql->getAll('WITH RECURSIVE r AS (
     SELECT parent_id, id, title, ord, top,default_table, type, icon,link
@@ -117,5 +124,4 @@ SQL;
     )
     select * FROM r where top!=0 AND (parent_id is null ' . ($branchId ? ' OR top=' . $branchId : '') . ') order by ord');
     }
-
 }

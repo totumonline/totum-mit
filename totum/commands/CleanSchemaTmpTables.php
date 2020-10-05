@@ -3,7 +3,6 @@
 
 namespace totum\commands;
 
-
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -17,9 +16,9 @@ class CleanSchemaTmpTables extends Command
     {
         $this->setName('clean-schema-tmp-tables')
             ->setDescription('Clean tmp_tables in schemas. For single install. Set in crontab one time in 10 minutes.');
-            if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
-                $this->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
-            }
+        if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
+            $this->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name');
+        }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

@@ -17,8 +17,9 @@ class CalculateSelectPreview extends CalculateSelect
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'preview']);
         $params2 = $params;
-        if(key_exists('preview', $params))
+        if (key_exists('preview', $params)) {
             $params2['sfield'] = $params['preview'];
+        }
 
         $baseField = $params['bfield'] ?? 'id';
 

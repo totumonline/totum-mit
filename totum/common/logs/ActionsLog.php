@@ -29,12 +29,12 @@ class ActionsLog
         $this->Totum = $Totum;
     }
 
-    function add($tableid, $cycleid, $rowid, array $fields)
+    public function add($tableid, $cycleid, $rowid, array $fields)
     {
         $model = static::getModel();
         foreach ($fields as $k => $v) {
-
-            $model->insertPrepared([
+            $model->insertPrepared(
+                [
                 'tableid' => $tableid,
                 'cycleid' => $cycleid ?? 0,
                 'rowid' => $rowid ?? 0,
@@ -44,14 +44,16 @@ class ActionsLog
                 'action' => 1,
                 'userid' => $this->Totum->getUser()->getId()
             ],
-                false);
+                false
+            );
         }
     }
 
-    function innerLog($tableid, $cycleid, $rowid, $fieldName, $fieldComment, $fieldValue)
+    public function innerLog($tableid, $cycleid, $rowid, $fieldName, $fieldComment, $fieldValue)
     {
         $model = static::getModel();
-        $model->insertPrepared([
+        $model->insertPrepared(
+            [
             'tableid' => $tableid,
             'cycleid' => $cycleid ?? 0,
             'rowid' => $rowid ?? 0,
@@ -61,14 +63,16 @@ class ActionsLog
             'action' => 6,
             'userid' => $this->Totum->getUser()->getId()
         ],
-            false);
+            false
+        );
     }
 
     public function modify($tableid, $cycleid, $rowid, array $fields)
     {
         $model = static::getModel();
         foreach ($fields as $k => $v) {
-            $model->insertPrepared([
+            $model->insertPrepared(
+                [
                 'tableid' => $tableid,
                 'cycleid' => $cycleid ?? 0,
                 'rowid' => $rowid ?? 0,
@@ -78,15 +82,17 @@ class ActionsLog
                 'action' => 2,
                 'userid' => $this->Totum->getUser()->getId()
             ],
-                false);
+                false
+            );
         }
     }
 
-    function clear($tableid, $cycleid, $rowid, array $fields)
+    public function clear($tableid, $cycleid, $rowid, array $fields)
     {
         $model = static::getModel();
         foreach ($fields as $k => $v) {
-            $model->insertPrepared([
+            $model->insertPrepared(
+                [
                 'tableid' => $tableid,
                 'cycleid' => $cycleid ?? 0,
                 'rowid' => $rowid ?? 0,
@@ -96,16 +102,17 @@ class ActionsLog
                 'action' => 3,
                 'userid' => $this->Totum->getUser()->getId()
             ],
-                false);
+                false
+            );
         }
     }
 
-    function pin($tableid, $cycleid, $rowid, array $fields)
+    public function pin($tableid, $cycleid, $rowid, array $fields)
     {
-
         $model = static::getModel();
         foreach ($fields as $k => $v) {
-            $model->insertPrepared([
+            $model->insertPrepared(
+                [
                 'tableid' => $tableid,
                 'cycleid' => $cycleid ?? 0,
                 'rowid' => $rowid ?? 0,
@@ -115,35 +122,42 @@ class ActionsLog
                 'action' => 5,
                 'userid' => $this->Totum->getUser()->getId()
             ],
-                false);
+                false
+            );
         }
     }
 
-    function delete($tableid, $cycleid, $rowid)
+    public function delete($tableid, $cycleid, $rowid)
     {
         $model = static::getModel();
-        $model->insertPrepared([
+        $model->insertPrepared(
+            [
             'tableid' => $tableid,
             'cycleid' => $cycleid ?? 0,
             'rowid' => $rowid ?? 0,
             'action' => 4,
             'userid' => $this->Totum->getUser()->getId()
         ],
-            false);
+            false
+        );
     }
 
     public function getLogs($tableid, $cycleid, $rowid, $field)
     {
-        if (empty($cycleid)) $cycleid = null;
+        if (empty($cycleid)) {
+            $cycleid = null;
+        }
 
-        return $this->getModel()->getAll([
+        return $this->getModel()->getAll(
+            [
             'tableid' => $tableid,
             'cycleid' => $cycleid ?? 0,
             'rowid' => $rowid ?? 0,
             'field' => $field
         ],
             'v as value, modify_text, action, userid as user_modify, to_char(dt, \'DD.MM.YY HH24:MI\') as dt_modify',
-            'dt');
+            'dt'
+        );
     }
 
     protected function getVar($v)
@@ -161,5 +175,4 @@ class ActionsLog
     {
         return $this->model;
     }
-
 }

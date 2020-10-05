@@ -29,16 +29,18 @@ class StringF extends Field
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
         if (!empty($this->data['regexp']) && $val !== '' && !is_null($val) && !preg_match(
-                "/" . str_replace(
+            "/" . str_replace(
                     '/',
                     '\/',
                     $this->data['regexp']
                 ) . "/",
-                $val
-            )
+            $val
+        )
         ) {
-            errorException::criticalException('Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"',
-                $this->table);
+            errorException::criticalException(
+                'Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"',
+                $this->table
+            );
         }
     }
 }

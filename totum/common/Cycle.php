@@ -230,12 +230,16 @@ class Cycle
         }
 
         if ($tableRow['type'] !== 'calcs') {
-            errorException::criticalException('Через Cycle создаются только расчетные таблицы цикла',
-                $this->getCyclesTable());
+            errorException::criticalException(
+                'Через Cycle создаются только расчетные таблицы цикла',
+                $this->getCyclesTable()
+            );
         }
         if ((int)$tableRow['tree_node_id'] !== $this->getCyclesTableId()) {
-            errorException::criticalException('Ошибка обращения к таблице не своей циклической таблицы',
-                $this->getCyclesTable());
+            errorException::criticalException(
+                'Ошибка обращения к таблице не своей циклической таблицы',
+                $this->getCyclesTable()
+            );
         }
 
         list($tableRow['__version'], $tableRow['__auto_recalc']) = $this->getVersionForTable($tableRow['name']);

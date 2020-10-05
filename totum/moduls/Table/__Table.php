@@ -4,8 +4,9 @@ $isCreatorView = $isCreatorView ?? false;
 
 if (empty($tableConfig)) {
     if (empty($error)) {
-        if (!empty($html)) echo '<div id="main-page">' . $html . '</div>';
-        else {
+        if (!empty($html)) {
+            echo '<div id="main-page">' . $html . '</div>';
+        } else {
             ?>
 
             <div class="panel panel-default">

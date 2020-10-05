@@ -90,7 +90,6 @@ class Cycle
             $model = Model::init($cycleTableName);
             $cycleTableDataRow = $model->get(['cycle_id' => $oldId]);
 
-            $model->insert(['updated' => $cycleTableDataRow['updated'], 'cycle_id' => $newId]);
             $updates[$tId] = $cycleTableDataRow['updated'];
 
             /** @var calcsTable $tId */

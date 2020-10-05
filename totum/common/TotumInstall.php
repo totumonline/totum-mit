@@ -113,12 +113,24 @@ class Conf extends ConfParent{
     function getDefaultSender(){
         return "no-reply@$host";
     }
+    
     /***getSchemas***/
     static function getSchemas()
     {
         return ["$host"=>"{$post['db_schema']}"];
     }
     /***getSchemasEnd***/
+    
+    public function setSessionCookieParams()
+    {
+        session_set_cookie_params([
+            'path' => '/',
+            'domain' => \$this->hostName,
+            /*'secure' => true,*/ //-- uncomment this if your totum always on ssl
+            'httponly' => true,
+            'samesite' => 'Strict'
+        ]);
+    }
 }
 CONF;
 

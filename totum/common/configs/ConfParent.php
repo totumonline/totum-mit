@@ -89,10 +89,8 @@ abstract class ConfParent
     public function setSessionCookieParams()
     {
         session_set_cookie_params([
-           // 'lifetime' => $maxlifetime,
             'path' => '/',
             'domain' => $this->hostName,
-            'secure' => true,
             'httponly' => true,
             'samesite' => 'Strict'
         ]);

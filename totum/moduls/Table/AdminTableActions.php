@@ -51,9 +51,9 @@ class AdminTableActions extends WriteTableActions
                 if ((int)$v['table_id'] === $tRow['id']) {
                     $tFields[$v['name']] = $v['title'];
                     if (!in_array($v['category'], ['filter', 'column']) && json_decode(
-                        $v['data'],
-                        true
-                    )['type'] !== 'button') {
+                            $v['data'],
+                            true
+                        )['type'] !== 'button') {
                         $fieldsForSobaka[] = $v['name'];
                     }
                 }
@@ -150,6 +150,13 @@ CODE;
             return $set;
         });
         return ['sets' => $set];
+    }
+
+    public function getTableData()
+    {
+        $data = parent::getTableData();
+        $data['isCreatorView'] = true;
+        return $data;
     }
 
     public function calcFieldsLog()

@@ -329,8 +329,8 @@ CONF;
             '/((?i:userInRoles))\(([^)]+)\)/',
             function ($matches) use ($funcRoles) {
                 return $matches[1] . '(' . preg_replace_callback(
-                    '/role:\s*(\d+)/',
-                    function ($matches) use ($funcRoles) {
+                        '/role:\s*(\d+)/',
+                        function ($matches) use ($funcRoles) {
                             $roles = '';
                             foreach ($matches[1] as $role) {
                                 if ($roles !== '') {
@@ -340,8 +340,8 @@ CONF;
                             }
                             return $roles;
                         },
-                    $matches[2]
-                ) . ')';
+                        $matches[2]
+                    ) . ')';
             },
             $code
         );
@@ -867,15 +867,15 @@ CONF;
                                 $selectedRowId = null;
 
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
-                                    'id',
-                                    $row
-                                ) && $schemaRow['key_fields'] = ['id'])) {
+                                            'id',
+                                            $row
+                                        ) && $schemaRow['key_fields'] = ['id'])) {
                                     $keys = [];
                                     foreach ($schemaRow['key_fields'] as $key) {
                                         $keys[$key] = (is_array($row[$key] ?? []) && key_exists(
-                                            'v',
-                                            $row[$key] ?? []
-                                        )) ? $row[$key]['v'] : $row[$key];
+                                                'v',
+                                                $row[$key] ?? []
+                                            )) ? $row[$key]['v'] : $row[$key];
                                         if (is_array($keys[$key])) {
                                             $keys[$key] = json_encode(
                                                 $keys[$key],
@@ -976,9 +976,9 @@ CONF;
                                                                 ['v' => $tName],
                                                                 JSON_UNESCAPED_UNICODE
                                                             ), 'cycles_table' => json_encode(
-                                                                ['v' => $tableId],
-                                                                JSON_UNESCAPED_UNICODE
-                                                            ),]
+                                                            ['v' => $tableId],
+                                                            JSON_UNESCAPED_UNICODE
+                                                        ),]
                                                     );
                                                 }
                                             }
@@ -1012,10 +1012,10 @@ CONF;
             if ($schemaRow['code']) {
                 $this->consoleLog(
                     'exec code: ' . substr(
-                    $schemaRow['code'],
-                    0,
-                    strpos($schemaRow['code'], "\n")
-                ) . '...',
+                        $schemaRow['code'],
+                        0,
+                        strpos($schemaRow['code'], "\n")
+                    ) . '...',
                     3
                 );
                 $Log = $TablesTable->calcLog(['name' => "CODE FROM SCHEMA", 'code' => $schemaRow['code']]);
@@ -1164,10 +1164,10 @@ CONF;
                             if (key_exists($row['id'], $addedBranches)) {
                                 if (!key_exists($row['parent_id'], $lastOrdParent)) {
                                     $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField(
-                                        'ord',
-                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
-                                        'ord desc'
-                                    ) ?? 0;
+                                            'ord',
+                                            ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                            'ord desc'
+                                        ) ?? 0;
                                 }
                                 $lastOrdParent[$row['parent_id']] += 10;
                                 $modify[$addedBranches[$row['id']]]['ord'] = $lastOrdParent[$row['parent_id']];
@@ -1215,11 +1215,14 @@ CONF;
     private function saveFileConfig()
     {
         $Log = $this->CalculateLog->getChildInstance(['name' => 'Save Config file']);
-        file_put_contents(
+        if (!file_put_contents(
             dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . "Conf.php",
             '<?php' . "\n" . $this->confClassCode
-        );
-        $Log->addParam('result', 'done');
+        )) {
+            throw new errorException('Ошибка сохранения файла Conf.php');
+        } else {
+            $Log->addParam('result', 'done');
+        }
     }
 
     private function consoleLog(string $string, $level = 0)

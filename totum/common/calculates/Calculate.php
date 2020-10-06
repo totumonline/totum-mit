@@ -3206,8 +3206,9 @@ SQL;
                 } else {
                     $paramVal = &$params[$param];
                 }
+
                 if (isset($params[$param]) && !is_array($params[$param])) {
-                    throw new errorException('Ошибка кода ' . $this->varName);
+                    throw new errorException('Одинарный параметр [[' . $this->varName.']] использован несколько раз');
                 }
                 $paramVal = trim($match[2]);
 

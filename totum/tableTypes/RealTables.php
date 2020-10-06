@@ -105,6 +105,9 @@ abstract class RealTables extends aTable
         $field = static::getFullField($this->Totum->getModel('tables_fields__v', true)->getById($fieldId));
         if ($field['category'] === 'column') {
             $this->Totum->getModel($this->tableRow['name'])->addColumn($field['name']);
+            if($field['type']==='checkbox'){
+                $this->Totum->getModel($this->tableRow['name'])->update([$field['name']=>json_encode(["v"=>false])], []);
+            }
         }
     }
 

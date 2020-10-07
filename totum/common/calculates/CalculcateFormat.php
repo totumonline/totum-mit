@@ -16,7 +16,7 @@ use totum\tableTypes\aTable;
 
 class CalculcateFormat extends Calculate
 {
-    const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide'];
+    const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide', 'placeholder'];
     const tableformats = ['blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'tabletext', 'tablecomment'];
     const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
     const floatFormat = ["fill", "glue", "maxheight", "maxwidth", "nextline", "blocknum", "height", "breakwidth"];

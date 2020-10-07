@@ -4,14 +4,14 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=1321042">
-    <script src="/js/libs.js?v=02ef05b"></script>
+    <script src="/js/libs.js?v=6153d1e"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=d38770b">
+          href="/css/main.css?v=ebabb90">
 
     <?php
     if ($isCreatorView ?? null) { ?>
-        <script src="/js/functions.json?v=9d17f34"></script>
+        <script src="/js/functions.json?v=1a74366"></script>
         <?php
         if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists(
     $GLOBALS['CalculateExtentions'],
@@ -22,7 +22,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=95ad2de"></script>
+    <script src="/js/main.js?v=0169ead"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

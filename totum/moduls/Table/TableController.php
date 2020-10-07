@@ -310,7 +310,7 @@ class TableController extends interfaceController
                 $href .= $branch['default_table'] . '/';
             }
             $branch['href'] = $href;
-            if (is_a($this, TableController::class) && !empty($this->branchId) && $branch['id'] === $this->branchId) {
+            if (is_a($this, TableController::class) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
                 $branch['active'] = true;
             }
         }

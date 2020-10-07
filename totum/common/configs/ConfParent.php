@@ -31,6 +31,8 @@ abstract class ConfParent
     public static $MaxFileSizeMb = 10;
     public static $timeLimit = 30;
 
+    protected $execSSHOn = false;
+
     const LANG = "";
 
     /* Переменные работы конфига */
@@ -180,6 +182,14 @@ abstract class ConfParent
     public function getCryptSolt()
     {
         return $this->getSettings('crypt_solt');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isExecSSHOn(): bool
+    {
+        return $this->execSSHOn;
     }
 
 

@@ -2062,7 +2062,7 @@ abstract class aTable
 
                     $rows = $getRows($filteredIds);
 
-                    if (in_array($this->fields[$orderFN]['type'], ['tree', 'select'])) {
+                    if (key_exists($orderFN, $this->fields) && in_array($this->fields[$orderFN]['type'], ['tree', 'select'])) {
                         $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
                         $this->sortRowsBydefault($rows);
                         $offset = $slice($rows, $onPage);

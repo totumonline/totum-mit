@@ -1096,7 +1096,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $fields = array_merge(
                 $fields,
                 [
-                    'name', 'sort'
+                    'name', 'sort', 'actual'
                 ]
             );
         } else {

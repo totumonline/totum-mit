@@ -113,13 +113,16 @@ abstract class interfaceController extends Controller
     protected function __addAnswerVar($name, $var, $quote = false)
     {
         if ($quote || $name === 'error') {
-            $funcQuote = function ($var) use (&$funcQuote) {
+            $funcQuote = function ($var) use ($name, &$funcQuote) {
                 if (is_array($var)) {
                     foreach ($var as &$v) {
                         $v = $funcQuote($v);
                     }
                 } else {
                     $var = htmlspecialchars($var);
+                    if($name==='error'){
+                        $var=str_replace('&lt;br/&gt;', '<br/><br/>', $var);
+                    }
                 }
                 return $var;
             };

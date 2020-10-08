@@ -116,7 +116,6 @@ class TableController extends interfaceController
                 $result['FieldLOGS'] = $this->CalculateLog->getFieldLogs();
             }
         }
-
         return $result;
     }
 

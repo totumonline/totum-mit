@@ -166,7 +166,7 @@ class TablesFields extends Model
                         'table_id' => $tableRowId
                         , 'category' => $category
                         , '!id=' => $id
-                        , '>ord' => (int)$this->afterField
+                        , '>Nord' => (int)$this->afterField
                     ]
                 );
                 $this->afterField=null;

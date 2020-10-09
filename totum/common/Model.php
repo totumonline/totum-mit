@@ -109,11 +109,14 @@ class Model
         return $this->Sql->exec($string);
     }
 
-    protected function quoteWhereField($field)
+    protected function quoteWhereField($field, $FieldType = 'S')
     {
         $field = preg_replace('/[^a-z0-9_]/', '', $field);
         if (!$this->isServiceTable && !in_array($field, static::serviceFields)) {
             $field = '(' . $field . '->>\'v\')';
+            if ($FieldType === 'N') {
+                $field .= '::NUMERIC';
+            }
         }
         return $field;
     }
@@ -396,7 +399,7 @@ class Model
     {
         $whereStr = '';
         foreach ($where as $k => $v) {
-            if (preg_match('/(!|<|>|<=|>=)?([a-z0-9_]+)/i', $k, $matches)) {
+            if (preg_match('/(!|<|>|<=|>=)?(N)?([a-z0-9_]+)/i', $k, $matches)) {
                 if ($whereStr) {
                     $whereStr .= " AND ";
                 }
@@ -422,7 +425,7 @@ class Model
                                 }
                                 $operator = " {$matches[1]} ?";
                         }
-                        $k = $matches[2];
+                        $k = $matches[3];
                     } else {
                         $arrayOperator = ' IN ';
                         $arrayEmpty = ' FALSE ';
@@ -432,7 +435,7 @@ class Model
                             $operator = " = ?";
                         }
                     }
-                    $f = self::quoteWhereField($k);
+                    $f = self::quoteWhereField($k, $matches[2] ?? 'S');
 
                     if (is_array($v)) {
                         if (!empty($v)) {

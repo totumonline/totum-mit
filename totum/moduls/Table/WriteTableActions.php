@@ -160,10 +160,8 @@ class WriteTableActions extends ReadTableActions
                         $this->Table,
                         ['ids' => $ids]
                     );
-                    $this->addLogVar($this->Table, ['__ON_ROW_DUPLICATE'], 'a', $Calc->getLogVar());
                 } catch (errorException $e) {
                     $e->addPath('Таблица [[' . $this->Table->getTableRow()['name'] . ']]; КОД ПРИ ДУБЛИРОВАНИИ');
-                    $this->addLogVar($this->Table, ['__ON_ROW_DUPLICATE'], 'a', $Calc->getLogVar());
                     throw $e;
                 }
             } else {

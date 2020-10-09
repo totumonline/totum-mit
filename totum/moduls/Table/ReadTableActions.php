@@ -46,9 +46,9 @@ class ReadTableActions extends Actions
                 $this->Table->getTableRow()['id'],
                 $this->User->getTreeTables()
             ) && in_array(
-                    $this->Table->getTableRow()['id'],
-                    $this->User->getFavoriteTables()
-                ) !== $status) {
+                $this->Table->getTableRow()['id'],
+                $this->User->getFavoriteTables()
+            ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -183,28 +183,22 @@ class ReadTableActions extends Actions
             foreach ($data as $row) {
                 if ($row['ind'] === ($this->post['index'] ?? null)) {
                     $CA = new CalculateAction($row['code']);
-                    try {
-                        if ($row['id']) {
-                            $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
-                            $item = $this->Table->getTbl()["rows"][$row['id']];
-                        } else {
-                            $item = $this->Table->getTbl()['params'];
-                        }
-
-                        $CA->execAction(
-                            $row['field'],
-                            [],
-                            $item,
-                            [],
-                            $this->Table->getTbl(),
-                            $this->Table,
-                            $row['vars'] ?? []
-                        );
-                        $this->addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
-                    } catch (errorException $e) {
-                        $this->addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
-                        throw $e;
+                    if ($row['id']) {
+                        $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
+                        $item = $this->Table->getTbl()["rows"][$row['id']];
+                    } else {
+                        $item = $this->Table->getTbl()['params'];
                     }
+
+                    $CA->execAction(
+                        $row['field'],
+                        [],
+                        $item,
+                        [],
+                        $this->Table->getTbl(),
+                        $this->Table,
+                        $row['vars'] ?? []
+                    );
                     break;
                 }
             }
@@ -227,24 +221,17 @@ class ReadTableActions extends Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
             $CA = new CalculateAction($data['code']);
-            try {
-                $CA->execAction(
-                    'CODE',
-                    [],
-                    [],
-                    $this->Table->getTbl(),
-                    $this->Table->getTbl(),
-                    $this->Table,
-                    $data['buttons'][$this->post['index']]['vars'] ?? [] + ['input' => $this->post['val']]
-                );
+            $CA->execAction(
+                'CODE',
+                [],
+                [],
+                $this->Table->getTbl(),
+                $this->Table->getTbl(),
+                $this->Table,
+                $data['buttons'][$this->post['index']]['vars'] ?? [] + ['input' => $this->post['val']]
+            );
 
-                $model->delete($key);
-
-                $this->addLogVar($this->Table, ['INPUT_CLICK'], 'a', $CA->getLogVar());
-            } catch (errorException $e) {
-                $this->addLogVar($this->Table, ['INPUT_CLICK'], 'a', $CA->getLogVar());
-                throw $e;
-            }
+            $model->delete($key);
         } else {
             throw new errorException('Предложенный ввод устарел.');
         }
@@ -323,20 +310,11 @@ class ReadTableActions extends Actions
 
     public function printTable()
     {
-        try {
-            $template = $this->Totum->getModel('print_templates')->executePrepared(
-                true,
-                ['name' => 'main'],
-                'styles, html'
-            )->fetch();
-        } catch (SqlException $e) {
-            $this->addLogVar(
-                $this->Table,
-                ['PRINT_BUTTON'],
-                'f',
-                ['text' => 'Не найдена таблица print_templates либо она не соответствует ожидаемой схеме']
-            );
-        }
+        $template = $this->Totum->getModel('print_templates')->executePrepared(
+            true,
+            ['name' => 'main'],
+            'styles, html'
+        )->fetch();
 
         $template = $template ?? ['styles' => '@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600|Roboto:400,400i,700,700i,500|Roboto+Mono:400,700&amp;subset=cyrillic");
 body { font-family: \'Roboto\', sans-serif;}
@@ -386,9 +364,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 '',
                                 $table['head']
                             ) . $table[2] . implode(
-                                    '',
-                                    $table['body']
-                                ) . $table[3];
+                                '',
+                                $table['body']
+                            ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -404,9 +382,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['head']
                 ) . $table[2] . implode(
-                        '',
-                        $table['body']
-                    ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
             }
         }
 
@@ -493,9 +471,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
 
@@ -511,9 +489,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             '',
                             $table['head']
                         ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                            '',
+                            $table['body']
+                        ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -531,9 +509,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
         $style = $template['styles'];
@@ -665,6 +643,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
      * getTableDataForInterface
      *
      * @return array
+     * @throws errorException
      */
     protected function getTableClientForm(): array
     {
@@ -777,22 +756,26 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 } elseif (get_class($this) === ReadTableActions::class && empty($fields[$click['fieldName']]['pressableOnOnlyRead'])) {
                     throw new errorException('Кнопка недоступна для нажатия в режиме "только для чтения"');
                 }
-
-                $Log = $this->Table->calcLog(['name' => 'CLICK']);
-                Field::init($fields[$click['fieldName']], $this->Table)->action(
-                    $row,
-                    $row,
-                    $this->Table->getTbl(),
-                    $this->Table->getTbl(),
-                    ['ids' => $click['checked_ids'] ?? []]
-                );
-                $this->Table->calcLog($Log, 'result', 'done');
+                $this->clickToButton($fields[$click['fieldName']], $row, ['ids' => $click['checked_ids'] ?? []]);
             } catch (\ErrorException $e) {
                 throw $e;
             }
         }
 
         return $this->getTableClientChangedData([]);
+    }
+
+    protected function clickToButton($field, $row, $vars)
+    {
+        $Log = $this->Table->calcLog(['name' => 'CLICK']);
+        Field::init($field, $this->Table)->action(
+            $row,
+            $row,
+            $this->Table->getTbl(),
+            $this->Table->getTbl(),
+            $vars
+        );
+        $this->Table->calcLog($Log, 'result', 'done');
     }
 
     public function setCommentsViewed()
@@ -864,15 +847,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
     }
 
-
-    /**
-     * @param $path
-     * @param string $type 'c'|'s'|'a'|'f'
-     * @param $log
-     */
-    protected function addLogVar(aTable $table, $path, $type, $log)
-    {
-    }
 
     public function edit()
     {
@@ -1108,16 +1082,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $_tableRow['fields_sets'] = $this->Table->changeFieldsSets();
             $_tableRow['cycle_id'] = $this->Table->getCycle()->getId();
         } else {
-            if ($tableRow['type'] === 'cycles') {
-                $cycleTables = array_keys($this->User->getTreeTables());
-                $_tableRow['__firstUserTable'] = $this->Table->getTotum()->getModel('tables')->getField(
-                    'id',
-                    ['type' => 'calcs',
-                        'tree_node_id' => $tableRow['id'],
-                        'id' => $cycleTables],
-                    'sort'
-                );
-            }
             $_tableRow  ['__is_in_favorites'] =
                 !key_exists(
                     $this->Table->getTableRow()['id'],
@@ -1130,6 +1094,32 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
 
         return $_tableRow;
+    }
+
+    public function dblClick()
+    {
+        if ($this->Table->getTableRow()['type'] === 'cycles') {
+            if (!empty($id = (int)$this->post['id'])) {
+                if ($this->Table->loadFilteredRows('web', [$id])) {
+                    if (key_exists('button_to_cycle', $this->Table->getFields())) {
+                        $this->clickToButton(
+                            $this->Table->getFields()['button_to_cycle'],
+                            $this->Table->getTbl()['rows'][$id],
+                            []
+                        );
+                    } else {
+                        if ($CalcsId = $this->Totum->getModel('tables')->getField(
+                            'id',
+                            ['type' => 'calcs', 'tree_node_id' => ($treeNodeId = $this->Table->getTableRow()['id']), 'id' => array_keys($this->User->getTables())],
+                            'sort'
+                        )) {
+                            $topId = $this->Table->getTableRow()['top'];
+                            $this->Totum->addToInterfaceLink("/Table/$topId/$treeNodeId/$id/$CalcsId", 'self');
+                        }
+                    }
+                }
+            }
+        }
     }
 
     protected function getTableFormat()

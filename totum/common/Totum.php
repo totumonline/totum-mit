@@ -319,7 +319,7 @@ class Totum
         $this->CalculateLog->setLogTypes($types);
     }
 
-    public function addToInterfaceLink($uri, $target, $title, $postData = null, $width = null, $refresh = false, $elseData = [])
+    public function addToInterfaceLink($uri, $target, $title = "", $postData = null, $width = null, $refresh = false, $elseData = [])
     {
         $this->interfaceLinks[] = ['uri' => $uri, 'target' => $target, 'title' => $title, 'postData' => $postData, 'width' => $width, 'refresh' => $refresh, 'elseData' => $elseData];
     }

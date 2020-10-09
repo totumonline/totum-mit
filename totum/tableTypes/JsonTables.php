@@ -174,9 +174,9 @@ abstract class JsonTables extends aTable
                         $this->changeIds['deleted'][$id] = null;
                     } elseif (!empty($oldRow) && empty($row['is_del'])) {
                         //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
-                        if (Calculate::compare('==', $oldRow, $row)) {
+                        if (Calculate::compare('!==', $oldRow, $row)) {
                             foreach ($row as $k => $v) {
-                                if ($k !== 'n' && ($oldRow[$k] ?? null) !== $v) {
+                                if ($k !== 'n' && Calculate::compare('!==', $oldRow[$k], $v)) {
                                     $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                     $this->changeIds['changed'][$id][$k] = null;
                                 }
@@ -338,9 +338,9 @@ abstract class JsonTables extends aTable
                     $type = SORT_REGULAR;
                 }
                 if (count(array_unique(
-                        $insertList,
-                        $type
-                    )) !== count($insertList)) {
+                    $insertList,
+                    $type
+                )) !== count($insertList)) {
                     throw new errorException('Поле [[insert]] должно возвращать list с уникальными значениями - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
                 }
             } else {
@@ -516,9 +516,9 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($after && !key_exists(
-                        $after,
-                        $SavedRows
-                    )) {
+                    $after,
+                    $SavedRows
+                )) {
                     throw new errorException('Строки с id ' . $after . ' не существует. Возможно, она была удалена');
                 }
 
@@ -1135,9 +1135,9 @@ abstract class JsonTables extends aTable
 
 
         $isDelInFields = in_array(
-                'is_del',
-                $params['field']
-            ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
+            'is_del',
+            $params['field']
+        ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
 
         if ($returnType === 'field' || $returnType === 'row') {
             if (isset($fOrdering)) {

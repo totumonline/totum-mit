@@ -201,6 +201,7 @@ class Calculate
 
     protected static function __compare_array_normalize(&$n)
     {
+        ksort($n);
         foreach ($n as &$nItem) {
             $nItem = static::__compare_normalize($nItem);
         }
@@ -309,10 +310,10 @@ class Calculate
                 case '!==':
                     $r = false;
                     if (count($n) === count($n2)) {
-                        if ($n === $n2) {
+                        if ($n == $n2) {
                             static::__compare_array_normalize($n);
                             static::__compare_array_normalize($n2);
-                            $r = $n == $n2;
+                            $r = $n === $n2;
                         }
                     }
                     $r = !$r;
@@ -320,7 +321,7 @@ class Calculate
                 case '==':
                     $r = false;
                     if (count($n) === count($n2)) {
-                        if ($n === $n2) {
+                        if ($n == $n2) {
                             static::__compare_array_normalize($n);
                             static::__compare_array_normalize($n2);
                             $r = $n === $n2;

@@ -338,9 +338,9 @@ abstract class JsonTables extends aTable
                     $type = SORT_REGULAR;
                 }
                 if (count(array_unique(
-                    $insertList,
-                    $type
-                )) !== count($insertList)) {
+                        $insertList,
+                        $type
+                    )) !== count($insertList)) {
                     throw new errorException('Поле [[insert]] должно возвращать list с уникальными значениями - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
                 }
             } else {
@@ -516,9 +516,9 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($after && !key_exists(
-                    $after,
-                    $SavedRows
-                )) {
+                        $after,
+                        $SavedRows
+                    )) {
                     throw new errorException('Строки с id ' . $after . ' не существует. Возможно, она была удалена');
                 }
 
@@ -877,9 +877,9 @@ abstract class JsonTables extends aTable
 
             if ($fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param')) {
                 foreach ($fieldsWithActionOnChange as $field) {
-                    if (empty($loadedTbl['params'][$field['name']]) || Calculate::compare(
+                    if (Calculate::compare(
                         '!==',
-                        $loadedTbl['params'][$field['name']]['v'],
+                        $loadedTbl['params'][$field['name']]['v'] ?? null,
                         $tbl['params'][$field['name']]['v']
                     )) {
                         Field::init($field, $this)->action(
@@ -1135,9 +1135,9 @@ abstract class JsonTables extends aTable
 
 
         $isDelInFields = in_array(
-            'is_del',
-            $params['field']
-        ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
+                'is_del',
+                $params['field']
+            ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
 
         if ($returnType === 'field' || $returnType === 'row') {
             if (isset($fOrdering)) {

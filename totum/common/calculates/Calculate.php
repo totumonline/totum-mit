@@ -183,9 +183,8 @@ class Calculate
             case 'boolean':
                 return $n ? 'true' : 'false';
             case 'integer':
-                return strval($n);
             case 'double':
-                return number_format($n, 10, '', '');
+                return strval($n);
             case 'array':
                 foreach ($n as &$_) {
                     $_ = static::__compare_normalize($_);
@@ -310,22 +309,18 @@ class Calculate
                 case '!==':
                     $r = false;
                     if (count($n) === count($n2)) {
-                        if ($n == $n2) {
-                            static::__compare_array_normalize($n);
-                            static::__compare_array_normalize($n2);
-                            $r = $n === $n2;
-                        }
+                        static::__compare_array_normalize($n);
+                        static::__compare_array_normalize($n2);
+                        $r = $n === $n2;
                     }
                     $r = !$r;
                     break;
                 case '==':
                     $r = false;
                     if (count($n) === count($n2)) {
-                        if ($n == $n2) {
-                            static::__compare_array_normalize($n);
-                            static::__compare_array_normalize($n2);
-                            $r = $n === $n2;
-                        }
+                        static::__compare_array_normalize($n);
+                        static::__compare_array_normalize($n2);
+                        $r = $n === $n2;
                     }
                     break;
                 case '=':

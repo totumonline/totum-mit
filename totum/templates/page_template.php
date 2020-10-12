@@ -7,7 +7,7 @@
     <script src="/js/libs.js?v=6153d1e"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=7d107ce">
+          href="/css/main.css?v=b65a65f">
 
     <?php
     if ($isCreatorView ?? null) { ?>
@@ -22,7 +22,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=a5ca435"></script>
+    <script src="/js/main.js?v=adbe180"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

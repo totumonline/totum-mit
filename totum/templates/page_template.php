@@ -7,22 +7,22 @@
     <script src="/js/libs.js?v=6153d1e"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=e2366ec">
+          href="/css/main.css?v=7d107ce">
 
     <?php
     if ($isCreatorView ?? null) { ?>
         <script src="/js/functions.json?v=1a74366"></script>
         <?php
         if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists(
-    $GLOBALS['CalculateExtentions'],
-    'jsTemplates'
-)) {
+                $GLOBALS['CalculateExtentions'],
+                'jsTemplates'
+            )) {
             echo '<script>App.functions=App.functions.concat(' . $GLOBALS['CalculateExtentions']->jsTemplates . ')</script>';
         } ?>
         <?php
     } ?>
 
-    <script src="/js/main.js?v=63e7ceb"></script>
+    <script src="/js/main.js?v=40d5a00"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
@@ -59,7 +59,7 @@
     include static::$contentTemplate; ?>
 </div>
 <div id="TOTUM_FOOTER">
-    <?= $totumFooter ?>
+    <?= $totumFooter ?? '' ?>
 
 </div>
 

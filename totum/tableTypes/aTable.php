@@ -877,7 +877,7 @@ abstract class aTable
         }
         $updated = json_decode($this->getUpdated(), true);
 
-        if ($updated['code'] !== $code) {
+        if ((string)$updated['code'] !== $code) {
             return ['username' => $this->Totum->getNamedModel(UserV::class)->getById($updated['user'])['fio'], 'dt' => $updated['dt'], 'code' => $updated['code']];
         } else {
             return ['no' => true];

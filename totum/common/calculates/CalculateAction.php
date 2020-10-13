@@ -240,7 +240,7 @@ class CalculateAction extends Calculate
 
     protected function funcLinkToInput($params)
     {
-        $params = $this->getParamsArray($params, ['var']);
+        $params = $this->getParamsArray($params, ['var'], [], ['var']);
         if (empty($params['title'])) {
             throw new errorException('Заполните параметр [[title]]');
         }
@@ -249,6 +249,11 @@ class CalculateAction extends Calculate
         }
 
         $params['input'] = '';
+        $vars=[];
+        foreach ($params['var']??[] as $_) {
+            $vars[$_['field']]=$_['value'];
+        }
+        $params['vars']=$vars;
 
         $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
 
@@ -477,9 +482,9 @@ class CalculateAction extends Calculate
             'styles, html, name',
             'name'
         )) || (!array_key_exists(
-                $params['template'],
-                $templates
-            ))) {
+            $params['template'],
+            $templates
+        ))) {
             throw new errorException('Шаблон не найден');
         }
 

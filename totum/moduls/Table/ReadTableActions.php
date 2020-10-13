@@ -216,7 +216,7 @@ class ReadTableActions extends Actions
      */
     public function linkInputClick()
     {
-        $model = $this->Totum->getModel('_tmp_tables');
+        $model = $this->Totum->getModel('_tmp_tables', true);
         $key = ['table_name' => '_linkToInput', 'user_id' => $this->User->getId(), 'hash' => $this->post['hash'] ?? null];
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
@@ -228,7 +228,7 @@ class ReadTableActions extends Actions
                 $this->Table->getTbl(),
                 $this->Table->getTbl(),
                 $this->Table,
-                $data['buttons'][$this->post['index']]['vars'] ?? [] + ['input' => $this->post['val']]
+                ($data['vars'] ?? [])+ ['input' => $this->post['val']]
             );
 
             $model->delete($key);

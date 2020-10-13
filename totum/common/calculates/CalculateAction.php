@@ -272,7 +272,7 @@ class CalculateAction extends Calculate
         $params['hash'] = $hash;
         $this->Table->getTotum()->addToInterfaceDatas(
             'input',
-            array_intersect_key($params, ["title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1])
+            array_intersect_key($params, ["value"=>1, "title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1])
         );
     }
 

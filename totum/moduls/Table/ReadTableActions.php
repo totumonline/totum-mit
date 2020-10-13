@@ -304,7 +304,9 @@ class ReadTableActions extends Actions
             array_column($result['chdata']['rows'], 'id'),
             $result['chdata']['rows']
         );
-
+        if ($this->Table->getTableRow()['new_row_in_sort']) {
+            $result['chdata']['order']=array_column($result['chdata']['rows'], 'id');
+        }
         return $result;
     }
 
@@ -626,7 +628,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     public function checkTableIsChanged()
     {
-        /*TODO FOR MY TEST SERVER */
+        /*TODO FOR MY TEST SERVER*/
         if ($_SERVER['HTTP_HOST'] === 'localhost:8080') {
             die('test');
         }

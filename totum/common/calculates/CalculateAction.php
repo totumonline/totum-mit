@@ -980,7 +980,7 @@ class CalculateAction extends Calculate
     protected function funcInsert($params)
     {
         if ($params = $this->getParamsArray($params, ['field', 'cycle'], ['field'])) {
-            if (empty($params['cycle']) && in_array($this->Table->getTableRow()['type'], ['calcs', 'globcalcs'])) {
+            if (empty($params['cycle']) && $this->Table->getCycle()) {
                 $params['cycle'] = [$this->Table->getCycle()->getId()];
             }
             $addedIds = [];

@@ -49,7 +49,7 @@ abstract class JsonTables extends aTable
 
         //Для вставки в диапазон при активной Сортировке по полю порядок
         if (!empty($inVars['add']) && $this->tableRow['with_order_field'] && !empty($inVars['channel']) && $inVars['channel'] !== 'inner') {
-            static::reCalculate(['channel' => $inVars['channel'], 'modify' => $inVars['modify']]);
+            static::reCalculate(['channel' => $inVars['channel'], 'modify' => $inVars['modify']??[]]);
         }
 
         parent::reCalculate($inVars);
@@ -176,7 +176,8 @@ abstract class JsonTables extends aTable
                         //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
                         if (Calculate::compare('!==', $oldRow, $row)) {
                             foreach ($row as $k => $v) {
-                                if ($k !== 'n' && Calculate::compare('!==', $oldRow[$k], $v)) {
+                                /*key_exists for $oldRow[$k] не использовать!*/
+                                if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k]??null), $v)) {
                                     $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                     $this->changeIds['changed'][$id][$k] = null;
                                 }
@@ -338,9 +339,9 @@ abstract class JsonTables extends aTable
                     $type = SORT_REGULAR;
                 }
                 if (count(array_unique(
-                    $insertList,
-                    $type
-                )) !== count($insertList)) {
+                        $insertList,
+                        $type
+                    )) !== count($insertList)) {
                     throw new errorException('Поле [[insert]] должно возвращать list с уникальными значениями - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
                 }
             } else {
@@ -516,9 +517,9 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($after && !key_exists(
-                    $after,
-                    $SavedRows
-                )) {
+                        $after,
+                        $SavedRows
+                    )) {
                     throw new errorException('Строки с id ' . $after . ' не существует. Возможно, она была удалена');
                 }
 
@@ -1077,8 +1078,11 @@ abstract class JsonTables extends aTable
                 $o = 0;
                 foreach ($orders as $k => $ord) {
                     if (!Model::isServiceField($k)) {
-                        $row1[$k] = $row1[$k]['v'];
-                        $row2[$k] = $row2[$k]['v'];
+                        $row1[$k] = $row1[$k]['v']?? null;
+                        $row2[$k] = $row2[$k]['v']?? null;
+                    } else {
+                        $row1[$k] = $row1[$k] ?? null;
+                        $row2[$k] = $row2[$k] ?? null;
                     }
                     if ($row1[$k] !== $row2[$k]) {
                         $o = $ord['acsDesc'] * (Calculate::compare('>', $row1[$k], $row2[$k]) ? 1 : -1);
@@ -1135,9 +1139,9 @@ abstract class JsonTables extends aTable
 
 
         $isDelInFields = in_array(
-            'is_del',
-            $params['field']
-        ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
+                'is_del',
+                $params['field']
+            ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
 
         if ($returnType === 'field' || $returnType === 'row') {
             if (isset($fOrdering)) {

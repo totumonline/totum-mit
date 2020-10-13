@@ -22,7 +22,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=adbe180"></script>
+    <script src="/js/main.js?v=0a1b1cf"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

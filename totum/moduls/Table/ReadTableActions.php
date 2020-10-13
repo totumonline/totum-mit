@@ -235,6 +235,7 @@ class ReadTableActions extends Actions
         } else {
             throw new errorException('Предложенный ввод устарел.');
         }
+        return ['ok' => 1];
     }
 
     public function loadPage()

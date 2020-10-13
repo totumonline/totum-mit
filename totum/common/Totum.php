@@ -122,7 +122,7 @@ class Totum
      */
     public function addToInterfaceDatas(string $type, $data, $refresh = false, $elseData = [])
     {
-        $data['refresh'] = $refresh;
+        $data['refresh'] = $data['refresh'] ?? $refresh;
         $data['elseData'] = $elseData;
         $this->interfaceData[] = [$type, $data];
     }

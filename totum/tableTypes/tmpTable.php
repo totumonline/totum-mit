@@ -9,6 +9,7 @@
 namespace totum\tableTypes;
 
 use totum\common\Auth;
+use totum\common\calculates\Calculate;
 use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
@@ -101,9 +102,10 @@ class tmpTable extends JsonTables
                 if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                     $this->changeIds['deleted'][$id] = null;
                 } elseif (!empty($oldRow) && empty($row['is_del'])) {
-                    if ($oldRow !== $row) {
+                    if (Calculate::compare('!==', $oldRow, $row)) {
                         foreach ($row as $k => $v) {
-                            if (($oldRow[$k] ?? null) !== $v) {//Здесь проставляется changed для web (только ли это в web нужно?)
+                            /*key_exists for $oldRow[$k] не использовать!*/
+                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k]??null), $v)) {
                                 $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                 $this->changeIds['changed'][$id][$k] = null;
                             }

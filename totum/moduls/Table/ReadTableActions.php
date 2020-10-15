@@ -297,7 +297,7 @@ class ReadTableActions extends Actions
     public function refresh()
     {
         $result = ['chdata' => $this->getTableClientData(
-            $this->post['offset'] ?? null,
+            json_decode($this->post['ids'], true),
             $this->post['onPage'] ?? null
         )];
 
@@ -597,7 +597,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $data;
     }
 
-    protected function getTableClientData($page = 0, $onPage = null, $calcFilters=true)
+    protected function getTableClientData($pageIds=0, $onPage = null, $calcFilters=true)
     {
         if ($calcFilters) {
             $this->Table->reCalculateFilters(
@@ -613,7 +613,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if (is_null($onPage)) {
             $data['rows'] = $this->Table->getSortedFilteredRows('web', 'web')['rows'];
         } elseif ($onPage > 0) {
-            $data['rows'] = $this->Table->getSortedFilteredRows('web', 'web', [], $page * $onPage, $onPage)['rows'];
+            $data['rows'] = $this->Table->getSortedFilteredRows('web', 'web', [], $pageIds, 0, $onPage)['rows'];
         }
         $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
         $result['rows'] = $data['rows'];

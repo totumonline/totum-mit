@@ -92,7 +92,6 @@ class TableController extends interfaceController
             /** @var string $method */
             $result = $Actions->$method();
 
-
             if ($links = $this->Totum->getInterfaceLinks()) {
                 $result['links'] = $links;
             }

@@ -105,8 +105,11 @@ abstract class RealTables extends aTable
         $field = static::getFullField($this->Totum->getModel('tables_fields__v', true)->getById($fieldId));
         if ($field['category'] === 'column') {
             $this->Totum->getModel($this->tableRow['name'])->addColumn($field['name']);
-            if($field['type']==='checkbox'){
-                $this->Totum->getModel($this->tableRow['name'])->update([$field['name']=>json_encode(["v"=>false])], []);
+            if ($field['type'] === 'checkbox') {
+                $this->Totum->getModel($this->tableRow['name'])->update(
+                    [$field['name'] => json_encode(["v" => false])],
+                    []
+                );
             }
         }
     }
@@ -491,12 +494,21 @@ abstract class RealTables extends aTable
     {
         list($whereStr, $paramsWhere) = $this->getWhereFromParams($params);
         if ($untilId) {
-            $paramsWhere[] = $untilId;
+            if (is_array($untilId)) {
+                $isRefresh = -1;
+            } else {
+                $isRefresh = 0;
+                $untilId = (array)$untilId;
+            }
+            array_push($paramsWhere, ... $untilId);
             return $this->model->executePreparedSimple(
                 true,
-                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id=?",
+                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                        ',',
+                        array_fill(0, count($untilId), '?')
+                    ) . ")",
                 $paramsWhere
-            )->fetchColumn(1);
+            )->fetchColumn(1) + $isRefresh;
         }
 
         return $this->model->executePrepared(
@@ -546,7 +558,6 @@ abstract class RealTables extends aTable
 
 
         $this->markTableChanged();
-
 
 
         $this->setIsTableDataChanged(false);
@@ -1098,7 +1109,7 @@ abstract class RealTables extends aTable
 
         /******Расчет дублированной строки для  REAL-таблиц********/
 
-        $Log=$this->calcLog(['name' => 'DUPLICATE ROW']);
+        $Log = $this->calcLog(['name' => 'DUPLICATE ROW']);
         $this->CalculateLog->addParam('duplicated_id', $baseRow['id']);
 
         $row = $this->addRow('inner', $newRowData, true, false, $baseRow['id']);

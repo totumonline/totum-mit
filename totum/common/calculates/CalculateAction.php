@@ -198,6 +198,8 @@ class CalculateAction extends Calculate
             throw new errorException('Параметр [[buttons]] должен содержать массив');
         }
 
+        $params['refresh'] = $params['refresh'] ?? false;
+
         $requiredByttonParams = ['text', 'code'];
         $buttons = [];
         foreach ($params['buttons'] as $btn) {
@@ -208,6 +210,8 @@ class CalculateAction extends Calculate
             }
             unset($btn['code']);
             unset($btn['vars']);
+
+            $btn['refresh'] = $btn['refresh'] ?? $params['refresh'];
             $buttons[] = $btn;
         }
 
@@ -249,11 +253,11 @@ class CalculateAction extends Calculate
         }
 
         $params['input'] = '';
-        $vars=[];
-        foreach ($params['var']??[] as $_) {
-            $vars[$_['field']]=$_['value'];
+        $vars = [];
+        foreach ($params['var'] ?? [] as $_) {
+            $vars[$_['field']] = $_['value'];
         }
-        $params['vars']=$vars;
+        $params['vars'] = $vars;
 
         $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
 
@@ -277,7 +281,10 @@ class CalculateAction extends Calculate
         $params['hash'] = $hash;
         $this->Table->getTotum()->addToInterfaceDatas(
             'input',
-            array_intersect_key($params, ["value"=>1, "title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1])
+            array_intersect_key(
+                $params,
+                ["value" => 1, "title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1]
+            )
         );
     }
 
@@ -482,9 +489,9 @@ class CalculateAction extends Calculate
             'styles, html, name',
             'name'
         )) || (!array_key_exists(
-            $params['template'],
-            $templates
-        ))) {
+                $params['template'],
+                $templates
+            ))) {
             throw new errorException('Шаблон не найден');
         }
 

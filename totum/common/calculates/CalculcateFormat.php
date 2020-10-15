@@ -91,6 +91,13 @@ class CalculcateFormat extends Calculate
     {
         $params = $this->getParamsArray($params, ['button']);
         $values = array_merge($params['button'] ?? [], $params['buttons'] ?? []);
+
+        if (key_exists('refresh', $params)) {
+            foreach ($values as &$btn) {
+                $btn['refresh'] = $btn['refresh'] ?? $params['refresh'];
+            }
+            unset($btn);
+        }
         $btns = ['type' => 'buttons', 'value' => $values];
         return $btns;
     }

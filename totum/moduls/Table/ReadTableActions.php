@@ -46,9 +46,9 @@ class ReadTableActions extends Actions
                 $this->Table->getTableRow()['id'],
                 $this->User->getTreeTables()
             ) && in_array(
-                $this->Table->getTableRow()['id'],
-                $this->User->getFavoriteTables()
-            ) !== $status) {
+                    $this->Table->getTableRow()['id'],
+                    $this->User->getFavoriteTables()
+                ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -138,6 +138,9 @@ class ReadTableActions extends Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
             if (key_exists('index', $this->post) && $data['buttons'][$this->post['index']] ?? null) {
+                if ($this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]) {
+                    $data['buttons'][$this->post['index']]['code'] = $this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]['codeAction'] ?? '';
+                }
                 $CA = new CalculateAction($data['buttons'][$this->post['index']]['code']);
                 $CA->execAction(
                     'CODE FROM BUTTONS LINK',
@@ -183,7 +186,7 @@ class ReadTableActions extends Actions
             foreach ($data as $row) {
                 if ($row['ind'] === ($this->post['index'] ?? null)) {
                     if ($this->Table->getFields()[$row['code']]) {
-                        $row['code']=$this->Table->getFields()[$row['code']]['codeAction'];
+                        $row['code'] = $this->Table->getFields()[$row['code']]['codeAction'];
                     }
                     $CA = new CalculateAction($row['code']);
                     if ($row['id']) {
@@ -208,7 +211,7 @@ class ReadTableActions extends Actions
         } else {
             throw new errorException('Предложенный выбор устарел.');
         }
-        return ['ok'=>1];
+        return ['ok' => 1];
     }
 
     /**
@@ -370,9 +373,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 '',
                                 $table['head']
                             ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                                    '',
+                                    $table['body']
+                                ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -388,9 +391,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['head']
                 ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                        '',
+                        $table['body']
+                    ) . $table[3];
             }
         }
 
@@ -477,9 +480,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                '',
-                $table['body']
-            ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
         }
 
 
@@ -495,9 +498,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             '',
                             $table['head']
                         ) . $table[2] . implode(
-                            '',
-                            $table['body']
-                        ) . $table[3];
+                                '',
+                                $table['body']
+                            ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -515,9 +518,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                '',
-                $table['body']
-            ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
         }
 
         $style = $template['styles'];
@@ -597,7 +600,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $data;
     }
 
-    protected function getTableClientData($pageIds=0, $onPage = null, $calcFilters=true)
+    protected function getTableClientData($pageIds = 0, $onPage = null, $calcFilters = true)
     {
         if ($calcFilters) {
             $this->Table->reCalculateFilters(

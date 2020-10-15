@@ -208,7 +208,7 @@ class ReadTableActions extends Actions
         } else {
             throw new errorException('Предложенный выбор устарел.');
         }
-        return $this->refresh();
+        return ['ok'=>1];
     }
 
     /**

@@ -632,8 +632,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         foreach ($fields['filter'] as $k => $field) {
             if (!empty($field['showInWeb']) && $this->Table->isField('editable', 'web', $field)) {
                 $val = $this->Table->getTbl()['params'][$k];
-                if (!key_exists('h', $val)
-                    || key_exists('c', $val)) {
+                if (key_exists('h', $val)
+                    || key_exists('c', $val) || !key_exists('code', $field) || $field['codeOnlyInAdd']??false) {
                     $_filters[$k] = $val['v'];
                 }
             }
@@ -918,13 +918,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $k,
                 $defs
             )) {
-                if (!$this->Table->getFields()[$k]['code'] || (!$this->Table->getFields()[$k]['codeOnlyInAdd']
-                        && key_exists('h', $this->Table->getTbl()['params'][$k]))) {
+                if (key_exists('h', $this->Table->getTbl()['params'][$k]) || !key_exists('code', $this->Table->getFields()[$k]) || ($this->Table->getFields()[$k]['codeOnlyInAdd']??false)
+                        ) {
                     $vars[$k] = $v;
                 }
             }
         }
-
 
         $Log = $this->Table->calcLog(['name' => 'EDIT FILTERS', 'table' => $this, 'inVars' => ['setValuesToDefaults' => $defs, 'modify' => $vars]]);
         $this->Table->reCalculateFilters('web', true, false, ['params' => $vars], $defs);

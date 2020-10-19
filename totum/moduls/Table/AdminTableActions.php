@@ -84,7 +84,7 @@ class AdminTableActions extends WriteTableActions
             }
         }
 
-        return $this->getTableClientData($this->post['offset'] ?? null, $this->post['onPage'] ?? null);
+        return $this->refresh();
     }
 
     public function renameField()

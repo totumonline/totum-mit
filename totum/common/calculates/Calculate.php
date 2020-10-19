@@ -3202,7 +3202,7 @@ SQL;
                 }
 
                 if (isset($params[$param]) && !is_array($params[$param])) {
-                    throw new errorException('Одинарный параметр [[' . $this->varName . ']] использован несколько раз');
+                    throw new errorException('Одинарный параметр [[' . $param . ']] использован несколько раз');
                 }
                 $paramVal = trim($match[2]);
 

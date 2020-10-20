@@ -547,11 +547,9 @@ class Select extends Field
                                 $v_ = [$this->data['withEmptyVal'], 0];
                             } else {
                                 $v_ = [$v, 1];
-                                $valArray['e'] = 'Значение не найдено';
                             }
                         } else {
                             $v_ = [$this->data['errorText'], 1];
-                            $valArray['e'] = 'Мультиселект вместо селекта';
                         }
                     }
                     return $v_;

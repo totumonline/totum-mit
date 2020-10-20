@@ -404,7 +404,9 @@ class Tree extends Field
                 $v_ = [$this->data['withEmptyVal'], 0];
             } else {
                 $v_ = [$v, 1];
-                $valArray['e'] = 'Значение не найдено';
+                if (!is_null($v)) {
+                    $valArray['e'] = 'Значение не найдено';
+                }
             }
             return $v_;
         };
@@ -469,9 +471,9 @@ class Tree extends Field
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
                         array_slice(
-                                $arrayVals,
-                                1
-                            ),
+                            $arrayVals,
+                            1
+                        ),
                         array_slice($arrayTitles, 1)
                     );
                 };

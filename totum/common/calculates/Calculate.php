@@ -3070,12 +3070,14 @@ SQL;
 
     protected function __checkNumericParam($isDigit, $paramName, $funcName = null)
     {
-        if (empty($isDigit)) {
+        if (is_null($isDigit)) {
             throw new errorException('Не найден параметр [[' . $paramName . ']]');
         }
+
         if (!is_numeric((string)$isDigit)) {
             throw new errorException('Параметр [[' . $paramName . ']] должен быть числом а не [[' . $isDigit . ']]');
         }
+
     }
 
     protected function __checkListParam(&$List, $paramName, $funcName = null)

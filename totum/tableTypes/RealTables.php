@@ -490,7 +490,7 @@ abstract class RealTables extends aTable
         }
     }
 
-    protected function countByParams($params, $orders = null, $untilId = 0)
+    public function countByParams($params, $orders = null, $untilId = 0)
     {
         list($whereStr, $paramsWhere) = $this->getWhereFromParams($params);
         if ($untilId) {
@@ -504,9 +504,9 @@ abstract class RealTables extends aTable
             return $this->model->executePreparedSimple(
                 true,
                 "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
-                        ',',
-                        array_fill(0, count($untilId), '?')
-                    ) . ")",
+                    ',',
+                    array_fill(0, count($untilId), '?')
+                ) . ")",
                 $paramsWhere
             )->fetchColumn(1) + $isRefresh;
         }

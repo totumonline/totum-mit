@@ -28,7 +28,7 @@ class CalculateSelectPreview extends CalculateSelect
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
         $rows['previewdata'] = [];
-        foreach ($params['preview']??[] as $fName) {
+        foreach ($params['preview'] ?? [] as $fName) {
             $rows['__fields'][$fName] = $Table->getFields()[$fName];
         }
         return $rows;
@@ -61,11 +61,22 @@ class CalculateSelectPreview extends CalculateSelect
 
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
+
+        if ($baseField !== 'id') {
+            $newRows = [];
+            foreach ($rows as $val) {
+                $newRows[$val[$baseField]] = $val;
+            }
+            $rows = array_values($newRows);
+        }
+
         $rows['previewdata'] = [];
         foreach ($params['preview'] ?? [] as $fName) {
             $rows['__fields'][$fName] = $Table->getFields()[$fName];
         }
         $rows['previewscode'] = $params['previewscode'] ?? null;
+
+
         return $rows;
     }
 

@@ -31,11 +31,11 @@ class File extends Field
                     }
                     $v = $array[0];
                     return '<div><span>' . htmlspecialchars($v['name']) . '</span><span>' . number_format(
-                        $v['size'] / 1024,
-                        0,
-                        ',',
-                        ' '
-                    ) . 'Kb</span></div>' . $func(array_slice($array, 1));
+                            $v['size'] / 1024,
+                            0,
+                            ',',
+                            ' '
+                        ) . 'Kb</span></div>' . $func(array_slice($array, 1));
                 };
                 $valArray['v'] = $func($valArray['v']);
                 break;
@@ -401,7 +401,7 @@ class File extends Field
             $filepath = static::$transactionCommits[$filepath];
         }
         if (!is_file($filepath)) {
-            throw new errorException("Файл [[$fname]] не сущесвует на диске");
+            return null;
         }
         return file_get_contents($filepath);
     }

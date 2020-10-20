@@ -63,7 +63,7 @@ class ReadTableActions extends Actions
                 }
                 $Users->reCalculateFromOvers(['modify' => [$this->User->getId() => ['favorite' => $favorite]]]);
             }
-            return ['status' => $this->post['status']];
+            return ['status' => $this->post['status']==='true'];
         }
     }
 

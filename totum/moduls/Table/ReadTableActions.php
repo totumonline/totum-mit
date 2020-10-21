@@ -1026,6 +1026,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
 
 
+            if(key_exists('showInWebOtherName', $field)){
+                $field['column']=$field['showInWebOtherName'];
+                unset($field['column']);
+            }
+
             if (key_exists('format', $field)) {
                 $panelFormatExists = false;
                 foreach ($field['format'] as $k => $c) {

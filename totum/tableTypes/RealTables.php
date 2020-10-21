@@ -1303,7 +1303,7 @@ abstract class RealTables extends aTable
             $operator = $wI['operator'];
             $value = $wI['value'];
             if (!array_key_exists($fieldName, $fields) && !Model::isServiceField($fieldName)) {
-                throw new errorException('Поля [[' . $fieldQuoted . ']] в таблице [[' . $this->tableRow['name'] . ']] не существует');
+                throw new errorException('Поля [[' . $fieldName . ']] в таблице [[' . $this->tableRow['name'] . ']] не существует');
             }
 
 

@@ -11,7 +11,7 @@
 
     <?php
     if ($isCreatorView ?? null) { ?>
-        <script src="/js/functions.json?v=5a947d2"></script>
+        <script src="/js/functions.json?v=09b62c1"></script>
         <?php
         if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists(
                 $GLOBALS['CalculateExtentions'],
@@ -22,7 +22,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=3d21458"></script>
+    <script src="/js/main.js?v=167cc2a"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

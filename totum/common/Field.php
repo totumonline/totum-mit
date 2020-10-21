@@ -36,7 +36,8 @@ class Field
     public const CHANGED_FLAGS = [
         'changed' => 1,
         'setToDefault' => 2,
-        'setToPinned' => 3
+        'setToPinned' => 3,
+        'inAddRecalc' => 4,
     ];
     protected const NO_ERROR_IN_VALUE = ['number', 'checkbox'];
 
@@ -227,7 +228,9 @@ class Field
 
     public function getModifyFlag($newValExists, $newVal, $oldVal, $isInSetTodefaults, $isInSetToPinned, $modifyCalculated)
     {
-        if ($isInSetToPinned) {
+        if (in_array($this->data['name'], $this->table->getInAddRecalc()) && !empty($this->data['codeOnlyInAdd'])) {
+            return Field::CHANGED_FLAGS['inAddRecalc'];
+        } elseif ($isInSetToPinned) {
             return Field::CHANGED_FLAGS['setToPinned'];
         } elseif ($isInSetTodefaults) {
             return Field::CHANGED_FLAGS['setToDefault'];
@@ -311,7 +314,10 @@ class Field
             case 'insert':
                 if ($insertable = !empty($this->data['insertable'])) {
                     if (!$this->table->getUser()->isCreator() && !empty($this->data['webRoles'])) {
-                        if (count(array_intersect($this->data['webRoles'], $this->table->getUser()->getRoles())) === 0) {
+                        if (count(array_intersect(
+                            $this->data['webRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                             $insertable = false;
                         }
                     }
@@ -329,7 +335,10 @@ class Field
 
                     //Для фильтров не применять webRoles
                     if (!$this->table->getUser()->isCreator() && $this->data['category'] !== 'filter' && !empty($this->data['webRoles'])) {
-                        if (count(array_intersect($this->data['webRoles'], $this->table->getUser()->getRoles())) === 0) {
+                        if (count(array_intersect(
+                            $this->data['webRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                             $editable = false;
                         }
                     }
@@ -359,7 +368,10 @@ class Field
             case 'insert':
                 if ($insertable = !empty($this->data['apiInsertable'])) {
                     if (!empty($this->data['xmlRoles'])) {
-                        if (count(array_intersect($this->data['xmlRoles'], $this->table->getUser()->getRoles())) === 0) {
+                        if (count(array_intersect(
+                            $this->data['xmlRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                             $insertable = false;
                         }
                     }
@@ -369,7 +381,10 @@ class Field
             case 'modify':
                 if ($editable = !empty($this->data['apiEditable'])) {
                     if (!$this->table->getTotum()->getUser()->isCreator() && !empty($this->data['xmlRoles'])) {
-                        if (count(array_intersect($this->data['xmlRoles'], $this->table->getUser()->getRoles())) === 0) {
+                        if (count(array_intersect(
+                            $this->data['xmlRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                             $editable = false;
                         }
                         if ($editable && !empty($this->data['xmlEditRoles']) && count(array_intersect(
@@ -470,51 +485,53 @@ class Field
     {
         $oldVal = $oldRow[$this->data['name']] ?? null;
 
-        $editable = $this->isChannelChangeable('modify', $channel);
-
-        if (!$editable) {
-            $changeFlag = false;
-        }
-
-
-        switch ($changeFlag) {
-
-            case static::CHANGED_FLAGS['changed']:
-
-
-                $newVal = ['v' => $newVal, 'h' => true];
-
-                if (!($newVal['v'] === '' && $this->data['type'] === 'select' && !empty($this->data['withEmptyVal']))) {
-                    $newVal['v'] =
-                        $this->modifyValue(
-                            $newVal['v'],
-                            $oldVal['v'],
-                            $isCheck
-                        );
-                }
-
-                break;
-            case static::CHANGED_FLAGS['setToPinned']:
-                $newVal = ['v' => ($oldVal['v'] ?? null)];
-                $newVal['h'] = true;
-                break;
-            case static::CHANGED_FLAGS['setToDefault']:
-                $newVal = ['v' => null];
-                break;
-            case false:
-
-                $newVal = [];
-                $newVal['v'] = $oldVal['v'] ?? null;
-
-                if (!empty($oldVal['h'])) {
-                    $newVal['h'] = true;
-                }
-                break;
-
-        }
-
-        if (empty($this->data['codeOnlyInAdd'])) {
+        if ($changeFlag === Field::CHANGED_FLAGS['inAddRecalc']) {
             $this->calculate($newVal, $oldRow, $row, $oldTbl, $tbl, [], "modify");
+        } else {
+            $editable = $this->isChannelChangeable('modify', $channel);
+
+            if (!$editable) {
+                $changeFlag = false;
+            }
+            switch ($changeFlag) {
+
+                case static::CHANGED_FLAGS['changed']:
+
+
+                    $newVal = ['v' => $newVal, 'h' => true];
+
+                    if (!($newVal['v'] === '' && $this->data['type'] === 'select' && !empty($this->data['withEmptyVal']))) {
+                        $newVal['v'] =
+                            $this->modifyValue(
+                                $newVal['v'],
+                                $oldVal['v'],
+                                $isCheck
+                            );
+                    }
+
+                    break;
+                case static::CHANGED_FLAGS['setToPinned']:
+                    $newVal = ['v' => ($oldVal['v'] ?? null)];
+                    $newVal['h'] = true;
+                    break;
+                case static::CHANGED_FLAGS['setToDefault']:
+                    $newVal = ['v' => null];
+                    break;
+                case false:
+
+                    $newVal = [];
+                    $newVal['v'] = $oldVal['v'] ?? null;
+
+                    if (!empty($oldVal['h'])) {
+                        $newVal['h'] = true;
+                    }
+                    break;
+
+            }
+
+            if (empty($this->data['codeOnlyInAdd'])) {
+                $this->calculate($newVal, $oldRow, $row, $oldTbl, $tbl, [], "modify");
+            }
         }
         try {
             $this->checkVal($newVal, $row, $isCheck);

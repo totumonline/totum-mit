@@ -122,6 +122,14 @@ abstract class aTable
         $this->Totum = $Totum;
     }
 
+    /**
+     * @return array
+     */
+    public function getInAddRecalc(): array
+    {
+        return $this->inAddRecalc;
+    }
+
 
     /**
      * @param bool $isTableDataChanged
@@ -652,6 +660,8 @@ abstract class aTable
         }
     }
 
+    protected $inAddRecalc = [];
+
     protected function reCalculate($inVars = [])
     {
         $this->onCalculating = true;
@@ -671,12 +681,14 @@ abstract class aTable
         $modifyCalculated = true;
         $duplicate = [];
         $calculate = 'changed';
+        $inAddRecalc = [];
 
         $channel = 'inner';
         $reorder = [];
         $default = [
             'modify'
             , 'setValuesToDefaults'
+            , 'inAddRecalc'
             , 'add'
             , 'remove'
             , 'isTableAdding'
@@ -696,6 +708,8 @@ abstract class aTable
 
         $inVars = array_intersect_key($inVars, array_flip($default));
         extract($inVars);
+
+        $this->inAddRecalc = $inAddRecalc;
 
         $this->setIsTableDataChanged(!!$isTableAdding);
         $modify['params'] = $modify['params'] ?? [];
@@ -825,6 +839,7 @@ abstract class aTable
                 throw $exception;
             }
         }
+        $this->inAddRecalc = [];
         $this->onCalculating = false;
         $this->recalculateWithALog = false;
     }

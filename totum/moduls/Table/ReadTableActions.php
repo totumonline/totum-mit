@@ -1028,7 +1028,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if(key_exists('showInWebOtherName', $field)){
                 $field['column']=$field['showInWebOtherName'];
-                unset($field['column']);
+                unset($field['showInWebOtherName']);
             }
 
             if (key_exists('format', $field)) {

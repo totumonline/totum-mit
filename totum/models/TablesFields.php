@@ -1,23 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: tatiana
- * Date: 20.10.16
- * Time: 19:31
- */
-
 namespace totum\models;
 
-use totum\common\Auth;
 use totum\common\errorException;
 use totum\common\Model;
-use totum\common\sql\Sql;
 use totum\common\Totum;
 use totum\models\traits\WithTotumTrait;
 use totum\fieldTypes\Comments;
 use totum\tableTypes\JsonTables;
-use totum\tableTypes\RealTables;
-use totum\tableTypes\tableTypes;
 
 class TablesFields extends Model
 {
@@ -26,7 +15,7 @@ class TablesFields extends Model
     /**
      * @var |null
      */
-    private $afterField=null;
+    private $afterField = null;
 
     public function delete($where, $ignore = 0)
     {
@@ -160,6 +149,29 @@ class TablesFields extends Model
             $tableRow = $this->Totum->getTableRow($tableRowId);
 
             if (!is_null($this->afterField)) {
+                if ($fields = $this->executePrepared(
+                    false,
+                    (object)['params' => [$tableRowId, (int)$this->afterField]
+                        , 'whereStr' => "table_id->>'v'=? AND (data_src->'v'->'showInWebOtherPlace'->>'isOn'='true') AND (data_src->'v'->'showInWebOtherOrd'->>'isOn')='true' AND (data_src->'v'->'showInWebOtherOrd'->>'Val')::numeric > ?"],
+                    'id, data, data_src, category'
+                )->fetchAll()) {
+                    $update = [];
+                    foreach ($fields as $field) {
+                        $dataSrc = json_decode($field['data_src'], true);
+                        $data = json_decode($field['data'], true);
+
+                        if (($decodedVars['category'] === $field['category'] && ($data['showInWebOtherPlacement'] ?? false) === false)
+                            || $decodedVars['category'] === $data['showInWebOtherPlacement']
+                        ) {
+                            $dataSrc['showInWebOtherOrd']['Val'] += 10;
+                            $update[$field['id']] = ['data_src'=>$dataSrc];
+                        }
+                    }
+                    if ($update) {
+                        $this->Totum->getTable('tables_fields')->reCalculateFromOvers(['modify' => $update]);
+                    }
+                }
+
                 $this->update(
                     ['ord=jsonb_build_object($$v$$,  ((ord->>\'v\')::integer+10)::text)'],
                     [
@@ -169,7 +181,7 @@ class TablesFields extends Model
                         , '>Nord' => (int)$this->afterField
                     ]
                 );
-                $this->afterField=null;
+                $this->afterField = null;
             }
 
             if ($tableRow['type'] !== 'calcs') {

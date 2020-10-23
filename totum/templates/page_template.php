@@ -4,10 +4,10 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=1321042">
-    <script src="/js/libs.js?v=6153d1e"></script>
+    <script src="/js/libs.js?v=1afab8b"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=ccefc80">
+          href="/css/main.css?v=2185607">
 
     <?php
     if ($isCreatorView ?? null) { ?>
@@ -22,7 +22,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=aa7fed6"></script>
+    <script src="/js/main.js?v=0804d10"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

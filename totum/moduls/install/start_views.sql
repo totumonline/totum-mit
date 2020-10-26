@@ -1,3 +1,4 @@
+drop view if exists users__v;
 create view users__v(id, login, fio, boss_id, roles, add_users, all_connected_users, interface, favorite, is_del) as
 SELECT users.id,
        (users.login ->> 'v'::text)               AS login,

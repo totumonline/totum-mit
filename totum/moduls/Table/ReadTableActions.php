@@ -71,6 +71,14 @@ class ReadTableActions extends Actions
     {
         $result = null;
         if (!empty($this->post['field']) && !empty($field = $this->Table->getFields()[$this->post['field']])) {
+
+            $this->Table->reCalculateFilters(
+                'web',
+                false,
+                false,
+                ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+            );
+
             $clc = new CalculcateFormat($field['format']);
             $tbl = $this->Table->getTbl();
             $item = $tbl['params'];

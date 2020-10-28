@@ -259,7 +259,7 @@ class ReadTableActions extends Actions
         $this->Table->reCalculateFilters(
             'web',
             true,
-            true,
+            false,
             ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
         return $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);

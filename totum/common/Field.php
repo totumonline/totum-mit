@@ -303,7 +303,6 @@ class Field
     /**
      * @param $action 'insert|modify'
      */
-    /*TODO убрать из тотума это*/
     public function isWebChangeable($action)
     {
         if ($this->data['category'] === 'filter') {

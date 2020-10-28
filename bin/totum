@@ -33,16 +33,14 @@ if (class_exists(Conf::class)) {
     $app->add(new SchemaUpdate());
     $app->add(new SchemaPasswd());
 
-    if(key_exists(MultiTrait::class, class_uses(Conf::class, false))){
+    if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
         $app->add(new SchemasCrons());
         $app->add(new CleanSchemasTmpTables());
         $app->add(new SchemasUpdates());
         $app->add(new SchemaDuplicate());
         $app->add(new SchemaAdd());
     }
-
-}else{
+} else {
     $app->add(new Install());
 }
 $app->run();
-

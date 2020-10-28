@@ -413,25 +413,28 @@ abstract class ConfParent
 
     public function getSshPostgreConnect($type)
     {
-        if (empty($this->getDb()[$type])) {
+        $db = $this->getDb(false);
+        if (empty($db[$type])) {
             errorException::criticalException('Не задан путь к ssh скрипту ' . $type, $this);
         }
-        $pathPsql = $this->getDb()[$type];
+        $pathPsql = $db[$type];
         $dbConnect = sprintf(
             "postgresql://%s:%s@%s/%s",
-            $this->getDb()['username'],
-            $this->getDb()['password'],
-            $this->getDb()['host'],
-            $this->getDb()['dbname']
+            $db['username'],
+            $db['password'],
+            $db['host'],
+            $db['dbname']
         );
 
         return "$pathPsql --dbname=\"$dbConnect\"";
     }
 
-    public function getDb()
+    public function getDb($withSchema = true)
     {
         $db = $this->dbConnectData ?? static::db;
-        $db['schema'] = $db['schema'] ?? $this->getSchema();
+        if ($withSchema) {
+            $db['schema'] = $db['schema'] ?? $this->getSchema();
+        }
         return $db;
     }
 

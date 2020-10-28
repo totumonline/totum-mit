@@ -192,7 +192,7 @@ class ReadTableActions extends Actions
             $data = json_decode($data, true);
             foreach ($data as $row) {
                 if ($row['ind'] === ($this->post['index'] ?? null)) {
-                    if ($this->Table->getFields()[$row['code']]) {
+                    if (key_exists($row['code'], $this->Table->getFields())) {
                         $row['code'] = $this->Table->getFields()[$row['code']]['codeAction'];
                     }
                     $CA = new CalculateAction($row['code']);

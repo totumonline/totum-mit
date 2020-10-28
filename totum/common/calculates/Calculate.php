@@ -698,7 +698,7 @@ class Calculate
                 $result = pow($left, $right);
                 break;
             case '/':
-                if ($right === 0) {
+                if ((int)$right === 0) {
                     throw new errorException('Деление на ноль');
                 }
                 $result = $left / $right;

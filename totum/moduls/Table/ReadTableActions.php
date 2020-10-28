@@ -46,9 +46,9 @@ class ReadTableActions extends Actions
                 $this->Table->getTableRow()['id'],
                 $this->User->getTreeTables()
             ) && in_array(
-                    $this->Table->getTableRow()['id'],
-                    $this->User->getFavoriteTables()
-                ) !== $status) {
+                $this->Table->getTableRow()['id'],
+                $this->User->getFavoriteTables()
+            ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -71,7 +71,6 @@ class ReadTableActions extends Actions
     {
         $result = null;
         if (!empty($this->post['field']) && !empty($field = $this->Table->getFields()[$this->post['field']])) {
-
             $this->Table->reCalculateFilters(
                 'web',
                 false,
@@ -259,8 +258,8 @@ class ReadTableActions extends Actions
         $onPage = $this->post['pageCount'] ?? 0;
         $this->Table->reCalculateFilters(
             'web',
-            false,
-            false,
+            true,
+            true,
             ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
         return $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
@@ -381,9 +380,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 '',
                                 $table['head']
                             ) . $table[2] . implode(
-                                    '',
-                                    $table['body']
-                                ) . $table[3];
+                                '',
+                                $table['body']
+                            ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -399,9 +398,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['head']
                 ) . $table[2] . implode(
-                        '',
-                        $table['body']
-                    ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
             }
         }
 
@@ -488,9 +487,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
 
@@ -506,9 +505,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             '',
                             $table['head']
                         ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                            '',
+                            $table['body']
+                        ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -526,9 +525,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
         $style = $template['styles'];
@@ -1034,7 +1033,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
 
 
-            if(key_exists('showInWebOtherName', $field)){
+            if (key_exists('showInWebOtherName', $field)) {
                 $field['column']=$field['showInWebOtherName'];
                 unset($field['showInWebOtherName']);
             }

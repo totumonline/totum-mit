@@ -640,7 +640,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if (!empty($field['showInWeb']) && $this->Table->isField('editable', 'web', $field)) {
                 $val = $this->Table->getTbl()['params'][$k];
                 if (key_exists('h', $val)
-                    || key_exists('c', $val) || !key_exists('code', $field) || $field['codeOnlyInAdd'] ?? false) {
+                    || key_exists('c', $val) || !key_exists('code', $field) || ($field['codeOnlyInAdd'] ?? false)) {
                     $_filters[$k] = $val['v'];
                 }
             }

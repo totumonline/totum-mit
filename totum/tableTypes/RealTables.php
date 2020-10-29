@@ -1349,7 +1349,7 @@ abstract class RealTables extends aTable
                             $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '[]') = $trueFalse";
                         } /*Сравнение с листом*/
                         elseif (is_array($value)) {
-                            $where[] = "($fieldQuoted $sqlOperator ?::JSONB )";
+                            $where[] = "($fieldQuotedJsonb $sqlOperator ?::JSONB )";
                             $params[] = json_encode(
                                 $value,
                                 JSON_UNESCAPED_UNICODE

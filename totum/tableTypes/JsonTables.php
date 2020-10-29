@@ -21,7 +21,7 @@ abstract class JsonTables extends aTable
     protected $modelConnects;
     protected $reordered = false;
     protected $filteredIds;
-    protected $isTableAdding = false;
+
 
 
     /**
@@ -41,6 +41,14 @@ abstract class JsonTables extends aTable
     public function getCycle()
     {
         return $this->Cycle;
+    }
+
+    /**
+     * @param bool $isTableAdding
+     */
+    public function setIsTableAdding(bool $isTableAdding): void
+    {
+        $this->isTableAdding = $isTableAdding;
     }
 
     protected function reCalculate($inVars = [])

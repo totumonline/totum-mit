@@ -314,8 +314,11 @@ class Cycle
         foreach ($tables as $t) {
             if ($tablesUpdates[$t->getTableRow()["id"]] === $t->getLastUpdated()) {
                 /** @var calcsTable $t */
+                if ($isAdding) {
+                    $t->setIsTableAdding(true);
+                }
                 $t->reCalculateFromOvers(
-                    ['isTableAdding' => $isAdding],
+                    [],
                     $cyclesTable->getCalculateLog()
                 );
             }

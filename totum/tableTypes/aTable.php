@@ -30,6 +30,7 @@ use totum\tableTypes\traits\WebInterfaceTrait;
 abstract class aTable
 {
     use WebInterfaceTrait;
+    protected $isTableAdding = false;
 
     protected const TABLES_IDS = [
         'tables' => 1,
@@ -673,7 +674,7 @@ abstract class aTable
         $setValuesToDefaults = [];
         $setValuesToPinned = [];
         $remove = [];
-        $isTableAdding = is_a($this, tmpTable::class) && $this->isTableAdding;
+        $isTableAdding = $this->isTableAdding;
 
         $addAfter = null;
         $addWithId = false;

@@ -154,7 +154,7 @@ class TableController extends interfaceController
                     , 'link' => $t['type'] == 'anchor' ? ('/Table/' . $t['id'] . '/') : null
                     , 'parent' => ($parent = (!$t['parent_id'] ? '#' : 'tree' . $t['parent_id']))
                     , 'state' => [
-                        'selected' => $t['type'] === 'anchor' ? ($this->anchorId === $t['id']) : false
+                        'selected' => $t['type'] === 'anchor' ? ((int)$this->anchorId === (int)$t['id']) : false
                     ]
                 ]
                 + (
@@ -613,7 +613,7 @@ class TableController extends interfaceController
                     $this->anchorId = $this->branchId;
                     $this->branchId = $branchData['top'];
                     $this->Table = $this->Totum->getTable($branchData['default_table']);
-                    $this->Table->setAnchorFilters($branchData['filters']);
+                    $this->Table->setAnchorFilters(json_decode($branchData['filters'], true));
                     break;
             }
         }

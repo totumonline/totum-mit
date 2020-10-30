@@ -302,9 +302,9 @@ abstract class RealTables extends aTable
                 $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
                 if ((!array_key_exists($field, $fields) && !in_array(
-                    $field,
-                    Model::serviceFields
-                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
+                            $field,
+                            Model::serviceFields
+                        )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
                     throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
                 }
                 if (in_array($field, Model::serviceFields)) {
@@ -502,13 +502,13 @@ abstract class RealTables extends aTable
             }
             array_push($paramsWhere, ... $untilId);
             return $this->model->executePreparedSimple(
-                true,
-                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
-                    ',',
-                    array_fill(0, count($untilId), '?')
-                ) . ")",
-                $paramsWhere
-            )->fetchColumn(1) + $isRefresh;
+                    true,
+                    "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                        ',',
+                        array_fill(0, count($untilId), '?')
+                    ) . ")",
+                    $paramsWhere
+                )->fetchColumn(1) + $isRefresh;
         }
 
         return $this->model->executePrepared(
@@ -815,9 +815,9 @@ abstract class RealTables extends aTable
             foreach ($add as $rAdd) {
                 if ($this->tableRow['with_order_field'] ?? false) {
                     if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN(
-                        $fIds,
-                        $afterN
-                    )) {
+                            $fIds,
+                            $afterN
+                        )) {
                         $afterN = $rAdd['n'] = $n;
                     }
                 }
@@ -1160,10 +1160,10 @@ abstract class RealTables extends aTable
                 $len = 4;
 
                 while (bccomp(
-                    $diff,
-                    ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
-                    $scaleDiff > $len ? $scaleDiff : $len
-                ) !== 1) {
+                        $diff,
+                        ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
+                        $scaleDiff > $len ? $scaleDiff : $len
+                    ) !== 1) {
                     $len += 4;
                 }
 
@@ -1214,7 +1214,8 @@ abstract class RealTables extends aTable
                 if (empty($id)) {
                     $id = $this->model->executePreparedSimple(
                         true,
-                        'SELECT nextval(\'' . $this->tableRow['name'] . '_id_seq\')'
+                        'SELECT nextval(\'' . $this->tableRow['name'] . '_id_seq\')',
+                        []
                     )->fetchColumn(0);
                     $n = $id;
                 } else {
@@ -1499,9 +1500,9 @@ abstract class RealTables extends aTable
                                     $q .= " OR ";
                                 }
                                 $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
-                                    ',?',
-                                    count($value) - 1
-                                ) . ')';
+                                        ',?',
+                                        count($value) - 1
+                                    ) . ')';
                                 array_push($params, ...$value);
                             }
                             $where[] = "($q)";

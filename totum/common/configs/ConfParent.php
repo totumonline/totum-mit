@@ -345,11 +345,11 @@ abstract class ConfParent
     /**
      * @param string $type
      * @param null|array $levels
-     * @param null|callable(string $level, string $message):string $templateCallback
+     * @param null $templateCallback
+     * @param null $fileName
      * @return Log
-     * @throws \Exception
      */
-    public function getLogger(string $type, $levels = null, $templateCallback = null)
+    public function getLogger(string $type, $levels = null, $templateCallback = null, $fileName = null)
     {
         if (key_exists($type, $this->Loggers)) {
             return $this->Loggers[$type];
@@ -364,7 +364,7 @@ abstract class ConfParent
             mkdir($dir);
         }
         $this->Loggers[$type] = new Log(
-            $dir . $type . '_' . $this->getSchema() . '.log',
+            $fileName ?? $dir . $type . '_' . $this->getSchema() . '.log',
             $levels,
             $templateCallback
         );
@@ -443,10 +443,10 @@ abstract class ConfParent
      */
     protected $Sql;
 
-    public function getSql($mainInstance = true, $withSchema = true)
+    public function getSql($mainInstance = true, $withSchema = true, $Logger = null)
     {
-        $getSql = function () use ($withSchema) {
-            return new Sql($this->getDb($withSchema), $this->getLogger('sql'));
+        $getSql = function () use ($withSchema, $Logger) {
+            return new Sql($this->getDb($withSchema), $Logger ?? $this->getLogger('sql'));
         };
         if ($mainInstance) {
             return $this->Sql ?? $this->Sql = $getSql();

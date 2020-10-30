@@ -132,78 +132,86 @@ class Select extends Field
 
     public function getPreviewHtml($val, $row, $tbl, $withNames = false)
     {
+        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "previewHtml", 'field' => $this->data['name']]);
+
         if (!$this->CalculateCodePreviews) {
             $this->CalculateCodePreviews = new CalculateSelectPreview($this->data['codeSelect']);
         }
+        try {
+            $row = $this->CalculateCodePreviews->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
+            $htmls = [];
 
-        $row = $this->CalculateCodePreviews->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
-        $htmls = [];
+            if ($row['previewscode'] ?? null) {
+                $CalcPreview = new Calculate($row['previewscode']);
+                $data = $CalcPreview->exec(
+                    [],
+                    [],
+                    [],
+                    $this->table->getTbl()['params'],
+                    [],
+                    $this->table->getTbl(),
+                    $this->table,
+                    ['val' => $val]
+                );
+                foreach ($data as $_row) {
+                    $title = $_row['title'] ?? '';
+                    $value = $_row['value'] ?? '';
+                    if ($withNames) {
+                        $htmls[$_row['name'] ?? ''] = [$title, $value, 'text', ''];
+                    } else {
+                        $htmls[] = [$title, $value, 'text', ''];
+                    }
+                }
+            }
 
-        if ($row['previewscode'] ?? null) {
-            $CalcPreview = new Calculate($row['previewscode']);
-            $data = $CalcPreview->exec(
-                [],
-                [],
-                [],
-                $this->table->getTbl()['params'],
-                [],
-                $this->table->getTbl(),
-                $this->table,
-                ['val' => $val]
-            );
-            foreach ($data as $_row) {
-                $title = $_row['title'] ?? '';
-                $value = $_row['value'] ?? '';
+
+            foreach ($row['__fields'] ?? [] as $name => $field) {
+                $format = 'string';
+                $elseData = [];
+                $val = $row[$name];
+
+                if ($name === 'id') {
+                    $field = ['title' => 'id'];
+                }
+
+                switch ($field['type']) {
+                    case 'string':
+                        if ($field['url'] ?? false) {
+                            $format = 'url';
+                        }
+                        break;
+                    case 'number':
+                        if ($field['unitType'] ?? false) {
+                            $elseData['unitType'] = $field['unitType'];
+                        }
+                        if ($field['currency'] ?? false) {
+                            $format = 'currency';
+                        }
+                        break;
+                    case 'text':
+                        $format = $field['textType'];
+                        break;
+                    case 'file':
+                        $format = 'file';
+                        break;
+
+
+                }
                 if ($withNames) {
-                    $htmls[$_row['name'] ?? ''] = [$title, $value, 'text', ''];
+                    if (!key_exists($name, $htmls)) {
+                        $htmls[$name] = [$field['title'], $val, $format, $elseData ?? []];
+                    }
                 } else {
-                    $htmls[] = [$title, $value, 'text', ''];
+                    $htmls[] = [$field['title'], $val, $format, $elseData ?? []];
                 }
+                //string, url, currency, css, xml, text, html, json, totum, javascript
             }
+        } catch (\Exception $exception) {
+            $this->table->calcLog($Log, 'error', $exception->getMessage());
+            throw $exception;
         }
+        $this->table->calcLog($Log, 'result', $htmls);
 
-
-        foreach ($row['__fields'] ?? [] as $name => $field) {
-            $format = 'string';
-            $elseData = [];
-            $val = $row[$name];
-
-            if ($name === 'id') {
-                $field = ['title' => 'id'];
-            }
-
-            switch ($field['type']) {
-                case 'string':
-                    if ($field['url'] ?? false) {
-                        $format = 'url';
-                    }
-                    break;
-                case 'number':
-                    if ($field['unitType'] ?? false) {
-                        $elseData['unitType'] = $field['unitType'];
-                    }
-                    if ($field['currency'] ?? false) {
-                        $format = 'currency';
-                    }
-                    break;
-                case 'text':
-                    $format = $field['textType'];
-                    break;
-                case 'file':
-                    $format = 'file';
-                    break;
-
-
-            }
-            if ($withNames) {
-                if (!key_exists($name, $htmls)) {
-                    $htmls[$name] = [$field['title'], $val, $format, $elseData ?? []];
-                }
-            } else {
-                $htmls[] = [$field['title'], $val, $format, $elseData ?? []];
-            }
-            //string, url, currency, css, xml, text, html, json, totum, javascript
-        }
         return $htmls;
     }
 
@@ -307,7 +315,7 @@ class Select extends Field
             }
         }
 
-        $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "view", 'field' => $this->data['name']]);
+        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "selectList", 'field' => $this->data['name']]);
 
         $list = [];
 
@@ -366,7 +374,7 @@ class Select extends Field
 
     public function calculateSelectListWithPreviews(&$val, $row, $tbl = [])
     {
-        $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "viewWithPreviews", 'field' => $this->data['name']]);
+        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "viewWithPreviews", 'field' => $this->data['name']]);
 
         try {
             $list = $this->calculateSelectList($val, $row, $tbl = []);
@@ -415,7 +423,7 @@ class Select extends Field
                 $this->CalculateCodeViewSelect = new CalculateSelectViewValue($this->data['codeSelect']);
             }
 
-            $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "view", 'field' => $this->data['name']]);
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "selectViewList", 'field' => $this->data['name']]);
 
             try {
                 $list = $this->CalculateCodeViewSelect->exec(
@@ -589,9 +597,9 @@ class Select extends Field
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
                         array_slice(
-                            $arrayVals,
-                            1
-                        ),
+                                $arrayVals,
+                                1
+                            ),
                         array_slice($arrayTitles, 1)
                     );
                 };

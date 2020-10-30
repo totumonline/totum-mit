@@ -72,7 +72,15 @@ class SchemaUpdate extends Command
             throw new errorException('File is not json');
         }
 
-        $matches = $TotumInstall->getTotum()->getTable('ttm__updates')->getTbl()['params']['h_matches']['v'][$sourceName] ?? [];
+        if (($matches = json_decode($sourceName, true)) && is_array($matches) && key_exists(
+            'name',
+            $matches
+        ) && key_exists('matches', $matches)) {
+            $sourceName=$matches['name'];
+            $matches=$matches['matches'];
+        } else {
+            $matches = $TotumInstall->getTotum()->getTable('ttm__updates')->getTbl()['params']['h_matches']['v'][$sourceName] ?? [];
+        }
         $cont = TotumInstall::applyMatches($cont, $matches);
 
         $TotumInstall->updateSchema($cont, true, $sourceName);

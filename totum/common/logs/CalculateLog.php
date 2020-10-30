@@ -61,7 +61,6 @@ class CalculateLog
         $this->fieldName = $fieldName;
         $this->section = $section;
 
-
         /*echo str_repeat(' ', $this->level) . $this->tableName . '/' . $this->fieldName . ' ('.spl_object_id($this).'): ' . json_encode(
                 $this->params,
                 JSON_UNESCAPED_UNICODE
@@ -198,20 +197,20 @@ class CalculateLog
         return json_encode($this->getLodTree(), JSON_UNESCAPED_UNICODE);
     }
 
-    public function getFieldLogs()
+    public function getFieldLogs($level = 0)
     {
         $fields = [];
-        if (key_exists('field', $this->params)) {
-            $var = $this->tableId . '/' . $this->params['field'] . '/' . ($this->params['cType'] ?? 'ups');
+        if (key_exists('field', $this->params) && key_exists('cType', $this->params)) {
+            $var = $this->tableId . '/' . $this->params['field'] . '/' . ($this->params['cType']);
             if (!key_exists($var, $fields)) {
-                $fields[$var] = ['cnt' => 0, 'time' => 0];
+                $fields[$var] = ['cnt' => 0];
             }
             $fields[$var]['cnt']++;
-            $fields[$var]['time'] = $fields[$var]['time'] ?? 0 + $this->params['times'];
+            $fields[$var]['time'] = $fields[$var]['time'] ?? (0 + $this->params['times']);
         }
 
         foreach ($this->children as $child) {
-            foreach ($child->getFieldLogs() as $f => $vals) {
+            foreach ($child->getFieldLogs($level+1) as $f => $vals) {
                 if (key_exists($f, $fields)) {
                     $fields[$f]['cnt'] += $vals['cnt'];
                     $fields[$f]['time'] += $vals['time'];
@@ -220,6 +219,13 @@ class CalculateLog
                     $fields[$f]['time'] = $vals['time'];
                 }
             }
+        }
+
+        if(!$level){
+            foreach ($fields as &$f){
+                $f['time']=round($f['time'], 5);
+            }
+            unset($f);
         }
 
         return $fields;

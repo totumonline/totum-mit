@@ -8,8 +8,6 @@
 
 namespace totum\common\calculates;
 
-use totum\common\calculates\CalculateSelect;
-
 class CalculateSelectViewValue extends CalculateSelect
 {
     protected function funcSelectListAssoc($params)

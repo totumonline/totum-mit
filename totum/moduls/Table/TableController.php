@@ -75,7 +75,8 @@ class TableController extends interfaceController
         }
         $this->__addAnswerVar('treeData', $tree);
         $this->__addAnswerVar('ModulePath', '');
-        $this->__addAnswerVar('html', preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page')));
+        $this->__addAnswerVar('html',
+            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page')));
     }
 
     public function actionAjaxActions(ServerRequestInterface $request)
@@ -108,11 +109,13 @@ class TableController extends interfaceController
 
         if ($this->User->isCreator() && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
             $this->CalculateLog->addParam('result', 'done');
-            $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-            //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
-            $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
+
             if (in_array('flds', $types)) {
                 $result['FieldLOGS'] = $this->CalculateLog->getFieldLogs();
+            } else {
+                $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
+                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
             }
         }
         return $result;
@@ -158,7 +161,7 @@ class TableController extends interfaceController
                     ]
                 ]
                 + (
-                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
+                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
                 );
             if ($t['type'] !== "link") {
                 $branchIds[] = $t['id'];
@@ -308,7 +311,8 @@ class TableController extends interfaceController
                 $href .= $branch['default_table'] . '/';
             }
             $branch['href'] = $href;
-            if (is_a($this, TableController::class) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
+            if (is_a($this,
+                    TableController::class) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
                 $branch['active'] = true;
             }
         }
@@ -363,9 +367,9 @@ class TableController extends interfaceController
             }
             $message = $e->getMessage();
             if ($this->User && $this->User->isCreator() && key_exists(
-                WithPathMessTrait::class,
-                class_uses(get_class($e))
-            )) {
+                    WithPathMessTrait::class,
+                    class_uses(get_class($e))
+                )) {
                 $message .= "<br/>" . $e->getPathMess();
             }
             $this->__addAnswerVar('error', $message);
@@ -432,9 +436,9 @@ class TableController extends interfaceController
 
         $result['isCreatorView'] = $this->User->isCreator();
         $result['checkIsUpdated'] = ($result['type'] === 'tmp' || in_array(
-            $this->Table->getTableRow()['actual'],
-            ['none', 'disable']
-        )) ? 0 : 1;
+                $this->Table->getTableRow()['actual'],
+                ['none', 'disable']
+            )) ? 0 : 1;
 
         $result['isMain'] = true;
         if (!empty($a = ($request->getQueryParams()['a'] ?? null))) {
@@ -465,11 +469,12 @@ class TableController extends interfaceController
                 ));
             }
             if (($types = $this->Totum->getCalculateLog()->getTypes())) {
-                $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
-                $result['treeLogs'] = $this->CalculateLog->getLodTree();
                 if (in_array('flds', $types)) {
-                    $result['FieldLOGS'] = $this->CalculateLog->getFieldLogs();
+                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name'=>'Расчет таблицы']];
+                } else {
+                    $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
+                    // $result['treeLogs'] = $this->CalculateLog->getLodTree();
                 }
             }
         }
@@ -510,9 +515,9 @@ class TableController extends interfaceController
 
 
         if (!empty($request->getParsedBody()['method']) && in_array(
-            $request->getParsedBody()['method'],
-            ['getValue']
-        )) {
+                $request->getParsedBody()['method'],
+                ['getValue']
+            )) {
             if (!empty($request->getParsedBody()['table_id'])) {
                 $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;
@@ -521,10 +526,10 @@ class TableController extends interfaceController
 
 
         if ($tableUri && (preg_match(
-            '/^(\d+)\/(\d+)\/(\d+)/',
-            $tableUri,
-            $tableMatches
-        ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
+                    '/^(\d+)\/(\d+)\/(\d+)/',
+                    $tableUri,
+                    $tableMatches
+                ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
             if (empty($tableMatches[3])) {
                 $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
@@ -539,7 +544,8 @@ class TableController extends interfaceController
                 );
                 switch ($branchData['type']) {
                     case null:
-                        $this->__addAnswerVar('html', preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html']));
+                        $this->__addAnswerVar('html',
+                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html']));
                         break;
                     case 'anchor':
                         $this->anchorId = $this->branchId;
@@ -564,14 +570,14 @@ class TableController extends interfaceController
                 //Проверка доступа к циклу
 
                 if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
-                    $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                    [1, 2, 3]
-                )) {
+                        $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                        [1, 2, 3]
+                    )) {
                     //Если не связанный пользователь
                     if (count(array_intersect(
-                        $this->Cycle->getRow()['creator_id']['v'],
-                        $this->User->getConnectedUsers()
-                    )) === 0) {
+                            $this->Cycle->getRow()['creator_id']['v'],
+                            $this->User->getConnectedUsers()
+                        )) === 0) {
                         if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {
@@ -607,7 +613,8 @@ class TableController extends interfaceController
 
             switch ($branchData['type']) {
                 case null:
-                    $this->__addAnswerVar('html', preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html']));
+                    $this->__addAnswerVar('html',
+                        preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html']));
                     break;
                 case 'anchor':
                     $this->anchorId = $this->branchId;

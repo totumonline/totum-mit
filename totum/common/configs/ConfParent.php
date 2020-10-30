@@ -443,10 +443,10 @@ abstract class ConfParent
      */
     protected $Sql;
 
-    public function getSql($mainInstance = true)
+    public function getSql($mainInstance = true, $withSchema = true)
     {
-        $getSql = function () {
-            return new Sql($this->getDb(), $this->getLogger('sql'));
+        $getSql = function () use ($withSchema) {
+            return new Sql($this->getDb($withSchema), $this->getLogger('sql'));
         };
         if ($mainInstance) {
             return $this->Sql ?? $this->Sql = $getSql();

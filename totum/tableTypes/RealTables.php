@@ -1207,7 +1207,7 @@ abstract class RealTables extends aTable
             $changedData['id'] = $id;
         }
 
-        if (!empty($this->tableRow['with_order_field'])) {
+        if (!empty($this->tableRow['with_order_field']) && !$isCheck) {
             if (!empty($addData['n'])) {
                 $changedData['n'] = $addData['n'];
             } else {

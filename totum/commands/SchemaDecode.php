@@ -71,7 +71,8 @@ class SchemaDecode extends Command
 
     private function decode(Conf $config, string $schemaName, $output)
     {
-        $sql = $config->getSql(false, false, $config->getLogger('sql', null, null, './decode.log'));
+        $config->setHostSchema(null, 'airgym');
+        $sql = $config->getSql(false, false);
         $sql->exec('set search_path to "' . $schemaName . '"');
         $sql->transactionStart();
 

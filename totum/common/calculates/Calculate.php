@@ -186,10 +186,7 @@ class Calculate
             case 'double':
                 return strval($n);
             case 'array':
-                foreach ($n as &$_) {
-                    $_ = static::__compare_normalize($_);
-                }
-                unset($_);
+                static::__compare_array_normalize($n);
                 return $n;
         }
         if ($n === "0" || $n === 0) {

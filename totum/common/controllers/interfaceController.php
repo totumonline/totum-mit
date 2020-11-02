@@ -43,7 +43,7 @@ abstract class interfaceController extends Controller
         );
 
         $this->folder = dirname($controllerFile);
-        $this->modulPath = $totumPrefix . '/' . $modul . '/';
+        $this->modulePath = $totumPrefix . '/' . $modul . '/';
         $this->totumPrefix = $totumPrefix;
 
         static::$pageTemplate = $this->Config->getTemplatesDir() . '/' . static::$pageTemplate;

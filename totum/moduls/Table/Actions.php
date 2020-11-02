@@ -35,7 +35,9 @@ class Actions
      */
     protected $Request;
 
-    public function __construct(ServerRequestInterface $Request, aTable $Table = null, Totum $Totum = null)
+    protected $modulePath;
+
+    public function __construct(ServerRequestInterface $Request, string $modulePath, aTable $Table = null, Totum $Totum = null)
     {
         if ($this->Table = $Table) {
             $this->Totum = $this->Table->getTotum();
@@ -45,6 +47,8 @@ class Actions
         $this->User = $this->Totum->getUser();
         $this->Request = $Request;
         $this->post = $Request->getParsedBody();
+
+        $this->modulePath = $modulePath;
     }
 
     public function reuser()
@@ -196,9 +200,9 @@ class Actions
         }
         echo json_encode($result + ['notifications' => array_map(
             function ($n) {
-                    $n[0] = 'notification';
-                    return $n;
-                },
+                $n[0] = 'notification';
+                return $n;
+            },
             $this->Totum->getInterfaceDatas()
         )]);
         die;

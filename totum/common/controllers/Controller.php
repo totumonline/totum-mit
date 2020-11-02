@@ -14,7 +14,7 @@ abstract class Controller
     protected $Totum;
 
     protected $answerVars = [];
-    protected $modulPath;
+    protected $modulePath;
     protected $Config;
     /**
      * @var string

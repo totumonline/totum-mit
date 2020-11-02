@@ -11,7 +11,6 @@ use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\IsTableChanged;
-use totum\common\sql\SqlException;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Select;
@@ -19,11 +18,6 @@ use totum\tableTypes\aTable;
 
 class ReadTableActions extends Actions
 {
-    public function __construct(ServerRequestInterface $Request, aTable $Table = null, Totum $Totum = null)
-    {
-        parent::__construct($Request, $Table, $Totum);
-    }
-
     public function csvExport()
     {
         if ($this->Table->isUserCanAction('csv')) {
@@ -708,11 +702,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $fields[$f['name']]['selectTableId'] = $table['id'];
 
                         if ($table['type'] !== 'calcs') {
-                            $fields[$f['name']]['linkToSelectTable'] = ['link' => '/Table/' . $table['top'] . '/' . $table['id'], 'title' => $table['title']];
+                            $fields[$f['name']]['linkToSelectTable'] = ['link' => $this->modulePath . $table['top'] . '/' . $table['id'], 'title' => $table['title']];
                         } else {
                             $topTable = $this->Totum->getTableRow($table['tree_node_id']);
                             $fields[$f['name']]['linkToSelectTable'] =
-                                ['link' => '/Table/' . $topTable['top'] . '/' . $topTable['id'] . '/' . $this->Cycle->getId() . '/' . $table['id']
+                                ['link' => $this->modulePath . $topTable['top'] . '/' . $topTable['id'] . '/' . $this->Cycle->getId() . '/' . $table['id']
                                     , 'title' => $table['title']
                                 ];
                         }
@@ -1162,7 +1156,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             'sort'
                         )) {
                             $topId = $this->Table->getTableRow()['top'];
-                            $this->Totum->addToInterfaceLink("/Table/$topId/$treeNodeId/$id/$CalcsId", 'self');
+                            $this->Totum->addToInterfaceLink("{$this->modulePath}$topId/$treeNodeId/$id/$CalcsId", 'self');
                         }
                     }
                 }

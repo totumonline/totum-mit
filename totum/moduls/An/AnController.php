@@ -144,10 +144,10 @@ class AnController extends interfaceController
     protected function getTableActions(ServerRequestInterface $request, string $method)
     {
         if (!$this->onlyRead) {
-            $Actions = new WriteTableActions($request, $this->Table);
+            $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
             $error = 'Метод [[' . $method . ']] в этом модуле не определен или имеет админский уровень доступа';
         } else {
-            $Actions = new ReadTableActions($request, $this->Table);
+            $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
             $error = 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
         }
 

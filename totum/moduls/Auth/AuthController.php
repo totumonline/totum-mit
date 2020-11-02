@@ -203,7 +203,7 @@ class AuthController extends interfaceController
     public function doIt(ServerRequestInterface $request, bool $output)
     {
         $requestUri = preg_replace('/\?.*/', '', $request->getUri()->getPath());
-        $requestAction = substr($requestUri, strlen($this->modulPath));
+        $requestAction = substr($requestUri, strlen($this->modulePath));
         $action = explode('/', $requestAction, 2)[0] ?? 'Main';
 
         try {

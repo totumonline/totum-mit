@@ -67,7 +67,7 @@ class TableController extends interfaceController
         ) as $t) {
             $tree[] = [
                 'id' => 'table' . $t['id']
-                , 'href' => '/Table/' . $t['top'] . '/' . $t['id']
+                , 'href' => $this->modulePath . $t['top'] . '/' . $t['id']
                 , 'text' => $t['title']
                 , 'type' => 'table_' . $t['type']
                 , 'parent' => '#'
@@ -75,8 +75,10 @@ class TableController extends interfaceController
         }
         $this->__addAnswerVar('treeData', $tree);
         $this->__addAnswerVar('ModulePath', '');
-        $this->__addAnswerVar('html',
-            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page')));
+        $this->__addAnswerVar(
+            'html',
+            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page'))
+        );
     }
 
     public function actionAjaxActions(ServerRequestInterface $request)
@@ -125,7 +127,7 @@ class TableController extends interfaceController
     protected function setTreeData()
     {
         $this->__addAnswerVar('Branch', $this->branchId);
-        $this->__addAnswerVar('ModulePath', $this->modulPath);
+        $this->__addAnswerVar('ModulePath', $this->modulePath);
         $tree = [];
         $branchIds = [];
 
@@ -154,14 +156,14 @@ class TableController extends interfaceController
                     'id' => 'tree' . $t['id']
                     , 'text' => $t['title']
                     , 'type' => $t['type'] ? ($t['type'] === 'anchor' ? "link" : $t['type']) : 'folder'
-                    , 'link' => $t['type'] == 'anchor' ? ('/Table/' . $t['id'] . '/') : null
+                    , 'link' => $t['type'] == 'anchor' ? ($this->modulePath . $t['id'] . '/') : null
                     , 'parent' => ($parent = (!$t['parent_id'] ? '#' : 'tree' . $t['parent_id']))
                     , 'state' => [
                         'selected' => $t['type'] === 'anchor' ? ((int)$this->anchorId === (int)$t['id']) : false
                     ]
                 ]
                 + (
-                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
+                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
                 );
             if ($t['type'] !== "link") {
                 $branchIds[] = $t['id'];
@@ -224,11 +226,11 @@ class TableController extends interfaceController
                         ];
                         if ($this->anchorId) {
                             unset($tree[count($tree) - 1]['href']);
-                            $tree[count($tree) - 1]['link'] = '/Table/' . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
+                            $tree[count($tree) - 1]['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                         }
                         if ($i === 0 && !empty($cycleRow)) {
                             if ($this->anchorId) {
-                                $cycleRow['link'] = '/Table/' . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
+                                $cycleRow['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                             } else {
                                 $cycleRow['href'] = $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId;
                             }
@@ -305,14 +307,16 @@ class TableController extends interfaceController
             );
         }
         foreach ($topBranches as &$branch) {
-            $href = '/Table/' . $branch['id'] . '/';
+            $href = $this->modulePath . $branch['id'] . '/';
 
             if (!empty($branch['default_table']) && $this->User->isTableInAccess($branch['default_table'])) {
                 $href .= $branch['default_table'] . '/';
             }
             $branch['href'] = $href;
-            if (is_a($this,
-                    TableController::class) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
+            if (is_a(
+                $this,
+                TableController::class
+            ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
                 $branch['active'] = true;
             }
         }
@@ -329,7 +333,7 @@ class TableController extends interfaceController
     public function doIt(ServerRequestInterface $request, bool $output)
     {
         $requestUri = preg_replace('/\?.*/', '', $request->getUri()->getPath());
-        $requestTable = substr($requestUri, strlen($this->modulPath));
+        $requestTable = substr($requestUri, strlen($this->modulePath));
 
         $post = ($request->getParsedBody());
 
@@ -367,9 +371,9 @@ class TableController extends interfaceController
             }
             $message = $e->getMessage();
             if ($this->User && $this->User->isCreator() && key_exists(
-                    WithPathMessTrait::class,
-                    class_uses(get_class($e))
-                )) {
+                WithPathMessTrait::class,
+                class_uses(get_class($e))
+            )) {
                 $message .= "<br/>" . $e->getPathMess();
             }
             $this->__addAnswerVar('error', $message);
@@ -412,7 +416,7 @@ class TableController extends interfaceController
                     if (!empty($calcsTablesIDs)) {
                         foreach ($calcsTablesIDs as $tableId) {
                             if ($this->Table->getUser()->isTableInAccess($tableId)) {
-                                $this->location('/Table/' . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
+                                $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
                                 die;
                             }
                         }
@@ -422,6 +426,9 @@ class TableController extends interfaceController
         } catch (criticalErrorException $e) {
             $error = 'Ошибка ' . $e->getMessage();
         }
+
+
+        /*Основная часть отдачи таблицы*/
         if (empty($error)) {
             try {
                 $Actions = $this->getTableActions($request, "getFullTableData");
@@ -436,9 +443,9 @@ class TableController extends interfaceController
 
         $result['isCreatorView'] = $this->User->isCreator();
         $result['checkIsUpdated'] = ($result['type'] === 'tmp' || in_array(
-                $this->Table->getTableRow()['actual'],
-                ['none', 'disable']
-            )) ? 0 : 1;
+            $this->Table->getTableRow()['actual'],
+            ['none', 'disable']
+        )) ? 0 : 1;
 
         $result['isMain'] = true;
         if (!empty($a = ($request->getQueryParams()['a'] ?? null))) {
@@ -515,9 +522,9 @@ class TableController extends interfaceController
 
 
         if (!empty($request->getParsedBody()['method']) && in_array(
-                $request->getParsedBody()['method'],
-                ['getValue']
-            )) {
+            $request->getParsedBody()['method'],
+            ['getValue']
+        )) {
             if (!empty($request->getParsedBody()['table_id'])) {
                 $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;
@@ -526,10 +533,10 @@ class TableController extends interfaceController
 
 
         if ($tableUri && (preg_match(
-                    '/^(\d+)\/(\d+)\/(\d+)/',
-                    $tableUri,
-                    $tableMatches
-                ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
+            '/^(\d+)\/(\d+)\/(\d+)/',
+            $tableUri,
+            $tableMatches
+        ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
             if (empty($tableMatches[3])) {
                 $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
@@ -544,8 +551,10 @@ class TableController extends interfaceController
                 );
                 switch ($branchData['type']) {
                     case null:
-                        $this->__addAnswerVar('html',
-                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html']));
+                        $this->__addAnswerVar(
+                            'html',
+                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
+                        );
                         break;
                     case 'anchor':
                         $this->anchorId = $this->branchId;
@@ -570,14 +579,14 @@ class TableController extends interfaceController
                 //Проверка доступа к циклу
 
                 if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
-                        $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                        [1, 2, 3]
-                    )) {
+                    $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                    [1, 2, 3]
+                )) {
                     //Если не связанный пользователь
                     if (count(array_intersect(
-                            $this->Cycle->getRow()['creator_id']['v'],
-                            $this->User->getConnectedUsers()
-                        )) === 0) {
+                        $this->Cycle->getRow()['creator_id']['v'],
+                        $this->User->getConnectedUsers()
+                    )) === 0) {
                         if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {
@@ -613,8 +622,10 @@ class TableController extends interfaceController
 
             switch ($branchData['type']) {
                 case null:
-                    $this->__addAnswerVar('html',
-                        preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html']));
+                    $this->__addAnswerVar(
+                        'html',
+                        preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
+                    );
                     break;
                 case 'anchor':
                     $this->anchorId = $this->branchId;
@@ -640,16 +651,16 @@ class TableController extends interfaceController
     protected function getTableActions(ServerRequestInterface $request, string $method)
     {
         if (!$this->Table) {
-            $Actions = new Actions($request, null, $this->Totum);
+            $Actions = new Actions($request, $this->modulePath, null, $this->Totum);
             $error = 'Таблица не найдена';
         } elseif ($this->User->isCreator()) {
-            $Actions = new AdminTableActions($request, $this->Table);
+            $Actions = new AdminTableActions($request, $this->modulePath, $this->Table, null);
             $error = 'Метод [[' . $method . ']] в этом модуле не определен';
         } elseif (!$this->onlyRead) {
-            $Actions = new WriteTableActions($request, $this->Table);
+            $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
             $error = 'Метод [[' . $method . ']] в этом модуле не определен или имеет админский уровень доступа';
         } else {
-            $Actions = new ReadTableActions($request, $this->Table);
+            $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
             $error = 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
         }
 

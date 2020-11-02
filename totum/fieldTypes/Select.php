@@ -48,7 +48,7 @@ class Select extends Field
         $checkedNum = 0;
 
         //Наверх выбранные;
-        if (!empty($checkedVals)) {
+        if (!empty($checkedVals) && count($list) < $selectLength) {
             if (empty($this->data['multiple'])) {
                 $mm = $checkedVals;
                 if (array_key_exists($mm, $list) && $list[$mm][1] === 0) {

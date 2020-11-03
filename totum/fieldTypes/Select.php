@@ -596,12 +596,12 @@ class Select extends Field
                         $v[1][0] .= ' ' . $this->data['unitType'];
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
-                        array_slice(
+                            array_slice(
                                 $arrayVals,
                                 1
                             ),
-                        array_slice($arrayTitles, 1)
-                    );
+                            array_slice($arrayTitles, 1)
+                        );
                 };
 
                 if ($this->data['multiple'] && ($this->data['printTextfull'] ?? false)) {
@@ -706,15 +706,15 @@ class Select extends Field
     protected function getDefaultValue()
     {
         if (!empty($this->data['multiple'])) {
-            if ($default = json_decode($this->data['default'], true)) {
+            if ($default = json_decode($this->data['default'] ?? "", true)) {
                 if (!is_array($default)) {
                     $default = [$default];
                 }
             } else {
-                $default = [$this->data['default']];
+                $default = [$this->data['default'] ?? ""];
             }
         } else {
-            $default = $this->data['default'];
+            $default = $this->data['default'] ?? "";
         }
         return $default;
     }

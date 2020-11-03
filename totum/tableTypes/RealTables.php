@@ -285,9 +285,6 @@ abstract class RealTables extends aTable
             $params['where'] ?? [],
             !in_array('is_del', ($params['field'] ?? []))
         );
-        /*if ($returnType == 'where') {
-            return $where;
-        }*/
 
         $order = null;
 
@@ -1439,9 +1436,8 @@ abstract class RealTables extends aTable
 
                             /*равно или содержит*/
                             $q = "$fieldQuoted = ?  OR $fieldQuotedJsonb @>  ?::jsonb ";
-                            $params[] = json_encode([(string)$value], JSON_UNESCAPED_UNICODE);
                             $params[] = (string)$value;
-
+                            $params[] = json_encode([(string)$value], JSON_UNESCAPED_UNICODE);
                             if ($fields[$wI['field']]['type'] === 'listRow' && is_numeric((string)$value)) {
                                 /*равно или содержит числовой вариант*/
                                 $q .= "$fieldQuotedJsonb @> ?::jsonb";

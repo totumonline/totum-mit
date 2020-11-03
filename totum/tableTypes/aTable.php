@@ -131,6 +131,14 @@ abstract class aTable
         return $this->inAddRecalc;
     }
 
+    /**
+     * @return array|null
+     */
+    public function getAnchorFilters()
+    {
+        return $this->anchorFilters;
+    }
+
 
     /**
      * @param bool $isTableDataChanged

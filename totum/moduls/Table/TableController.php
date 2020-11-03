@@ -140,7 +140,9 @@ class TableController extends interfaceController
                 $this->User->getRoles()
             );
         }
+        $anchors = [];
         foreach ($branchesArray as $t) {
+            /*For top branches get only same branch. Top branches are got not here*/
             if (!$t['parent_id']) {
                 if ($t['id'] === (int)$this->branchId) {
                     $this->__addAnswerVar('title', $t['title'], true);
@@ -151,6 +153,10 @@ class TableController extends interfaceController
                 }
             }
 
+            if ($t['type'] === 'anchor') {
+                $anchors[$t['parent_id']][$t['default_table']][] = count($tree);
+            }
+
             $tree[] =
                 ($t['type'] === 'link' ? ['link' => $t['link']] : []) + [
                     'id' => 'tree' . $t['id']
@@ -158,6 +164,7 @@ class TableController extends interfaceController
                     , 'type' => $t['type'] ? ($t['type'] === 'anchor' ? "link" : $t['type']) : 'folder'
                     , 'link' => $t['type'] == 'anchor' ? ($this->modulePath . $t['id'] . '/') : null
                     , 'parent' => ($parent = (!$t['parent_id'] ? '#' : 'tree' . $t['parent_id']))
+                    , 'ord' => $t['ord']
                     , 'state' => [
                         'selected' => $t['type'] === 'anchor' ? ((int)$this->anchorId === (int)$t['id']) : false
                     ]
@@ -172,7 +179,7 @@ class TableController extends interfaceController
         if ($branchIds) {
             foreach (Table::init($this->Config)->getAll(
                 ['tree_node_id' => ($branchIds), 'id' => array_keys($this->User->getTreeTables())],
-                'id, title, type, tree_node_id',
+                'id, title, type, tree_node_id, sort',
                 '(sort->>\'v\')::numeric'
             ) as $t) {
                 $tree[] = [
@@ -181,11 +188,24 @@ class TableController extends interfaceController
                     , 'text' => $t['title']
                     , 'type' => 'table_' . $t['type']
                     , 'parent' => 'tree' . $t['tree_node_id']
+                    , 'ord' => (int)$t['sort']
                     , 'state' => [
                         'selected' => !$this->anchorId && $this->Table && $this->Table->getTableRow()['id'] === $t['id']
                     ]
                 ];
+
+                if (!empty($anchors[$t['tree_node_id']][$t['id']])) {
+                    foreach ($anchors[$t['tree_node_id']][$t['id']] as $index) {
+                        $tree[$index]['parent']='table' . $t['id'];
+                    }
+                }
             }
+        }
+;
+        /*sort through folders and tables*/
+        {
+            $ords = array_column($tree, 'ord');
+            array_multisort($ords, $tree);
         }
 
         if ($this->Table && ($this->Table->getTableRow()['type'] === 'calcs') && $this->Cycle) {
@@ -477,7 +497,7 @@ class TableController extends interfaceController
             }
             if (($types = $this->Totum->getCalculateLog()->getTypes())) {
                 if (in_array('flds', $types)) {
-                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name'=>'Расчет таблицы']];
+                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => 'Расчет таблицы']];
                 } else {
                     $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
                     $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];

@@ -71,19 +71,21 @@ class SchemaDecode extends Command
 
     private function decode(Conf $config, string $schemaName, $output)
     {
-        $config->setHostSchema(null, 'airgym');
-        $sql = $config->getSql(false, false);
+        if(is_callable([$config, 'setHostSchema'])){
+            $config->setHostSchema(null, $schemaName);
+        }
+        $sql = $config->getSql(false);
         $sql->exec('set search_path to "' . $schemaName . '"');
         $sql->transactionStart();
 
         $crypt = function ($string, $direction) {
             if (!in_array(
-                $cipher = "AES-128-CBC",
-                openssl_get_cipher_methods()
-            ) && !in_array(
-                $cipher = strtolower($cipher),
-                openssl_get_cipher_methods()
-            )) {
+                    $cipher = "AES-128-CBC",
+                    openssl_get_cipher_methods()
+                ) && !in_array(
+                    $cipher = strtolower($cipher),
+                    openssl_get_cipher_methods()
+                )) {
                 throw new \Exception('Метод шифрования ' . $cipher . ' не поддержвается вашим PHP');
             }
             $options = OPENSSL_RAW_DATA;

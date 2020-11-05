@@ -17,7 +17,7 @@ use totum\tableTypes\aTable;
 class CalculcateFormat extends Calculate
 {
     const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide', 'placeholder', 'showhand'];
-    const tableformats = ['blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'tabletext', 'tablecomment'];
+    const tableformats = ['blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablecomment'];
     const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
     const floatFormat = ["fill", "glue", "maxheight", "maxwidth", "nextline", "blocknum", "height", "breakwidth"];
     protected $startSections = [];
@@ -286,7 +286,7 @@ class CalculcateFormat extends Calculate
     {
         if ($params = $this->getParamsArray(
             $params,
-            ['condition', 'fieldtitle'],
+            ['fieldhide', 'fieldtitle'],
             array_merge(['condition'], static::tableformats)
         )) {
             $conditionTest = true;
@@ -307,11 +307,11 @@ class CalculcateFormat extends Calculate
             if ($conditionTest) {
                 foreach (static::tableformats as $format) {
                     if (key_exists($format, $params)) {
-                        if ($format === 'fieldtitle') {
+                        if (in_array($format, ['fieldhide', 'fieldtitle'])) {
                             foreach ($params[$format] as $fieldparam) {
                                 $fieldparam = $this->getCodes($fieldparam);
                                 if (count($fieldparam) !== 3 || $fieldparam['comparison'] !== '=') {
-                                    throw new errorException('Неверное оформление параметра fieldtitle');
+                                    throw new errorException('Неверное оформление параметра '.$fieldparam);
                                 }
                                 $fieldname = $this->__getValue($fieldparam[0]);
                                 $fieldvalue = $this->__getValue($fieldparam[1]);

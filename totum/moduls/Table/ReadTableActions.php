@@ -41,9 +41,9 @@ class ReadTableActions extends Actions
                 $this->Table->getTableRow()['id'],
                 $this->User->getTreeTables()
             ) && in_array(
-                    $this->Table->getTableRow()['id'],
-                    $this->User->getFavoriteTables()
-                ) !== $status) {
+                $this->Table->getTableRow()['id'],
+                $this->User->getFavoriteTables()
+            ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -344,8 +344,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $ids = $this->Table->loadFilteredRows('web', $settings['ids'] ?? []);
         $data = ['params' => $this->Table->getTbl()['params'], 'rows' => []];
-        foreach ($ids as $id) {
-            $data['rows'][$id] = $this->Table->getTbl()['rows'][$id];
+        foreach ($settings['ids'] as $id) {
+            if (in_array($id, $ids)) {
+                $data['rows'][$id] = $this->Table->getTbl()['rows'][$id];
+            }
         }
         $result = $this->Table->getValuesAndFormatsForClient($data, 'print', $fieldNames);
 
@@ -375,9 +377,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 '',
                                 $table['head']
                             ) . $table[2] . implode(
-                                    '',
-                                    $table['body']
-                                ) . $table[3];
+                                '',
+                                $table['body']
+                            ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -393,9 +395,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['head']
                 ) . $table[2] . implode(
-                        '',
-                        $table['body']
-                    ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
             }
         }
 
@@ -482,9 +484,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
 
@@ -500,9 +502,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             '',
                             $table['head']
                         ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                            '',
+                            $table['body']
+                        ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -520,9 +522,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
         $style = $template['styles'];

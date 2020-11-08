@@ -143,7 +143,7 @@ class CalculateLog
                                     $log = new CalculateLogEmpty([], $this);
                                 }
                                 break;
-                            case 'view':
+                            default:
                                 if (!array_intersect(['s', 'flds'], $logTypes)) {
                                     $log = new CalculateLogEmpty([], $this);
                                 }
@@ -210,7 +210,7 @@ class CalculateLog
         }
 
         foreach ($this->children as $child) {
-            foreach ($child->getFieldLogs($level+1) as $f => $vals) {
+            foreach ($child->getFieldLogs($level + 1) as $f => $vals) {
                 if (key_exists($f, $fields)) {
                     $fields[$f]['cnt'] += $vals['cnt'];
                     $fields[$f]['time'] += $vals['time'];
@@ -221,9 +221,9 @@ class CalculateLog
             }
         }
 
-        if(!$level){
-            foreach ($fields as &$f){
-                $f['time']=round($f['time'], 5);
+        if (!$level) {
+            foreach ($fields as &$f) {
+                $f['time'] = round($f['time'], 5);
             }
             unset($f);
         }
@@ -277,9 +277,9 @@ class CalculateLog
         $ids = [];
         /** @var CalculateLog $child */
         foreach ($this->children as $child) {
-            if (empty($child->getParams())) {
+            /*if (empty($child->getParams())) {
                 continue;
-            }
+            }*/
 
             if ($data = $child->getLogsForJsTree()) {
                 if (($child->getParams()['name'] ?? null) === '=') {
@@ -435,6 +435,7 @@ class CalculateLog
                         }
                         $tree['icon'] = 'fa fa-folder';
                         break;
+
                 }
                 break;
             }
@@ -490,6 +491,14 @@ class CalculateLog
         if ($this->params['code'] ?? null) {
             $tree['children'][] = ['text' => $this->params['code'], 'icon' => 'fa fa-cogs'];
         }
+
+        foreach ($this->params as $name => $val) {
+            if (preg_match('/^$|#|json|math/', $name)) {
+                $tree['children'][] = ['text' => $name . " = " . json_encode($val,
+                        JSON_UNESCAPED_UNICODE), 'icon' => 'fa fa-hash'];
+            }
+        }
+
         return $tree;
     }
 }

@@ -1343,16 +1343,12 @@ abstract class RealTables extends aTable
 
                 switch ($operator) {
                     case '!==':
-                        $trueFalse = 'FALSE';
-                        $sqlOperator = '!=';
-                    // no break
-                    case '==':
-                        /*Сравнение с пустой строкой и с пустым листом*/
-                        if (empty($value) && ($value === '' || is_array($value))) {
-                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '[]') = $trueFalse";
+                        /*Сравнение с пустой строкой*/
+                        if ($value === '' || is_null($value)) {
+                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = FALSE";
                         } /*Сравнение с листом*/
                         elseif (is_array($value)) {
-                            $where[] = "($fieldQuotedJsonb $sqlOperator ?::JSONB )";
+                            $where[] = "($fieldQuotedJsonb != ?::JSONB OR $fieldQuoted is NULL)";
                             $params[] = json_encode(
                                 $value,
                                 JSON_UNESCAPED_UNICODE
@@ -1362,14 +1358,34 @@ abstract class RealTables extends aTable
                             if (is_bool($value)) {
                                 $value = $value ? 'true' : 'false';
                             }
-                            $where[] = "($fieldQuoted $sqlOperator ?)";
+                            $where[] = "($fieldQuoted != ? OR $fieldQuoted is NULL)";
+                            $params[] = (string)$value;
+                        }
+
+                        break;
+                    case '==':
+                        /*Сравнение с пустой строкой*/
+                        if (is_null($value) || $value === '') {
+                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = TRUE";
+                        } /*Сравнение с листом*/
+                        elseif (is_array($value)) {
+                            $where[] = "($fieldQuotedJsonb = ?::JSONB )";
+                            $params[] = json_encode(
+                                $value,
+                                JSON_UNESCAPED_UNICODE
+                            );
+                        } /*Сравнение с числом или строкой*/
+                        else {
+                            if (is_bool($value)) {
+                                $value = $value ? 'true' : 'false';
+                            }
+                            $where[] = "($fieldQuoted = ?)";
                             $params[] = (string)$value;
                         }
 
                         break;
                     case '!=':
                         $trueFalse = 'FALSE';
-                        $sqlOperator = '!=';
                     // no break
                     case '=':
 
@@ -1395,21 +1411,24 @@ abstract class RealTables extends aTable
                                     }
                                     if ($isAssoc) {
                                         if (is_numeric((string)$v)) {
-                                            $where_tmp .= "$fieldQuotedJsonb @> ?:jsonb OR '";
+                                            $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
                                             $params[] = json_encode(
-                                                [$k => $v],
-                                                JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
+                                                [$k => is_string($v) ? (float)$v : (string)$v],
+                                                JSON_UNESCAPED_UNICODE
                                             );
                                         }
-                                        $where_tmp .= "$fieldQuotedJsonb @> ?:jsonb '";
+                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
                                         $params[] = json_encode([$k => $v], JSON_UNESCAPED_UNICODE);
                                     } else {
                                         if (is_numeric((string)$v)) {
                                             $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
-                                            $params[] = json_encode([$v], JSON_NUMERIC_CHECK);
+                                            $params[] = json_encode(
+                                                [is_string($v) ? (float)$v : (string)$v]
+
+                                            );
                                         }
-                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb";
-                                        $params[] = json_encode([(string)$v], JSON_UNESCAPED_UNICODE);
+                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
+                                        $params[] = json_encode([$v], JSON_UNESCAPED_UNICODE);
                                     }
                                 }
                             } else {
@@ -1431,7 +1450,12 @@ abstract class RealTables extends aTable
                             if (is_bool($value)) {
                                 $value = $value ? "true" : "false";
                             }
-                            $where[] = "($fieldQuoted = ? or $fieldQuotedJsonb @> ?::jsonb or $fieldQuotedJsonb @> ?::jsonb) = $trueFalse";
+                            $null="";
+                            if ($operator == '!=') {
+                                $null = " OR $fieldQuoted is NULL ";
+                            }
+
+                            $where[] = "(($fieldQuoted = ? or $fieldQuotedJsonb @> ?::jsonb or $fieldQuotedJsonb @> ?::jsonb) = $trueFalse $null)";
 
                             $params[] = $value;
                             $params[] = "[\"" . $value . "\"]";
@@ -1445,10 +1469,14 @@ abstract class RealTables extends aTable
                             $params[] = json_encode([(string)$value], JSON_UNESCAPED_UNICODE);
                             if ($fields[$wI['field']]['type'] === 'listRow' && is_numeric((string)$value)) {
                                 /*равно или содержит числовой вариант*/
-                                $q .= "$fieldQuotedJsonb @> ?::jsonb";
+                                $q .= "OR $fieldQuotedJsonb @> ?::jsonb";
                                 $params[] = "[$value]";
                             }
-                            $where[] = "($q) = $trueFalse";
+                            $null="";
+                            if ($operator == '!=') {
+                                $null = " OR $fieldQuoted is NULL ";
+                            }
+                            $where[] = "(($q) = $trueFalse $null)";
                         }
                         break;
                     default:

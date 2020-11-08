@@ -475,7 +475,7 @@ abstract class JsonTables extends aTable
                         $modify[$newRow['id']][$field['name']] = $row[$field['name']]['v'];
                         continue;
                     }
-                    if (is_null($field['default']) && empty($field['code']) && $field['type'] !== "comments") {
+                    if (is_null($field['default'] ?? null) && empty($field['code']) && $field['type'] !== "comments") {
                         $modify[$newRow['id']][$field['name']] = $row[$field['name']]['v'];
                     }
                 }
@@ -886,10 +886,10 @@ abstract class JsonTables extends aTable
             if ($fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param')) {
                 foreach ($fieldsWithActionOnChange as $field) {
                     if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
-                        '!==',
-                        $loadedTbl['params'][$field['name']]['v'],
-                        $tbl['params'][$field['name']]['v']
-                    )) {
+                            '!==',
+                            $loadedTbl['params'][$field['name']]['v'],
+                            $tbl['params'][$field['name']]['v']
+                        )) {
                         Field::init($field, $this)->action(
                             $loadedTbl['params'] ?? [],
                             $tbl['params'],
@@ -940,7 +940,8 @@ abstract class JsonTables extends aTable
                         if (!empty($field['CodeActionOnAdd'])) {
                             $actionIt = true;
                         }
-                    } elseif (!empty($field['CodeActionOnChange']) && key_exists($field['name'], $loadedTbl['rows'][$row['id']])) {
+                    } elseif (!empty($field['CodeActionOnChange']) && key_exists($field['name'],
+                            $loadedTbl['rows'][$row['id']])) {
                         if (Calculate::compare(
                             '!==',
                             $loadedTbl['rows'][$row['id']][$field['name']]['v'],

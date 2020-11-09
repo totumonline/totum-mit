@@ -2498,6 +2498,7 @@ SQL;
 
 
         $MainList = [];
+        $this->__checkListParam($params['list'], 'list', 'listAdd');
 
         foreach ($params['list'] as $i => $list) {
             if ($list) {

@@ -2401,6 +2401,7 @@ SQL;
     protected function funcListSort($params)
     {
         $params = $this->getParamsArray($params, [], [], []);
+        $this->__checkListParam($params['list'], 'list', 'listSort');
 
         $flags = 0;
         $params['type'] = $params['type'] ?? 'regular';

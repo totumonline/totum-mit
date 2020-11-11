@@ -20,7 +20,7 @@ class CalculateSelect extends Calculate
     public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
     {
         try {
-            $r=parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
+            $r = parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
             if (!$this->error && !is_array($r)) {
                 throw new errorException('Код должен возвращать rowList или то, что возвращает функция SelectListAssoc');
             }
@@ -70,8 +70,8 @@ class CalculateSelect extends Calculate
         $rows = array_map(
             function ($row) use ($params, $disabled, $baseField) {
                 $r = ['value' => $row[$baseField]
-                , 'is_del' => $row['is_del']
-                , 'title' => $row[$params['field']]];
+                    , 'is_del' => $row['is_del']
+                    , 'title' => $row[$params['field']]];
                 if (array_key_exists('parent', $params)) {
                     $r['parent'] = $row[$params['parent']];
                 }
@@ -108,7 +108,12 @@ class CalculateSelect extends Calculate
         }
         $params2['field'][] = $params['parent'];
 
-        $disabled = array_flip(array_unique($params['disabled'] ?? []));
+        if (key_exists('disabled', $params)) {
+            $this->__checkListParam($params['disabled'], 'disabled', $params);
+            $disabled = array_flip(array_unique($params['disabled']));
+        } else {
+            $disabled = [];
+        }
 
         $rows = $this->select($params2, 'rows');
 
@@ -182,8 +187,8 @@ class CalculateSelect extends Calculate
         $rows = array_map(
             function ($row) use ($params, $baseField) {
                 $r = ['value' => $row[$baseField]
-                , 'is_del' => $row['is_del']
-                , 'title' => $row[$params['field']]];
+                    , 'is_del' => $row['is_del']
+                    , 'title' => $row[$params['field']]];
 
                 if (!empty($params['section'])) {
                     $r['section'] = $row['__sectionFunction'] ?? $row[$params['section']];
@@ -207,7 +212,7 @@ class CalculateSelect extends Calculate
                 $r = [$row['title'] //0
                     , empty($row['is_del']) ? 0 : 1 //1
                     , null //2
-                    , $row['parent']??null //3
+                    , $row['parent'] ?? null //3
                     // disabled //4
                 ];
                 if ($row['disabled'] ?? false) {

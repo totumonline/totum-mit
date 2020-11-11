@@ -21,7 +21,7 @@ class AuthController extends interfaceController
 {
     public function actionLogin(ServerRequestInterface $request)
     {
-        $post=$request->getParsedBody();
+        $post = $request->getParsedBody();
 
         $this->Config->setSessionCookieParams();
         session_start();
@@ -68,9 +68,9 @@ class AuthController extends interfaceController
             $getNewPass = function () {
                 $letters = 'abdfjhijklmnqrstuvwxz';
                 return $letters{mt_rand(0, strlen($letters) - 1)} . $letters{mt_rand(
-                    0,
-                    strlen($letters) - 1
-                )} . str_pad(mt_rand(1, 9999), 4, 0);
+                        0,
+                        strlen($letters) - 1
+                    )} . str_pad(mt_rand(1, 9999), 4, 0);
             };
 
             if (empty($post['login'])) {
@@ -114,14 +114,14 @@ class AuthController extends interfaceController
                             return ['error' => 'В связи с превышением количества попыток на ввод пароля ваш IP заблокирован'];
                         } else {
                             if (($userRow = $getUserRow()) && json_decode(
-                                $userRow['pass'],
-                                true
-                            )['v'] === md5($post['pass'])) {
+                                    $userRow['pass'],
+                                    true
+                                )['v'] === md5($post['pass'])) {
                                 $status = 0;
                             } else {
                                 $count = $this->Config->getModel('auth_log')->getField(
                                     'count(*) as cnt',
-                                    ['user_ip' => $ip, 'status' => 1, '>=datetime' => $block_date ]
+                                    ['user_ip' => $ip, 'status' => 1, '>=datetime' => $block_date]
                                 );
                                 $count++;
                                 if ($count >= $error_count) {
@@ -189,7 +189,7 @@ class AuthController extends interfaceController
                 if (Auth::checkUserPass($post['pass'], json_decode($userRow['pass'], true)['v'])) {
                     Auth::webInterfaceSetAuth($userRow['id']);
 
-                    $this->location();
+                    $this->location($_GET['from'] ?? null, !key_exists('from', $_GET));
                     die;
                 } else {
                     return ['error' => 'Пароль не верен'];

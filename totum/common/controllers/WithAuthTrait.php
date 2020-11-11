@@ -23,7 +23,7 @@ trait WithAuthTrait
     {
         /*TODO check header sends*/
         header('HTTP/1.0 401 Unauthorized');
-        header('location: /Auth/Login');
+        header('location: /Auth/Login/?from='.urlencode($_SERVER['REQUEST_URI']));
         die;
     }
 }

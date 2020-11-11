@@ -101,11 +101,12 @@ abstract class interfaceController extends Controller
 
 
     /**
-     * @param string $to
+     * @param null $to
+     * @param bool $withPrefix
      */
-    protected function location($to = null)
+    protected function location($to = null, $withPrefix = true)
     {
-        $to = $this->totumPrefix . ($to ?? '/');
+        $to = ($withPrefix ? $this->totumPrefix : "") . ($to ?? '/');
         header('location: ' . $to);
         die;
     }
@@ -120,7 +121,7 @@ abstract class interfaceController extends Controller
                     }
                 } else {
                     $var = htmlspecialchars($var);
-                    if($name==='error'){
+                    if ($name==='error') {
                         $var=str_replace('&lt;br/&gt;', '<br/><br/>', $var);
                     }
                 }

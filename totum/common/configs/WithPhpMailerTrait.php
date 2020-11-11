@@ -23,7 +23,9 @@ trait WithPhpMailerTrait
             $from = $from ?? $this->getDefaultSender();
             //Recipients
             $mail->setFrom($from, $from);
-            $mail->addAddress($to);     // Add a recipient
+            foreach ((array)$to as $_to) {
+                $mail->addAddress($_to);     // Add a recipient
+            }
 
             foreach ($attachments as $innrName => $fileString) {
                 if (preg_match('/jpg|gif|png$/', $innrName)) {

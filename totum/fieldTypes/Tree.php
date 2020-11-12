@@ -259,7 +259,7 @@ class Tree extends Field
         $addInArrays = function ($k, $noCheckParent = false, $formDeepLevel = false) use (&$listMain, $checkedVals, &$deepLevels, &$objMain, &$list, &$addInArrays) {
             if ($k !== "" && !key_exists($k, $objMain) && ($v = $list[$k] ?? null)) {
                 $listMain[] = $k;
-                $parent = $v[3];
+                $parent = $v[3]??null;
 
                 if (in_array($k, $checkedVals)) {
                     $objMain[$k] = ["id" => $k, "parent" => $parent ?? '#', "text" => $v[0]];

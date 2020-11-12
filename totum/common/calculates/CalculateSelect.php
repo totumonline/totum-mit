@@ -17,6 +17,11 @@ use totum\tableTypes\aTable;
 
 class CalculateSelect extends Calculate
 {
+    /**
+     * @var mixed
+     */
+    protected $parentName;
+
     public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
     {
         try {
@@ -41,6 +46,14 @@ class CalculateSelect extends Calculate
         }
 
         return $r ?? $this->error;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getParentName()
+    {
+        return $this->parentName;
     }
 
     protected function funcSelectListAssoc($params)
@@ -105,6 +118,8 @@ class CalculateSelect extends Calculate
 
         if (empty($params['parent'])) {
             throw new errorException('Параметр parent должен быть заполнен');
+        } else {
+            $this->parentName=$params['parent'];
         }
         $params2['field'][] = $params['parent'];
 

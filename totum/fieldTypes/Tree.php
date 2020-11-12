@@ -20,6 +20,10 @@ class Tree extends Field
     protected $commonSelectList;
     protected $commonSelectValueList;
     const loadItemsCount = 50;
+    /**
+     * @var mixed
+     */
+    protected $parentName;
 
     protected function __construct($fieldData, aTable $table)
     {
@@ -44,7 +48,7 @@ class Tree extends Field
                 $this->CalculateCodeSelectValue = new CalculateSelectValue($this->data['codeSelect']);
             }
 
-            $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "treeList", 'field' => $this->data['name']]);
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "treeList", 'field' => $this->data['name']]);
 
             try {
                 $list = $this->CalculateCodeSelectValue->exec(
@@ -128,7 +132,7 @@ class Tree extends Field
         $list = [];
 
         if (array_key_exists('codeSelect', $this->data)) {
-            $Log=$this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "treeList", 'field' => $this->data['name']]);
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "treeList", 'field' => $this->data['name']]);
 
             try {
                 $list = $this->CalculateCodeSelect->exec(
@@ -150,6 +154,7 @@ class Tree extends Field
                 throw $e;
             }
             $this->log = $this->CalculateCodeSelect->getLogVar();
+            $this->parentName = $this->CalculateCodeSelect->getParentName();
         }
 
         if ($this->data['category'] === 'filter') {
@@ -246,7 +251,6 @@ class Tree extends Field
         $notAllTree = count($list) > $selectLength;
 
 
-        $isSliced = false;
         $listMain = [];
         $objMain = [];
         $deepLevels = [];
@@ -356,12 +360,12 @@ class Tree extends Field
                 return ['list' => $parents];
             }
         } else {
-            foreach (array_merge($checkedVals, $top) as $k) {
-                $addInArrays($k);
-            }
-
             if (!$notAllTree) {
                 foreach ($list as $k => $v) {
+                    $addInArrays($k);
+                }
+            } else {
+                foreach (array_merge($top, $checkedVals) as $k) {
                     $addInArrays($k);
                 }
             }
@@ -379,7 +383,13 @@ class Tree extends Field
         }
         unset($v);
 
-        return ['list' => array_values($objMain)];
+        $r = ['list' => array_values($objMain)];
+        if (key_exists('selectTable', $this->data) &&
+            $this->table->getTotum()->getUser()->isTableInAccess($this->table->getTotum()->getTableRow($this->data['selectTable'])['id'])
+        ) {
+            $r['parent'] = $this->parentName;
+        }
+        return $r;
     }
 
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
@@ -471,9 +481,9 @@ class Tree extends Field
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
                         array_slice(
-                            $arrayVals,
-                            1
-                        ),
+                                $arrayVals,
+                                1
+                            ),
                         array_slice($arrayTitles, 1)
                     );
                 };

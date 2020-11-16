@@ -304,9 +304,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-            'email',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'email',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -355,17 +355,17 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, [], []);
         if (array_key_exists(
-            'options',
-            $params
-        ) && !is_array($params['options'])) {
+                'options',
+                $params
+            ) && !is_array($params['options'])) {
             throw new errorException('options должно быть типа row');
         }
 
 
         $toBfl = $params['bfl'] ?? in_array(
-            'soap',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'soap',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,
@@ -485,10 +485,10 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-            [],
-            'styles, html, name',
-            'name'
-        )) || (!array_key_exists(
+                [],
+                'styles, html, name',
+                'name'
+            )) || (!array_key_exists(
                 $params['template'],
                 $templates
             ))) {
@@ -505,37 +505,40 @@ class CalculateAction extends Calculate
                 function ($matches) use ($data, $templates, &$funcReplaceTemplates, &$style, &$usedStyles) {
                     if (array_key_exists($matches[2], $data)) {
                         if (is_array($data[$matches[2]])) {
-                            if (!empty($matches[3])) {
-                                $value = $data[$matches[2]][$matches[3]]??null;
-                            } else {
-                                if (empty($data[$matches[2]]['template'])) {
-                                    throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
-                                }
-                                if (!array_key_exists(
-                                    $data[$matches[2]]['template'],
-                                    $templates
-                                )) {
-                                    throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
-                                }
-                                $template = $templates[$data[$matches[2]]['template']];
-                                $html = '';
-                                if (!in_array($template['name'], $usedStyles)) {
-                                    $style .= $template['styles'];
-                                    $usedStyles[] = $template['name'];
-                                }
-
-                                if (array_key_exists(0, $data[$matches[2]]['data'])) {
-                                    foreach ($data[$matches[2]]['data'] ?? [] as $_data) {
-                                        $html .= $funcReplaceTemplates($template['html'], $_data);
-                                    }
+                            if (empty($data[$matches[2]])) $value = null;
+                            else {
+                                if (!empty($matches[3])) {
+                                    $value = $data[$matches[2]][$matches[3]] ?? null;
                                 } else {
-                                    $html .= $funcReplaceTemplates(
-                                        $template['html'],
-                                        (array)$data[$matches[2]]['data']
-                                    );
-                                }
+                                    if (empty($data[$matches[2]]['template'])) {
+                                        throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
+                                    }
+                                    if (!array_key_exists(
+                                        $data[$matches[2]]['template'],
+                                        $templates
+                                    )) {
+                                        throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
+                                    }
+                                    $template = $templates[$data[$matches[2]]['template']];
+                                    $html = '';
+                                    if (!in_array($template['name'], $usedStyles)) {
+                                        $style .= $template['styles'];
+                                        $usedStyles[] = $template['name'];
+                                    }
 
-                                return $html;
+                                    if (array_key_exists(0, $data[$matches[2]]['data'])) {
+                                        foreach ($data[$matches[2]]['data'] ?? [] as $_data) {
+                                            $html .= $funcReplaceTemplates($template['html'], $_data);
+                                        }
+                                    } else {
+                                        $html .= $funcReplaceTemplates(
+                                            $template['html'],
+                                            (array)$data[$matches[2]]['data']
+                                        );
+                                    }
+
+                                    return $html;
+                                }
                             }
                         } else {
                             $value = $data[$matches[2]];
@@ -555,11 +558,11 @@ class CalculateAction extends Calculate
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     if (is_numeric($value)) {
                                                         $value = number_format(
-                                                            $value,
-                                                            $numberVals[0],
-                                                            $numberVals[1] ?? '.',
-                                                            $numberVals[2] ?? ''
-                                                        )
+                                                                $value,
+                                                                $numberVals[0],
+                                                                $numberVals[1] ?? '.',
+                                                                $numberVals[2] ?? ''
+                                                            )
                                                             . ($numberVals[3] ?? '');
                                                     }
                                                 }
@@ -691,9 +694,9 @@ class CalculateAction extends Calculate
         $t = $tableRow['id'];
         if ($d) {
             $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
-                json_encode($d, JSON_UNESCAPED_UNICODE),
-                $this->Table->getTotum()->getConfig()->getCryptSolt()
-            ));
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
     }
@@ -733,9 +736,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!key_exists(
-            'num',
-            $params
-        ) || !is_numeric(strval($params['num']))) {
+                'num',
+                $params
+            ) || !is_numeric(strval($params['num']))) {
             throw new errorException('Параметр num обязателен и должен быть числом');
         }
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
@@ -796,8 +799,7 @@ class CalculateAction extends Calculate
                 }
             }
             if ($filters) {
-                $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));
-                ;
+                $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));;
                 $link .= '?f=' . urlencode($cripted);
                 $iParams = true;
             }
@@ -833,9 +835,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-            '`https?://`',
-            $params['uri']
-        )) {
+                '`https?://`',
+                $params['uri']
+            )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -861,9 +863,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-            '`https?://`',
-            $params['uri']
-        )) {
+                '`https?://`',
+                $params['uri']
+            )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -883,9 +885,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-            'script',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'script',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
 
         try {
             $r = $this->cURL(

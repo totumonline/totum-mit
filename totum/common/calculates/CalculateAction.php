@@ -501,19 +501,12 @@ class CalculateAction extends Calculate
 
         $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $templates, &$style, &$usedStyles) {
             return preg_replace_callback(
-                '/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
+                '/{(([a-z_0-9]+)(?:\["?([a-z_0-9]+)"?\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
                 function ($matches) use ($data, $templates, &$funcReplaceTemplates, &$style, &$usedStyles) {
                     if (array_key_exists($matches[2], $data)) {
                         if (is_array($data[$matches[2]])) {
                             if (!empty($matches[3])) {
-                                $matches[3] = substr($matches[3], 2, -2);
-                                if (!array_key_exists(
-                                    $matches[3],
-                                    $data[$matches[2]]
-                                )) {
-                                    throw new errorException('Не найден ключ ' . $matches[3] . ' в параметре [' . $matches[2] . ']');
-                                }
-                                $value = $data[$matches[2]][$matches[3]];
+                                $value = $data[$matches[2]][$matches[3]]??null;
                             } else {
                                 if (empty($data[$matches[2]]['template'])) {
                                     throw new errorException('Не указан template для параметра [' . $matches[2] . ']');

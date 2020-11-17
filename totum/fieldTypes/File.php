@@ -152,7 +152,7 @@ class File extends Field
     public function getLogValue($val, $row, $tbl = [])
     {
         $files = '';
-        foreach ($val as $file) {
+        foreach ($val??[] as $file) {
             if ($files) {
                 $files .= ', ';
             }

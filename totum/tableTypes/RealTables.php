@@ -1132,7 +1132,6 @@ abstract class RealTables extends aTable
     protected function getNextN($idRows = null, $prevN = null)
     {
         if (!empty($idRows) && is_null($prevN)) {
-            $idRows = implode(', ', $idRows);
 
             if (empty($this->tableRow['order_desc'])) {
                 $prevN = $this->model->executePrepared(true, ['id' => $idRows], 'MAX(n) as n')->fetchColumn(0);

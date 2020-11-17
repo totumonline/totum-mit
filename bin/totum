@@ -4,6 +4,7 @@
 use totum\commands\CleanSchemasTmpTables;
 use totum\commands\CleanSchemaTmpTables;
 use totum\commands\CleanTmps;
+use totum\commands\CleanTmpTablesFiles;
 use totum\commands\SchemaAdd;
 use totum\commands\SchemaCron;
 use totum\commands\SchemaCrons;
@@ -30,6 +31,7 @@ if (class_exists(Conf::class)) {
 
     $app->add(new CleanTmps());
     $app->add(new CleanSchemaTmpTables());
+    $app->add(new CleanTmpTablesFiles());
     $app->add(new SchemaUpdate());
     $app->add(new SchemaPasswd());
 

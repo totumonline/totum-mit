@@ -152,7 +152,7 @@ class File extends Field
     public function getLogValue($val, $row, $tbl = [])
     {
         $files = '';
-        foreach ($val??[] as $file) {
+        foreach ($val ?? [] as $file) {
             if ($files) {
                 $files .= ', ';
             }
@@ -171,7 +171,7 @@ class File extends Field
             . ($this->table->getTableRow()['type'] === 'tmp' ? '!tmp!' : '');
     }
 
-    protected function modifyValue($modifyVal, $oldVal, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal)) {
             $modifyVal = $modifyVal->val;
@@ -185,7 +185,9 @@ class File extends Field
                             continue 2;
                         }
                     }
-                    $deletedFiles[] = $fOld['file'];
+                    if (strpos($fOld['file'], $this->_getFprefix($row['id'] ?? null)) === 0) {
+                        $deletedFiles[] = $fOld['file'];
+                    }
                 }
             }
 
@@ -377,7 +379,6 @@ class File extends Field
                             });
                             $fl['file'] = preg_replace('/^.*\/([^\/]+)$/', '$1', $fname);
                         }
-
                         if (!$file['size']) {
                             $file['size'] = filesize($filepath);
                         }

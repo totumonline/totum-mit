@@ -504,7 +504,8 @@ class Field
                             $this->modifyValue(
                                 $newVal['v'],
                                 $oldVal['v'],
-                                $isCheck
+                                $isCheck,
+                                $row
                             );
                     }
 
@@ -625,7 +626,7 @@ class Field
         return $this->data['default'] ?? null;
     }
 
-    protected function modifyValue($modifyVal, $oldVal, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal)) {
             $modifyVal = $modifyVal->val;

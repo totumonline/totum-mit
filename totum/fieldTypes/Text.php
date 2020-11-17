@@ -102,7 +102,7 @@ class Text extends Field
             }
         }
     }
-    protected function modifyValue($modifyVal, $oldVal, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal)) {
             if ($modifyVal->sign === '+') {

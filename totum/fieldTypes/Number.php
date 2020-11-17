@@ -119,7 +119,7 @@ class Number extends Field
         return str_replace(',', '.', $this->data['default'] ?? '');
     }
 
-    protected function modifyValue($modifyVal, $oldVal, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         $modifyVal = $this->modifyNumberValue($modifyVal, $oldVal);
 

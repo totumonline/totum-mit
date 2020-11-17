@@ -27,7 +27,7 @@ class Password extends Field
         }
     }
 
-    protected function modifyValue($modifyVal, $oldVal, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if ($modifyVal === '') {
             $modifyVal = $oldVal;

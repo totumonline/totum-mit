@@ -719,7 +719,7 @@ class Select extends Field
         return $default;
     }
 
-    protected function modifyValue($modifyVal, $oldValue, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (empty($modifyVal)) {
             return $modifyVal;
@@ -727,28 +727,28 @@ class Select extends Field
 
         if (!empty($this->data['multiple']) && !is_array($modifyVal)) {
             if (is_object($modifyVal)) {
-                if (empty($oldValue)) {
-                    $oldValue = array();
+                if (empty($oldVal)) {
+                    $oldVal = array();
                 }
                 switch ($modifyVal->sign) {
                     case '-':
-                        $modifyVal = array_diff($oldValue, (array)$modifyVal->val);
+                        $modifyVal = array_diff($oldVal, (array)$modifyVal->val);
                         break;
                     case '+':
-                        $modifyVal = array_merge($oldValue, (array)$modifyVal->val);
+                        $modifyVal = array_merge($oldVal, (array)$modifyVal->val);
                         break;
                     default:
                         throw new errorException('Операция [[' . $modifyVal->sign . ']] над листами непредусмотрена');
                 }
             } else {
                 $tmpVal = substr($modifyVal, 1);
-                if (empty($oldValue)) {
-                    $oldValue = array();
+                if (empty($oldVal)) {
+                    $oldVal = array();
                 }
                 switch ($modifyVal{0}) {
                     case '-':
                         $modifyVal = [];
-                        foreach ($oldValue as $v) {
+                        foreach ($oldVal as $v) {
                             if ($v == $tmpVal) {
                                 continue;
                             }
@@ -756,7 +756,7 @@ class Select extends Field
                         }
                         break;
                     case '+':
-                        $modifyVal = $oldValue;
+                        $modifyVal = $oldVal;
                         $modifyVal[] = $tmpVal;
                         break;
                 }

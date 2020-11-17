@@ -177,7 +177,7 @@ class Comments extends Field
         return $Date->format($format);
     }
 
-    protected function modifyValue($modifyVal, $oldVal, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if ($isCheck) {
             return $modifyVal;

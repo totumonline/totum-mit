@@ -106,7 +106,7 @@ class TableController extends interfaceController
             }
             $this->Totum->transactionCommit();
         } catch (\Exception $exception) {
-            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() ? "<br/>" . $exception->getPathMess() : '')];
+            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess'])? "<br/>" . $exception->getPathMess() : '')];
         }
 
         if ($this->User->isCreator() && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {

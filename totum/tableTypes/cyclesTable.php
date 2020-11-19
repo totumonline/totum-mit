@@ -8,32 +8,37 @@
 
 namespace totum\tableTypes;
 
-
-use totum\common\Auth;
-use totum\common\CalculateAction;
-use totum\common\Controller;
+use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
-use totum\common\Field;
-use totum\common\Model;
 use totum\common\Cycle;
-use totum\common\Sql;
-use totum\common\SqlExeption;
-use totum\models\Table;
-use totum\models\TablesFields;
+use totum\common\sql\SqlException;
 
 class cyclesTable extends RealTables
 {
-    function createTable()
+    protected function reCalculate($inVars = [])
     {
-        $fields = [];
-        $fields[] = 'id SERIAL PRIMARY KEY NOT NULL';
-        $fields[] = 'is_del BOOLEAN NOT NULL DEFAULT FALSE ';
+        if (in_array($inVars['channel'] ?? null, ['web', 'edit'])) {
+            if ($this->getTableRow()['cycles_access_type'] === '1' && isset($this->fields['creator_id']) && !$this->getUser()->isCreator()) {
+                $where = '';
+                foreach ($this->User->getConnectedUsers() as $uId) {
+                    if ($where !== '') {
+                        $where .= ' OR ';
+                    }
+                    $where .= 'creator_id->\'v\' @>\'["' . $uId . '"]\'::JSONB';
+                }
+                $this->elseWhere[] = $where;
+            }
+        }
+        parent::reCalculate($inVars);
+    }
 
-        $fields = '(' . implode(',', $fields) . ')';
-        Sql::exec('CREATE TABLE ' . $this->tableRow['name'] . $fields);
+    public function createTable()
+    {
+        parent::createTable();
 
-        $tablesFields = tableTypes::getTable(Table::getTableRowById(TablesFields::TableId));
-        $tablesFields->reCalculateFromOvers(['add' => [
+        $tablesFields = $this->Totum->getTable('tables_fields');
+        $tablesFields->reCalculateFromOvers(
+            ['add' => [
                 0 => [
                     'table_id' => $this->tableRow['id']
                     , 'name' => 'creator_id'
@@ -73,33 +78,27 @@ class cyclesTable extends RealTables
             ]
             ]
         );
-
-        if ($this->getTableRow()['with_order_field']) {
-            $this->addOrderField();
-        }
     }
 
-    function deleteTable()
+    public function deleteTable()
     {
         $ids = array_keys($this->model->getAllIndexedById([], 'id'));
         foreach ($ids as $id) {
             try {
-                $cycle = Cycle::init($id, $this->tableRow['id']);
-                $cycle->delete(true);
-            } catch (SqlExeption $e) {
+                $this->Totum->deleteCycle($id, $this->tableRow['id']);
+            } catch (SqlException $e) {
                 throw new errorException('Сначала нужно удалить таблицу циклов, а потом расчетные таблицы внутри нее');
             }
         }
     }
 
-    function removeRows($remove, $isInnerChannel)
+    public function removeRows($remove, $isInnerChannel)
     {
         if ($this->tableRow['deleting'] === 'delete' || $isInnerChannel) {
             $this->loadRowsByIds($remove);
             foreach ($remove as $id) {
                 if (!empty($this->tbl['rows'][$id])) {
-                    $cycle = Cycle::init($id, $this->tableRow['id']);
-                    $cycle->delete(true);
+                    $this->Totum->deleteCycle($id, $this->tableRow['id']);
                 }
             }
         }
@@ -107,20 +106,27 @@ class cyclesTable extends RealTables
         parent::removeRows($remove, $isInnerChannel);
     }
 
-    function getUserCycles($userId)
+    public function getUserCyclesCount()
     {
-        return $this->loadRowsByParams([]);
-        //  var_dump(Sql::$lastQuery); die;
+        return $this->model->executePrepared(
+            true,
+            ['creator_id' => $this->User->getConnectedUsers()],
+            'count(*)'
+        )->fetchColumn(0);
     }
 
-    function loadRowsByParams($params, $order = null)
+    public function getUserCycles($userId)
+    {
+        return $this->loadRowsByParams([]);
+    }
+
+    protected function loadRowsByParams($params, $order = null, $offset = 0, $limit = null)
     {
         /*Вопрос насколько тут нужно проверять вебность интерфейса*/
-        if (!Auth::isCreator() && $this->tableRow['cycles_access_type'] == 1 && Auth::$aUser->getInterface() == 'web') {
-
-            $params[] = ['field' => 'creator_id', 'operator' => '=', 'value' => Auth::$aUser->getConnectedUsers()];
+        if (!$this->User->isCreator() && $this->tableRow['cycles_access_type'] === '1' && $this->User->getInterface() === 'web') {
+            $params[] = ['field' => 'creator_id', 'operator' => '=', 'value' => $this->User->getConnectedUsers()];
         }
-        return parent::loadRowsByParams($params, $order);
+        return parent::loadRowsByParams($params, $order, $offset, $limit);
     }
 
     protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck = false)
@@ -129,8 +135,8 @@ class cyclesTable extends RealTables
 
         if (!$fromDuplicate && !$isCheck) {
             $this->changeIds['rowOperations'][] = function () use ($addedRow, $channel) {
-                $Cycle = Cycle::create($this->tableRow['id'], $addedRow['id']);
-                if ($channel == 'web' && $Cycle->getFirstTableId()) {
+                $Cycle = Cycle::create($this->tableRow['id'], $addedRow['id'], $this->Totum);
+                if ($channel === 'web' && $Cycle->getFirstTableId()) {
                     $action = new CalculateAction('=: linkToTable(table: ' . $Cycle->getFirstTableId() . '; cycle: ' . $addedRow['id'] . ')');
                     $action->execAction('addingRow', [], [], [], [], $this);
                 }
@@ -143,15 +149,18 @@ class cyclesTable extends RealTables
     {
         $newRow = parent::duplicateRow($channel, $baseRow, $replaces, $addAfter);
 
-        tableTypes::getTableByName('calcstable_cycle_version')->actionDuplicate(
+        $this->Totum->getTable('calcstable_cycle_version')->actionDuplicate(
             ['cycle' => $newRow['id']],
             [
                 ['field' => 'cycles_table', 'operator' => '=', 'value' => $this->tableRow['id']]
                 , ['field' => 'cycle', 'operator' => '=', 'value' => $baseRow['id']]
             ]
         );
+
         $this->changeIds['rowOperations'][] = function () use ($baseRow, $newRow) {
-            Cycle::duplicate($this->tableRow['id'], $baseRow['id'], $newRow['id']);
+            $Log=$this->calcLog(['name'=>'DUPLICATE CYCLE']);
+            Cycle::duplicate($this->tableRow['id'], $baseRow['id'], $newRow['id'], $this->Totum);
+            $this->calcLog($Log, 'result', 'done');
         };
 
         $newRow = $this->model->getById($newRow['id']);

@@ -8,14 +8,11 @@
 
 namespace totum\models;
 
-
-use totum\common\Auth;
+use Exception;
 use totum\common\errorException;
-use totum\common\Log;
 use totum\common\Model;
-use totum\common\Cycle;
-use totum\common\Sql;
-use totum\common\TableFactory;
+use totum\common\Totum;
+use totum\models\traits\WithTotumTrait;
 use totum\tableTypes\aTable;
 use totum\tableTypes\calcsTable;
 use totum\tableTypes\RealTables;
@@ -23,17 +20,14 @@ use totum\tableTypes\tableTypes;
 
 class Table extends Model
 {
-    static $TableId = 1;
-    static $tableTypes = [
+    /*static $tableTypes = [
         'simple' => 'Простая'
         , 'calcs' => 'Расчетная'
         , 'dinamic' => 'Динамическая'
         , 'inner' => 'Вложенная'
         , 'tmp' => 'Временная'
-    ];
-    static $tableRowsByName = [];
-    static $tableRowsById = [];
-    static $systemTables =
+    ];*/
+    protected static $systemTables =
         ['tables' => [],
             'tables_fields' => [],
             'roles' => [],
@@ -42,83 +36,25 @@ class Table extends Model
             'settings' => [],
             'table_categories' => []];
 
-    /**
-     * @param $action String insert|delete
-     * @param $tableRow
-     * @return bool
-     */
-    static function isUserCanAction($action, $tableRow)
-    {
-        switch ($action) {
-            case 'insert':
-                if ($tableRow['insertable'] && (Auth::$aUser->getTables()[$tableRow['id']] ?? null)) {
-                    if (empty($tableRow['insert_roles']) || array_intersect($tableRow['insert_roles'],
-                            Auth::$aUser->getRoles())) {
-                        return true;
-                    }
-                }
-                break;
-            case 'delete':
-                if ($tableRow['deleting'] !== 'none' && (Auth::$aUser->getTables()[$tableRow['id']] ?? null)) {
-                    if (empty($tableRow['delete_roles']) || array_intersect($tableRow['delete_roles'],
-                            Auth::$aUser->getRoles())) {
-                        return true;
-                    }
-                }
-                break;
-            case 'duplicate':
-                if ($tableRow['duplicating'] && (Auth::$aUser->getTables()[$tableRow['id']] ?? null)) {
-                    if (empty($tableRow['duplicate_roles']) || array_intersect($tableRow['duplicate_roles'],
-                            Auth::$aUser->getRoles())) {
-                        return true;
-                    }
-                }
-                break;
-            case 'reorder':
-                if ($tableRow['with_order_field'] && (Auth::$aUser->getTables()[$tableRow['id']] ?? null)) {
-                    if (empty($tableRow['order_roles']) || array_intersect($tableRow['order_roles'],
-                            Auth::$aUser->getRoles())) {
-                        return true;
-                    }
-                }
-                break;
-            case 'csv':
-                if (empty($tableRow['csv_roles']) || array_intersect($tableRow['csv_roles'],
-                        Auth::$aUser->getRoles())) {
-                    return true;
-                }
-                break;
-            case 'csv_edit':
-                if (!empty($tableRow['csv_edit_roles']) && array_intersect($tableRow['csv_edit_roles'],
-                        Auth::$aUser->getRoles())) {
-                    return true;
-                }
-                break;
-        }
-        return false;
-    }
+    use WithTotumTrait;
 
-    function insert($vars, $returning = 'idFieldName', $ignore = false)
+    public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true)
     {
-        $vars['updated'] = aTable::getUpdatedJson();
+        $vars['updated'] = aTable::formUpdatedJson($this->Totum->getUser());
 
         $name = json_decode($vars['name'], true)['v'];
 
-        if (in_array($name, Model::reservedSqlWords)) {
+        if (in_array($name, Model::RESERVED_WORDS)) {
             throw new errorException('[[' . $name . ']] не может быть названием таблицы');
         }
 
-        $id = parent::insert($vars);
-        if ($id && ($row = Table::getTableRowById($id))) {
-
-
-
-            try {
-                //Добавить к видимости роли Создатель - базовая настройка удаляется при пересчете - эту строку не трогать!
-                Model::init('roles', 'id')->saveVars(1,
-                    ['tables=jsonb_set(tables, \'{v}\', to_jsonb(array(select id::text from tables order by name->>\'v\')))']);
-            } catch (\Exception $e) {
-
+        $id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt);
+        if ($id && ($row = $this->Totum->getTableRow($id))) {
+            if ($row['type'] === 'calcs') {
+                calcsTable::__createTable($row['name'], $this->Totum);
+            } else {
+                $table = $this->Totum->getTable($row);
+                $table->createTable();
             }
         } else {
             throw new errorException('Ошибка с таблицей');
@@ -126,76 +62,32 @@ class Table extends Model
         return $id;
     }
 
-    static function getTableRowByName($name, $force = false)
+    public function update($params, $where, $oldRow = null): int
     {
-        if ($force) {
-            return static::getTableRow(['name' => $name]);
-        } else return static::$tableRowsByName[$name] ?? static::getTableRow(['name' => $name]);
-    }
+        $this->Sql->transactionStart();
 
-    static function getTableRowById($id, $force = false)
-    {
-        if ($force) {
-            return static::getTableRow(['id' => $id]);
-        } else return static::$tableRowsById[$id] ?? static::getTableRow(['id' => $id]);
-    }
-
-    static function getTableIdByName($name)
-    {
-        return (static::getTableRowByName($name)['id']) ?? null;
-    }
-
-    protected static function getCorrectRow($row)
-    {
-        if ($row) {
-            $row['__i_select'] = date('i');
-            static::$tableRowsByName[$row['name']] = $row;
-            static::$tableRowsById[$row['id']] = $row;
-        }
-        return $row;
-    }
-
-    static protected function getTableRow($where)
-    {
-        $row = Model::init('tables')->get($where);
-        foreach ($row as $k => &$v) {
-            if (!in_array($k, Model::serviceFields)) {
-                if (is_array($v)) debug_print_backtrace();
-                if (!array_key_exists('v', json_decode($v, true))) {
-                    var_dump($row, $k);
-                    die;
+        if (empty($oldRow)) {
+            if ($oldRow = static::executePrepared(true, $where, '*', null, '0,1')->fetch()) {
+                foreach ($oldRow as &$_) {
+                    $_ = json_decode($_, true);
                 }
-                $v = json_decode($v, true)['v'];
+                unset($_);
+            } else {
+                return 0;
             }
-        };
-        unset($v);
-
-        return static::getCorrectRow($row);
-    }
-
-    function update($params, $where, $ignore = 0, $oldValue = null): Int
-    {
-        sql::transactionStart();
-        if (empty($oldValue)) {
-            $oldValue = static::get($where);
-            foreach ($oldValue as &$_) {
-                $_ = json_decode($_, true);
-            }
-            unset($_);
-
         }
         if (array_key_exists('indexes', $params)) {
             $newIndexes = json_decode($params['indexes'], true)['v'];
-            $oldIndexes = $oldValue['indexes']['v'] ?? [];
+            $oldIndexes = $oldRow['indexes']['v'] ?? [];
             sort($newIndexes);
             sort($oldIndexes);
 
             if ($oldIndexes !== $newIndexes) {
                 $forDelete = array_diff($oldIndexes, $newIndexes);
                 $forCreate = array_diff($newIndexes, $oldIndexes);
+                $Table = $this->Totum->getTable($oldRow['id']);
 
-                $fields = TablesFields::getFields($oldValue['id']);
-                $Table = tableTypes::getTable(Table::getTableRowById($oldValue['id']));
+                $fields = $Table->getFields();
                 foreach ($fields as $field) {
                     if (in_array($field['name'], $forDelete)) {
                         $Table->removeIndex($field['name']);
@@ -204,75 +96,137 @@ class Table extends Model
                     }
                 }
             }
+            $params['indexes'] = json_encode(['v' => array_values(array_unique($newIndexes))]);
         }
 
-        if (array_key_exists('with_order_field',
-            $params)) {
-            $newWithOrderFields = !empty(json_decode($params['with_order_field'],
-                    true)['v']);
-            if (empty($oldValue['with_order_field']['v']) && $newWithOrderFields) {
-                $tableRow = Table::getTableRowById($oldValue['id']);
-                if (tableTypes::isRealTable($tableRow)) {
+        if (array_key_exists(
+            'with_order_field',
+            $params
+        )) {
+            $newWithOrderFields = !empty(json_decode(
+                $params['with_order_field'],
+                true
+            )['v']);
+            if (empty($oldRow['with_order_field']['v']) && $newWithOrderFields) {
+                $tableRow = $this->Totum->getTableRow($oldRow['id']);
+                if (Totum::isRealTable($tableRow)) {
                     /** @var RealTables $Table */
-                    $Table = tableTypes::getTable($tableRow);
+                    $Table = $this->Totum->getTable($tableRow);
                     $Table->addOrderField();
                 }
-            } elseif (!empty($oldValue['with_order_field']['v']) && !$newWithOrderFields) {
-                $tableRow = Table::getTableRowById($oldValue['id']);
-                if (tableTypes::isRealTable($tableRow)) {
+            } elseif (!empty($oldRow['with_order_field']['v']) && !$newWithOrderFields) {
+                $tableRow = $this->Totum->getTableRow($oldRow['id']);
+                if (Totum::isRealTable($tableRow)) {
                     /** @var RealTables $Table */
-                    $Table = tableTypes::getTable($tableRow);
+                    $Table = $this->Totum->getTable($tableRow);
                     $Table->removeOrderField();
                 }
             }
         }
-        $r = parent::update($params, $where, $ignore);
+        $r = parent::update($params, $where);
 
-        static::$tableRowsByName = [];
-        static::$tableRowsById = [];
-        sql::transactionCommit();
+        $this->Totum->getConfig()->clearRowsCache();
+        $this->Sql->transactionCommit();
         return $r;
     }
 
 
-    function delete($where, $ignore = 0)
+    public function delete($where, $ignore = 0)
     {
-        if ($rows = Model::init('tables')->getAll($where, 'id, name, type')) {
-            Sql::transactionStart();
-
+        if ($rows = $this->getAll($where, 'id, name, type')) {
             foreach ($rows as $tableRow) {
                 $tableName = $tableRow['name'];
                 $tableType = $tableRow['type'];
 
-                if (array_key_exists($tableName, static::$systemTables)) {
+                if (key_exists($tableName, static::$systemTables)) {
                     throw new errorException('Нельзя удалять системные таблицы');
                 }
 
+                $this->Totum->getNamedModel(TablesFields::class)->delete(['table_id' => $tableRow['id']]);
+                $this->Totum->getConfig()->clearRowsCache();
+
+
                 switch ($tableType) {
                     case 'cycles':
-                        tableTypes::getTable($tableRow)->deleteTable();
+                        $this->Totum->getTable($tableRow)->deleteTable();
                         break;
                 }
 
                 switch ($tableType) {
-                    case 'tmp';
+                    case 'tmp':
                         break;
                     case 'globcalcs':
-                        Sql::exec('DELETE FROM ' . array_flip(Model::$tablesModels)['NonProjectCalcs'] . ' WHERE tbl_name=\'' . $tableName . '\' ');
+                        NonProjectCalcs::init($this->Totum->getConfig(), true)->delete(['tbl_name' => $tableName]);
                         break;
                     default:
-                        Sql::exec('DROP TABLE if exists ' . $tableName . ' CASCADE');
+                        $this->Totum->getModel($tableName)->dropTable();
+
                         break;
                 }
 
-                Sql::exec('DELETE FROM ' . array_flip(Model::$tablesModels)['TablesFields'] . ' WHERE table_id->>\'v\'=\'' . $tableRow['id'] . '\' ');
-                unset(static::$tableRowsById[$tableRow['id']]);
-                unset(static::$tableRowsByName[$tableRow['name']]);
                 parent::delete(['id' => $tableRow['id']]);
             }
-
-            Sql::transactionCommit();
         }
     }
 
+    public function dulpicateTableFiedls(array $row, array $baseRow)
+    {
+        foreach ($row as $k => &$v) {
+            if (is_array($v) && key_exists('v', $v)) {
+                $v = $v['v'];
+            }
+        }
+        if ($row['type'] === 'calcs') {
+            $newVersion = $baseVersion = $this->Totum->getNamedModel(CalcsTablesVersions::class)->executePrepared(
+                true,
+                ['table_name' => $baseRow['name']['v'], 'is_default' => 'true'],
+                'version',
+                null,
+                '0,1'
+            )->fetchColumn(0);
+        } else {
+            $baseVersion = null;
+            $newVersion = null;
+        }
+
+        $fields = $this->Totum->getNamedModel(TablesFields::class)->executePrepared(
+            true,
+            ['table_id' => $baseRow['id'], 'version' => $baseVersion],
+            'category, name, data_src, id'
+        )->fetchAll();
+
+        $fieldsD = $this->Totum->getNamedModel(TablesFields::class)->executePrepared(
+            true,
+            ['table_id' => $row['id'], 'version' => $newVersion],
+            'category, name, data_src, id'
+        )->fetchAll();
+
+        $replaces = [];
+        $ids = [];
+        $filters = [];
+
+        foreach ($fields as $f) {
+            if (empty($fieldsD[$f['name']])) {
+                if ($f['category'] === 'filter') {
+                    $filters[] = $f['id'];
+                } else {
+                    $ids[] = $f['id'];
+                }
+                $replaces[$f['id']]['table_id'] = $row['id'];
+                $f['data_src'] = json_decode($f['data_src'], true);
+            }
+        }
+        $ids = array_merge($ids, $filters);
+        if ($ids) {
+            $TableFields = $this->Totum->getTable('tables_fields');
+            $TableFields->reCalculateFromOvers([
+                'duplicate' => ['ids' => $ids, 'replaces' => $replaces]
+            ]);
+        }
+
+        /*if ($duplicatedRow['type'] != 'calcs' && $duplicatedRow['type'] != 'tmp') {
+            $Table = tableTypes::getTable($duplicatedRow);
+            $Table->reCalculateFromOvers([]);
+        }*/
+    }
 }

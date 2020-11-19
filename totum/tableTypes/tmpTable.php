@@ -8,18 +8,17 @@
 
 namespace totum\tableTypes;
 
-
 use totum\common\Auth;
+use totum\common\calculates\Calculate;
 use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
-use totum\common\Log;
 use totum\common\Model;
-use totum\config\Conf;
+use totum\common\Totum;
+use totum\common\User;
 
 class tmpTable extends JsonTables
 {
-
     protected $sessHashName;
     protected $model;
     /**
@@ -33,67 +32,61 @@ class tmpTable extends JsonTables
      */
     private $key;
 
-    static protected function getKey($tableName, $hash)
+    protected static function getKey($tableName, $hash, User $User)
     {
-        return ['table_name' => $tableName, 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+        return ['table_name' => $tableName, 'user_id' => $User->getId(), 'hash' => $hash];
     }
 
-    function __construct($tableRow, Cycle $Cycle, $light = false, $hash = null)
+    public function __construct(Totum $Totum, $tableRow, Cycle $Cycle, $light = false, $hash = null)
     {
-        $this->model = Model::initService('_tmp_tables');
-
+        $this->model = $Totum->getModel('_tmp_tables', true);
+        $this->Totum = $Totum;
+        $this->User = $Totum->getUser();
         if (is_null($hash)) {
             do {
                 $hash = md5(microtime(true) . '_' . $tableRow['name'] . '_' . mt_srand());
-                $this->key = static::getKey($tableRow['name'], $hash);
+                $this->key = static::getKey($tableRow['name'], $hash, $Totum->getUser());
             } while ($this->model->getField('user_id', $this->key));
 
-            $this->savedTbl = $this->tbl = $this->getNewTblForRecalculate();
+            $this->savedTbl = $this->tbl = $this->getNewTblForRecalc();
             $this->isTableAdding = true;
             $this->sessHashName = $hash;
             $this->updated = $this->getUpdated();
 
-            $this->model->insert(array_merge(['tbl' => json_encode($this->tbl,
-                JSON_UNESCAPED_UNICODE), 'updated' => $this->updated, 'touched' => date('Y-m-d H:i')],
-                $this->key),
-                false);
+            $tbl = json_encode($this->tbl, JSON_UNESCAPED_UNICODE);
 
+            $this->model->insertPrepared(
+                array_merge(
+                    ['tbl' => $tbl, 'updated' => $this->updated, 'touched' => date('Y-m-d H:i')],
+                    $this->key
+                ),
+                false
+            );
         } else {
-            $this->key = ['table_name' => $tableRow['name'], 'user_id' => Auth::$aUser->getId(), 'hash' => $hash];
+            $this->key = ['table_name' => $tableRow['name'], 'user_id' => $Totum->getUser()->getId(), 'hash' => $hash];
             $this->loadDataRow(true);
-
         }
         $this->sessHashName = $hash;
 
-        parent::__construct($tableRow, $Cycle, $light);
+        parent::__construct($Totum, $tableRow, $Cycle, $light);
         static::$tmpTables[$tableRow['id'] . '_' . $hash] = $this;
     }
 
 
-    public static function init($tableRow, $extraData = null, $light = false, $hash = null)
+    public static function init(Totum $Totum, $tableRow, $extraData = null, $light = false, $hash = null)
     {
         if (!is_null($hash) && key_exists($hashName = $tableRow['id'] . '_' . $hash, static::$tmpTables)) {
             return static::$tmpTables[$hashName];
         }
-        return new static($tableRow, $extraData, $light, $hash);
+        return new static($Totum, $tableRow, $extraData, $light, $hash);
     }
 
-    function createTable()
+    public function createTable()
     {
-
     }
 
-    function getTableDataForInterface($withoutRows = false, $withoutRowsData = false)
+    public function isTblUpdated($level = 0, $force = false)
     {
-
-        $r = parent::getTableDataForInterface($withoutRows, $withoutRowsData);
-        $this->saveTable();
-        return $r;
-    }
-
-    function isTblUpdated($level = 0, $force = false)
-    {
-
         $savedTbl = $this->savedTbl;
         $isOnSave = false;
         if (!$this->isOnSaving) {
@@ -101,60 +94,72 @@ class tmpTable extends JsonTables
         }
 
         if ($isOnSave && $this->isTableDataChanged) {
-            $this->updated = static::getUpdatedJson();
+            $this->updated = $this->getUpdatedJson();
             $this->saveTable();
 
             foreach ($this->tbl['rows'] as $id => $row) {
                 $oldRow = ($savedTbl['rows'][$id] ?? []);
-                if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) $this->changeIds['deleted'][$id] = null;
-                elseif (!empty($oldRow) && empty($row['is_del'])) {
-                    if ($oldRow != $row) {
+                if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
+                    $this->changeIds['deleted'][$id] = null;
+                } elseif (!empty($oldRow) && empty($row['is_del'])) {
+                    if (Calculate::compare('!==', $oldRow, $row)) {
                         foreach ($row as $k => $v) {
-                            if (($oldRow[$k] ?? null) != $v) {//Здесь проставляется changed для web (только ли это в web нужно?)
+                            /*key_exists for $oldRow[$k] не использовать!*/
+                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k]??null), $v)) {
                                 $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                 $this->changeIds['changed'][$id][$k] = null;
                             }
                         }
-
                     }
                 }
             }
-            $this->changeIds['deleted'] = $this->changeIds['deleted'] + array_flip(array_keys(array_diff_key($savedTbl['rows'] ?? [],
-                    $this->tbl['rows'] ?? [])));
-            $this->changeIds['added'] = array_flip(array_keys(array_diff_key($this->tbl['rows'],
-                $savedTbl['rows'])));
+            $this->changeIds['deleted'] = $this->changeIds['deleted'] + array_flip(array_keys(array_diff_key(
+                $savedTbl['rows'] ?? [],
+                $this->tbl['rows'] ?? []
+            )));
+            $this->changeIds['added'] = array_flip(array_keys(array_diff_key(
+                $this->tbl['rows'],
+                $savedTbl['rows']
+            )));
             $this->isOnSaving = false;
 
             return true;
-        } else
+        } else {
             return false;
+        }
     }
 
-    function modify($tableData, array $data)
+    public function checkAndModify($tableData, array $data)
     {
         $this->loadDataRow();
-        return parent::modify($tableData, $data);
+        return parent::checkAndModify($tableData, $data);
     }
 
     public function saveTable()
     {
         if ($this->key) {
-            $this->model->update(['touched' => date('Y-m-d H:i'), 'tbl' => json_encode($this->tbl,
-                JSON_UNESCAPED_UNICODE), 'updated' => $this->updated],
-                $this->key);
+            $this->model->update(
+                ['touched' => date('Y-m-d H:i'), 'tbl' => json_encode(
+                    $this->tbl,
+                    JSON_UNESCAPED_UNICODE
+                ), 'updated' => $this->updated],
+                $this->key
+            );
             $saved = $this->savedTbl;
             $this->savedTbl = $this->tbl;
             $this->savedUpdated = $this->updated;
-            $this->isTableDataChanged = false;
+            $this->setIsTableDataChanged(false);
             $this->onSaveTable($this->tbl, $saved);
 
-            Controller::setSomeTableChanged();
+            $this->Totum->tableChanged($this->tableRow['name']);
         }
         return true;
     }
 
-    function addData($tbl)
+    public function addData($tbl)
     {
+        $this->CalculateLog = $this->CalculateLog->getChildInstance(['addData' => true]);
+
         $this->reCalculate([
             'add' => $tbl['tbl'],
             'modify' => ['params' => $tbl['params'] ?? []],
@@ -163,41 +168,26 @@ class tmpTable extends JsonTables
         ]);
 
         $this->saveTable();
+        $this->CalculateLog->addParam('result', 'saved');
+        $this->CalculateLog = $this->CalculateLog->getParent();
     }
 
-    function getTableRow()
+    public function getTableRow()
     {
         return parent::getTableRow() + ['sess_hash' => $this->sessHashName];
     }
 
-    function getValuesAndFormatsForClient($data, $viewType = 'web', $fields = null)
+    public function getUpdated()
     {
-        return parent::getValuesAndFormatsForClient($data, $viewType); // TODO: Change the autogenerated stub
+        return $this->updated ?? $this->getUpdatedJson();
     }
 
-    protected function checkRightFillOrder($id_first, $id_last, $count)
+    public static function checkTableExists($tableName, $hash, $Totum)
     {
-        return true;
-
+        return $Totum->getModel('_tmp_tables', true)->get(static::getKey($tableName, $hash, $Totum->getUser()));
     }
 
-    protected function updateReceiverTables($level = 0)
-    {
-
-    }
-
-    protected function getUpdated()
-    {
-
-        return $this->updated ?? static::getUpdatedJson();
-    }
-
-    static function checkTableExists($tableName, $hash)
-    {
-        return Model::initService('_tmp_tables')->get(static::getKey($tableName, $hash));
-    }
-
-    function loadDataRow($fromConstructor = false, $force = false)
+    public function loadDataRow($fromConstructor = false, $force = false)
     {
         if ((empty($this->dataRow) || $force)) {
             if ($this->dataRow = $this->model->get($this->key)) {
@@ -207,23 +197,16 @@ class tmpTable extends JsonTables
                 $this->updated = $this->dataRow['updated'];
                 $this->model->update(['touched' => date('Y-m-d H:i')], $this->key);
             } else {
-                throw new errorException ('Время жизни таблицы истекло. Повторите запрос данных.');
+                throw new errorException('Время жизни таблицы истекло. Повторите запрос данных.');
             }
         }
     }
 
-    public function getFilteredData($channel)
-    {
-        return $this->tbl;
-    }
-
     protected function loadModel()
     {
-
     }
 
     protected function _copyTableData(&$table, $settings)
     {
-
     }
 }

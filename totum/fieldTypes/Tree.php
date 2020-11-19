@@ -8,18 +8,22 @@
 
 namespace totum\fieldTypes;
 
-
-use totum\common\Calculate;
-use totum\common\CalculateSelect;
-use totum\common\CalculateSelectValue;
+use totum\common\calculates\Calculate;
+use totum\common\calculates\CalculateSelect;
+use totum\common\calculates\CalculateSelectValue;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\tableTypes\aTable;
 
 class Tree extends Field
 {
-    protected $commonSelectList, $commonSelectValueList;
+    protected $commonSelectList;
+    protected $commonSelectValueList;
     const loadItemsCount = 50;
+    /**
+     * @var mixed
+     */
+    protected $parentName;
 
     protected function __construct($fieldData, aTable $table)
     {
@@ -30,9 +34,8 @@ class Tree extends Field
         }
     }
 
-    function calculateSelectValueList($val, $row, $tbl = [])
+    public function calculateSelectValueList($val, $row, $tbl = [])
     {
-
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectValueList)) {
                 return $this->commonSelectValueList;
@@ -45,15 +48,23 @@ class Tree extends Field
                 $this->CalculateCodeSelectValue = new CalculateSelectValue($this->data['codeSelect']);
             }
 
-            $list = $this->CalculateCodeSelectValue->exec($this->data,
-                $val,
-                [],
-                $row,
-                [],
-                $tbl,
-                $this->table);
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "treeList", 'field' => $this->data['name']]);
 
-
+            try {
+                $list = $this->CalculateCodeSelectValue->exec(
+                    $this->data,
+                    $val,
+                    [],
+                    $row,
+                    [],
+                    $tbl,
+                    $this->table
+                );
+                $this->table->calcLog($Log, 'result', $list);
+            } catch (\Exception $e) {
+                $this->table->calcLog($Log, 'error', $e->getMessage());
+                throw $e;
+            }
         }
 
         return $this->commonSelectValueList = $list;
@@ -68,16 +79,18 @@ class Tree extends Field
      * @param array $tbl
      * @return array|mixed|null|string
      */
-    function getSelectValue($val, $row, $tbl = [])
+    public function getSelectValue($val, $row, $tbl = [])
     {
         $list = $this->calculateSelectValueList($val, $row, $tbl);
         if (!is_null($list)) {
             if (is_array($list)) {
                 if (!empty($this->data['multiple'])) {
                     $return = '';
-                    if ($val != $this->data['errorText']) {
+                    if ($val !== $this->data['errorText']) {
                         foreach ($val ?? [] as $v) {
-                            if (!empty($return)) $return .= ', ';
+                            if (!empty($return)) {
+                                $return .= ', ';
+                            }
                             if (empty($list[$v])) {
                                 $return .= $v;
                             } else {
@@ -87,9 +100,7 @@ class Tree extends Field
                     } else {
                         $return = $this->data['errorText'];
                     }
-
                 } else {
-
                     if ($v_ = $list[$val] ?? null) {
                         $return = $v_;
                     } elseif ($this->data['withEmptyVal'] ?? false) {
@@ -98,7 +109,6 @@ class Tree extends Field
                         $return = $val;
                     }
                 }
-
             } else {
                 $return = $this->data['errorText'];
             }
@@ -107,15 +117,13 @@ class Tree extends Field
         return $return;
     }
 
-    function getLogValue($val, $row, $tbl = [])
+    public function getLogValue($val, $row, $tbl = [])
     {
         return $this->getSelectValue($val, $row, $tbl);
     }
 
-    function calculateSelectList(&$val, $row, $tbl = [])
+    public function calculateSelectList(&$val, $row, $tbl = [])
     {
-
-
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectList)) {
                 return $this->commonSelectList;
@@ -124,32 +132,42 @@ class Tree extends Field
         $list = [];
 
         if (array_key_exists('codeSelect', $this->data)) {
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "treeList", 'field' => $this->data['name']]);
 
-
-            $list = $this->CalculateCodeSelect->exec($this->data,
-                $val,
-                [],
-                $row,
-                [],
-                $tbl,
-                $this->table);
-            if ($error = $this->CalculateCodeSelect->getError()) {
-                $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
-                $list = [];
+            try {
+                $list = $this->CalculateCodeSelect->exec(
+                    $this->data,
+                    $val,
+                    [],
+                    $row,
+                    [],
+                    $tbl,
+                    $this->table
+                );
+                if ($error = $this->CalculateCodeSelect->getError()) {
+                    $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
+                    $list = [];
+                }
+                $this->table->calcLog($Log, 'result', $list);
+            } catch (\Exception $e) {
+                $this->table->calcLog($Log, 'error', $e->getMessage());
+                throw $e;
             }
-
             $this->log = $this->CalculateCodeSelect->getLogVar();
-
+            $this->parentName = $this->CalculateCodeSelect->getParentName();
         }
 
         if ($this->data['category'] === 'filter') {
             $add = [];
-            if (!empty($this->data['selectFilterWithEmpty']))
+            if (!empty($this->data['selectFilterWithEmpty'])) {
                 $add[''] = [($this->data['selectFilterWithEmptyText'] ?? 'Пустое'), 0];
-            if (!empty($this->data['selectFilterWithAll']))
+            }
+            if (!empty($this->data['selectFilterWithAll'])) {
                 $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? 'Все'), 0];
-            if (!empty($this->data['selectFilterWithNone']))
+            }
+            if (!empty($this->data['selectFilterWithNone'])) {
                 $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? 'Ничего'), 0];
+            }
             $list = $add + $list;
         }
 
@@ -163,28 +181,30 @@ class Tree extends Field
         }
 
         return $this->commonSelectList = $list;
-
     }
 
-    function getValueFromCsv($val)
+    public function getValueFromCsv($val)
     {
         if (!empty($this->data['multiple'])) {
             $vals = preg_split('/\]\s*\[/', $val);
             foreach ($vals as &$v) {
                 $v = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $v);
-                if ($v === '') $v = null;
+                if ($v === '') {
+                    $v = null;
+                }
             }
             $val = $vals;
         } else {
             $val = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $val);
-            if ($val === '') $val = null;
+            if ($val === '') {
+                $val = null;
+            }
         }
         return $val;
     }
 
-    function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
+    public function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
     {
-
         if (!empty($this->data['multiple'])) {
             $paramInXml = $simpleXMLElement->addChild($this->data['name']);
             $v_ = [];
@@ -194,11 +214,9 @@ class Tree extends Field
             foreach ($fVar['v'] as $v) {
                 $value = $paramInXml->addChild('value', $v);
                 $value->addAttribute('title', $v_[$v][0]);
-                $value->addAttribute('correct', $v_[$v][0] == 1 ? '0' : '1');
+                $value->addAttribute('correct', $v_[$v][0] === 1 ? '0' : '1');
             }
-
         } else {
-
             if (is_array($fVar['v'])) {
                 $paramInXml = $simpleXMLElement->addChild($this->data['name'], json_encode($fVar['v']));
                 $fVar['e'] = 'list в немульти поле';
@@ -214,7 +232,9 @@ class Tree extends Field
             }
         }
 
-        if (empty($paramInXml)) $paramInXml = $simpleXMLElement->addChild($this->data['name']);
+        if (empty($paramInXml)) {
+            $paramInXml = $simpleXMLElement->addChild($this->data['name']);
+        }
 
         if (isset($fVar['e'])) {
             $paramInXml->addAttribute('error', $fVar['e']);
@@ -225,15 +245,12 @@ class Tree extends Field
         }
     }
 
-    function cropSelectListForWeb($list, $checkedVals, $q = '', $parentIds = null)
+    public function cropSelectListForWeb($list, $checkedVals, $q = '', $parentIds = null)
     {
-
-
         $selectLength = $this->data['selectLength'] ?? static::loadItemsCount;
         $notAllTree = count($list) > $selectLength;
 
 
-        $isSliced = false;
         $listMain = [];
         $objMain = [];
         $deepLevels = [];
@@ -242,20 +259,23 @@ class Tree extends Field
         $addInArrays = function ($k, $noCheckParent = false, $formDeepLevel = false) use (&$listMain, $checkedVals, &$deepLevels, &$objMain, &$list, &$addInArrays) {
             if ($k !== "" && !key_exists($k, $objMain) && ($v = $list[$k] ?? null)) {
                 $listMain[] = $k;
-                $parent = $v[3];
+                $parent = $v[3]??null;
 
                 if (in_array($k, $checkedVals)) {
-
                     $objMain[$k] = ["id" => $k, "parent" => $parent ?? '#', "text" => $v[0]];
 
                     $objMain[$k]["state"]["selected"] = true;
-                    if (!empty($v[1])) $objMain[$k]["state"]["deleted"] = true;
+                    if (!empty($v[1])) {
+                        $objMain[$k]["state"]["deleted"] = true;
+                    }
                 } elseif (!empty($v[1])) {
                     return;
                 } else {
                     $objMain[$k] = ["id" => $k, "parent" => $parent ?? '#', "text" => $v[0]];
                 }
-                if (!empty($v[4])) $objMain[$k]["state"]["disabled"] = true;
+                if (!empty($v[4])) {
+                    $objMain[$k]["state"]["disabled"] = true;
+                }
 
                 if ($formDeepLevel) {
                     $deepLevel = 0;
@@ -266,7 +286,6 @@ class Tree extends Field
                     }
 
                     $deepLevels[] = $deepLevel;
-
                 }
 
                 if ($parent && key_exists($parent, $list)) {
@@ -284,7 +303,6 @@ class Tree extends Field
                 if (!$noCheckParent && $parent && key_exists($parent, $list)) {
                     $addInArrays($parent, false, $formDeepLevel);
                 }
-
             }
         };
         $top = [];
@@ -319,7 +337,6 @@ class Tree extends Field
             }
 
             return ['list' => array_keys($ids)];
-
         } elseif (!empty($parentIds)) {
             $massload = is_array($parentIds);
             $parentIds = (array)$parentIds;
@@ -331,7 +348,6 @@ class Tree extends Field
                 }
             }
             if ($massload) {
-
                 $okeys = array_keys($objMain);
                 array_multisort($okeys, $deepLevels);
                 $parents = [];
@@ -344,34 +360,39 @@ class Tree extends Field
                 return ['list' => $parents];
             }
         } else {
-
-            foreach (array_merge($checkedVals, $top) as $k) {
-                $addInArrays($k);
-            }
-
             if (!$notAllTree) {
                 foreach ($list as $k => $v) {
                     $addInArrays($k);
                 }
+            } else {
+                foreach (array_merge($top, $checkedVals) as $k) {
+                    $addInArrays($k);
+                }
             }
-
         }
 
         foreach ($objMain as $k => &$v) {
             if ($list[$k]["children"] ?? null) {
-                if (!array_intersect_key($objMain,
-                    array_flip($list[$k]["children"]))) {
+                if (!array_intersect_key(
+                    $objMain,
+                    array_flip($list[$k]["children"])
+                )) {
                     $v["children"] = true;
-
                 }
             }
         }
         unset($v);
 
-        return ['list' => array_values($objMain)];
+        $r = ['list' => array_values($objMain)];
+        if (key_exists('selectTable', $this->data) &&
+            $this->table->getTotum()->getUser()->isTableInAccess($this->table->getTotum()->getTableRow($this->data['selectTable'])['id'])
+        ) {
+            $r['parent'] = $this->parentName;
+        }
+        return $r;
     }
 
-    function addViewValues($viewType, array &$valArray, $row, $tbl = [])
+    public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
 
@@ -382,21 +403,20 @@ class Tree extends Field
         };
 
         $getTreeItem = function ($v) use ($list, $getParentsTitle, &$valArray) {
-
             if ($itemList = $list[$v] ?? false) {
-
                 if (!empty($this->data['treeViewTypeFull'])) {
                     $v_ = [$getParentsTitle($itemList), $itemList[1]];
                 } else {
                     $v_ = [$itemList[0], ($itemList[1] || ($itemList[4] ?? false)) ? 1 : 0, $getParentsTitle($itemList)];
                 }
                 unset($itemList);
-
             } elseif (is_null($v) && ($this->data['withEmptyVal'] ?? false)) {
                 $v_ = [$this->data['withEmptyVal'], 0];
             } else {
                 $v_ = [$v, 1];
-                $valArray['e'] = 'Значение не найдено';
+                if (!is_null($v)) {
+                    $valArray['e'] = 'Значение не найдено';
+                }
             }
             return $v_;
         };
@@ -407,7 +427,7 @@ class Tree extends Field
                 if (is_array($list)) {
                     if (!empty($this->data['multiple'])) {
                         $v_ = [];
-                        if ($v != $this->data['errorText'] && (is_null($v) || is_array($v))) {
+                        if ($v !== $this->data['errorText'] && (is_null($v) || is_array($v))) {
                             foreach (($v ?? []) as $_v) {
                                 $v_[] = $getTreeItem($_v);
                             }
@@ -440,13 +460,14 @@ class Tree extends Field
                     $valArray['e'] .= "\n" . $list;
                 }
             }
-
         }
 
         switch ($viewType) {
             case 'print':
                 $func = function ($arrayVals, $arrayTitles) use (&$func) {
-                    if (!$arrayTitles) return '';
+                    if (!$arrayTitles) {
+                        return '';
+                    }
                     if (is_array($arrayVals)) {
                         $v = [$arrayVals[0], $arrayTitles[0]];
                     } else {
@@ -458,9 +479,13 @@ class Tree extends Field
                     if ($v[1][0] !== '' && !is_null($v[1][0]) && !empty($this->data['unitType'])) {
                         $v[1][0] .= ' ' . $this->data['unitType'];
                     }
-                    return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(array_slice($arrayVals,
-                            1),
-                            array_slice($arrayTitles, 1));
+                    return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
+                        array_slice(
+                                $arrayVals,
+                                1
+                            ),
+                        array_slice($arrayTitles, 1)
+                    );
                 };
 
                 if ($this->data['multiple'] && ($this->data['printTextfull'] ?? false)) {
@@ -468,9 +493,11 @@ class Tree extends Field
                 } else {
                     if ($this->data['multiple']) {
                         if ($valArray['v']) {
-                            if (count($valArray['v']) == 1) {
-                                $valArray['v'] = $func($valArray['v'][count($valArray['v']) - 1],
-                                    $valArray['v_'][count($valArray['v_']) - 1]);
+                            if (count($valArray['v']) === 1) {
+                                $valArray['v'] = $func(
+                                    $valArray['v'][count($valArray['v']) - 1],
+                                    $valArray['v_'][count($valArray['v_']) - 1]
+                                );
                             } else {
                                 $valArray['v'] = $func('', [count($valArray['v']) . ' элем.', 0]);
                             }
@@ -489,10 +516,11 @@ class Tree extends Field
                 $val = '';
                 if (!empty($this->data['multiple'])) {
                     foreach ($valArray['v'] as $k => $v) {
-                        if ($val) $val .= ' ';
+                        if ($val) {
+                            $val .= ' ';
+                        }
                         $val .= '[' . $v . ':' . $valArray['v_'][$k][0] . ']';
                     }
-
                 } else {
                     $val = '[' . $valArray['v'] . ':' . $valArray['v_'][0] . ']';
                 }
@@ -501,8 +529,7 @@ class Tree extends Field
                 break;
             case 'web':
                 if (array_key_exists('c', $valArray)) {
-
-                    if ($valArray['c'] != $valArray['v']) {
+                    if ($valArray['c'] !== $valArray['v']) {
                         $valArrayTmp = $valArray;
                         $valArrayTmp['v'] = $valArrayTmp['c'];
 
@@ -520,28 +547,16 @@ class Tree extends Field
 
                 break;
         }
-
-
-        if ($viewType == 'web' || $viewType == 'edit') {
-            if ($this->CalculateCodeSelect) {
-                $this->addInControllerLog('s', $this->CalculateCodeSelect->getLogVar(), $row);
-            }
-        }
-    }
-
-    function addInControllerSelectLog($row = null)
-    {
-        if ($this->CalculateCodeSelect) {//TODO check it
-            $this->addInControllerLog('s', $this->CalculateCodeSelect->getLogVar(), $row);
-        }
     }
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
-        if (($this->data['multiple'] ?? false) == true && !is_array($val)) {
-            if (is_numeric($val)) $val = [strval($val)];
-            elseif (is_null($val)) $val = [];
-            else {
+        if (($this->data['multiple'] ?? false) === true && !is_array($val)) {
+            if (is_numeric($val)) {
+                $val = [strval($val)];
+            } elseif (is_null($val)) {
+                $val = [];
+            } else {
                 if ($v = json_decode($val, true)) {
                     $val = strval($v);
                 } else {
@@ -551,23 +566,28 @@ class Tree extends Field
         }
         if ($this->data['multiple']) {
             foreach ($val as &$v) {
-                if (is_int($v)) $v = strval($v);
+                if (is_int($v)) {
+                    $v = strval($v);
+                }
             }
-
         } else {
             if (is_array($val)) {
-                if (count($val) == 0) $val = null;
-                else $val = strval($val[0]);
+                if (count($val) === 0) {
+                    $val = null;
+                } else {
+                    $val = strval($val[0]);
+                }
             } else {
                 $val = strval($val);
             }
         }
-        if ($val === "") $val = null;
+        if ($val === "") {
+            $val = null;
+        }
     }
 
     protected function getDefaultValue()
     {
-
         if (!empty($this->data['multiple'])) {
             if ($default = json_decode($this->data['default'], true)) {
                 if (!is_array($default)) {
@@ -581,6 +601,4 @@ class Tree extends Field
         }
         return $default;
     }
-
-
 }

@@ -8,7 +8,6 @@
 
 namespace totum\tableTypes;
 
-
 use totum\common\Controller;
 use totum\common\errorException;
 use totum\common\Model;
@@ -20,7 +19,9 @@ class globcalcsTable extends JsonTables
 {
     public function saveTable()
     {
-        if ($this->savedUpdated == $this->updated) return;
+        if ($this->savedUpdated === $this->updated) {
+            return;
+        }
 
         /*if(empty($GLOBALS['test'])){
             $GLOBALS['test']=1;
@@ -28,55 +29,46 @@ class globcalcsTable extends JsonTables
         }
 */
 
-        $updateWhere=[
+        $updateWhere = [
             'tbl_name' => $this->tableRow['name']
         ];
-        if($this->getTableRow()['actual']!='disable'){
-            $updateWhere['updated']=$this->savedUpdated;
+        if ($this->getTableRow()['actual'] !== 'disable') {
+            $updateWhere['updated'] = $this->savedUpdated;
         }
 
-        if (!$this->model->update([
+        if (!$this->model->update(
+            [
             'tbl' => $this->getPreparedTbl(),
             'updated' => $this->updated
         ],
-            $updateWhere)
+            $updateWhere
+        )
         ) {
             errorException::tableUpdatedException($this);
         }
         $saved = $this->savedTbl;
         $this->savedTbl = $this->tbl;
         $this->savedUpdated = $this->updated;
-        $this->isTableDataChanged=false;
+        $this->setIsTableDataChanged(false);
         $this->markTableChanged();
 
         $this->onSaveTable($this->tbl, $saved);
 
-        Controller::setSomeTableChanged();
+        $this->Totum->tableChanged($this->tableRow['name']);
         return true;
     }
 
-    function createTable()
+    public function createTable()
     {
-        $this->model->insert(['tbl_name' => $this->tableRow['name'], 'updated' => $updated = static::getUpdatedJson()]);
+        $this->model->insertPrepared(['tbl_name' => $this->tableRow['name'], 'updated' => $updated = $this->getUpdatedJson()]);
         $this->savedUpdated = $this->updated = $updated;
-
-        $this->onCreateTable();
-        //$this->updateFromSource(-1);
     }
 
-    protected function addInSourceTables($SourceTableRow)
-    {
-        if ($SourceTableRow === ['globcalcs']) {
-            if ($SourceTableRow['id']!=$this->tableRow['id'])
-            $this->source_tables[$SourceTableRow['id']] = true;
-        }
-    }
-
-     function loadDataRow($fromConstructor = false, $force = false)
+    public function loadDataRow($fromConstructor = false, $force = false)
     {
         if (empty($this->dataRow) || $force) {
             $this->dataRow = $this->model->getById($this->tableRow['name']);
-            $this->tbl = json_decode($this->dataRow['tbl']??'[]', true);
+            $this->tbl = json_decode($this->dataRow['tbl'] ?? '[]', true);
 
             $this->indexRows();
             $this->loadedTbl = $this->savedTbl = $this->tbl;
@@ -86,8 +78,6 @@ class globcalcsTable extends JsonTables
 
     protected function loadModel()
     {
-        $this->model = NonProjectCalcs::init();
-        $this->modelConnects = TablesCalcsConnects::init();
+        $this->model = $this->Totum->getNamedModel(NonProjectCalcs::class);
     }
-
 }

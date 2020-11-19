@@ -8,7 +8,6 @@
 
 namespace totum\fieldTypes;
 
-
 use totum\common\Field;
 use totum\tableTypes\aTable;
 
@@ -22,7 +21,7 @@ class Text extends Field
         }
     }
 
-    function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
+    public function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
     {
         $paramInXml = $simpleXMLElement->addChild($this->data['name'], base64_encode($fVar['v']));
 
@@ -30,17 +29,17 @@ class Text extends Field
             $paramInXml->addAttribute('error', $fVar['e']);
         }
         if (isset($fVar['c'])) {
-            $paramInXml->addAttribute('c', $fVar['c'] != $fVar['v'] ? 'Текст изменен' : 'Текст соответствует');
+            $paramInXml->addAttribute('c', $fVar['c'] !== $fVar['v'] ? 'Текст изменен' : 'Текст соответствует');
             $paramInXml->addAttribute('h', isset($fVar['h']) ? '1' : '0');
         }
     }
 
-    function getValueFromCsv($val)
+    public function getValueFromCsv($val)
     {
         return $val = base64_decode($val);
     }
 
-    function addViewValues($viewType, array &$valArray, $row, $tbl = [])
+    public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
 
@@ -63,7 +62,7 @@ class Text extends Field
                     $valArray['v'] = mb_substr($valArray['v'], 0, $this->data['viewTextMaxLength']) . '...';
                 }
                 $valArray['v'] = htmlspecialchars($valArray['v']);
-                if($this->data['textType']=='text'){
+                if ($this->data['textType']==='text') {
                     $valArray['v'] = nl2br($valArray['v']);
                 }
 
@@ -92,21 +91,25 @@ class Text extends Field
             } elseif (is_array($val)) {
                 $valTmp = "";
                 foreach ($val as $v) {
-                    if ($valTmp != '') $valTmp .= "\n";
+                    if ($valTmp !== '') {
+                        $valTmp .= "\n";
+                    }
                     $valTmp .= $v;
                 }
                 $val = $valTmp;
-            } else  $val = strval($val);
+            } else {
+                $val = strval($val);
+            }
         }
-
     }
-    protected function modifyValue($modifyVal, $oldVal, $isCheck)
+    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal)) {
-            if($modifyVal->sign =='+'){
+            if ($modifyVal->sign === '+') {
                 $modifyVal =  $oldVal.(string)$modifyVal->val;
+            } else {
+                $modifyVal = (string)$modifyVal->val;
             }
-            else $modifyVal = (string)$modifyVal->val;
         }
         return $modifyVal;
     }

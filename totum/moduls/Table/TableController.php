@@ -1,54 +1,35 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: tatiana
- * Date: 20.10.16
- * Time: 10:17
- */
 
 namespace totum\moduls\Table;
 
-
-use totum\common\aLog;
-use totum\common\Calculate;
-use totum\common\CalculateAction;
-use totum\common\CalculcateFormat;
-use totum\common\Controller;
+use Psr\Http\Message\ServerRequestInterface;
+use totum\common\controllers\interfaceController;
+use totum\common\controllers\WithAuthTrait;
+use totum\common\criticalErrorException;
+use totum\common\Crypt;
 use totum\common\Cycle;
 use totum\common\errorException;
-use totum\common\Field;
-use totum\common\interfaceController;
 use totum\common\Auth;
-use totum\common\IsTableChanged;
-use totum\common\Log;
-use totum\common\Model;
-use totum\common\reCalcLogItem;
-use totum\common\Sql;
-use totum\fieldTypes\Comments;
-use totum\fieldTypes\File;
-use totum\fieldTypes\Select;
+use totum\common\logs\CalculateLog;
+use totum\common\WithPathMessTrait;
+use totum\common\sql\SqlException;
+use totum\common\tableSaveException;
+use totum\common\Totum;
+use totum\config\Conf;
 use totum\models\Table;
-use totum\models\TableFields;
-use totum\models\Tables;
-use totum\models\TablesFields;
 use totum\models\Tree;
-use totum\models\TreeV;
-use totum\models\User;
-use totum\models\UserV;
 use totum\tableTypes\aTable;
-use totum\tableTypes\tableTypes;
-use totum\tableTypes\tmpTable;
-use stdClass;
 
 class TableController extends interfaceController
 {
+    use WithAuthTrait;
 
     /**
      * @var aTable
      */
-    protected $Table,
-        $onlyRead,
-        $branchId;
+    protected $Table;
+    protected $onlyRead;
+    protected $branchId;
     /**
      * @var Cycle
      */
@@ -58,828 +39,179 @@ class TableController extends interfaceController
      * @var mixed
      */
     private $anchorId;
+    /**
+     * @var string|string[]
+     */
+    protected $tableUri;
+    /**
+     * @var CalculateLog
+     */
+    protected $CalculateLog;
+    protected $totumTries = 0;
 
-
-    function __construct($modulName, $inModuleUri)
+    public function __construct(Conf $Config, $totumPrefix = '')
     {
-        if (!static::checkFastMethods()) {
-            parent::__construct($modulName, $inModuleUri);
-
-            if (!empty($this->getLogTypes())) {
-                Calculate::$logsOn = true;
-            }
-        }
+        $this->Config = $Config;
+        parent::__construct($Config, $totumPrefix);
+        static::$contentTemplate = $this->folder . '/__Table.php';
     }
 
-
-    static function checkFastMethods()
+    public function actionMain(ServerRequestInterface $request)
     {
-        if (!empty($_POST['method'])) {
-            if (in_array($_POST['method'], array('checkTableIsChanged', 'tmpFileUpload', 'checkForNotifications'))) {
-                session_start();
-                if (!empty($_SESSION['userId'])) {
-                    $userId = $_SESSION['userId'];
-                    session_write_close();
+        $tree = [];
 
-                    switch ($_POST['method']) {
-                        case 'checkTableIsChanged':
-                            Log::$off = true;
-
-                            $table_id = $_POST['table_id'];
-                            $cycle_id = $_POST['cycle_id'] ?? 0;
-
-                            $isChanged = new IsTableChanged($table_id, $cycle_id);
-                            echo json_encode($isChanged->isChanged($_POST['code']), JSON_UNESCAPED_UNICODE);
-
-                            break;
-                        case 'checkForNotifications':
-                            if (!empty($_POST['periodicity']) && ($_POST['periodicity'] > 1) && Auth::loadAuthUser($userId,
-                                    false)) {
-                                Log::$off = true;
-                                $i = 0;
-                                $actived = $_POST['activeIds'] ?? [];
-
-                                $getNotification = function () use ($actived) {
-                                    if (!$actived) $actived = [0];
-                                    $result = [];
-
-                                    if ($row = Model::init('notifications')->get(['id not in (' . implode(',',
-                                            Sql::quote($actived,
-                                                true)) . ')', 'active_dt_from->>\'v\'<=\'' . date('Y-m-d H:i:s') . '\'', 'user_id' => Auth::$aUser->getId(), 'active' => 'true'],
-                                        '*',
-                                        '(prioritet->>\'v\')::int, id')) {
-                                        array_walk($row,
-                                            function (&$v, $k) {
-                                                if (!Model::isServiceField($k)) $v = json_decode($v, true);
-                                            });
-
-                                        session_start();
-                                        $kod = Model::init('notification_codes')->getField('code',
-                                            ['name' => $row['code']['v']]);
-                                        $calc = new CalculateAction($kod);
-                                        $table = tableTypes::getTableByName('notifications');
-                                        $calc->execAction('code',
-                                            [],
-                                            $row,
-                                            [],
-                                            $table->getTbl(),
-                                            $table,
-                                            $row['vars']['v']);
-                                        session_write_close();
-
-                                        $result['notification_id'] = $row['id'];
-                                    }
-                                    if ($actived) {
-                                        $result['deactivated'] = [];
-                                        if ($ids = Model::init('notifications')->getAllIds(['id' => $actived, 'user_id' => Auth::$aUser->getId(), 'active' => 'false'])) {
-                                            $result['deactivated'] = array_merge($result['deactivated'], $ids);
-                                        }
-                                        if ($ids = Model::init('notifications')->getAllIds(['id' => $actived, 'user_id' => Auth::$aUser->getId(), 'active' => 'true', 'active_dt_from->>$$v$$>\'' . date('Y-m-d H:i') . '\''])) {
-                                            $result['deactivated'] = array_merge($result['deactivated'], $ids);
-                                        }
-                                        if (empty($result['deactivated']))
-                                            unset($result['deactivated']);
-                                    }
-                                    return $result;
-                                };
-                                $count = ceil(20 / $_POST['periodicity']);
-
-                                do {
-                                    echo "\n";
-                                    flush();
-
-                                    if (connection_status() != CONNECTION_NORMAL) die;
-                                    if ($result = $getNotification()) break;
-
-                                    sleep($_POST['periodicity']);
-                                    Log::sql($i);
-                                } while (($i++) < $count);
-
-                                echo json_encode($result + ['notifications' => array_map(function ($n) {
-                                        $n[0] = 'notification';
-                                        return $n;
-                                    },
-                                        static::getInterfaceDatas())]);
-                            }
-                            break;
-                        case 'tmpFileUpload':
-
-                            echo json_encode(File::fileUpload($userId));
-                            break;
-
-
-                    }
-                } else {
-                    echo json_encode(['error' => 'Потеряна авторизация'], JSON_UNESCAPED_UNICODE);
-                }
-                die;
-            }
-
+        foreach (Table::init($this->Config)->getAll(
+            ['id' => $this->User->getFavoriteTables()],
+            'id, top, title, type',
+            'sort'
+        ) as $t) {
+            $tree[] = [
+                'id' => 'table' . $t['id']
+                , 'href' => $this->modulePath . $t['top'] . '/' . $t['id']
+                , 'text' => $t['title']
+                , 'type' => 'table_' . $t['type']
+                , 'parent' => '#'
+            ];
         }
+        $this->__addAnswerVar('treeData', $tree);
+        $this->__addAnswerVar('ModulePath', '');
+        $this->__addAnswerVar(
+            'html',
+            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page'))
+        );
     }
 
-    function actionAjaxActions()
+    public function actionAjaxActions(ServerRequestInterface $request)
     {
-
-        $method = $_POST['method'] ?? null;
-
-        if (!$this->Table) {
-            //debug_print_backtrace();
-            return $this->answerVars['error'] ?? 'Таблица не найдена';
-        }
-
+        $this->checkTableByUri($request);
+        $this->Totum->transactionStart();
 
         try {
-            if ($this->onlyRead && !in_array($method,
-                    ['getPanelFormats', 'loadPage', 'linkButtonsClick', 'loadPage', 'linkButtonsClick', 'setCommentsViewed', 'setTableFavorite', 'refresh', 'csvExport', 'printTable', 'click', 'getValue', 'loadPreviewHtml', 'notificationUpdate', 'edit', 'checkTableIsChanged', 'getTableData', 'getEditSelect'])) return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
-
-            if (!empty($_POST['data']) && is_string($_POST['data'])) $_POST['data'] = json_decode($_POST['data'], true);
-
-            //   if ($method != 'checkTableIsChanged') {}
-
-            Sql::transactionStart();
-
-            $this->Table->setFilters($_POST['filters'] ?? '');
-
-            switch ($method) {
-                case 'panelButtonsClear':
-
-                    $model = Model::initService('_tmp_tables');
-                    $key = ['table_name' => '_panelbuttons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
-                    $model->delete($key);
-
-                    break;
-                case 'panelButtonsClick':
-                    $model = Model::initService('_tmp_tables');
-                    $key = ['table_name' => '_panelbuttons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
-                    if ($data = $model->getField('tbl', $key)) {
-                        $data = json_decode($data, true);
-                        foreach ($data as $row) {
-                            if ($row['ind'] == ($_POST['index'] ?? null)) {
-                                $CA = new CalculateAction($row['code']);
-                                try {
-                                    if ($row['id']) {
-                                        $this->Table->checkIsUserCanViewIds([$row['id']], 'web', true);
-                                        $item = $this->Table->getTbl()["rows"][$row['id']];
-                                    } else {
-                                        $item = $this->Table->getTbl()['params'];
-                                    }
-
-                                    $CA->execAction($row['field'],
-                                        [],
-                                        $item,
-                                        [],
-                                        $this->Table->getTbl(),
-                                        $this->Table,
-                                        $row['vars'] ?? []);
-                                    static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
-                                } catch (errorException $e) {
-                                    static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
-                                    throw $e;
-                                }
-                                break;
-                            }
-                        }
-
-                    } else {
-                        throw new errorException('Предложенный выбор устарел.');
-                    }
-                    break;
-                case 'getPanelFormats':
-                    $result = null;
-                    if (!empty($_POST['field']) && !empty($field = $this->Table->getFields()[$_POST['field']])) {
-                        $clc = new CalculcateFormat($field['format']);
-                        $tbl = $this->Table->getTbl();
-                        $item = $tbl['params'];
-                        if ($field['category'] === 'column') {
-                            $this->Table->checkIsUserCanViewIds([$_POST['id']], 'web', true);
-                            $item = $this->Table->getTbl()["rows"][$_POST['id']];
-                        }
-
-                        $result = $clc->getPanelFormat($field['name'],
-                            $item,
-                            $tbl,
-                            $this->Table);
-                        static::addLogVar($this->Table,
-                            ['Формат панели ' . $field['name'] . ' ' . ($_POST['id'] ? '(' . $_POST['id'] . ')' : '')],
-                            'f',
-                            $clc->getLogVar());
-
-                    }
-                    $result = ['panelFormats' => $result];
-                    break;
-                case 'loadPage':
-
-                    $this->Table->reCalculateFilters('web');
-
-                    $lastId = (int)$_POST['lastId'] ?? 0;
-                    $prevLastId = (int)$_POST['prevLastId'] ?? 0;
-                    $pageCount = $_POST['pageCount'] ?? 0;
-
-                    $data = $this->Table->getFilteredData('web');
-                    $data['params'] = [];
-                    $orderFN = $this->Table->getOrderFieldName();
-
-                    $allCount = count($data['rows']);
-
-                    $slice = function (&$rows) use ($lastId, $prevLastId, $pageCount) {
-                        if ($pageCount == 0) return 0;
-                        $offset = 0;
-                        if ($prevLastId) {
-                            if ($prevLastId === -1) {
-                                $offset = count($rows);
-                            } else {
-                                foreach ($rows as $i => $row) {
-                                    if ($row['id'] === $prevLastId) {
-                                        $offset = $i;
-                                    }
-                                }
-                            }
-                            $offset -= $pageCount;
-                            if ($offset < 0) $offset = 0;
-
-                        } elseif ($lastId !== 0) {
-                            foreach ($rows as $i => $row) {
-                                if ($row['id'] == $lastId) {
-                                    $offset = $i + 1;
-                                }
-                            }
-                        }
-                        $rows = array_slice($rows, $offset, $pageCount);
-                        return $offset;
-                    };
-
-
-                    if (in_array($orderFN, ['id', 'n']) || !in_array($orderFN, ['tree', 'select'])) {
-                        $this->Table->sortRowsBydefault($data['rows']);
-                        $offset = $slice($data['rows']);
-                        $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
-                    } else {
-                        $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
-                        $this->Table->sortRowsBydefault($data['rows']);
-                        $offset = $slice($data['rows']);
-                    }
-
-                    $result = ['rows' => $data['rows'], 'offset' => $offset, 'allCount' => $allCount];
-
-                    break;
-                case 'getChartTypes':
-                    $table = Table::getTableRowByName('ttm__charts');
-                    if (!$table) {
-                        throw new errorException('Таблица графиков не найдена');
-                    }
-                    $Table = tableTypes::getTable($table);
-                    $result['chartTypes'] = $Table->getByParams([
-                        'field' => ['type', 'title', 'default_options', 'format'],
-                    ],
-                        'rows');
-                    break;
-                case 'linkInputClick':
-
-                    $model = Model::initService('_tmp_tables');
-                    $key = ['table_name' => '_linkToInput', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
-                    if ($data = $model->getField('tbl', $key)) {
-                        $data = json_decode($data, true);
-                        $CA = new CalculateAction($data['code']);
-                        try {
-                            $CA->execAction('CODE',
-                                [],
-                                [],
-                                $this->Table->getTbl(),
-                                $this->Table->getTbl(),
-                                $this->Table,
-                                $data['buttons'][$_POST['index']]['vars'] ?? [] + ['input' => $_POST['val']]);
-                            static::addLogVar($this->Table, ['INPUT_CLICK'], 'a', $CA->getLogVar());
-                        } catch (errorException $e) {
-                            static::addLogVar($this->Table, ['INPUT_CLICK'], 'a', $CA->getLogVar());
-                            throw $e;
-                        }
-
-                    } else {
-                        throw new errorException('Предложенный ввод устарел.');
-                    }
-                    break;
-                case 'linkButtonsClick':
-                    $model = Model::initService('_tmp_tables');
-                    $key = ['table_name' => '_linkToButtons', 'user_id' => Auth::$aUser->getId(), 'hash' => $_POST['hash'] ?? null];
-                    if ($data = $model->getField('tbl', $key)) {
-                        $data = json_decode($data, true);
-                        if ($data['buttons'][$_POST['index']] ?? null) {
-                            $CA = new CalculateAction($data['buttons'][$_POST['index']]['code']);
-                            try {
-                                $CA->execAction('CODE',
-                                    [],
-                                    [],
-                                    $this->Table->getTbl(),
-                                    $this->Table->getTbl(),
-                                    $this->Table,
-                                    $data['buttons'][$_POST['index']]['vars'] ?? []);
-                                static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
-                            } catch (errorException $e) {
-                                static::addLogVar($this->Table, ['BUTTON_CLICK'], 'a', $CA->getLogVar());
-                                throw $e;
-                            }
-
-
-                        } else {
-                            throw new errorException('Ошибка интерфейса - выбрана несуществующая кнопка');
-                        }
-                    } else {
-                        throw new errorException('Предложенный выбор устарел.');
-                    }
-
-
-                    break;
-                case 'setTableFavorite':
-                    if ($_POST['status']) {
-                        $_POST['status'] = json_decode($_POST['status'], true);
-                        if (key_exists($this->Table->getTableRow()['id'],
-                                Auth::$aUser->getTreeTables()) && in_array($this->Table->getTableRow()['id'],
-                                Auth::$aUser->getFavoriteTables()) !== $_POST['status']) {
-                            $Users = tableTypes::getTableByName('users');
-                            if ($_POST['status']) {
-                                $favorite = array_merge(Auth::$aUser->getFavoriteTables(),
-                                    [$this->Table->getTableRow()['id']]);
-
-                            } else {
-                                $favorite = array_diff(Auth::$aUser->getFavoriteTables(),
-                                    [$this->Table->getTableRow()['id']]);
-                            }
-                            $Users->reCalculateFromOvers(['modify' => [Auth::$aUser->getId() => ['favorite' => $favorite]]]);
-                        }
-                        $result = ['status' => $_POST['status']];
-                    }
-                    break;
-
-                case 'getAllTables':
-                    if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
-                    $tables = [];
-                    $fields = \totum\common\Model::init('tables_fields')->getAll(['is_del' => false],
-                        'name, table_id, title, data, category');
-                    $fieldsForSobaka = [];
-
-                    foreach (\totum\common\Model::init('tables')->getAll(['is_del' => false],
-                        'name, id, title') as $tRow) {
-                        $tFields = [];
-                        $fieldsForSobaka = [];
-                        foreach ($fields as $v) {
-                            if ($v['table_id'] == $tRow['id']) {
-                                $tFields[$v['name']] = $v['title'];
-                                if (!in_array($v['category'], ['filter', 'column']) && json_decode($v['data'],
-                                        true)['type'] != 'button') {
-                                    $fieldsForSobaka[] = $v['name'];
-                                }
-                            }
-                        }
-                        $tables[$tRow['name']] = ['t' => $tRow['title'], 'f' => $tFields, '@' => $fieldsForSobaka];
-
-                    }
-
-                    $result = ['tables' => $tables];
-
-                    break;
-                case 'refresh_cycles':
-                    if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
-                    $ids = !empty($_POST['refreash_ids']) ? json_decode($_POST['refreash_ids'], true) : [];
-                    $result = $this->refreshCycles($ids);
-
-                    break;
-                case 'renameField':
-                    if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
-                    if (empty($_POST['name'])) throw new errorException('Нужно выбрать поле');
-                    if (empty($this->Table->getFields()[$_POST['name']])) throw new errorException('Поле в таблице не найдено');
-
-                    $calc = new CalculateAction("=: linkToDataTable(table: 'ttm__change_field_name'; title: 'Изменение name поля'; width: 800; height: \"80vh\"; params:\$row; refresh: 'strong';)
-row: rowCreate(field: 'table_name'='{$this->Table->getTableRow()['name']}'; field: 'field_name'='{$_POST['name']}')");
-                    $calc->exec(['name' => 'without_field'], [], [], [], [], [], $this->Table);
-
-                    break;
-                case 'addEyeGroupSet':
-                    if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
-                    if (empty(trim($_POST['name']))) throw new errorException('Имя сета должно быть не пустым');
-                    if (empty($_POST['fields'])) throw new errorException('Сет не должен быть пустым');
-
-
-                    $set = $this->changeFieldsSets(function ($set) {
-                        $set[] = ['name' => trim($_POST['name']), 'fields' => $_POST['fields']];
-                        return $set;
-                    });
-
-                    $result = ['sets' => $set];
-                    break;
-                case 'removeEyeGroupSet':
-                    if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
-                    $set = $this->changeFieldsSets(function ($set) {
-                        array_splice($set, $_POST['index'], 1);
-                        return $set;
-                    });
-
-                    $result = ['sets' => $set];
-                    break;
-                case 'leftEyeGroupSet':
-                    if (!Auth::isCreator()) throw new errorException('Функция доступна только Создателю');
-
-                    $set = $this->changeFieldsSets(function ($set) {
-                        if ($_POST['index'] > 0) {
-                            $setItem = array_splice($set, $_POST['index'], 1);
-                            array_splice($set, $_POST['index'] - 1, 0, $setItem);
-                        }
-                        return $set;
-                    });
-                    $result = ['sets' => $set];
-                    break;
-                case
-                'setCommentsViewed':
-                    if (Auth::getUserId()) {
-                        $field = $this->Table->getFields()[$_POST['field_name']] ?? null;
-                        if ($field && $field['type'] === 'comments') {
-                            /** @var Comments $Field */
-                            $Field = Field::init($field, $this->Table);
-                            $Field->setViewed($_POST['nums'], $_POST['id'] ?? null);
-                        }
-                    }
-                    $result = ['ok' => true];
-                    break;
-                case 'checkTableIsChanged':
-                    $result = $this->Table->checkTableIsChanged($_POST['code'] ?? '');
-                    break;
-                case 'getTableData':
-                    $table = $this->Table->getTableDataForInterface(true);
-
-
-                    $result = [
-                        'type' => $table['type']
-                        , 'control' => ['adding' => (!($table['__blocked'] ?? null) && $table['adding'])
-                            , 'deleting' => (!($table['__blocked'] ?? null) && $table['deleting'])
-                            , 'duplicating' => (!($table['__blocked'] ?? null) && $table['duplicating'])
-                            , 'editing' => (!($table['__blocked'] ?? null) && !$table['readOnly'])
-                        ]
-                        , 'tableRow' => ($this->Table->getTableRow()['type'] == 'calcs' ?
-                                ['fields_sets' => $this->changeFieldsSets()] : [])
-                            + $this->Table->getTableRow() +
-                            (is_a($this->Table,
-                                \totum\tableTypes\calcsTable::class) ? ['cycle_id' => $this->Table->getCycle()->getId()] : [])
-                        , 'f' => $table['f']
-                        , 'withCsvButtons' => $table['withCsvButtons']
-                        , 'withCsvEditButtons' => $table['withCsvEditButtons']
-
-
-                        , 'isCreatorView' => Auth::isCreator()
-//                        , 'notCorrectOrder' => ($table['notCorrectOrder'] ?? false)
-                        , 'fields' => $this->getFieldsForClient($table['fields'] ?? [])
-                        , 'data' => []
-                        , 'data_params' => []
-                        , 'checkIsUpdated' => 0
-                        , 'updated' => $table['updated']
-                    ];
-
-                    break;
-                case 'checkUnic':
-                    $result = $this->Table->checkUnic($_POST['fieldName'] ?? '', $_POST['fieldVal'] ?? '');
-                    break;
-
-                case 'edit':
-                    $data = [];
-                    if ($this->onlyRead) {
-
-                        $filterFields = $this->Table->getSortedFields()['filter'] ?? [];
-                        foreach ($_POST['data']["params"] as $fName => $fData) {
-                            if (array_key_exists($fName, $filterFields)) {
-                                $data[$fName] = $fData;
-                            }
-                        }
-                        foreach ($_POST['data']["setValuesToDefaults"] as $fName) {
-                            if (array_key_exists($fName, $filterFields)) {
-                                $data["setValuesToDefaults"][] = $fName;
-                            }
-                        }
-                        if (empty($data)) {
-                            return 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
-                        }
-
-                    } else {
-                        $data = $_POST['data'];
-                    }
-
-                    $result = $this->Table->modify(
-                        $_POST['tableData'] ?? [],
-                        ['modify' => $_POST['data'] ?? []]
-                    );
-                    break;
-                case 'click':
-                    $result = $this->Table->modify(
-                        $_POST['tableData'] ?? [],
-                        ['click' => $_POST['data'] ?? []]
-                    );
-                    break;
-                case 'add':
-
-                    if (Auth::$aUser->isOneCycleTable($this->Table->getTableRow())) return 'Добавление запрещено';
-                    $_POST['ids'] = json_decode($_POST['ids']);
-                    $this->Table->setWebIdInterval($_POST['ids']);
-
-                    $result = $this->Table->modify(
-                        $_POST['tableData'] ?? [],
-                        ['add' => $_POST['data'] ?? [], 'addAfter' => $_POST['insertAfter'] ?? null]
-                    );
-                    break;
-                case 'getFieldLog':
-
-                    $this->getFieldLog($_POST['field'], $_POST['id'] ?? null, $_POST['rowName'] ?? null);
-
-                    break;
-                case 'saveOrder':
-                    if (!empty($_POST['ids']) && ($orderedIds = json_decode($_POST['orderedIds'],
-                            true))) {
-                        $result = $this->Table->modify(
-                            $_POST['tableData'] ?? [],
-                            ['reorder' => $orderedIds ?? []]
-                        );
-                    } else throw new errorException('Таблица пуста');
-                    break;
-                case 'getValue':
-                    $result = $this->Table->getValue($_POST['data'] ?? []);
-                    break;
-                case 'checkInsertRow':
-                    $result = $this->Table->checkInsertRowForClient($_POST['data'] ?? [],
-                        $_POST['tableData'] ?? [],
-                        json_decode($_POST['editedFields'] ?? '[]', true));
-                    break;
-                case 'checkEditRow':
-                    $result = $this->Table->checkEditRow($_POST['data'] ?? [], $_POST['tableData'] ?? []);
-                    break;
-                case 'refresh':
-
-                    $result = $this->Table->getTableDataForRefresh($_POST['offset'] ?? null, $_POST['onPage'] ?? null);
-
-                    break;
-                case 'selectSourceTableAction':
-                    $result = $this->Table->selectSourceTableAction($_POST['field_name'],
-                        $_POST['data'] ?? []
-                    );
-                    break;
-                case 'printTable':
-                    $this->printTable();
-
-
-                    break;
-                case 'saveEditRow':
-                    $result = $this->Table->modify($_POST['tableData'] ?? [],
-                        ['modify' => [$_POST['data']['id'] => $_POST['data'] ?? []]]);
-                    break;
-                case 'getEditSelect':
-                    $result = $this->Table->getEditSelect($_POST['data'] ?? [],
-                        $_POST['q'] ?? '',
-                        $_POST['parentId'] ?? null);
-                    break;
-                case 'loadPreviewHtml':
-                    $result = $this->getPreviewHtml($_POST['data'] ?? []);
-                    break;
-                case 'delete':
-                    $ids = !empty($_POST['delete_ids']) ? json_decode($_POST['delete_ids'], true) : [];
-                    $result = $this->Table->modify(
-                        $_POST['tableData'] ?? [],
-                        ['remove' => $ids]
-                    );
-
-                    break;
-                case 'calcFieldsLog':
-
-                    $CA = new CalculateAction('= : linkToDataTable(title:"' . $_POST['name'] . '" ; table: \'calc_fields_log\'; width: 1000; height: "80vh"; params: $row; refresh: false; header: true; footer: true)
-row: rowCreate(field: "data" = $#DATA)');
-
-                    $Vars = ['DATA' => $_POST['calc_fields_data']];
-                    $CA->execAction('KOD',
-                        [],
-                        [],
-                        [],
-                        [],
-                        tableTypes::getTableByName('tables'),
-                        $Vars);
-                    break;
-                case 'duplicate':
-                    $ids = !empty($_POST['duplicate_ids']) ? json_decode($_POST['duplicate_ids'], true) : [];
-                    if ($ids) {
-                        $Calc = new CalculateAction($this->Table->getTableRow()['on_duplicate']);
-
-                        if (!empty($this->Table->getTableRow()['on_duplicate'])) {
-                            try {
-                                Sql::transactionStart();
-                                $Calc->execAction('__ON_ROW_DUPLICATE',
-                                    [],
-                                    [],
-                                    $this->Table->getTbl(),
-                                    $this->Table->getTbl(),
-                                    $this->Table,
-                                    ['ids' => $ids]);
-                                Sql::transactionCommit();
-                                Controller::addLogVar($this->Table, ['__ON_ROW_DUPLICATE'], 'a', $Calc->getLogVar());
-
-                            } catch (errorException $e) {
-                                if (Auth::isCreator()) {
-                                    $e->addPath('Таблица [[' . $this->Table->getTableRow()['name'] . ']]; КОД ПРИ ДУБЛИРОВАНИИ');
-                                } else {
-                                    $e->addPath('Таблица [[' . $this->Table->getTableRow()['title'] . ']]; КОД ПРИ ДУБЛИРОВАНИИ');
-                                }
-                                Controller::addLogVar($this->Table, ['__ON_ROW_DUPLICATE'], 'a', $Calc->getLogVar());
-                                throw $e;
-                            }
-
-
-                        } else {
-                            $result = $this->Table->modify(
-                                $_POST['tableData'] ?? [],
-                                ['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => $_POST['data']], 'addAfter' => ($_POST['insertAfter'] ?? null)]);
-                        }
-                        $result = $this->Table->getTableDataForRefresh($_POST['offset'] ?? null,
-                            $_POST['onPage'] ?? null);
-
-
-                    }
-                    break;
-                case 'refresh_rows':
-                    $ids = !empty($_POST['refreash_ids']) ? json_decode($_POST['refreash_ids'], true) : [];
-                    $result = $this->Table->modify(
-                        $_POST['tableData'] ?? [],
-                        ['refresh' => $ids]
-                    );
-                    break;
-                case 'csvExport':
-                    if (Table::isUserCanAction('csv', $this->Table->getTableRow())) {
-                        $result = $this->Table->csvExport(
-                            $_POST['tableData'] ?? [],
-                            $_POST['sorted_ids'] ?? '[]',
-                            json_decode($_POST['visibleFields'] ?? '[]', true),
-                            $_POST['type']
-                        );
-                    } else throw new errorException('У вас нет доступа для csv-выкрузки');
-                    break;
-                case 'csvImport':
-                    if (Table::isUserCanAction('csv_edit', $this->Table->getTableRow())) {
-                        $result = $this->Table->csvImport($_POST['tableData'] ?? [],
-                            $_POST['csv'] ?? '',
-                            $_POST['answers'] ?? [],
-                            json_decode($_POST['visibleFields'] ?? '[]', true),
-                            $_POST['type']
-                        );
-                    } else throw new errorException('У вас нет доступа для csv-изменений');
-                    break;
-                default:
-                    $result = ['error' => 'Метод [[' . $method . ']] в этом модуле не определен'];
+            if (!($method = $request->getParsedBody()['method'] ?? '')) {
+                throw new errorException('Ошибка. Не указан метод');
             }
+            $Actions = $this->getTableActions($request, $method);
 
+            /** @var string $method */
+            $result = $Actions->$method();
 
-            if ($links = Controller::getLinks()) {
+            if ($links = $this->Totum->getInterfaceLinks()) {
                 $result['links'] = $links;
             }
-            if ($panels = Controller::getPanels()) {
+            if ($panels = $this->Totum->getPanelLinks()) {
                 $result['panels'] = $panels;
             }
-            if ($links = Controller::getInterfaceDatas()) {
+            if ($links = $this->Totum->getInterfaceDatas()) {
                 $result['interfaceDatas'] = $links;
             }
-
-            $result['FullLOGS'] = [];
-            if (static::$FullLogs || static::$Logs) {
-                $result['LOGS'] = static::$Logs;
-                $result['FullLOGS'] = static::$FullLogs;
-
-            }
-
-            if (in_array('recalcs', $this->getLogTypes())) {
-                if ($logs = reCalcLogItem::getAllLog()) {
-                    $result['FullLOGS'][] = $logs;
-
-                }
-            }
-            if (in_array('flds', $this->getLogTypes())) {
-                $result['FieldLogs'] = Calculate::$calcLog;
-            }
-
-
-            if (!empty($result)) $this->__setAnswerArray($result);
-
-            Sql::transactionCommit();
-
-
-        } catch (errorException $exception) {
-            $return = ['error' => $exception->getMessage() . (Auth::isCreator() ? "<br/>" . $exception->getPathMess() : '')];
-
-            $result['FullLOGS'] = [];
-            if (static::$FullLogs || static::$Logs) {
-                $return['LOGS'] = static::$Logs;
-                $return['FullLOGS'] = static::$FullLogs;
-                $result['FieldLogs'] = Calculate::$calcLog;
-            }
-
-            if (in_array('recalcs', $this->getLogTypes()) && $logs = reCalcLogItem::getAllLog()) {
-                $result['FullLOGS'][] = $logs;
-            }
-            return $return;
+            $this->Totum->transactionCommit();
+        } catch (\Exception $exception) {
+            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess'])? "<br/>" . $exception->getPathMess() : '')];
         }
 
-    }
+        if ($this->User->isCreator() && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
+            $this->CalculateLog->addParam('result', 'done');
 
-    function changeFieldsSets($func = null)
-    {
-        if ($this->Table->getTableRow()['type'] == 'calcs') {
-            $tableVersions = tableTypes::getTable(Table::getTableRowByName('calcstable_versions'));
-            $vIdSet = $tableVersions->getByParams(['where' => [['field' => 'table_name', 'operator' => '=', 'value' => $this->Table->getTableRow()['name']],
-                ['field' => 'version', 'operator' => '=', 'value' => $this->Table->getTableRow()['__version']]], 'field' => ['id', 'fields_sets']],
-                'row');
-            $set = $vIdSet['fields_sets'] ?? [];
-
-            if ($func) {
-                $set = $func($set);
-                $tableVersions->reCalculateFromOvers([
-                    'modify' => [$vIdSet['id'] => ['fields_sets' => $set]]
-                ]);
-            }
-
-
-        } else {
-            $set = $this->Table->getTableRow()['fields_sets'];
-            $tableTables = tableTypes::getTable(Table::getTableRowByName('tables'));
-            if ($func) {
-                $set = $func($set);
-                $tableTables->reCalculateFromOvers([
-                    'modify' => [$this->Table->getTableRow()['id'] => ['fields_sets' => $set]]
-                ]);
+            if (in_array('flds', $types)) {
+                $result['FieldLOGS'] = $this->CalculateLog->getFieldLogs();
+            } else {
+                $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
+                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
             }
         }
-        return $set;
+        return $result;
     }
 
-    function setTreeData()
-    {
 
+    protected function setTreeData()
+    {
         $this->__addAnswerVar('Branch', $this->branchId);
-
+        $this->__addAnswerVar('ModulePath', $this->modulePath);
         $tree = [];
         $branchIds = [];
-        $topBranches = [];
 
-        if (Auth::isCreator()) {
-            $branchesArray = Tree::init()->getBranchesForCreator($this->branchId);
-
+        if ($this->User->isCreator()) {
+            $branchesArray = Tree::init($this->Config)->getBranchesForCreator($this->branchId);
         } else {
-            $branchesArray = Tree::init()->getBranchesByTables(
+            $branchesArray = Tree::init($this->Config)->getBranchesByTables(
                 $this->branchId,
-                array_keys(Auth::$aUser->getTreeTables()),
-                Auth::$aUser->getRoles());
+                array_keys($this->User->getTreeTables()),
+                $this->User->getRoles()
+            );
         }
+        $anchors = [];
         foreach ($branchesArray as $t) {
-
-
+            /*For top branches get only same branch. Top branches are got not here*/
             if (!$t['parent_id']) {
-                if ($t['id'] == $this->branchId) {
-                    $this->__addAnswerVar('title', $t['title']);
-                    $this->__addAnswerVar('BranchTitle', $t['title']);
+                if ($t['id'] === (int)$this->branchId) {
+                    $this->__addAnswerVar('title', $t['title'], true);
+                    $this->__addAnswerVar('BranchTitle', $t['title'], true);
                 }
-                $topBranches[] = $t;
-                if ($t['top'] != $this->branchId) continue;
+                if ($t['top'] !== (int)$this->branchId) {
+                    continue;
+                }
+            }
+
+            if ($t['type'] === 'anchor') {
+                $anchors[$t['parent_id']][$t['default_table']][] = count($tree);
             }
 
             $tree[] =
-                ($t['type'] == 'link' ? ['link' => $t['link']] : []) + [
+                ($t['type'] === 'link' ? ['link' => $t['link']] : []) + [
                     'id' => 'tree' . $t['id']
                     , 'text' => $t['title']
-                    , 'type' => $t['type'] ? ($t['type'] == 'anchor' ? "link" : $t['type']) : 'folder'
-                    , 'link' => $t['type'] == 'anchor' ? ('/Table/' . $t['id'] . '/') : null
+                    , 'type' => $t['type'] ? ($t['type'] === 'anchor' ? "link" : $t['type']) : 'folder'
+                    , 'link' => $t['type'] == 'anchor' ? ($this->modulePath . $t['id'] . '/') : null
                     , 'parent' => ($parent = (!$t['parent_id'] ? '#' : 'tree' . $t['parent_id']))
+                    , 'ord' => $t['ord']
                     , 'state' => [
-                        'selected' => $t['type'] == 'anchor' ? ($this->anchorId == $t['id']) : false
+                        'selected' => $t['type'] === 'anchor' ? ((int)$this->anchorId === (int)$t['id']) : false
                     ]
                 ]
                 + (
-                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []);
-            if ($t['type'] != "link")
+                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
+                );
+            if ($t['type'] !== "link") {
                 $branchIds[] = $t['id'];
+            }
         }
         if ($branchIds) {
-
-            foreach (Table::init()->getAll(['tree_node_id' => ($branchIds), 'id' => array_keys(Auth::$aUser->getTreeTables())],
-                'id, title, type, tree_node_id',
-                '(sort->>\'v\')::numeric') as $t) {
+            foreach (Table::init($this->Config)->getAll(
+                ['tree_node_id' => ($branchIds), 'id' => array_keys($this->User->getTreeTables())],
+                'id, title, type, tree_node_id, sort',
+                '(sort->>\'v\')::numeric'
+            ) as $t) {
                 $tree[] = [
                     'id' => 'table' . $t['id']
                     , 'href' => $t['id']
                     , 'text' => $t['title']
                     , 'type' => 'table_' . $t['type']
                     , 'parent' => 'tree' . $t['tree_node_id']
+                    , 'ord' => (int)$t['sort']
                     , 'state' => [
-                        'selected' => (!$this->anchorId && $this->Table && $this->Table->getTableRow()['id'] == $t['id'] ? true : false)
+                        'selected' => !$this->anchorId && $this->Table && $this->Table->getTableRow()['id'] === $t['id']
                     ]
                 ];
+
+                if (!empty($anchors[$t['tree_node_id']][$t['id']])) {
+                    foreach ($anchors[$t['tree_node_id']][$t['id']] as $index) {
+                        $tree[$index]['parent']='table' . $t['id'];
+                    }
+                }
             }
         }
+;
+        /*sort through folders and tables*/
+        {
+            $ords = array_column($tree, 'ord');
+            array_multisort($ords, $tree);
+        }
 
-        if ($this->Table && ($this->Table->getTableRow()['type'] == 'calcs') && $this->Cycle) {
-
-
+        if ($this->Table && ($this->Table->getTableRow()['type'] === 'calcs') && $this->Cycle) {
             $idHref = 'Cycle' . $this->Cycle->getId();
             $isOneTable = false;
-            if (Auth::$aUser->isOneCycleTable($this->Cycle->getCyclesTable()->getTableRow()) && count($this->Cycle->getCyclesTable()->getUserCycles(Auth::getUserId())) === 1) {
+            if ($this->User->isOneCycleTable($this->Cycle->getCyclesTable()->getTableRow()) && $this->Cycle->getCyclesTable()->getUserCyclesCount() === 1) {
                 $idHref = 'table' . $this->Table->getTableRow()['tree_node_id'];
                 $isOneTable = true;
             } else {
@@ -898,8 +230,8 @@ row: rowCreate(field: "data" = $#DATA)');
 
 
             foreach ($this->Cycle->getListTables() as $i => $tId) {
-                if (array_key_exists($tId, Auth::$aUser->getTreeTables())) {
-                    if ($tableRow = Table::getTableRowById($tId)) {
+                if (array_key_exists($tId, $this->User->getTreeTables())) {
+                    if ($tableRow = $this->Totum->getTableRow($tId)) {
                         $tree[] = [
                             'id' => 'table' . $tId
                             , 'href' => $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId
@@ -909,27 +241,24 @@ row: rowCreate(field: "data" = $#DATA)');
                             , 'isCycleTable' => true
                             , 'isOneUserCycle' => $isOneTable
                             , 'state' => [
-                                'selected' => ($this->Table && $this->Table->getTableRow()['id'] == $tId ? true : false)
+                                'selected' => $this->Table->getTableRow()['id'] === $tId
                             ]
                         ];
                         if ($this->anchorId) {
                             unset($tree[count($tree) - 1]['href']);
-                            $tree[count($tree) - 1]['link'] = '/Table/' . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
+                            $tree[count($tree) - 1]['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                         }
                         if ($i === 0 && !empty($cycleRow)) {
-
                             if ($this->anchorId) {
-                                $cycleRow['link'] = '/Table/' . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
+                                $cycleRow['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                             } else {
                                 $cycleRow['href'] = $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId;
                             }
                         }
-
                     }
                 }
             }
         }
-
 
 
         foreach ($tree as $i => $_t) {
@@ -942,587 +271,429 @@ row: rowCreate(field: "data" = $#DATA)');
         $tree = array_values($tree);
 
 
-        $this->__addAnswerVar('topBranches', $topBranches);
         $this->__addAnswerVar('treeData', $tree);
-
     }
 
-    function doIt($action)
+    protected function outputHtmlTemplate()
     {
-        if (!$this->isAjax) $action = 'Table';
-        else $action = 'Actions';
-
-
         try {
-            if (Auth::isAuthorized()) {
-                $this->checkTableByUri();
-            }
+            if ($this->User) {
+                $this->__addAnswerVar('isCreatorView', $this->User->isCreator());
+                $this->__addAnswerVar('UserName', $this->User->getVar('fio'), true);
+                if ($this->User->isCreator() || Auth::isCreatorOnShadow()) {
+                    $this->__addAnswerVar(
+                        'reUsers',
+                        $this->Config->getModel('users')->getFieldIndexedById(
+                            'fio',
+                            ['is_del' => false, 'interface' => 'web', 'on_off' => 'true', '!login' => ['service', 'cron']]
+                        )
+                    );
 
-            parent::doIt($action);
-
-
-        } catch (errorException $e) {
-            if (empty($_POST['ajax'])) {
-                static::$contentTemplate = 'templates/__error.php';
-                $this->errorAnswer($e->getMessage() . "<br/>" . $e->getPathMess());
-            } else {
-                echo json_encode(['error' => $e->getMessage()]);
-            }
-        }
-    }
-
-    function actionTable()
-    {
-        $this->setTreeData();
-        if (!$this->Table) return;
-
-
-        /*Для таблиц циклов с одним циклом на пользователя*/
-        if (Auth::$aUser->isOneCycleTable($this->Table->getTableRow())) {
-            $cycles = $this->Table->getUserCycles(Auth::$aUser->getId());
-            if (count($cycles) === 0) {
-                $this->Table->modify(
-                    null,
-                    ['add' => []]);
-                $cycles = $this->Table->getUserCycles(Auth::$aUser->getId());
-            }
-            if (count($cycles) === 1) {
-                $Cycle = Cycle::init($cycles[0], $this->Table->getTableRow()['id']);
-                $calcsTablesIDs = $Cycle->getTables();
-                if (!empty($calcsTablesIDs)) {
-                    foreach ($calcsTablesIDs as $tableId) {
-                        if (Auth::$aUser->isTableInAccess($tableId)) {
-                            header('location: /Table/' . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $cycles[0] . '/' . $tableId);
-                            die;
-                        }
-                    }
+                    $this->__addAnswerVar('isCreatorNotItself', Auth::isCreatorNotItself());
                 }
             }
-        }
-        /*;;;;;;;;;;;;*/
+            $this->__addAnswerVar('schema_name', $this->Config->getSettings('totum_name'), true);
 
+            $this->__addAnswerVar('notification_period', $this->Config->getSettings('periodicity') ?? 0);
+            $this->__addAnswerVar('topBranches', $this->getTopBranches(), true);
+            $this->__addAnswerVar('totumFooter', $this->Config->getTotumFooter());
 
-        $this->Table->setFilters($_GET['f'] ?? '');
-
-        $tableData = $this->Table->getTableDataForInterface(false, $this->Table->getTableRow()['pagination'] !== '0/0');
-
-        $tableData['fields'] = $this->getFieldsForClient($tableData['fields']);
-        $this->__addAnswerVar('table', $tableData);
-        $this->__addAnswerVar('error', $tableData['error'] ?? null);
-        $this->__addAnswerVar('onlyRead', $tableData['onlyRead'] ?? $this->onlyRead);
-
-        $result['FullLOGS'] = static::$FullLogs ?? [];
-
-
-        if (static::$Logs ?? null) {
-            $this->__addAnswerVar('LOGS', static::$Logs);
-        }
-        if ($result['FullLOGS'] || in_array('recalcs', $this->getLogTypes())) {
-            if (in_array('recalcs', $this->getLogTypes())) {
-                $result['FullLOGS'][] = reCalcLogItem::getAllLog();
+            if (empty($this->answerVars['treeData'])) {
+                $this->setTreeData();
             }
-            $this->__addAnswerVar('FullLOGS', $result['FullLOGS']);
+
+            if (isset($this->Table)) {
+                $this->__addAnswerVar('title', $this->Table->getTableRow()['title'], true);
+            }
+        } catch (SqlException $e) {
+            $this->Config->getLogger('sql')->error($e->getMessage(), $e->getTrace());
+            $this->__addAnswerVar('error', "Ошибка базы данных");
         }
-        if (in_array('flds', $this->getLogTypes())) {
-            $this->__addAnswerVar('FieldLOGS', Calculate::$calcLog);
-        }
+        parent::outputHtmlTemplate();
     }
 
     /**
      * @return array
      */
-    public
-    function getLogTypes()
+    protected function getTopBranches()
     {
-        return $this->logTypes ?? ($this->logTypes = json_decode($_COOKIE['pcTableLogs'] ?? '[]', true));
+        if ($this->User->isCreator()) {
+            $topBranches = Tree::init($this->Config)->getBranchesForCreator(null);
+        } else {
+            $topBranches = Tree::init($this->Config)->getBranchesByTables(
+                null,
+                array_keys($this->User->getTreeTables()),
+                $this->User->getRoles()
+            );
+        }
+        foreach ($topBranches as &$branch) {
+            $href = $this->modulePath . $branch['id'] . '/';
+
+            if (!empty($branch['default_table']) && $this->User->isTableInAccess($branch['default_table'])) {
+                $href .= $branch['default_table'] . '/';
+            }
+            $branch['href'] = $href;
+            if (is_a(
+                $this,
+                TableController::class
+            ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
+                $branch['active'] = true;
+            }
+        }
+        unset($branch);
+        return $topBranches;
     }
 
-    protected
-    function __addInGlobalLog(aTable $table, $path, $type = 'c', $log)
+    /**
+     * Check action from path, run, output
+     *
+     * @param ServerRequestInterface $request
+     * @param bool $output
+     */
+    public function doIt(ServerRequestInterface $request, bool $output)
     {
-        if (is_null($log)) return;
+        $requestUri = preg_replace('/\?.*/', '', $request->getUri()->getPath());
+        $requestTable = substr($requestUri, strlen($this->modulePath));
 
-        if (!static::$FullLogsTOO_BIG && static::$FullLogsSize >= 5000000) {
-            static::$FullLogsTOO_BIG = true;
-            array_unshift(static::$FullLogs[0]['children'], ['text' => 'СЛИШКОМ БОЛЬШОЙ ЛОГ', 'type' => '!']);
+        $post = ($request->getParsedBody());
+
+        if ($post['ajax'] ?? null) {
+            $this->isAjax = true;
+        }
+        if ($requestTable || $this->isAjax) {
+            if (!$this->isAjax) {
+                $action = 'Table';
+            } else {
+                $action = 'Actions';
+            }
+            $this->tableUri = $requestTable;
+        } else {
+            $action = 'Main';
+        }
+        try {
+            try {
+                if ($this->isAjax) {
+                    $action = 'Ajax' . $action;
+                }
+                $this->__run($action, $request);
+            } catch (tableSaveException $exception) {
+                if (++$this->totumTries < 5) {
+                    $this->Config = $this->Config->getClearConf();
+                    $this->answerVars = [];
+                    $this->doIt($request, false);
+                } else {
+                    throw new \Exception('Ошибка одновременного доступа к таблице');
+                }
+            }
+        } catch (\Exception $e) {
+            if (!$this->isAjax) {
+                static::$contentTemplate = $this->Config->getTemplatesDir() . '/__error.php';
+            }
+            $message = $e->getMessage();
+            if ($this->User && $this->User->isCreator() && key_exists(
+                WithPathMessTrait::class,
+                class_uses(get_class($e))
+            )) {
+                $message .= "<br/>" . $e->getPathMess();
+            }
+            $this->__addAnswerVar('error', $message);
+        }
+        if ($output) {
+            $this->output($action);
+        }
+    }
+
+    public function __actionRun($action, ServerRequestInterface $request)
+    {
+        $this->Totum = new Totum($this->Config, $this->User);
+        $this->Totum->setCalcsTypesLog(json_decode($request->getCookieParams()['pcTableLogs'] ?? '[]', true));
+
+        parent::__actionRun($action, $request);
+    }
+
+
+    public function actionTable(ServerRequestInterface $request)
+    {
+        $this->checkTableByUri($request);
+
+        if (!$this->Table) {
             return;
         }
-        static::$FullLogsSize += strlen(json_encode($log, JSON_UNESCAPED_UNICODE));
-
-        $fL =& static::$FullLogs;
-
-
-        $tableFolder = null;
-
-        if ($table->getTableRow()['type'] == 'calcs') {
-            $tableHashName = $table->getTableRow()['id'] . '_' . $table->getCycle()->getId();
-            $tableTitle = $table->getTableRow()['title'] . ' / цикл id ' . $table->getCycle()->getId();
-        } else {
-            $tableHashName = $table->getTableRow()['id'];
-            $tableTitle = $table->getTableRow()['title'];
-        }
-
-        if (empty(static::$FullLogsTablesIndex[$tableHashName])) {
-            static::$FullLogsTablesIndex[$tableHashName] =  &$fL[];
-            static::$FullLogsTablesIndex[$tableHashName]['text'] = $tableTitle;
-            static::$FullLogsTablesIndex[$tableHashName] = &static::$FullLogsTablesIndex[$tableHashName]['children'];
-        }
-
-        $tableFolder = &static::$FullLogsTablesIndex[$tableHashName];
-        $tableFolderPath = [$tableTitle];
-
-
-        if (ctype_digit(strval($path[0]))) {
-            if ($path[0] === 0) {
-                $path[0] = 'Строка добавления';
-            }
-            array_unshift($path, 'СТРОЧНАЯ ЧАСТЬ');
-        }
-
-        $types = [
-            'c' => 'Код',
-            's' => 'Селект',
-            'f' => 'Формат',
-            'a' => 'Код действия',
-        ];
-
-        $path[] = $types[$type];
-        foreach ($path as $folder) {
-            $thisFolderPath = null;
-            if ($tableFolder) {
-                foreach ($tableFolder as $k => $innerItem) {
-                    if ($innerItem['text'] === $folder) {
-                        $tableFolder = &$tableFolder[$k]['children'];
-                        continue 2;
+        try {
+            /*Для таблиц циклов с одним циклом на пользователя*/
+            if ($this->Table->getUser()->isOneCycleTable($this->Table->getTableRow())) {
+                $cyclesCount = $this->Table->getUserCyclesCount();
+                if ($cyclesCount === 0) {
+                    $this->Table->reCalculateFromOvers(['add' => []]);
+                    $cyclesCount = 1;
+                }
+                if ($cyclesCount === 1) {
+                    $Cycle = $this->Totum->getCycle(
+                        $this->Table->getUserCycles($this->Table->getUser()->getId())[0],
+                        $this->Table->getTableRow()['id']
+                    );
+                    $calcsTablesIDs = $Cycle->getTableIds();
+                    if (!empty($calcsTablesIDs)) {
+                        foreach ($calcsTablesIDs as $tableId) {
+                            if ($this->Table->getUser()->isTableInAccess($tableId)) {
+                                $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
+                                die;
+                            }
+                        }
                     }
                 }
             }
-
-            $tableFolder = &$tableFolder[];
-            $tableFolder['text'] = $folder;
-            $tableFolder = &$tableFolder['children'];
-
+        } catch (criticalErrorException $e) {
+            $error = 'Ошибка ' . $e->getMessage();
         }
 
-        $tableFolder[] = $log;
-    }
 
-    protected
-    function __addLogVar(aTable $table, $path, $type = 'c', $log)
-    {
-
-        $logTypes = $this->getLogTypes();
-
-
-        if (in_array($type, $logTypes)) {
-            $this->__addInGlobalLog($table, $path, $type, $log);
-
-
-            if ($this->Table->getTableRow()['id'] != $table->getTableRow()['id']) return;
-            if ($this->Table->getTableRow()['type'] === 'calcs') {
-                if ($this->Table->getCycle()->getID() != $table->getCycle()->getId()) return;
+        /*Основная часть отдачи таблицы*/
+        if (empty($error)) {
+            try {
+                $Actions = $this->getTableActions($request, "getFullTableData");
+                $result = $Actions->getFullTableData(true);
+            } catch (criticalErrorException $exception) {
+                $this->clearTotum($request);
+                $Actions = $this->getTableActions($request, "getFullTableData");
+                $error = $exception->getMessage();
+                $result = $Actions->getFullTableData(false);
             }
-            $f =& static::$Logs;
-
-            foreach ($path as $folder) {
-                if (empty($f[$folder])) $f[$folder] = [];
-                $f = &$f[$folder];
-            }
-            if (empty($f[$type])) $f[$type] = [];
-            $f[$type][] = $log;
-
         }
+
+        $result['isCreatorView'] = $this->User->isCreator();
+        $result['checkIsUpdated'] = ($result['type'] === 'tmp' || in_array(
+            $this->Table->getTableRow()['actual'],
+            ['none', 'disable']
+        )) ? 0 : 1;
+
+        $result['isMain'] = true;
+        if (!empty($a = ($request->getQueryParams()['a'] ?? null))) {
+            $result['addVars'] = $a;
+        }
+
+        if ($this->User->isCreator()) {
+            $result['TableFields'] = ['branchId' => 1, 'id' => 'tables_fields'];
+            $result['Tables'] = ['branchId' => 1, 'id' => 'tables'];
+
+            $result['hidden_fields'] = array_diff_key($this->Table->getFields(), $this->Table->getVisibleFields('web'));
+
+            if ($result['tableRow']['type'] === 'calcs') {
+                $result['TablesCyclesVersions'] = ['branchId' => 1, 'id' => 'calcstable_cycle_version'];
+                $result['TablesVersions'] = ['branchId' => 1, 'id' => 'calcstable_versions'];
+                $result['calcstable_cycle_version_filters'] = Crypt::getCrypted(json_encode(
+                    [
+                        'fl_table' => $this->Table->getTableRow()['tree_node_id'],
+                        'fl_cycle' => $this->Table->getCycle()->getId()
+                    ],
+                    JSON_UNESCAPED_UNICODE
+                ));
+                $result['calcstable_versions_filters'] = Crypt::getCrypted(json_encode(
+                    [
+                        'fl_table' => $this->Table->getTableRow()['tree_node_id'],
+                    ],
+                    JSON_UNESCAPED_UNICODE
+                ));
+            }
+            if (($types = $this->Totum->getCalculateLog()->getTypes())) {
+                if (in_array('flds', $types)) {
+                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => 'Расчет таблицы']];
+                } else {
+                    $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
+                    // $result['treeLogs'] = $this->CalculateLog->getLodTree();
+                }
+            }
+        }
+
+        $this->__addAnswerVar('error', $error ?? $result['error'] ?? null);
+        $this->__addAnswerVar('tableConfig', $result);
     }
 
-    protected
-    function checkTableByUri()
+    protected function checkTableByUri(ServerRequestInterface $request)
     {
-        if (empty($this->inModuleUri) || !preg_match('/^(\d+)\//', $this->inModuleUri, $branchMatches)) {
-            $this->location();
-            die;
+        if (!preg_match('/^(\d+)\//', $this->tableUri, $branchMatches)) {
+            return;
         }
         $this->branchId = $branchMatches[1];
 
-        $tableUri = substr($this->inModuleUri, strlen($this->branchId) + 1);
+        $tableUri = substr($this->tableUri, strlen($this->branchId) + 1);
         $tableId = 0;
 
-        $checkTreeTable = function ($tableId) {
-            if (!array_key_exists($tableId, Auth::$aUser->getTables())) {
-                $this->__addAnswerVar('error', 'Доступ к таблице запрещен');
-                $tableId = 0;
+        $checkTreeTable = function ($tableId) use ($request) {
+            if (!array_key_exists($tableId, $this->User->getTables())) {
+                throw new errorException('Доступ к таблице запрещен');
             } else {
-                $this->onlyRead = Auth::$aUser->getTables()[$tableId] == 0;
+                $this->onlyRead = $this->User->getTables()[$tableId] === 0;
                 $extradata = null;
-                if ($tableRow = Table::getTableRowById($tableId)) {
+                if ($tableRow = $this->Config->getTableRow($tableId)) {
                     switch ($tableRow['type']) {
                         case 'calcs':
                             $this->__addAnswerVar('error', 'Неверный путь к таблице. Воспользуйтесь деревом');
                             return;
                         case 'tmp':
-                            $extradata = $_POST['tableData']['sess_hash'] ?? $_GET['sess_hash'] ?? null;
+                            $extradata = $request->getParsedBody()['tableData']['sess_hash'] ?? $request->getQueryParams()['sess_hash'] ?? null;
                             break;
                     }
-                    $this->Table = tableTypes::getTable($tableRow, $extradata);
-                    $this->Table->setNowTable();
+                    $this->Table = $this->Totum->getTable($tableRow, $extradata);
                 }
             }
         };
 
 
-        if (!empty($_POST['method']) && in_array($_POST['method'], ['getValue'])) {
-            if (!empty($_POST['table_id'])) {
-                $checkTreeTable((int)$_POST['table_id']);
+        if (!empty($request->getParsedBody()['method']) && in_array(
+            $request->getParsedBody()['method'],
+            ['getValue']
+        )) {
+            if (!empty($request->getParsedBody()['table_id'])) {
+                $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;
             }
         }
 
 
-        if ($tableUri && (preg_match('/^(\d+)\/(\d+)\/(\d+)/',
-                    $tableUri,
-                    $tableMatches) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
-
+        if ($tableUri && (preg_match(
+            '/^(\d+)\/(\d+)\/(\d+)/',
+            $tableUri,
+            $tableMatches
+        ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
             if (empty($tableMatches[3])) {
-                $tableRow = Table::getTableRowById($tableMatches[2]);
+                $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
                     throw new errorException('Ошибка строки доступа');
                 }
                 $tableId = $tableMatches[2];
                 $tableMatches[2] = $tableMatches[1];
                 $tableMatches[1] = $tableRow['tree_node_id'];
-                $branchData = tableTypes::getTableByName('tree')->getByParams(['field' => ['html', 'type', 'default_table', 'filters', 'top'], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $this->branchId]]],
-                    'row');
+                $branchData = $this->Totum->getTable('tree')->getByParams(
+                    ['field' => ['html', 'type', 'default_table', 'filters', 'top'], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $this->branchId]]],
+                    'row'
+                );
                 switch ($branchData['type']) {
                     case null:
-                        $this->__addAnswerVar('html', $branchData['html']);
+                        $this->__addAnswerVar(
+                            'html',
+                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
+                        );
                         break;
                     case 'anchor':
                         $this->anchorId = $this->branchId;
                         $this->branchId = $branchData['top'];
                         break;
                 }
-
             } else {
                 $tableId = $tableMatches[3];
             }
 
 
-            $this->Cycle = Cycle::init($tableMatches[2], $tableMatches[1]);
+            $this->Cycle = $this->Totum->getCycle($tableMatches[2], $tableMatches[1], $this->Totum);
             if (!$this->Cycle->loadRow()) {
                 throw new errorException('Цикл не найден');
             }
 
-            if (!array_key_exists($tableId, Auth::$aUser->getTables())) {
-                $this->__addAnswerVar('error', 'Доступ к таблице запрещен');
+            if (!array_key_exists($tableId, $this->User->getTables())) {
+                throw new errorException('Доступ к таблице запрещен');
             } else {
-                $this->onlyRead = Auth::$aUser->getTables()[$tableId] == 0;
+                $this->onlyRead = $this->User->getTables()[$tableId] === 0;
 
                 //Проверка доступа к циклу
 
-                if (!Auth::isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                        [1, 2, 3])) {
+                if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
+                    $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                    [1, 2, 3]
+                )) {
                     //Если не связанный пользователь
-                    if (count(array_intersect($this->Cycle->getRow()['creator_id']['v'],
-                            Auth::$aUser->getConnectedUsers())) === 0) {
-                        if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] == 3) {
+                    if (count(array_intersect(
+                        $this->Cycle->getRow()['creator_id']['v'],
+                        $this->User->getConnectedUsers()
+                    )) === 0) {
+                        if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {
-                            $this->__addAnswerVar('error', 'Доступ к циклу запрещен');
+                            throw new errorException('Доступ к циклу запрещен');
                             return;
                         }
                     }
                 }
 
-                if ($tableRow = Table::getTableRowById($tableId)) {
-                    if ($tableRow['type'] != 'calcs') throw new errorException('Это не рассчетная таблица');
+                if ($tableRow = $this->Config->getTableRow($tableId)) {
+                    if ($tableRow['type'] !== 'calcs') {
+                        throw new errorException('Это не рассчетная таблица');
+                    }
                     $this->Table = $this->Cycle->getTable($tableRow);
-                    $this->Table->setNowTable();
                 }
-
             }
-        } elseif ($tableUri && preg_match('/^(\d+)/', $tableUri, $tableMatches)) {
-            $tableId = $tableMatches[1];
-
+        } elseif ($tableUri && preg_match('/^([a-z0-9_]+)/', $tableUri, $tableMatches)) {
+            if (!ctype_digit($tableMatches[1])) {
+                $tableRow = $this->Config->getTableRow($tableMatches[1]);
+                if ($tableRow) {
+                    $tableId = $tableRow['id'];
+                }
+            } else {
+                $tableId = $tableMatches[1];
+            }
             $checkTreeTable($tableId);
         } else {
-            $branchData = tableTypes::getTableByName('tree')->getByParams(['field' => ['html', 'type', 'default_table', 'filters', 'top'], 'where' => [['field' => 'id', 'operator' => '=', 'value' => $this->branchId]]],
-                'row');
+            $branchData = $this->Totum->getModel('tree')->executePrepared(
+                false,
+                ['id' => $this->branchId],
+                'html,type,default_table,filters,top'
+            )->fetch();
+
             switch ($branchData['type']) {
                 case null:
-                    $this->__addAnswerVar('html', $branchData['html']);
+                    $this->__addAnswerVar(
+                        'html',
+                        preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
+                    );
                     break;
                 case 'anchor':
                     $this->anchorId = $this->branchId;
                     $this->branchId = $branchData['top'];
-                    $this->Table = tableTypes::getTable(Table::getTableRowById($branchData['default_table']));
-                    $this->Table->setAnchorFilters($branchData['filters']);
+                    $this->Table = $this->Totum->getTable($branchData['default_table']);
+                    $this->Table->setAnchorFilters(json_decode($branchData['filters'], true));
                     break;
             }
-
         }
 
+        if ($this->Table) {
+            $this->CalculateLog = $this->Table->getCalculateLog();
+            Conf::$CalcLogs = $this->CalculateLog;
+        }
     }
 
-    private
-    function getFieldLog($field, $id, $rowName)
+    /**
+     * @param ServerRequestInterface $request
+     * @param string $method
+     * @return AdminTableActions|ReadTableActions|WriteTableActions
+     * @throws errorException
+     */
+    protected function getTableActions(ServerRequestInterface $request, string $method)
     {
-        $fields = $this->Table->getFields();
-        if (empty($fields[$field])) throw new errorException('Поле [[' . $field . ']] в этой таблице не найдено');
-        if (empty($fields[$field]['showInWeb']) || (!empty($fields[$field]['logRoles']) && !array_intersect(fields[$field]['logRoles'],
-                    Auth::$aUser->getRoles()))) throw new errorException('Доступ к логам запрещен');
-
-
-        $logs = aLog::getLogs($this->Table->getTableRow()['id'],
-            $this->Table->getCycle() ? $this->Table->getCycle()->getId() : null,
-            $id,
-            $field);
-
-        $title = 'Лог ручных изменений по полю "' . $fields[$field]['title'] . '"';
-        if ($id) {
-            $title .= ' id ' . $id;
-            if ($rowName) {
-                $title .= ' "' . $rowName . '""';
-            }
+        if (!$this->Table) {
+            $Actions = new Actions($request, $this->modulePath, null, $this->Totum);
+            $error = 'Таблица не найдена';
+        } elseif ($this->User->isCreator()) {
+            $Actions = new AdminTableActions($request, $this->modulePath, $this->Table, null);
+            $error = 'Метод [[' . $method . ']] в этом модуле не определен';
+        } elseif (!$this->onlyRead) {
+            $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
+            $error = 'Метод [[' . $method . ']] в этом модуле не определен или имеет админский уровень доступа';
+        } else {
+            $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
+            $error = 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
         }
 
-        if (empty($logs)) {
-            Controller::addToInterfaceDatas('text',
-                ['title' => $title, 'width' => '500', 'text' => 'Ручных изменений по полю не производилось']);
-            return;
+        if (!is_callable([$Actions, $method])) {
+            throw new errorException($error);
         }
-
-        $tmp = tableTypes::getTable(Table::getTableRowByName('log_structure'));
-        $tmp->addData(['tbl' => $logs]);
-        $logs = $tmp->getTableDataForRefresh(null);
-
-        $width = 130;
-        foreach ($tmp->getFieldsFiltered('sortedVisibleFields')['column'] as $field) {
-            $width += $field['width'];
-        }
-        $table = [
-            'title' => $title,
-            'table_id' => Table::getTableIdByName('log_structure'),
-            'sess_hash' => $tmp->getTableRow()['sess_hash'],
-            'data' => array_values($logs['chdata']['rows']),
-            'data_params' => $logs['chdata']['params'],
-            'width' => $width
-        ];
-
-        Controller::addToInterfaceDatas('table', $table);
+        return $Actions;
     }
 
-    private
-    function refreshCycles($ids)
+    protected function clearTotum($request): void
     {
-        Sql::transactionStart();
-
-        $tables = [];
-        foreach ($ids as $id) {
-            $this->Cycle = Cycle::init($id, $this->Table->getTableRow()['id']);
-
-            if (empty($tables)) {
-                $tables = $this->Cycle->getTables();
-                foreach ($tables as &$t) {
-                    $t = Table::getTableRowById($t);
-                }
-                unset($t);
-            }
-            foreach ($tables as $inTable) {
-                $CalcsTable = $this->Cycle->getTable($inTable);
-                $CalcsTable->reCalculateFromOvers();
-            }
-
-        }
-
-        $refresh = $this->Table->getTableDataForRefresh($_POST['offset'] ?? null, $_POST['onPage'] ?? null);
-
-        Sql::transactionCommit();
-        return $refresh;
-    }
-
-    private
-    function printTable()
-    {
-        $template = ['styles' => '@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600|Roboto:400,400i,700,700i,500|Roboto+Mono:400,700&amp;subset=cyrillic");
-body { font-family: \'Roboto\', sans-serif;}
-table{ border-spacing: 0; border-collapse: collapse; margin-top: 20px;table-layout: fixed; width: 100%}
-table tr td{ border: 1px solid gray; padding: 3px; overflow: hidden;text-overflow: ellipsis}
-table tr td.title{font-weight: bold}', 'html' => '{table}'];
-
-
-        if (Table::getTableRowByName('print_templates')) {
-            $template = Model::init('print_templates')->get(['name' => 'main'], 'styles, html') ?? $template;
-        }
-
-
-        $settings = json_decode($_POST['settings'], true);
-        $tableAll = ['<h1>' . $this->Table->getTableRow()['title'] . '</h1>'];
-
-        $sosiskaMaxWidth = $settings['sosiskaMaxWidth'];
-        $fields = array_intersect_key($this->Table->getFields(), $settings['fields']);
-
-        $result = $this->Table->getTableDataForPrint($settings['ids'], array_keys($fields));
-
-        $getTdTitle = function ($field, $withWidth = true) {
-            $title = htmlspecialchars($field['title']);
-            if (!empty($field['unitType'])) {
-                $title .= ', ' . $field['unitType'];
-            }
-
-            return '<td'
-                . ($withWidth ? ' style="width: ' . $field['width'] . 'px;"' : '')
-                . ' class="title">' . $title . '</td>';
-        };
-
-
-        foreach (['param', 'filter'] as $category) {
-            $table = [];
-            $width = 0;
-
-            foreach ($fields as $field) {
-                if ($field['category'] == $category) {
-                    if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
-                        $width = $settings['fields'][$field['name']];
-                        if ($table) {
-                            $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                                    $table['head']) . $table[2] . implode('',
-                                    $table['body']) . $table[3];
-                        }
-                        $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
-
-                    } else {
-                        $width += $settings['fields'][$field['name']];
-                    }
-
-                    $table['head'][] = $getTdTitle($field);
-                    $table['body'][] = '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $result['params'][$field['name']]['v'] . '</span></td>';
-
-                }
-            }
-            if ($table) {
-                $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                        $table['head']) . $table[2] . implode('',
-                        $table['body']) . $table[3];
-            }
-        }
-
-        $table = [];
-        $width = 0;
-        foreach ($fields as $field) {
-            if ($field['category'] == 'column') {
-                if (!$table) {
-                    $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
-                    if (array_key_exists('id', $settings['fields'])) {
-                        $table['head'][] = '<td style="width: ' . $settings['fields']['id'] . 'px;" class="title">id</td>';
-                        $width += $settings['fields']['id'];
-                    }
-                }
-                $table['head'][] = $getTdTitle($field);
-                $width += $settings['fields'][$field['name']];
-            }
-        }
-        if ($table) {
-            foreach ($result['rows'] as $id => $row) {
-
-                $tr = '<tr>';
-                if (array_key_exists('id', $settings['fields'])) {
-                    $tr .= '<td class="f-id"><span>' . $id . '</span></td>';
-                }
-                foreach ($fields as $field) {
-                    if ($field['category'] == 'column') {
-                        $tr .= '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $row[$field['name']]['v'] . '</span></td>';
-                    }
-                }
-                $tr .= '</tr>';
-                $table['body'][] = $tr;
-            }
-
-
-            if ($columnFooters = array_filter($fields,
-                function ($field) use ($fields) {
-                    if ($field['category'] == 'footer' && $field['column'] && array_key_exists($field['column'],
-                            $fields)) return true;
-                })) {
-                while ($columnFooters) {
-                    $tr_names = '<tr>';
-                    $tr_values = '<tr>';
-                    foreach ($fields as $field) {
-                        if ($field['category'] == 'column') {
-                            $column = $field['name'];
-
-                            if ($thisColumnFooters = array_filter($columnFooters,
-                                function ($field) use ($column) {
-                                    if ($field['column'] == $column) return true;
-                                })) {
-                                $name = array_keys($thisColumnFooters)[0];
-                                $thisColumnFooter = $columnFooters[$name];
-
-                                $tr_names .= $getTdTitle($thisColumnFooter, false);
-                                $tr_values .= '<td class="f-' . $thisColumnFooter['type'] . ' n-' . $thisColumnFooter['name'] . '">' . $result['params'][$thisColumnFooter['name']]['v'] . '</td>';
-
-                                unset($columnFooters[$name]);
-
-                            } else {
-                                $tr_names .= '<td></td>';
-                                $tr_values .= '<td></td>';
-                            }
-                        }
-                    }
-                    $tr_names .= '</tr>';
-                    $tr_values .= '</tr>';
-                    $table['body'][] = $tr_names;
-                    $table['body'][] = $tr_values;
-                    unset($tr_names);
-                    unset($tr_values);
-                }
-            }
-
-            $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                    $table['head']) . $table[2] . implode('',
-                    $table['body']) . $table[3];
-        }
-
-
-        $table = [];
-        $width = 0;
-
-
-        foreach ($fields as $field) {
-            if ($field['category'] == 'footer' && empty($field['column'])) {
-
-                if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
-                    if ($table) {
-                        $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                                $table['head']) . $table[2] . implode('',
-                                $table['body']) . $table[3];
-                    }
-
-                    $width = $settings['fields'][$field['name']];
-                    $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
-
-                } else {
-                    $width += $settings['fields'][$field['name']];
-                }
-
-                $table['head'][] = $getTdTitle($field);
-                $table['body'][] = '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $result['params'][$field['name']]['v'] . '</span></td>';
-            }
-        }
-        if ($table) {
-            $tableAll[] = $table[0] . $width . $table[1] . implode('',
-                    $table['head']) . $table[2] . implode('',
-                    $table['body']) . $table[3];
-        }
-
-        $style = $template['styles'];
-        $body = str_replace(
-            '{table}',
-            '<div class="table-' . $this->Table->getTableRow()['name'] . '">' . implode('', $tableAll) . '</div>',
-            $template['html']);
-
-        Controller::addToInterfaceDatas('print',
-            [
-                'styles' => $style,
-                'body' => $body
-            ]);
+        $this->Config = $this->Config->getClearConf();
+        $this->Totum = new Totum($this->Config, $this->User);
+        $this->checkTableByUri($request);
     }
 }

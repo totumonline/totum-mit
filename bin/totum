@@ -1,0 +1,50 @@
+#!/usr/bin/env php
+<?php
+
+use totum\commands\CleanSchemasTmpTables;
+use totum\commands\CleanSchemaTmpTables;
+use totum\commands\CleanTmps;
+use totum\commands\CleanTmpTablesFiles;
+use totum\commands\CleanTmpTablesFilesMulti;
+use totum\commands\SchemaAdd;
+use totum\commands\SchemaCron;
+use totum\commands\SchemaCrons;
+use totum\commands\SchemaDecode;
+use totum\commands\Install;
+use totum\commands\SchemaDuplicate;
+use totum\commands\SchemaPasswd;
+use totum\commands\SchemasCrons;
+use totum\commands\SchemasUpdates;
+use totum\commands\SchemaUpdate;
+use totum\common\configs\MultiTrait;
+use totum\config\Conf;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+
+$app = new Application();
+if (class_exists(Conf::class)) {
+    $app->add(new SchemaDecode());
+    $app->add(new SchemaCrons());
+    $app->add(new SchemaCron());
+
+
+    $app->add(new CleanTmps());
+    $app->add(new CleanSchemaTmpTables());
+    $app->add(new CleanTmpTablesFiles());
+    $app->add(new SchemaUpdate());
+    $app->add(new SchemaPasswd());
+
+    if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
+        $app->add(new SchemasCrons());
+        $app->add(new CleanSchemasTmpTables());
+        $app->add(new CleanTmpTablesFilesMulti());
+        $app->add(new SchemasUpdates());
+        $app->add(new SchemaDuplicate());
+        $app->add(new SchemaAdd());
+    }
+} else {
+    $app->add(new Install());
+}
+$app->run();

@@ -8,7 +8,6 @@
 
 namespace totum\common;
 
-
 use totum\config\Conf;
 use totum\models\Table;
 use totum\models\UserV;
@@ -26,37 +25,40 @@ class IsTableChanged
     private $cycleId;
 
 
-    public function __construct($table_id, $cycle_id = 0)
+    public function __construct($table_id, $cycle_id = 0, Conf $Config)
     {
-
-
-        $this->tableChanges = new SharedFileUsage(Conf::getTmpTableChangesDir() . Conf::getSchema() . '.tableChanges');
-        $this->tableChangesSubscribes = new SharedFileUsage(Conf::getTmpTableChangesDir() . Conf::getSchema() . '.tableChangesSubscribes');
+        $this->tableChanges = new SharedFileUsage($Config->getTmpTableChangesDir() . $Config->getSchema() . '.tableChanges');
+        $this->tableChangesSubscribes = new SharedFileUsage($Config->getTmpTableChangesDir() . $Config->getSchema() . '.tableChangesSubscribes');
         $this->tablestring = $table_id . ($cycle_id ? '.' . $cycle_id : '');
         $this->tableId = $table_id;
         $this->cycleId = $cycle_id;
     }
-    function setChanged($code, $timestamp){
 
+    public function setChanged($code, $timestamp)
+    {
         $tablesTimes = $this->tableChangesSubscribes->read();
-        $update=[];
+        $update = [];
 
-        $delete=function($tableid, $code_timestamp){
-            if (preg_replace('/^\d+\:/', '', $code_timestamp)<time()-60) return true;
-            else return false;
+        $delete = function ($tableid, $code_timestamp) {
+            if (preg_replace('/^\d+\:/', '', $code_timestamp) < time() - 60) {
+                return true;
+            } else {
+                return false;
+            }
         };
 
         if (!empty($tablesTimes[$this->tablestring]) && $tablesTimes[$this->tablestring] > time()) {
-            $update = [$this->tablestring => $code.':'.$timestamp];
+            $update = [$this->tablestring => $code . ':' . $timestamp];
         }
         $this->tableChanges->update($update, $delete);
     }
-    function isChanged($code)
+
+    public function isChanged($code, Totum $Totum)
     {
         $this->subcribeToChanges();
-        $Table = tableTypes::getTable(Table::getTableRowById($this->tableId), $this->cycleId, true);
+        $Table = $Totum->getTable($this->tableId, $this->cycleId, true);
 
-        $stampnow=date_create(date('Y-m-d H:i:00'))->format('U');
+        $stampnow = date_create(date('Y-m-d H:i:00'))->format('U');
 
         $isChanged = $Table->getChangedString($code);
         $i = 0;
@@ -66,11 +68,10 @@ class IsTableChanged
             sleep(3);
             $changes = $this->tableChanges->read();
 
-            if (!empty($changes[$this->tablestring])){
-                list($str_code, $str_stamp)=explode(':', $changes[$this->tablestring]);
-                if ($str_code!=$code){
+            if (!empty($changes[$this->tablestring])) {
+                list($str_code, $str_stamp) = explode(':', $changes[$this->tablestring]);
+                if ($str_code !== $code) {
                     $isChanged = $Table->getChangedString($code);
-
                 }
             }
         }
@@ -81,12 +82,13 @@ class IsTableChanged
     {
         $tablesTimes = $this->tableChangesSubscribes->read();
         if (empty($tablesTimes[$this->tablestring]) || $tablesTimes[$this->tablestring] < time() + 3600 * 3) {
-            $deleteFunc = function ($tablestring, $timestamp){
-              if  ($timestamp<time()) return true;
+            $deleteFunc = function ($tablestring, $timestamp) {
+                if ($timestamp < time()) {
+                    return true;
+                }
             };
             $update = [$this->tablestring => time() + 3600 * 10];
             $this->tableChangesSubscribes->update($update, $deleteFunc);
         }
     }
-
 }

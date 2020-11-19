@@ -8,50 +8,50 @@
 
 namespace totum\common;
 
-
-use totum\config\Conf;
+use Composer\Config;
+use totum\common\configs\ConfParent;
+use totum\common\WithPathMessTrait;
 use totum\tableTypes\aTable;
 
 class errorException extends \Exception
 {
-    protected $message;
-    public $log;
-    protected $pathMess;
+    use WithPathMessTrait;
 
-    function __get($name)
+    public function __get($name)
     {
         return $this->$name;
     }
 
-    function __construct($message, $code = 0)
+    public function __construct($message, $code = 0)
     {
         parent::__construct($message, $code);
     }
 
-    function addPath($path)
+    public static function tableUpdatedException(aTable $aTable)
     {
-        if ($this->pathMess == '') $this->pathMess = $path;
-        else {
-            $this->pathMess = $this->getPathMess() . '; ' . $path;
-        }
-    }
-
-    static function tableUpdatedException(aTable $aTable)
-    {
-        // Mail::send('tatianap.php@gmail.com', Conf::getSchema().'/'.$aTable->getTableRow()['name'], $_SERVER['REQUEST_URI'].' $_POST: '.json_encode($_POST, JSON_UNESCAPED_UNICODE));
+        $aTable->getTotum()->transactionRollback();
         throw new tableSaveException('Таблица [[' . $aTable->getTableRow()['title'] . ']] была изменена. Обновите таблицу для проведения изменений');
-    }
-    static function criticalException($error)
-    {
-        throw new criticalErrorException($error);
     }
 
     /**
-     * @return mixed
+     * @param $error
+     * @param aTable|Totum|ConfParent $contextObject
+     * @throws criticalErrorException
      */
-    public function getPathMess()
+    public static function criticalException($error, $contextObject = null)
     {
-        return $this->pathMess;
-    }
+        switch (get_class($contextObject)) {
+            case aTable::class:
+                $contextObject->getTotum()->transactionRollback();
+                break;
+            case Totum::class:
+                $contextObject->transactionRollback();
+                break;
+            case Config::class:
+                $contextObject->getSql()->transactionRollback();
+                break;
+        }
 
+        throw new criticalErrorException($error);
+    }
 }

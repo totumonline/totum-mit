@@ -8,79 +8,86 @@
 
 namespace totum\models;
 
-
 use totum\common\errorException;
 use totum\common\Model;
-use totum\common\Sql;
-use totum\common\TextErrorException;
+use totum\common\sql\Sql;
+use totum\models\traits\WithTotumTrait;
 
 class User extends Model
 {
-    function insert($vars, $returning = 'idFieldName', $ignore = false)
+    use WithTotumTrait;
+
+    public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true)
     {
-        $id = parent::insert($vars);
-        $this->checkAndSaveConnectedUsers($id);
+        $id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt);
+        $this->saveConnectedUsers($id);
         return $id;
     }
 
-    function checkAndSaveConnectedUsers($id, $userRow = null)
+    protected function saveConnectedUsers($id, $userRow = null)
     {
-        if (!is_null($userRow) || $userRow = UserV::init()->getById($id)) {
-            Sql::exec('update ' . $this->table . ' set all_connected_users=\'' . json_encode(['v' => $this->getAllConnectedUsers($id,
-                    $userRow)]) . '\' where ' . $this->getWhere(['id' => $id]));
+        if (!is_null($userRow) || $userRow = $this->Totum->getNamedModel(UserV::class)->getById($id)) {
+            $this->executePreparedSimple(
+                true,
+                'update ' . $this->table . ' set all_connected_users=? where id=?',
+                [json_encode(['v' => $this->getAllConnectedUsers(
+                    $id,
+                    $userRow
+                )]), $id]
+            );
+
             if ($userRow['boss_id']) {
-                $this->checkAndSaveConnectedUsers($userRow['boss_id']);
+                $this->saveConnectedUsers($userRow['boss_id']);
+            }
+        }
+    }
+
+    public function update($params, $where, $oldRow = null): int
+    {
+        $decoded=[];
+        foreach ($params as $key => $param) {
+            if ($decode = json_decode($param, true)) {
+                $decoded[$key] = $decode['v'];
+            } else {
+                $decoded[$key] = $param;
             }
         }
 
-    }
-
-    function update($upParams, $where, $ignore = 0, $oldRow = null): Int
-    {
-        $params = [];
-        foreach ($upParams as $key => $param) {
-            if ($decode = json_decode($param, true)) {
-                $params[$key] = $decode['v'];
-            } else $params[$key] = $param;
-        }
-
-        if (array_key_exists('boss_id', $params)) {
-            if ($params['boss_id'] && !$this->checkCanBeBoss($where['id'], $params['boss_id'])) {
+        if (array_key_exists('boss_id', $decoded)) {
+            if ($decoded['boss_id'] && !$this->checkCanBeBoss($where['id'], $decoded['boss_id'])) {
                 throw new errorException('Нельзя сделать начальником того, кто есть в подчиненных');
             }
             if (key_exists('boss_id', $oldRow)) {
                 $oldBoss = $oldRow['boss_id']['v'];
             } else {
-                $oldBoss = UserV::init()->getFieldById('boss_id', $where['id']);
+                $oldBoss = $this->Totum->getNamedModel(UserV::class)->getField('boss_id', ['id' => $where['id']]);
             }
-
         }
 
 
-        $result = parent::update($upParams, $where, $ignore);
+        $result = parent::update($params, $where);
 
-        if (array_key_exists('add_users', $params)) {
-            foreach ($params['add_users'] as $addId) {
+        if (array_key_exists('add_users', $decoded)) {
+            foreach ($decoded['add_users'] as $addId) {
                 if (!$this->checkCanBeBoss($addId, $where['id'])) {
                     throw new errorException('Нельзя добавить в доступы начальника');
                 }
             }
-            $this->checkAndSaveConnectedUsers($where['id']);
+            $this->saveConnectedUsers($where['id']);
         }
 
-        if (array_key_exists('boss_id', $params)) {
-            if (!empty($oldBoss)){
-                $this->checkAndSaveConnectedUsers($oldBoss);
+        if (array_key_exists('boss_id', $decoded)) {
+            if (!empty($oldBoss)) {
+                $this->saveConnectedUsers($oldBoss);
             }
-            $this->checkAndSaveConnectedUsers($params['boss_id']);
+            $this->saveConnectedUsers($decoded['boss_id']);
         }
         return $result;
     }
 
     protected function checkCanBeBoss($id, $bossId)
     {
-        if ($id == $bossId) ;
-        elseif (Sql::get('with RECURSIVE subUsers AS
+        if ((int)$id !== (int)$bossId && !$this->Sql->get('with RECURSIVE subUsers AS
 (
     select id, boss_id
     from users__v
@@ -91,23 +98,28 @@ class User extends Model
       join subUsers s ON s.id=users__v.boss_id
 )
 select * from subUsers WHERE ' . $this->getWhere(['id' => $bossId]))
-        ) ;
-        else return true;
-        return false;
+        ) {
+            return true;
+        }
 
+        return false;
     }
 
-    function getAllConnectedUsers($id, $userRow = null, &$checkedUsers = [])
+    public function getAllConnectedUsers($id, $userRow = null, &$checkedUsers = [])
     {
         $connectedUsers = [$id];
         $checkedUsers[] = (int)$id;
-        if (is_null($userRow))
-            $userRow = UserV::init()->getById($id);
+        if (is_null($userRow)) {
+            $userRow = $this->Totum->getNamedModel(UserV::class)->getById($id);
+        }
 
         if ($userRow['add_users']) {
             $connectedUsers = array_merge($connectedUsers, json_decode($userRow['add_users'], true));
         }
-        $connectedUsers = array_merge($connectedUsers, UserV::init()->getField('id', ['boss_id' => $id], null, null));
+        $connectedUsers = array_merge(
+            $connectedUsers,
+            $this->Totum->getNamedModel(UserV::class)->getField('id', ['boss_id' => $id], null, null)
+        );
 
         foreach ($connectedUsers as $userId) {
             if (!in_array($userId, $checkedUsers)) {
@@ -116,5 +128,4 @@ select * from subUsers WHERE ' . $this->getWhere(['id' => $bossId]))
         }
         return $checkedUsers;
     }
-
 }

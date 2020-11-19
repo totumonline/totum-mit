@@ -8,11 +8,9 @@
 
 namespace totum\models;
 
-
 use totum\common\Model;
 
 class NonProjectCalcs extends Model
 {
     protected $idFieldName = 'tbl_name';
-
 }

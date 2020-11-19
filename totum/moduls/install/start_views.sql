@@ -1,4 +1,5 @@
-create view users__v(id, login, fio, boss_id, roles, add_users, all_connected_users, interface, favorite, is_outer, is_del) as
+drop view if exists users__v;
+create view users__v(id, login, fio, boss_id, roles, add_users, all_connected_users, interface, favorite, is_del) as
 SELECT users.id,
        (users.login ->> 'v'::text)               AS login,
        (users.fio ->> 'v'::text)                 AS fio,
@@ -8,12 +9,12 @@ SELECT users.id,
        (users.all_connected_users ->> 'v'::text) AS all_connected_users,
        (users.interface ->> 'v'::text)           AS interface,
        (users.favorite ->> 'v'::text)            AS favorite,
-       ((users.is_outer ->> 'v'::text))::boolean AS is_outer,
        users.is_del
 FROM users;
 
 
-create or replace view tree__v(id, parent_id, title, path, top, ord, is_del, default_table, type, link, icon, roles) as
+drop view if exists tree__v;
+create view tree__v(id, parent_id, title, path, top, ord, is_del, default_table, type, link, icon, roles) as
     WITH RECURSIVE temp1(id, parent_id, title, path, ord, top, is_del, default_table, type, link, icon, roles) AS (
         SELECT t1.id,
                ((t1.parent_id ->> 'v'::text))::integer            AS int4,

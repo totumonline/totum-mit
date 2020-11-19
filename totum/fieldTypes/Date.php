@@ -8,8 +8,7 @@
 
 namespace totum\fieldTypes;
 
-
-use totum\common\Calculate;
+use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\tableTypes\aTable;
@@ -48,13 +47,12 @@ class Date extends Field
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
-        if ($viewType == 'print'){
+        if ($viewType === 'print') {
             $date = date_create($valArray['v']);
 
-            if(!empty($this->data['dateFormat'])){
+            if (!empty($this->data['dateFormat'])) {
                 $val = $date->format($this->data['dateFormat']);
-            }
-            else if (empty($this->data['dateTime'])) {
+            } elseif (empty($this->data['dateTime'])) {
                 $val = $date->format('d.m.y');
             } else {
                 $val = $date->format('d.m.y H:i');
@@ -63,12 +61,14 @@ class Date extends Field
         }
     }
 
-    function getValueFromCsv($val)
+    public function getValueFromCsv($val)
     {
         $val = Calculate::getDateObject($val);
         if (!empty($this->data['dateTime'])) {
             $val = $val->format('Y-m-d H:i');
-        } else  $val = $val->format('Y-m-d');
+        } else {
+            $val = $val->format('Y-m-d');
+        }
 
         return $val;
     }

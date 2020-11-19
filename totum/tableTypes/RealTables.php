@@ -8,57 +8,54 @@
 
 namespace totum\tableTypes;
 
-
-use totum\common\aLog;
-use totum\common\Calculate;
-use totum\common\Controller;
-use totum\common\Cycle;
+use PDO;
+use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Model;
-use totum\common\NoValueField;
-use totum\common\Sql;
-use totum\common\SqlExeption;
-use totum\fieldTypes\File;
+use totum\common\sql\SqlException;
 use totum\models\Table;
-use totum\models\TablesFields;
 
 abstract class RealTables extends aTable
 {
+    protected $elseWhere = ['is_del' => false];
 
     protected $header = [];
-    protected $cachedUpdate, $caches = [], $nTailLength;
+    protected $cachedUpdate;
+    protected $caches = [];
+    protected $nTailLength;
 
     public function getChildrenIds($id, $parentField, $bfield)
     {
-        if (!array_key_exists($parentField, $this->fields) || $this->fields[$parentField]['category'] != 'column') {
+        if (!array_key_exists($parentField, $this->fields) || $this->fields[$parentField]['category'] !== 'column') {
             throw new errorException('Поле [' . $parentField . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
         }
         if ($bfield !== 'id' && !key_exists($bfield, $this->fields)) {
             throw new errorException('Поле [' . $bfield . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
         }
 
-        return Sql::getFieldArray('WITH RECURSIVE cte_name (id) AS ( select
-                                                    (' . ($bfield == 'id' ? 'id' : $bfield . '->>\'v\'') . '):: text as id
-                                                  from ' . $this->tableRow['name'] . '
-                                                  where is_del = false AND (' . $parentField . ' ->> \'v\') :: text=' . Sql::quote((string)$id) . '
-                                                  UNION select
-                                                         ( ' . ($bfield == 'id' ? 'tp.id' : 'tp.' . $bfield . '->>\'v\'') . '):: text as id
-                                                        from ' . $this->tableRow['name'] . ' tp
-                                                          JOIN cte_name c ON (tp.' . $parentField . ' ->> \'v\') :: text = c.id AND
-                                                                             tp.is_del = false ) SELECT id
-                                                                                                FROM cte_name');
-
+        return $this->model->childrenIdsRecursive($id, $parentField, $bfield);
     }
 
-    function checkEditRow($editData, $tableData = null)
+    public function createTable()
+    {
+        $fields = [];
+        $fields[] = 'id SERIAL PRIMARY KEY NOT NULL';
+        $fields[] = 'is_del BOOLEAN NOT NULL DEFAULT FALSE ';
+        $this->model->createTable($fields);
+
+        if ($this->getTableRow()['with_order_field']) {
+            $this->addOrderField();
+        }
+    }
+
+    public function checkEditRow($editData, $tableData = null)
     {
         if ($tableData) {
             $this->checkTableUpdated($tableData);
         }
         $table = [];
         $id = $editData['id'];
-        $this->checkIsUserCanModifyIds([$id => []], [], 'web');
 
         $data = [];
         $dataSetToDefault = [];
@@ -66,7 +63,7 @@ abstract class RealTables extends aTable
         foreach ($editData as $k => $v) {
             if (is_array($v) && array_key_exists('v', $v)) {
                 if (array_key_exists('h', $v)) {
-                    if ($v['h'] == false) {
+                    if ($v['h'] === false) {
                         $dataSetToDefault[$k] = true;
                         continue;
                     }
@@ -75,20 +72,19 @@ abstract class RealTables extends aTable
             }
         }
 
-        $this->loadRowsByIds([$id]);
-
-
-        if (empty($this->tbl['rows'][$id])) {
+        if (!$this->loadFilteredRows('web', [$id])) {
             throw new errorException('Строка с id ' . $id . ' не найдена');
         }
 
-        $changedData = $this->modifyRow('web',
+        $changedData = $this->modifyRow(
+            'web',
             $data ?? [],
             $dataSetToDefault ?? [],
             [],
             $this->tbl['rows'][$id],
             true,
-            false);
+            false
+        );
 
         $data = ['rows' => [$changedData]];
 
@@ -100,51 +96,54 @@ abstract class RealTables extends aTable
 
 
         $table['row'] = $changedData;
-        $table['f'] = $this->getTableFormat();
         return $table;
     }
 
 
-    function addField($fieldId)
+    public function addField($fieldId)
     {
-        $field = TablesFields::getFullField(Model::initService('tables_fields__v')->getById($fieldId));
-        if ($field['category'] == 'column') {
-            Sql::exec('ALTER TABLE ' . $this->tableRow['name'] . ' ADD COLUMN "' . $field['name'] . '" JSONB NOT NULL DEFAULT \'{"v":null}\' ');
+        $field = static::getFullField($this->Totum->getModel('tables_fields__v', true)->getById($fieldId));
+        if ($field['category'] === 'column') {
+            $this->Totum->getModel($this->tableRow['name'])->addColumn($field['name']);
+            if ($field['type'] === 'checkbox') {
+                $this->Totum->getModel($this->tableRow['name'])->update(
+                    [$field['name'] => json_encode(["v" => false])],
+                    []
+                );
+            }
         }
     }
 
-    function createIndex($columnName)
+    public function createIndex($columnName)
     {
-        if ($columnName != 'id') {
-            Sql::exec('CREATE INDEX IF NOT EXISTS ' . $this->tableRow['name'] . '___ind___' . $columnName . ' ON ' . $this->tableRow['name'] . ' ((' . $columnName . ' ->> \'v\'))');
-            Sql::exec('ANALYZE ' . $this->tableRow['name']);
+        if ($columnName !== 'id') {
+            $this->Totum->getModel($this->tableRow['name'])->createIndexOnJsonbField($columnName);
         }
     }
 
-    function removeIndex($columnName)
+    public function removeIndex($columnName)
     {
-        if ($columnName != 'id') {
-            Sql::exec('DROP INDEX IF EXISTS ' . $this->tableRow['name'] . '___ind___' . $columnName);
-            Sql::exec('ANALYZE ' . $this->tableRow['name']);
+        if ($columnName !== 'id') {
+            $this->Totum->getModel($this->tableRow['name'])->removeIndex($columnName);
         }
     }
 
-    function deleteField($fieldRow)
+    public function deleteField($fieldRow)
     {
-
-        if ($fieldRow['category'] == 'column') {
-            Sql::exec('ALTER TABLE ' . $this->tableRow['name'] . ' DROP COLUMN IF EXISTS "' . $fieldRow['name'] . '" ');
-
+        if ($fieldRow['category'] === 'column') {
+            $this->Totum->getModel($this->tableRow['name'])->dropColumn($fieldRow['name']);
         } elseif ($fieldRow['category'] === 'filter') {
             $data = json_decode($fieldRow['data'], true);
             if (!empty($data['v']['column'])) {
                 $countWithColumn = 0;
-                $fields = TablesFields::getFields($this->getTableRow()['id']);
+                $fields = $this->loadFields($this->getTableRow()['id']);
                 foreach ($fields as $k => $v) {
-                    if ($v['category'] === 'filter' && ($v['column'] ?? '') === $data['v']['column']) $countWithColumn++;
+                    if ($v['category'] === 'filter' && ($v['column'] ?? '') === $data['v']['column']) {
+                        $countWithColumn++;
+                    }
                 }
                 if ($countWithColumn < 2) {
-                    tableTypes::getTable(Table::getTableRowById(Table::$TableId))->reCalculateFromOvers(
+                    $this->Totum->getTable(self::TABLES_IDS['tables'])->reCalculateFromOvers(
                         ['modify' => [$this->getTableRow()['id'] => ['indexes' => '-' . $data['v']['column']]]]
                     );
                 }
@@ -152,18 +151,14 @@ abstract class RealTables extends aTable
         }
     }
 
-    function isTblUpdated($level = 0, $force = false)
+    public function isTblUpdated($level = 0, $force = false)
     {
-
-
         $tbl = $this->getTblForSave();
 
         $savedTbl = $this->savedTbl;
-        if ($force || $this->isTableDataChanged || $tbl['__nTailLength'] != $this->nTailLength) {
-            $this->updated = static::getUpdatedJson();
+        if ($force || $this->isTableDataChanged || $tbl['__nTailLength'] !== $this->nTailLength) {
+            $this->updated = $this->getUpdatedJson();
             $this->savedTbl['params'] = $tbl;
-
-            sql::transactionStart();
 
             /*Это чтобы лишний раз базу не дергать*/
             if ($this->isOnSaving) {
@@ -175,20 +170,19 @@ abstract class RealTables extends aTable
                 $this->saveTable();
                 $this->isOnSaving = false;
             }
+            $this->setIsTableDataChanged(false);
 
-            $this->isTableDataChanged = false;
-
-            sql::transactionCommit();
             return true;
-        } else
+        } else {
             return false;
+        }
     }
 
-    function removeRows($remove, $channel)
+    public function removeRows($remove, $channel)
     {
         $orderMinN = null;
 
-        $this->isTableDataChanged = true;
+        $this->setIsTableDataChanged(true);
         $isInnerChannel = $channel === 'inner';
 
         if ($codeActionsOnDeleteFields = $this->getFieldsForAction('Delete', 'column')) {
@@ -208,7 +202,9 @@ abstract class RealTables extends aTable
             $this->loadRowsByIds($remove);
             foreach ($remove as $id) {
                 if ($row = ($this->tbl['rows'][$id] ?? null)) {
-                    if (is_null($orderMinN) || $orderMinN > $row['n']) $orderMinN = $row['n'];
+                    if (is_null($orderMinN) || $orderMinN > $row['n']) {
+                        $orderMinN = $row['n'];
+                    }
                 }
             }
         }
@@ -216,15 +212,13 @@ abstract class RealTables extends aTable
         if ($isInnerChannel) {
             $this->model->delete(['id' => $remove]);
         } else {
-
             switch ($this->tableRow['deleting']) {
                 case 'none':
                     throw new errorException('В таблице [[' . $this->tableRow['title'] . ']] запрещено удаление');
                 case 'delete':
                     if ($this->tableRow['type'] === 'cycles') {
                         foreach ($remove as $id) {
-                            $cycle = Cycle::init($id, $this->tableRow['id']);
-                            $cycle->delete(true);
+                            $this->Totum->deleteCycle($id, $this->tableRow['id']);
                         }
                     }
                     $this->model->delete(['id' => $remove]);
@@ -237,7 +231,7 @@ abstract class RealTables extends aTable
             /******aLog delete*****/
             if (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog) {
                 foreach ((array)$remove as $id) {
-                    aLog::delete($this->tableRow['id'], null, $id);
+                    $this->Totum->totumActionsLogger()->delete($this->tableRow['id'], null, $id);
                 }
             }
             /******aLog*****/
@@ -246,9 +240,8 @@ abstract class RealTables extends aTable
         return $orderMinN;
     }
 
-    function getByParamsFromRows($params, $returnType, $sectionReplaces)
+    protected function getByParamsFromRows($params, $returnType, $sectionReplaces)
     {
-
         $fields = $this->fields;
         $tableRow = $this->tableRow;
 
@@ -259,7 +252,7 @@ abstract class RealTables extends aTable
                 $normalizeFunc = function ($r) {
                     return json_decode($r, true);
                 };
-            } elseif ($field['type'] == 'checkbox') {
+            } elseif ($field['type'] === 'checkbox') {
                 $normalizeFunc = function ($r) {
                     return $r === 'false' ? false :
                         ($r === 'true' ? true
@@ -288,33 +281,35 @@ abstract class RealTables extends aTable
             return $parentSectionReplaces($row);
         };
 
-        $where = $this->getWhereFromParams($params['where'] ?? [], !in_array('is_del', ($params['field'] ?? [])));
-
-        if ($returnType == 'where') {
-            return $where;
-        }
+        list($whereStr, $paramsWhere) = $this->getWhereFromParams(
+            $params['where'] ?? [],
+            !in_array('is_del', ($params['field'] ?? []))
+        );
 
         $order = null;
 
         if (isset($params['order'])) {
             $order = '';
             foreach ($params['order'] as $of) {
-
-                if ($order) $order .= ',';
+                if ($order) {
+                    $order .= ',';
+                }
 
                 $field = $of['field'];
-                $AscDesc = $of['ad'] == 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
+                $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
-                if ((!array_key_exists($field, $fields) && !in_array($field,
-                            Model::serviceFields)) || (empty($this->tableRow['with_order_field']) && $field == 'n')) {
+                if ((!array_key_exists($field, $fields) && !in_array(
+                    $field,
+                    Model::serviceFields
+                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
                     throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
                 }
                 if (in_array($field, Model::serviceFields)) {
                     $order .= $field . ' ' . $AscDesc;
                 } else {
-                    $order .= '(' . $field . '->>\'v\')::' . ($fields[$field]['type'] == 'number' ? 'numeric' : 'text') . ' ' . $AscDesc;
+                    $orderType = ($fields[$field]['type'] === 'number' ? 'NUMERIC' : 'TEXT');
+                    $order .= "($field->>'v')::$orderType $AscDesc";
                 }
-
             }
         }
 
@@ -327,12 +322,17 @@ abstract class RealTables extends aTable
             case 'list':
 
                 $offset = ($params['offset']) ?? "";
-                if ($offset !== "" && !(ctype_digit(strval($offset)))) throw new errorException('Параметр offset должен быть целым числом');
+                if ($offset !== "" && !(ctype_digit(strval($offset)))) {
+                    throw new errorException('Параметр offset должен быть целым числом');
+                }
                 $limit_ = ($params['limit']) ?? "";
-                if ($limit_ !== "" && !(ctype_digit(strval($limit_)))) throw new errorException('Параметр limit должен быть целым числом');
+                if ($limit_ !== "" && !(ctype_digit(strval($limit_)))) {
+                    throw new errorException('Параметр limit должен быть целым числом');
+                }
                 $limit = $offset . ',' . $limit_;
-                if ($limit == ',')
+                if ($limit === ',') {
                     $limit = null;
+                }
 
                 break;
             default:
@@ -342,21 +342,35 @@ abstract class RealTables extends aTable
 
         $fieldsString = '';
         foreach (array_merge($params['field'], (array)($params['tfield'] ?? [])) as $f) {
-            if ($fieldsString !== '') $fieldsString .= ', ';
+            if ($fieldsString !== '') {
+                $fieldsString .= ', ';
+            }
             $fieldsString .= $f;
         }
 
 
-        if ($returnType == 'rows' || $returnType == 'row') {
+        if ($returnType === 'rows' || $returnType === 'row') {
 
             //техническая выборка - не трогать
-            if ($params['field'] == ['__all__']) {
-                return $this->model->getAll($where, '*', $order, $limit);
+            if ($params['field'] === ['__all__']) {
+                return $this->model->executePrepared(
+                    true,
+                    (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
+                    '*',
+                    $order,
+                    $limit
+                );
             }
 
 
-            if ($returnType == 'rows') {
-                $rows = $this->model->getAll($where, $fieldsString, $order, $limit);
+            if ($returnType === 'rows') {
+                $rows = $this->model->executePrepared(
+                    true,
+                    (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
+                    $fieldsString,
+                    $order,
+                    $limit
+                )->fetchAll();
                 if (!empty($params['with__sectionFunction'])) {
                     foreach ($rows as &$row) {
                         $row['__sectionFunction'] = function () use ($sectionReplaces, $row, $params) {
@@ -365,26 +379,32 @@ abstract class RealTables extends aTable
                     }
                     unset($row);
                 } else {
-                    foreach ($rows as &$row) $row = $sectionReplaces($row);
+                    foreach ($rows as &$row) {
+                        $row = $sectionReplaces($row);
+                    }
                     unset($row);
                 }
                 return $rows;
+            } elseif ($row = $this->model->executePrepared(
+                true,
+                (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
+                $fieldsString,
+                $order
+            )->fetch()) {
+                return $sectionReplaces($row);
             } else {
-                if ($row = $this->model->get($where, $fieldsString, $order)) {
-                    return $sectionReplaces($row);
-                } else return [];
+                return [];
             }
-
         } else {
-            if (!empty($_GET['test'])) {
+            $r = $this->model->executePrepared(
+                true,
+                (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
+                $fieldsString,
+                $order,
+                $limit
+            )->fetchAll();
 
-                $r = $this->model->getAll($where, $fieldsString, $order, $limit);
-
-            }
-            $r = $this->model->getAll($where, $fieldsString, $order, $limit);
-
-
-            if ($returnType == 'field') {
+            if ($returnType === 'field') {
                 if ($r) {
                     return $sectionReplaces($r[0])[$params['field'][0]];
                 }
@@ -395,54 +415,38 @@ abstract class RealTables extends aTable
                 }
                 unset($row);
             }
-
         }
 
         return $r;
     }
 
-    function checkInsertRow($addData, $editedFields = null)
+    public function checkInsertRow($tableData, $data)
     {
-        $filteredColumns = [];
-        foreach ($this->sortedFields['filter'] as $k => $f) {
-            if (!empty($f['showInWeb'])) {
-                $filteredColumns[$f['column']] = $k;
-            }
+        if ($tableData) {
+            $this->checkTableUpdated($tableData);
         }
-        foreach ($this->sortedVisibleFields['column'] as $v) {
-
-            $filtered = null;
-            if (isset($filteredColumns[$v['name']])
-                && $this->filtersFromUser[$filteredColumns[$v['name']]] != '*ALL*'
-                && $this->filtersFromUser[$filteredColumns[$v['name']]] != ['*ALL*']
-                && ($this->filtersFromUser[$filteredColumns[$v['name']]] ?? null) != '*NONE*'
-                && ($this->filtersFromUser[$filteredColumns[$v['name']]] ?? null) != ['*NONE*']
-            ) {
-                $filtered = $this->filtersFromUser[$filteredColumns[$v['name']]] ?? null;
-            }
-            if (is_null($addData[$v['name']] ?? null) && !empty($filtered))
-                $addData[$v['name']] = $filtered;
-
-            if (!in_array($v['name'], $editedFields) && !empty($v['code'])) {
-                unset($addData[$v['name']]);
-            }
-
-        }
-        $this->reCalculate(['channel' => 'web', 'add' => [$addData], 'modify' => ['params' => $this->filtersFromUser], 'isCheck' => true]);
-        return $this->tbl['rowInsered'];
+        $this->reCalculate(['channel' => 'web', 'add' => [$data], 'isCheck' => true]);
+        return $this->tbl['rowInserted'];
     }
 
 
-    function rowChanged($oldRow, $row, $action)
+    public function rowChanged($oldRow, $row, $action)
     {
-
         $this->cachedSelects = [];
-        $this->isTableDataChanged = true;
+        $this->setIsTableDataChanged(true);
 
         if ($actionFields = $this->getFieldsForAction($action, 'column')) {
-            foreach ($oldRow as $k => &$v) if (is_string($v)) $v = json_decode($v, true);
+            foreach ($oldRow as $k => &$v) {
+                if (is_string($v)) {
+                    $v = json_decode($v, true);
+                }
+            }
             unset($v);
-            foreach ($row as $k => &$v) if (is_string($v)) $v = json_decode($v, true);
+            foreach ($row as $k => &$v) {
+                if (is_string($v)) {
+                    $v = json_decode($v, true);
+                }
+            }
             unset($v);
 
 
@@ -450,9 +454,8 @@ abstract class RealTables extends aTable
                 $old = $oldRow[$field['name']]['v'] ?? null;
                 $new = $row[$field['name']]['v'] ?? null;
 
-                if ($action != 'Change' || Calculate::compare('!==', $old, $new)) {
+                if ($action !== 'Change' || Calculate::compare('!==', $old, $new)) {
                     $this->changeIds['rowOperations'][] = function () use ($field, $oldRow, $row) {
-
                         Field::init($field, $this)->action(
                             $oldRow,
                             $row,
@@ -475,32 +478,62 @@ abstract class RealTables extends aTable
             case 'Change':
                 $changedKeys = [];
                 foreach ($row as $k => $v) {
-                    if (($oldRow[$k] ?? null) != $v) {
+                    if (($oldRow[$k] ?? null) !== $v) {
                         $changedKeys[] = $k;
                     }
                 }
                 $this->rowsOperations($action, $row, $changedKeys);
                 break;
         }
-
-
     }
 
-    function loadRowsByParams($params, $order = null)
+    public function countByParams($params, $orders = null, $untilId = 0)
     {
+        list($whereStr, $paramsWhere) = $this->getWhereFromParams($params);
+        if ($untilId) {
+            if (is_array($untilId)) {
+                $isRefresh = -1;
+            } else {
+                $isRefresh = 0;
+                $untilId = (array)$untilId;
+            }
+            array_push($paramsWhere, ... $untilId);
+            return $this->model->executePreparedSimple(
+                true,
+                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                        ',',
+                        array_fill(0, count($untilId), '?')
+                    ) . ")",
+                $paramsWhere
+            )->fetchColumn(1) + $isRefresh;
+        }
 
+        return $this->model->executePrepared(
+            true,
+            (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
+            'count(*) as count'
+        )->fetchColumn(0);
+    }
 
+    protected function loadRowsByParams($params, $order = null, $offset = 0, $limit = null)
+    {
         $paramsForFunc = ['where' => $params];
-
         $paramsForFunc['field'] = ['__all__'];
 
-        if ($order) $paramsForFunc['order'] = $order;
+        if ($order) {
+            $paramsForFunc['order'] = $order;
+        }
+        if ($offset) {
+            $paramsForFunc['offset'] = $offset;
+        }
+        if ($limit) {
+            $paramsForFunc['limit'] = $limit;
+        }
 
         $rows = [];
         foreach ($this->getByParams($paramsForFunc, 'rows') as $k => $row) {
             $rows[$row['id']] = $row;
         }
-
         $this->rowsOperations('Load', null, $rows);
         return array_keys($rows);
     }
@@ -509,36 +542,36 @@ abstract class RealTables extends aTable
     {
         $where = ['id' => $this->tableRow['id']];
 
-        if ($this->getTableRow()['actual'] != 'disable') {
+        if ($this->getTableRow()['actual'] !== 'disable') {
             $where['updated'] = $this->savedUpdated;
         }
 
         $update = ['updated' => $this->updated];
         $update['header'] = json_encode($this->getTblForSave(), JSON_UNESCAPED_UNICODE);
 
-        if (!Table::init()->update($update, $where)) {
+        if (!$this->Totum->getNamedModel(Table::class)->update($update, $where)) {
             errorException::tableUpdatedException($this);
         }
+
+
         $this->markTableChanged();
-        $this->isTableDataChanged = false;
+
+
+        $this->setIsTableDataChanged(false);
         $this->savedUpdated = $this->updated;
         $this->cachedSelects = [];
-        Controller::setSomeTableChanged();
 
+        $this->Totum->tableChanged($this->tableRow['name']);
     }
 
     public function addOrderField()
     {
-        Sql::exec('ALTER TABLE ' . $this->tableRow['name'] . ' ADD COLUMN "n" numeric ');
-        Sql::exec('Update ' . $this->tableRow['name'] . ' set "n"=id ');
-        Sql::exec('CREATE UNIQUE INDEX IF NOT EXISTS ' . $this->tableRow['name'] . '___ind___n ON ' . $this->tableRow['name'] . ' ("n")');
-        Sql::exec('ANALYZE ' . $this->tableRow['name']);
+        $this->model->addOrderField();
     }
 
     public function removeOrderField()
     {
-        Sql::exec('ALTER TABLE ' . $this->tableRow['name'] . ' drop COLUMN IF EXISTS "n" ');
-        Sql::exec('ANALYZE ' . $this->tableRow['name']);
+        $this->model->dropColumn('n');
     }
 
     /**
@@ -551,36 +584,37 @@ abstract class RealTables extends aTable
 
     protected function onSaveTable($tbl, $loadedTbl)
     {
-
-        self::recalcLog($this->getTableRow()['name'], 'Экшены');
-
-        if ($fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param')) {
-            foreach ($fieldsWithActionOnChange as $field) {
-                if (Calculate::compare('!==',
-                    $loadedTbl['params'][$field['name']]['v'],
-                    $tbl['params'][$field['name']]['v'])) {
-                    Field::init($field, $this)->action(
-                        $loadedTbl['params'],
-                        $tbl['params'],
-                        $loadedTbl,
-                        $tbl
-                    );
+        $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
+        if ($fieldsWithActionOnChange || !empty($this->changeIds['rowOperations'])) {
+            $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
+            if ($fieldsWithActionOnChange) {
+                foreach ($fieldsWithActionOnChange as $field) {
+                    if (Calculate::compare(
+                        '!==',
+                        $loadedTbl['params'][$field['name']]['v'],
+                        $tbl['params'][$field['name']]['v']
+                    )) {
+                        Field::init($field, $this)->action(
+                            $loadedTbl['params'],
+                            $tbl['params'],
+                            $loadedTbl,
+                            $tbl
+                        );
+                    }
                 }
             }
+            while ($func = array_shift($this->changeIds['rowOperations'])) {
+                $func();
+            }
+
+            $this->calcLog($Log, 'result', 'done');
         }
-        while ($func = array_shift($this->changeIds['rowOperations'])) {
-            $func();
-        }
-        self::recalcLog('..');
     }
 
     protected function loadRowsByIds(array $ids)
     {
-
-
         if ($notLoadedIds = array_diff_key(array_flip($ids), $this->tbl['rows'] ?? [])) {
             $this->loadRowsByParams([['field' => 'id', 'value' => array_keys($notLoadedIds), 'operator' => '=']]);
-
         }
     }
 
@@ -595,7 +629,7 @@ abstract class RealTables extends aTable
         return $tbl['params'];
     }
 
-    function loadDataRow($fromConstructor = false, $force = false)
+    public function loadDataRow($fromConstructor = false, $force = false)
     {
         if (empty($this->loadedTbl)) {
             $this->loadedTbl = $this->savedTbl = $this->tbl = [
@@ -610,135 +644,36 @@ abstract class RealTables extends aTable
     {
         foreach ($row as $k => &$v) {
             if (!in_array($k, Model::serviceFields)) {
-                if (is_array($v)) debug_print_backtrace();
+                if (is_array($v)) {
+                    debug_print_backtrace();
+                }
                 $v = json_decode($v, true);
             }
         }
         return $row;
     }
 
-    protected function getFilteredIds($channel, $idsFilter = [])
-    {
-        $issetBlockedFilters = false;
-        $params = [];
-
-
-        if (!empty($idsFilter)) {
-            $params[] = ['field' => 'id', 'operator' => '=', 'value' => $idsFilter];
-        } elseif ($channel == 'xml' && !empty($this->filtersFromUser['id'])) {
-            $params[] = ['field' => 'id', 'operator' => '=', 'value' => array_map(function ($v) {
-                return (int)$v;
-            },
-                (array)$this->filtersFromUser['id'])];
-        }
-
-        foreach ($this->sortedFields['filter'] ?? [] as $fName => $field) {
-            switch ($channel) {
-                case 'xml':
-                    if (!array_key_exists($fName, $this->sortedXmlFields['filter'])) continue 2;
-                    break;
-                case 'web':
-                    if (empty($this->fields[$fName]['showInWeb'])) continue 2;
-                    break;
-                default:
-                    throw new errorException('Применение фильтров в канале ' . $channel . ' не описано');
-            }
-
-
-            if (!empty($field['column']) //определена колонка
-                && (isset($this->sortedFields['column'][$this->fields[$fName]['column']]) || $field['column'] === 'id') //определена колонка и она существует в таблице
-                && !is_null($fVal_V = $this->tbl['params'][$fName]['v']) //не "Все"
-                && !(is_array($fVal_V) && count($fVal_V) == 0) //Не ничего не выбрано - не Все в мульти
-                && !(!empty($idsFilter) && ((Field::init($field, $this)->isChannelChangeable('modify',
-                        $channel)))) // если это запрос на подтверждение прав доступа и фильтр доступен ему на редактирование
-            ) {
-
-                if ($fVal_V === '*NONE*' || (is_array($fVal_V) && in_array('*NONE*', $fVal_V))) {
-                    $issetBlockedFilters = true;
-                    break;
-
-                } elseif ($fVal_V === '*ALL*' || (is_array($fVal_V) && in_array('*ALL*',
-                            $fVal_V)) || (!in_array($this->fields[$fName]['type'],
-                            ['select', 'tree']) && $fVal_V === '')) {
-                    continue;
-                } else {
-
-                    $param = [];
-                    $param['field'] = $field['column'];
-                    $param['value'] = $fVal_V;
-                    $param['operator'] = '=';
-
-                    if
-                    (!empty($this->fields[$fName]['intervalFilter'])) {
-
-                        switch ($this->fields[$fName]['intervalFilter']) {
-                            case  'start':
-                                $param['operator'] = '>=';
-                                break;
-                            case  'end':
-                                $param['operator'] = '<=';
-                                break;
-                        }
-
-                    } else {
-                        //Для вебного Выбрать Пустое в мультиселекте
-                        if (($fVal_V === [""] || $fVal_V === "")
-                            && $channel === 'web'
-                            && in_array($field['type'], ['select', 'tree'])
-                            && (
-                                ($field['data']['withEmptyVal'] ?? null) || Field::isFieldListValues($this->fields[$field['column']]['type'],
-                                    $this->fields[$field['column']]['multiple'] ?? false)
-                            )
-                        ) {
-                            $param['value'] = "";
-                        }
-                    }
-                    $params[] = $param;
-                }
-            }
-        }
-        $filteredIds = [];
-        if (!$issetBlockedFilters) {
-            $sortFieldName = 'id';
-            if ($this->tableRow['order_field'] === 'n') {
-                $sortFieldName = 'n';
-            } else if ($this->tableRow['order_field'] && $this->tableRow['order_field'] != 'id') {
-                if (!in_array($this->fields[$this->orderFieldName]['type'], ['select', 'tree'])) {
-                    $sortFieldName = $this->orderFieldName;
-                }
-            }
-            $order = [['field' => $sortFieldName, 'ad' => 'asc']];
-            $filteredIds = $this->loadRowsByParams($params, $order);
-        }
-
-        if (empty($idsFilter)) {
-            $this->changeIds['filteredIds'] = $filteredIds;
-        }
-
-        return $filteredIds;
-    }
-
-
     protected function _copyTableData(&$table, $settings)
     {
-
-        if ($settings['copy_params'] != 'none' || $settings['copy_data'] != 'none') {
+        if ($settings['copy_params'] !== 'none' || $settings['copy_data'] !== 'none') {
             $table['tbl'] = $this->tbl;
-            if ($settings['copy_params'] == 'none') {
+            if ($settings['copy_params'] === 'none') {
                 unset($table['tbl']['params']);
             }
 
 
-            if ($settings['copy_data'] != 'none') {
+            if ($settings['copy_data'] !== 'none') {
                 $where = $this->elseWhere;
-                if ($settings['copy_data'] == 'ids') {
+                if ($settings['copy_data'] === 'ids') {
                     $intervals = $this->_getIntervals($settings['intervals']);
                     $whereids = '';
                     foreach ($intervals as $i) {
-                        if ($whereids != '') $whereids .= ' OR ';
-                        if ($i[0] == $i[1])
+                        if ($whereids !== '') {
+                            $whereids .= ' OR ';
+                        }
+                        if ($i[0] === $i[1]) {
                             $whereids .= 'id=' . $i[0];
-                        else {
+                        } else {
                             $whereids .= '(id>=' . $i[0] . ' AND id<=' . $i[1] . ')';
                         }
                     }
@@ -747,11 +682,6 @@ abstract class RealTables extends aTable
                 $table['tbl']['rows'] = $this->model->getAll($where);
             }
         }
-    }
-
-    protected function checkRightFillOrder($id_first, $id_last, $count)
-    {
-        return $count == Sql::getField('select count(*) from ' . $this->tableRow['name'] . ' where n>=(select n from ' . $this->tableRow['name'] . ' where id = ' . $id_first . ') AND n<=(select n from ' . $this->tableRow['name'] . ' where id = ' . $id_last . ') AND is_del = false');
     }
 
     protected function reCalculateRows($calculate, $channel, $isCheck, $modifyCalculated, $isTableAdding, $remove, $add, $modify, $setValuesToDefaults, $setValuesToPinned, $duplicate, $reorder, $addAfter, $addWithId)
@@ -766,28 +696,33 @@ abstract class RealTables extends aTable
         if ($reorder) {
             $startId = 0;
             foreach ($reorder as $id) {
-                if (!is_int($id)) throw new errorException('Ошибка клиентской части. Получена строка вместо id');
+                if (!is_int($id)) {
+                    throw new errorException('Ошибка клиентской части. Получена строка вместо id');
+                }
             }
-            $old_order_arrays = Sql::getAll('select n, id from ' . $this->tableRow['name'] . ' where id IN (' . implode(',',
-                    $reorder) . ') order by n');
+            $old_order_arrays = $this->model->executePrepared(true, ['id' => $reorder], 'n, id', 'n')->fetchAll();
             if (!empty($this->tableRow['order_desc'])) {
                 $reorder = array_reverse($reorder);
             }
 
             foreach ($old_order_arrays as $i => $orderRow) {
-                if ($orderRow['id'] == $reorder[0]) {
+                if ($orderRow['id'] === $reorder[0]) {
                     array_splice($reorder, 0, 1);
                     unset($old_order_arrays[$i]);
-                } else break;
+                } else {
+                    break;
+                }
             }
             if ($reorder) {
                 $old_order_arrays_rev = array_reverse($old_order_arrays);
                 $reorder_rev = array_reverse($reorder);
                 foreach ($old_order_arrays_rev as $i => $orderRow) {
-                    if ($orderRow['id'] == $reorder_rev[0]) {
+                    if ($orderRow['id'] === $reorder_rev[0]) {
                         array_splice($reorder_rev, 0, 1);
                         unset($old_order_arrays_rev[$i]);
-                    } else break;
+                    } else {
+                        break;
+                    }
                 }
 
                 $old_order_arrays = [];
@@ -795,35 +730,34 @@ abstract class RealTables extends aTable
                     $old_order_arrays[] = $oldOrdRow['n'];
                 }
 
-
                 $reorder = array_reverse($reorder_rev);
                 $orderMinN = $old_order_arrays[0];
-                Sql::exec('update ' . $this->tableRow['name'] . ' set n = null where id IN (' . implode(',',
-                        $reorder) . ')');
+                $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
 
                 foreach ($reorder as $i => $rId) {
-                    Sql::exec('update ' . $this->tableRow['name'] . ' set n = ' . $old_order_arrays[$i] . ' where id = ' . $rId);
+                    $this->model->updatePrepared(true, ['n' => $old_order_arrays[$i]], ['id' => [$rId]]);
                 }
                 $this->tbl['rows'] = [];
-
+                $this->setIsTableDataChanged(true);
             }
-
         }
 
 
-        $modifiedIds = array_flip(array_merge(array_keys($modify),
+        $modifiedIds = array_flip(array_merge(
+            array_keys($modify),
             array_keys($setValuesToDefaults),
-            array_keys($setValuesToPinned)));
+            array_keys($setValuesToPinned)
+        ));
         unset($modifiedIds['params']);
         $modifiedIds = array_flip($modifiedIds);
 
 
         switch ($calculate) {
-            case aTable::CalcInterval['all_filtered']:
-                $modifiedIds = array_unique(array_merge($modifiedIds, $this->getFilteredIds($channel, [])));
+            case aTable::CALC_INTERVAL_TYPES['all_filtered']:
+                $modifiedIds = $this->loadFilteredRows($channel, $modifiedIds);
                 break;
-            case aTable::CalcInterval['all']:
-                $modifiedIds = array_unique(array_merge($modifiedIds, $this->loadRowsByParams([])));
+            case aTable::CALC_INTERVAL_TYPES['all']:
+                $this->loadFilteredRows($channel);
                 break;
         }
 
@@ -835,13 +769,19 @@ abstract class RealTables extends aTable
             }
 
             foreach ($duplicate['ids'] as $baseRowId) {
-                $row = $this->duplicateRow($channel,
+                $row = $this->duplicateRow(
+                    $channel,
                     $this->tbl['rows'][$baseRowId],
                     ($duplicate['replaces'][$baseRowId] ?? []),
                     $addAfter
                 );
-                $modifiedIds[] = $row['id']; //Для пересчета строки при дублировании, чтобы не сыпались ошибки обращения к #id;
-                if (is_null($orderMinN) || $orderMinN > $row['n']) $orderMinN = $row['n'];
+                if (!is_a($this, cyclesTable::class)) {
+                    //Для пересчета строки при дублировании, чтобы не сыпались ошибки обращения к #id;
+                    $modifiedIds[] = $row['id'];
+                }
+                if ($this->tableRow['with_order_field'] && (is_null($orderMinN) || $orderMinN > $row['n'])) {
+                    $orderMinN = $row['n'];
+                }
                 if ($addAfter) {
                     $addAfter = $row['id'];
                 }
@@ -850,9 +790,10 @@ abstract class RealTables extends aTable
 
         if ($add) {
             if (!empty($this->tableRow['with_order_field'])) {
-
-                $fIds = $channel != 'inner' ? $this->getFilteredIds($channel,
-                    $this->webIdInterval) : [];
+                $fIds = $channel !== 'inner' ? $this->loadFilteredRows(
+                    $channel,
+                    $this->webIdInterval
+                ) : [];
 
 
                 $afterN = null;
@@ -862,14 +803,18 @@ abstract class RealTables extends aTable
                     $this->loadRowsByIds([$addAfter]);
                     if (!empty($this->tbl['rows'][$addAfter])) {
                         $afterN = $this->tbl['rows'][$addAfter]['n'];
-                    } else throw new errorException('Строки с id ' . $addAfter . ' не существует. Возможно, она была удалена');
+                    } else {
+                        throw new errorException('Строки с id ' . $addAfter . ' не существует. Возможно, она была удалена');
+                    }
                 }
             }
 
             foreach ($add as $rAdd) {
                 if ($this->tableRow['with_order_field'] ?? false) {
-                    if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN($fIds,
-                            $afterN)) {
+                    if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN(
+                        $fIds,
+                        $afterN
+                    )) {
                         $afterN = $rAdd['n'] = $n;
                     }
                 }
@@ -877,19 +822,26 @@ abstract class RealTables extends aTable
                 $row = $this->addRow($channel, $rAdd, false, $addWithId, 0, $isCheck);
 
                 if ($this->tableRow['with_order_field'] ?? false) {
-                    if (is_null($orderMinN) || $orderMinN > $row['n']) $orderMinN = $row['n'];
-
+                    if (is_null($orderMinN) || $orderMinN > $row['n']) {
+                        $orderMinN = $row['n'];
+                    }
                 }
-                if (!$isCheck)
-                    $modifiedIds[] = $row['id']; //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
+                if (!$isCheck && !is_a($this, cyclesTable::class)) {
+                    $modifiedIds[] = $row['id'];
+                } //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
             }
         }
         if (!empty($this->tableRow['recalc_in_reorder'])) {
             if (!is_null($orderMinN)) {
-                $modifiedIds = array_merge($modifiedIds,
-                    Sql::getFieldArray('select id from ' . $this->tableRow['name'] . ' where n>=' . $orderMinN));
-                $modifiedIds = array_unique($modifiedIds);
-
+                array_push(
+                    $modifiedIds,
+                    ...
+                    $this->model->executePrepared(
+                        true,
+                        ['>=n' => $orderMinN, '!id' => $modifiedIds],
+                        'id'
+                    )->fetchAll(PDO::FETCH_COLUMN, 0)
+                );
             }
         }
 
@@ -931,26 +883,27 @@ abstract class RealTables extends aTable
                     $setValuesToDefaults[$id] ?? [],
                     $setValuesToPinned[$id] ?? [],
                     $this->tbl['rows'][$id],
-                    $modifyCalculated);
-
+                    $modifyCalculated
+                );
             }
         }
     }
 
 
-    function normalizeN()
+    public function normalizeN()
     {
-        Sql::exec('drop index ' . $this->tableRow['name'] . '___ind___n');
-        Sql::exec('update ' . $this->tableRow['name'] . ' l set n=n.nn FROM (SELECT id, n, row_number() OVER (ORDER BY n)  AS nn ' .
-            'FROM ' . $this->tableRow['name'] . ') n WHERE l.id=n.id');
-        Sql::exec('create unique index if not exists ' . $this->tableRow['name'] . '___ind___n  on ' . $this->tableRow['name'] . '(n)');
+        $this->model->removeIndex('n');
 
+        $this->model->exec('update ' . $this->tableRow['name'] . ' l set n=n.nn FROM (SELECT id, n, row_number() OVER (ORDER BY n)  AS nn ' .
+            'FROM ' . $this->tableRow['name'] . ') n WHERE l.id=n.id');
+
+        $this->model->createIndex('n', true);
         $this->nTailLength = 0;
 
         $this->saveTable();
     }
 
-    protected function getNewTblForRecalculate()
+    protected function getNewTblForRecalc()
     {
         return [
             'rows' => $this->tbl['rows'],
@@ -958,8 +911,7 @@ abstract class RealTables extends aTable
         ];
     }
 
-    protected
-    function rowsOperations($operation, $row = null, $rowsIndexedByIdOrChanges = [])
+    protected function rowsOperations($operation, $row = null, $rowsIndexedByIdOrChanges = [])
     {
         switch ($operation) {
             case 'Delete':
@@ -968,18 +920,7 @@ abstract class RealTables extends aTable
                 foreach ($this->sortedFields['column'] as $field) {
                     if ($field['type'] === 'file') {
                         $this->loadRowsByIds([$row['id']]);
-                        if ($deleteFiles = $this->tbl['rows'][$row['id']][$field['name']]['v']) {
-                            Sql::addOnCommit(function () use ($deleteFiles) {
-                                foreach ($deleteFiles as $file) {
-                                    if ($file = ($file['file'] ?? null)) {
-                                        unlink(File::getDir() . $file);
-                                        if (is_file($preview = File::getDir() . $file . '_thumb.jpg')) {
-                                            unlink($preview);
-                                        }
-                                    }
-                                }
-                            });
-                        }
+                        $this->deleteFilesOnCommit($this->tbl['rows'][$row['id']][$field['name']]['v']);
                     }
                 }
                 unset($this->tbl['rows'][$row['id']]);
@@ -998,25 +939,23 @@ abstract class RealTables extends aTable
                 break;
             case 'Change':
 
-                if (empty($this->changeIds['changed'][$row['id']])) $this->changeIds['changed'][$row['id']] = [];
+                if (empty($this->changeIds['changed'][$row['id']])) {
+                    $this->changeIds['changed'][$row['id']] = [];
+                }
 
                 $this->changeIds['changed'][$row['id']] += array_flip($rowsIndexedByIdOrChanges);
                 $this->tbl['rows'][$row['id']] = $row;
                 break;
         }
-
     }
 
-    protected
-    function loadModel()
+    protected function loadModel()
     {
-        $this->model = Model::init($this->tableRow['name']);
+        $this->model = $this->Totum->getModel($this->tableRow['name']);
     }
 
-    protected
-    function modifyRow($channel, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $oldRow, $modifyCalculated = true, $saveIt = true)
+    protected function modifyRow($channel, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $oldRow, $modifyCalculated = true, $saveIt = true)
     {
-
         $changedData = ['id' => $oldRow['id']];
 
         if (!empty($this->tableRow['with_order_field'])) {
@@ -1028,12 +967,14 @@ abstract class RealTables extends aTable
             $oldRow[$k] = ($oldVal = $oldRow[$k] ?? null);
 
             $field = Field::init($v, $this);
-            $changedFlag = $field->getModifyFlag(array_key_exists($k, $modify),
+            $changedFlag = $field->getModifyFlag(
+                array_key_exists($k, $modify),
                 $newVal,
                 $oldVal,
                 array_key_exists($k, $setValuesToDefaults),
                 array_key_exists($k, $setValuesToPinned),
-                $modifyCalculated);
+                $modifyCalculated
+            );
 
             $changedData[$v['name']] = $field->modify(
                 $channel,
@@ -1043,15 +984,16 @@ abstract class RealTables extends aTable
                 $changedData,
                 $this->savedTbl,
                 $this->tbl,
-                !$saveIt);
-
-
+                !$saveIt
+            );
         }
 
         unset($changedData['id']);
         unset($changedData['n']);
 
-        if ($saveIt == false) return array_merge($oldRow, $changedData);
+        if ($saveIt === false) {
+            return array_merge($oldRow, $changedData);
+        }
 
         foreach ($changedData as $k => $v) {
             $identical = true;
@@ -1076,25 +1018,38 @@ abstract class RealTables extends aTable
             || ($this->tableRow['name'] === 'tree' && empty($oldRow['top']['v']))
         ) {
             $changedSaveData = $changedData;
-            foreach ($changedSaveData as &$fData) $fData = json_encode($fData, JSON_UNESCAPED_UNICODE);
+            foreach ($changedSaveData as &$fData) {
+                $fData = json_encode($fData, JSON_UNESCAPED_UNICODE);
+            }
 
-            if ($result = $this->model->update($changedSaveData,
+            if ($result = $this->model->update(
+                $changedSaveData,
                 ['id' => $oldRow['id']] + $this->elseWhere,
-                0,
-                $oldRow)
+                $oldRow
+            )
             ) {
-                $row = $this->model->get(['id' => $oldRow['id']] + $this->elseWhere);
-                $row = $this->decodeRow($row);
-                if ($row != $oldRow) {
-                    $this->isTableDataChanged = true;
+                $row = $this->model->executePrepared(
+                    true,
+                    ['id' => $oldRow['id']] + $this->elseWhere,
+                    '*',
+                    null,
+                    '0,1'
+                )->fetch();
+                $row = static::decodeRow($row);
+
+                if ($row !== $oldRow) {
+                    $this->setIsTableDataChanged(true);
                     $this->rowChanged($oldRow, $row, 'Change');
 
                     /******aLog  modify clear *****/
                     foreach ($row as $k => $v) {
-                        if (!key_exists($k, $this->fields)) continue;
+                        if (!key_exists($k, $this->fields)) {
+                            continue;
+                        }
 
                         $Field = Field::init($this->fields[$k], $this);
-                        $this->addToALogModify($Field,
+                        $this->addToALogModify(
+                            $Field,
                             $channel,
                             $this->tbl,
                             $row,
@@ -1102,7 +1057,8 @@ abstract class RealTables extends aTable
                             $modify,
                             $setValuesToDefaults,
                             $setValuesToPinned,
-                            $oldRow[$Field->getName()] ?? []);
+                            $oldRow[$Field->getName()] ?? []
+                        );
                     }
                 }
                 /******aLog*****/
@@ -1111,11 +1067,9 @@ abstract class RealTables extends aTable
             }
         }
         return $oldRow;
-
     }
 
-    protected
-    function duplicateRow($channel, $baseRow, $replaces, $addAfter)
+    protected function duplicateRow($channel, $baseRow, $replaces, $addAfter)
     {
 
 
@@ -1124,7 +1078,6 @@ abstract class RealTables extends aTable
         $baseRow = $this->modifyRow($channel, [], [], [], $baseRow);
         $newRowData = [];
         foreach ($this->sortedFields['column'] as $field) {
-
             if (array_key_exists($field['name'], ($replaces))) {
                 $newRowData[$field['name']] = $replaces[$field['name']];
                 continue;
@@ -1136,7 +1089,7 @@ abstract class RealTables extends aTable
                 $newRowData[$field['name']] = $baseRow[$field['name']]['v'];
                 continue;
             }
-            if (is_null($field['default']) && empty($field['code']) && $field['type'] != "comments") {
+            if (!key_exists('default', $field) && empty($field['code']) && $field['type'] !== "comments") {
                 $newRowData[$field['name']] = $baseRow[$field['name']]['v'];
             }
         }
@@ -1146,19 +1099,32 @@ abstract class RealTables extends aTable
                 if ($n = $this->getNextN(null, $this->tbl['rows'][$addAfter]['n'])) {
                     $newRowData['n'] = $n;
                 }
-            } else if ($n = $this->getNextN(null, $baseRow['n'])) {
+            } elseif ($n = $this->getNextN(null, $baseRow['n'])) {
                 $newRowData['n'] = $n;
             }
         }
 
         /******Расчет дублированной строки для  REAL-таблиц********/
 
+        $Log = $this->calcLog(['name' => 'DUPLICATE ROW']);
+        $this->CalculateLog->addParam('duplicated_id', $baseRow['id']);
+
         $row = $this->addRow('inner', $newRowData, true, false, $baseRow['id']);
+        $this->calcLog($Log, 'result', 'done');
+
+        if ($row && $this->tableRow['name'] === 'tables') {
+            $this->changeIds['rowOperations'][] = function () use ($baseRow, $row) {
+                $this->Totum->getNamedModel(Table::class)->dulpicateTableFiedls($row, $baseRow);
+            };
+            $this->tbl['rows'] = [];
+        }
+
+
         $this->changeIds['duplicated'][$baseRow['id']] = $row['id'];
         return $row;
     }
 
-    static function getNSize($n)
+    public static function getNSize($n)
     {
         return strlen($n) - strpos($n, '.') - 1;
     }
@@ -1166,22 +1132,19 @@ abstract class RealTables extends aTable
     protected function getNextN($idRows = null, $prevN = null)
     {
         if (!empty($idRows) && is_null($prevN)) {
-            $idRows = implode(', ', $idRows);
 
             if (empty($this->tableRow['order_desc'])) {
-                $prevN = Sql::getField('select MAX(n) from ' . $this->tableRow['name']
-                    . ' where id in (' . $idRows . ')');
+                $prevN = $this->model->executePrepared(true, ['id' => $idRows], 'MAX(n) as n')->fetchColumn(0);
             } else {
-                $prevN = Sql::getField('select MIN(n) from ' . $this->tableRow['name']
-                    . ' where id in (' . $idRows . ')');
+                $prevN = $this->model->executePrepared(true, ['id' => $idRows], 'MIN(n) as n')->fetchColumn(0);
             }
         }
         if (!is_null($prevN)) {
             if (!empty($this->tableRow['order_desc'])) {
-                $nextN = Sql::getField($q = 'select MAX(n) from ' . $this->tableRow['name'] . ' where n<' . $prevN);
+                $nextN = $this->model->executePrepared(true, ['<n' => $prevN], 'MAX(n) as n')->fetchColumn(0);
                 [$prevN, $nextN] = [$nextN, $prevN];
             } else {
-                $nextN = Sql::getField($q = 'select MIN(n) from ' . $this->tableRow['name'] . ' where n>' . $prevN);
+                $nextN = $this->model->executePrepared(true, ['>n' => $prevN], 'MIN(n) as n')->fetchColumn(0);
             }
             if ($nextN) {
                 $scalePrev = static::getNSize($prevN);
@@ -1192,9 +1155,11 @@ abstract class RealTables extends aTable
                 $scaleDiff = static::getNSize($diff);
                 $len = 4;
 
-                while (bccomp($diff,
-                        ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
-                        $scaleDiff > $len ? $scaleDiff : $len) != 1) {
+                while (bccomp(
+                    $diff,
+                    ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
+                    $scaleDiff > $len ? $scaleDiff : $len
+                ) !== 1) {
                     $len += 4;
                 }
 
@@ -1202,40 +1167,52 @@ abstract class RealTables extends aTable
                 $n = bcadd($prevN, $nPlus, $len < $scalePrev ? $scalePrev : $len);
                 $scaleN = static::getNSize($n);
                 $scaleComp = $scaleN > $scaleNext ? $scaleN : $scaleNext;
-                if (bccomp($n, $nextN, $scaleComp) != -1) {
-                    throw new SqlExeption("Ошибка логики n: $n>=$nextN");
+                if (bccomp($n, $nextN, $scaleComp) !== -1) {
+                    throw new SqlException("Ошибка логики n: $n>=$nextN");
                 }
-                if ($this->nTailLength < $scaleComp) $this->nTailLength = $scaleComp;
-
-            } else
+                if ($this->nTailLength < $scaleComp) {
+                    $this->nTailLength = $scaleComp;
+                }
+            } else {
                 $n = bcadd($prevN, 1, 0);
-
+            }
         }
         if (!empty($n)) {
             return $n;
         }
     }
 
-    protected
-    function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck = false)
+    /**
+     * @param $channel
+     * @param $addData
+     * @param false $fromDuplicate
+     * @param false $addWithId
+     * @param int $duplicatedId
+     * @param false $isCheck
+     * @return array|null
+     * @throws errorException
+     */
+    protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck = false)
     {
-
-
         $changedData = ['id' => ''];
 
         if ($addWithId && ($id = (int)($addData['id'] ?? 0)) > 0) {
-            if ($this->model->get(['id' => $id], 'id')) {
+            if ($this->model->getPrepared(['id' => $id], 'id')) {
                 throw new errorException('id ' . $id . ' в таблице уже существует. Нельзя добавить повторно');
             }
             $changedData['id'] = $id;
         }
 
-        if (!empty($this->tableRow['with_order_field'])) {
+        if (!empty($this->tableRow['with_order_field']) && !$isCheck) {
             if (!empty($addData['n'])) {
                 $changedData['n'] = $addData['n'];
             } else {
                 if (empty($id)) {
-                    $id = Sql::getField('SELECT nextval(\'' . $this->tableRow['name'] . '_id_seq\')');
+                    $id = $this->model->executePreparedSimple(
+                        true,
+                        'SELECT nextval(\'' . $this->tableRow['name'] . '_id_seq\')',
+                        []
+                    )->fetchColumn(0);
                     $n = $id;
                 } else {
                     $n = $this->model->getField('max(n)+1 as n', []);
@@ -1265,8 +1242,8 @@ abstract class RealTables extends aTable
 
         if ($changedData) {
             if ($isCheck) {
-                $this->tbl['rowInsered'] = $changedData;
-                return false;
+                $this->tbl['rowInserted'] = $changedData;
+                return null;
             }
 
             $changedSaveData = $changedData;
@@ -1278,10 +1255,10 @@ abstract class RealTables extends aTable
             }
             unset($fData);
 
-            $this->isTableDataChanged = true;
+            $this->setIsTableDataChanged(true);
 
-            if ($resultId = $this->model->insert($changedSaveData)) {
-                $row = $this->decodeRow($this->model->getById($resultId));
+            if ($resultId = $this->model->insertPrepared($changedSaveData)) {
+                $row = static::decodeRow($this->model->getById($resultId));
                 $this->rowChanged([], $row, 'Add');
 
 
@@ -1305,241 +1282,304 @@ abstract class RealTables extends aTable
     protected function getWhereFromParams($paramsWhere, $withoutDeleted = true)
     {
         $where = [];
+        $params = [];
 
         $fields = $this->fields;
 
-        if ($withoutDeleted && count($paramsWhere) == 1 && $paramsWhere[0]["field"] == 'id' && $paramsWhere[0]["operator"] == '=') $withoutDeleted = false;
+        if ($withoutDeleted && count($paramsWhere) === 1 && $paramsWhere[0]["field"] === 'id' && $paramsWhere[0]["operator"] === '=') {
+            $withoutDeleted = false;
+        }
 
         foreach ($paramsWhere as $wI) {
-
             if (!is_array($wI)) {
                 $where[] = $wI;
                 continue;
             }
 
-            $field = $fieldName = $wI['field'];
+            $fieldName = $wI['field'];
             $operator = $wI['operator'];
             $value = $wI['value'];
-            if (!array_key_exists($field, $fields) && !in_array($field, Model::serviceFields)) {
-                throw new errorException('Поля [[' . $field . ']] в таблице [[' . $this->tableRow['name'] . ']] не существует');
+
+            if ($value === '*ALL*') {
+                continue;
             }
 
-            $isMustBeInteger = ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number');
+            if (!array_key_exists($fieldName, $fields) && !Model::isServiceField($fieldName)) {
+                throw new errorException('Поля [[' . $fieldName . ']] в таблице [[' . $this->tableRow['name'] . ']] не существует');
+            }
 
-            if (in_array($field, Model::serviceFields)) {
-                $field = '"' . $field . '"';
+
+            if (Model::isServiceField($fieldName)) {
+                $fieldQuoted = '"' . $fieldName . '"';
             } else {
-                $field = "($field->>'v')";
-                if ($isMustBeInteger)
-                    $field .= '::NUMERIC';
+                $fieldQuoted = "($fieldName->>'v')";
+                $fieldQuotedJsonb = "($fieldName->'v')";
             }
+
+            /*Проверка на число - чтобы ошибок в базе не случалось*/
+            if ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
+                foreach ((array)$value as $v) {
+                    if ($v !== "" && !is_null($v) && !is_numeric((string)$v)) {
+                        throw new errorException('Для выборки по числовому полю [[' . $fieldName . ']] должно быть передано число');
+                    }
+                }
+
+                if ($fieldName === 'id') {
+                    $fieldQuoted = "(id)::NUMERIC";
+                } elseif ($fieldName !== 'n') {
+                    $fieldQuoted = "$fieldQuoted::NUMERIC";
+                }
+            }
+
 
             /*Поиск в полях-листах*/
-            if (Field::isFieldListValues($fields[$wI['field']]['type'] ?? null,
-                $fields[$wI['field']]['multiple'] ?? false)) {
+            if (Field::isFieldListValues(
+                $fields[$wI['field']]['type'] ?? null,
+                $fields[$wI['field']]['multiple'] ?? false
+            )) {
+                $trueFalse = "TRUE";
+                $sqlOperator = '=';
+
                 switch ($operator) {
                     case '!==':
-                        /*Сравнение с пустой строкой и с пустым листом*/
-                        if (empty($value) && ($value === '' || is_array($value))) {
-                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NOT NULL OR " . $wI["field"] . "->>'v'!='[]')";
+                        /*Сравнение с пустой строкой*/
+                        if ($value === '' || is_null($value)) {
+                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = FALSE";
                         } /*Сравнение с листом*/
                         elseif (is_array($value)) {
-                            $where[] = "(" . $wI["field"] . "->'v' != '" . json_encode($value,
-                                    JSON_UNESCAPED_UNICODE) . "'::JSONB )";
+                            $where[] = "($fieldQuotedJsonb != ?::JSONB OR $fieldQuoted is NULL)";
+                            $params[] = json_encode(
+                                $value,
+                                JSON_UNESCAPED_UNICODE
+                            );
                         } /*Сравнение с числом или строкой*/
                         else {
-                            if (is_bool($value)) $value = $value ? 'true' : 'false';
-
-                            $where[] = "(" . $wI["field"] . "->>'v' != " . Sql::quote((string)$value) . ")";
+                            if (is_bool($value)) {
+                                $value = $value ? 'true' : 'false';
+                            }
+                            $where[] = "($fieldQuoted != ? OR $fieldQuoted is NULL)";
+                            $params[] = (string)$value;
                         }
 
                         break;
                     case '==':
-                        /*Сравнение с пустой строкой и с пустым листом*/
-                        if (empty($value) && ($value === '' || is_array($value) || is_null($value))) {
-                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]')";
+                        /*Сравнение с пустой строкой*/
+                        if (is_null($value) || $value === '') {
+                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = TRUE";
                         } /*Сравнение с листом*/
                         elseif (is_array($value)) {
-                            $where[] = "(" . $wI["field"] . "->'v' = '" . json_encode($value,
-                                    JSON_UNESCAPED_UNICODE) . "'::JSONB )";
+                            $where[] = "($fieldQuotedJsonb = ?::JSONB )";
+                            $params[] = json_encode(
+                                $value,
+                                JSON_UNESCAPED_UNICODE
+                            );
                         } /*Сравнение с числом или строкой*/
                         else {
-                            if (is_bool($value)) $value = $value ? 'true' : 'false';
-
-                            $where[] = "(" . $wI["field"] . "->>'v' = " . Sql::quote((string)$value) . ")";
+                            if (is_bool($value)) {
+                                $value = $value ? 'true' : 'false';
+                            }
+                            $where[] = "($fieldQuoted = ?)";
+                            $params[] = (string)$value;
                         }
 
                         break;
                     case '!=':
+                        $trueFalse = 'FALSE';
+                    // no break
                     case '=':
-
 
                         /*Сравнение с пустой строкой*/
                         if (empty($value) && ($value === '' || is_null($value))) {
-                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]' OR " . $wI["field"] . "->'v' @> '[\"\"]'::jsonb OR " . $wI["field"] . "->'v' @> '[null]'::jsonb ) = " . ($operator == '!=' ? 'false' : 'true');
+                            $where[] = "($fieldQuoted is NULL 
+                            OR $fieldQuoted='' 
+                            OR $fieldQuoted='[]' 
+                            OR $fieldQuotedJsonb @> '[\"\"]'::jsonb 
+                            OR $fieldQuotedJsonb @> '[null]'::jsonb ) = $trueFalse";
                         } /*Сравнение с пустым листом*/
                         elseif (empty($value) && $value === []) {
-
-                            $where[] = "(" . $wI["field"] . "->>'v'" . " is NULL OR " . $wI["field"] . "->>'v'='' OR " . $wI["field"] . "->>'v'='[]') = " . ($operator == '!=' ? 'false' : 'true');
-
-
+                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted='' OR $fieldQuoted='[]') = $trueFalse";
                         } /*Сравнение с листом*/
-                        else if (is_array($value)) {
-
-
-                            if ($fields[$wI['field']]['type'] == 'listRow') {
+                        elseif (is_array($value)) {
+                            if ($fields[$wI['field']]['type'] === 'listRow') {
                                 $isAssoc = (array_keys($value) !== range(0, count($value) - 1));
 
                                 $where_tmp = '';
                                 foreach ($value as $k => $v) {
-                                    if ($where_tmp !== '')
+                                    if ($where_tmp !== '') {
                                         $where_tmp .= ' OR ';
+                                    }
                                     if ($isAssoc) {
                                         if (is_numeric((string)$v)) {
-                                            $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote("{\"$k\":$v}") . '::jsonb OR ';
+                                            $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
+                                            $params[] = json_encode(
+                                                [$k => is_string($v) ? (float)$v : (string)$v],
+                                                JSON_UNESCAPED_UNICODE
+                                            );
                                         }
-                                        $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([$k => (string)$v],
-                                                JSON_UNESCAPED_UNICODE)) . '::jsonb';
+                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
+                                        $params[] = json_encode([$k => $v], JSON_UNESCAPED_UNICODE);
                                     } else {
                                         if (is_numeric((string)$v)) {
-                                            $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote("[$v]") . '::jsonb OR ';
+                                            $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
+                                            $params[] = json_encode(
+                                                [is_string($v) ? (float)$v : (string)$v]
+
+                                            );
                                         }
-                                        $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$v],
-                                                JSON_UNESCAPED_UNICODE)) . '::jsonb';
+                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
+                                        $params[] = json_encode([$v], JSON_UNESCAPED_UNICODE);
                                     }
-
                                 }
-                                $q = '(' . $where_tmp . ') = ' . ($operator == '!=' ? 'false' : 'true');
-
                             } else {
                                 $where_tmp = '';
                                 foreach ($value as $v) {
-                                    if ($where_tmp !== '') $where_tmp .= ' OR ';
-                                    $where_tmp .= $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$v],
-                                            JSON_UNESCAPED_UNICODE)) . '::jsonb';
+                                    if ($where_tmp !== '') {
+                                        $where_tmp .= ' OR ';
+                                    }
+                                    $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb";
+                                    $params[] = json_encode(
+                                        [(string)$v],
+                                        JSON_UNESCAPED_UNICODE
+                                    );
                                 }
-                                $q = '(' . $where_tmp . ') = ' . ($operator == '!=' ? 'false' : 'true');
+                            }
+                            $where[] = "($where_tmp) = $trueFalse";
+                        } /*С булевым*/
+                        elseif (is_bool($value) || in_array((string)$value, ["true", "false"])) {
+                            if (is_bool($value)) {
+                                $value = $value ? "true" : "false";
+                            }
+                            $null="";
+                            if ($operator == '!=') {
+                                $null = " OR $fieldQuoted is NULL ";
                             }
 
+                            $where[] = "(($fieldQuoted = ? or $fieldQuotedJsonb @> ?::jsonb or $fieldQuotedJsonb @> ?::jsonb) = $trueFalse $null)";
 
-                            $where[] = $q;
-
-
-                        } elseif (is_bool($value) || in_array((string)$value, ["true", "false"])) {
-                            if (is_bool($value))
-                                $value = $value ? "true" : "false";
-
-                            $where[] = "(" . $wI["field"] . "->>'v' = '" . $value . "' OR " . $wI['field'] . "->'v' @> '[\"" . $value . "\"]'::jsonb = true  OR " . $wI['field'] . "->'v' @> '[" . $value . "]'::jsonb = true) $operator true";
-
+                            $params[] = $value;
+                            $params[] = "[\"" . $value . "\"]";
+                            $params[] = "[" . $value . "]";
                         } /*Сравнение с числом или строкой*/
                         else {
-                            $q = $wI['field'] . '->\'v\' @> ' . Sql::quote(json_encode([(string)$value],
-                                    JSON_UNESCAPED_UNICODE)) . '::jsonb = true';
 
-                            $q .= ' OR ' . $wI['field'] . '->>\'v\' = ' . Sql::quote((string)$value);
-
-                            if ($fields[$wI['field']]['type'] == 'listRow' && is_numeric((string)$value)) {
-                                $q .= ' OR ' . $wI['field'] . '->\'v\' @> ' . Sql::quote("[$value]") . '::jsonb = true';
+                            /*равно или содержит*/
+                            $q = "$fieldQuoted = ?  OR $fieldQuotedJsonb @>  ?::jsonb ";
+                            $params[] = (string)$value;
+                            $params[] = json_encode([(string)$value], JSON_UNESCAPED_UNICODE);
+                            if ($fields[$wI['field']]['type'] === 'listRow' && is_numeric((string)$value)) {
+                                /*равно или содержит числовой вариант*/
+                                $q .= "OR $fieldQuotedJsonb @> ?::jsonb";
+                                $params[] = "[$value]";
                             }
-                            $where[] = "($q) $operator true";
+                            $null="";
+                            if ($operator == '!=') {
+                                $null = " OR $fieldQuoted is NULL ";
+                            }
+                            $where[] = "(($q) = $trueFalse $null)";
                         }
                         break;
                     default:
                         throw new errorException('Операторы для работы с листами только [[=]]/[[==]]/[[!=]]/[[!==]]');
                 }
-            } /* Поиск не в полях-листах */
-            else {
-                if (is_array($value)) {
+            } /* Поиск не в полях-листах по массиву */
+            elseif (is_array($value)) {
+                switch ($operator) {
+                    case '==':
+                        $where[] = 'FALSE';
+                        break;
+                    case '!==':
+                        $where[] = 'TRUE';
+                        break;
+                    case '<':
+                    case '<=':
+                    case '>=':
+                    case '>':
+                        throw new errorException('При сравнении с листом операторы  <=> не допустимы');
+                        break;
+                    case '=':
+                    case '!=':
+                        /*Если на вход пришел пустой массив*/
+                        if (empty($value)) {
+                            if ($operator === '=') {
+                                $where[] = 'FALSE';
+                            } else {
+                                $where[] = 'TRUE';
+                            }
+                        } else {
+                            foreach ($value as $v) {
+                                if (is_array($v)) {
+                                    throw new errorException("В параметре where [[$fieldName]] получен лист, в качестве элемента которого содержится лист");
+                                }
+                            }
+                            /*Если в массиве содержится пустое значение*/
+                            $q = "";
+                            if (in_array('', $value, true) || in_array(null, $value, true)) {
+                                $value = array_filter(
+                                    $value,
+                                    function ($v) {
+                                        return !(is_null($v) || $v === '');
+                                    }
+                                );
+                                $q .= "$fieldQuoted  IS " . ($operator === '=' ? '' : 'NOT') . " NULL ";
+                            }
+                            /*если есть непустые значения*/
+                            if (!empty($value)) {
+                                if ($q) {
+                                    $q .= " OR ";
+                                }
+                                $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
+                                    ',?',
+                                    count($value) - 1
+                                ) . ')';
+                                array_push($params, ...$value);
+                            }
+                            $where[] = "($q)";
+                        }
+                        break;
+                    default:
+                        throw new errorException('Операторы для работы с листами только [[=]] и [[!=]]');
 
+                }
+            } /* Поиск не в полях-листах не по массиву*/
+            else {
+                switch ($operator) {
+                    case '==':
+                        $operator = '=';
+                        break;
+                    case '!==':
+                        $operator = '!=';
+                        break;
+                }
+
+                if ($value === '' || is_null($value)) {
                     switch ($operator) {
-                        case '==':
-                            $where[] = 'false';
+                        case '=':
+                        case '<=':
+                            $where[] = '(' . $fieldQuoted . '::text = \'\' OR ' . $fieldQuoted . ' is NULL)';
                             break;
-                        case '!==':
+                        case '!=':
+                        case '>':
+                            $where[] = '(' . $fieldQuoted . '::text != \'\' AND ' . $fieldQuoted . ' is NOT NULL)';
+                            break;
+                        case '>=':
                             $where[] = 'true';
                             break;
                         case '<':
-                        case '<=':
-                        case '>=':
-                        case '>':
-
-                            throw new errorException('При сравнении с листом операторы  <=> не допустимы');
-
+                            $where[] = 'false';
                             break;
-                        default:
-
-                            if (!in_array($operator, ['=', '!='])) {
-                                throw new errorException('Операторы для работы с листами только [[=]] и [[!=]]');
-                            }
-                            if (empty($value)) {
-                                if ($operator == '=') {
-                                    $where[] = 'false';
-                                } else {
-                                    $where[] = 'true';
-                                }
-                            } else {
-                                foreach ($value as $v) {
-                                    if (is_array($v)) throw new errorException('В параметре where [[' . $wI['field'] . ']] получен лист, в качестве элемента которого содержится лист');
-                                }
-                                if (in_array('', $value, true) || in_array(null, $value, true)) {
-                                    unset($value[array_search('', $value)]);
-                                    $sqlSearch = 'false';
-                                    if (!empty($value)) {
-                                        $sqlSearch = $field . ' ' . ($operator == '=' ? 'IN' : 'NOT IN') . ' (' . implode(', ',
-                                                Sql::quote($value, $isMustBeInteger)) . ')';
-                                    }
-                                    $where[] = '(' . $sqlSearch . ' OR ' . $field . ' IS ' . ($operator == '=' ? '' : 'NOT') . ' NULL )';
-
-                                } else {
-
-                                    if (empty($value)) $where[] = 'false';
-                                    else {
-                                        $where[] = '(' . $field . ' ' . ($operator == '=' ? 'IN' : 'NOT IN') . ' (' . implode(', ',
-                                                Sql::quote($value,
-                                                    $isMustBeInteger)) . ') ' . ($operator == '=' ? '' : 'OR ' . $field . ' IS NULL') . ') ';
-                                    }
-                                }
-                            }
                     }
-
                 } else {
-                    switch ($operator) {
-                        case '==':
-                            $operator = '=';
-                            break;
-                        case '!==':
-                            $operator = '!=';
-                            break;
+                    if ($operator === '!=') {
+                        $operator = 'IS DISTINCT FROM';
                     }
 
-                    if ($value === '' || is_null($value)) {
-                        switch ($operator) {
-                            case '=':
-                            case '<=':
-                                $where[] = '(' . $field . '::text = \'\' OR ' . $field . ' is NULL)';
-                                break;
-                            case '!=':
-                            case '>':
-                                $where[] = '(' . $field . '::text != \'\' AND ' . $field . ' is NOT NULL)';
-                                break;
-                            case '>=':
-                                $where[] = 'true';
-                                break;
-                            case '<':
-                                $where[] = 'false';
-                                break;
-                        }
+                    $where[] = '' . $fieldQuoted . ' ' . $operator . ' ? '
+                        . (in_array(
+                            $operator,
+                            ['<', '<=']
+                        ) ? ' OR (' . $fieldQuoted . '::text = \'\' OR ' . $fieldQuoted . ' is NULL)' : '');
 
-                    } else {
-                        if ($operator == '!=') {
-                            $operator = 'IS DISTINCT FROM';
-                        }
-                        if ($isMustBeInteger) $field = "($field)::NUMERIC";
-                        $where[] = '' . $field . ' ' . $operator . ' ' . Sql::quote($value,
-                                $isMustBeInteger) . (in_array($operator,
-                                ['<', '<=']) ? ' OR (' . $field . '::text = \'\' OR ' . $field . ' is NULL)' : '');
-
-                    }
+                    $params[] = $value;
                 }
             }
         }
@@ -1548,7 +1588,12 @@ abstract class RealTables extends aTable
             $where[] = 'is_del = false';
         }
 
-        return $where;
-    }
+        if (empty($where)) {
+            $whereStr = "TRUE";
+        } else {
+            $whereStr = '(' . implode(') AND (', $where) . ')';
+        }
 
+        return [$whereStr, $params];
+    }
 }

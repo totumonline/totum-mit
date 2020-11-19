@@ -4,3 +4,4 @@ Conf.php
 myLogs/
 totumTmpfiles/
 .idea
+/vendor/

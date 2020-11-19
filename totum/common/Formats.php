@@ -8,7 +8,7 @@
 
 namespace totum\common;
 
-
+/*TODO возвращать через конфиг - подготовка к мультилэнгвич*/
 class Formats
 {
     const weekDaysShort = [
@@ -68,9 +68,13 @@ class Formats
     public static function numbersRusPadegRod(int $number, array $ImRodRoded)
     {
         $ostDel = $number % 10;
-        if ($number > 5 && $number < 21 || in_array($ostDel, [5, 6, 7, 8, 9, 0])) return $ImRodRoded[1];
-        elseif ($ostDel == 1) return $ImRodRoded[0];
-        elseif (in_array($ostDel, [2, 3, 4])) return $ImRodRoded[2];
+        if ($number > 5 && $number < 21 || in_array($ostDel, [5, 6, 7, 8, 9, 0])) {
+            return $ImRodRoded[1];
+        } elseif ($ostDel === 1) {
+            return $ImRodRoded[0];
+        } elseif (in_array($ostDel, [2, 3, 4])) {
+            return $ImRodRoded[2];
+        }
     }
 
     /**
@@ -78,7 +82,7 @@ class Formats
      * @author runcore
      * @uses morph(...)
      */
-    static function num2str($num)
+    public static function num2str($num)
     {
         $nul = 'ноль';
         $ten = array(
@@ -100,18 +104,28 @@ class Formats
         $out = array();
         if (intval($rub) > 0) {
             foreach (str_split($rub, 3) as $uk => $v) { // by 3 symbols
-                if (!intval($v)) continue;
+                if (!intval($v)) {
+                    continue;
+                }
                 $uk = sizeof($unit) - $uk - 1; // unit key
                 $gender = $unit[$uk][3];
                 list($i1, $i2, $i3) = array_map('intval', str_split($v, 1));
                 // mega-logic
                 $out[] = $hundred[$i1]; # 1xx-9xx
-                if ($i2 > 1) $out[] = $tens[$i2] . ' ' . $ten[$gender][$i3]; # 20-99
-                else $out[] = $i2 > 0 ? $a20[$i3] : $ten[$gender][$i3]; # 10-19 | 1-9
+                if ($i2 > 1) {
+                    $out[] = $tens[$i2] . ' ' . $ten[$gender][$i3];
+                } # 20-99
+                else {
+                    $out[] = $i2 > 0 ? $a20[$i3] : $ten[$gender][$i3];
+                } # 10-19 | 1-9
                 // units without rub & kop
-                if ($uk > 1) $out[] = static::morph($v, $unit[$uk][0], $unit[$uk][1], $unit[$uk][2]);
+                if ($uk > 1) {
+                    $out[] = static::morph($v, $unit[$uk][0], $unit[$uk][1], $unit[$uk][2]);
+                }
             } //foreach
-        } else $out[] = $nul;
+        } else {
+            $out[] = $nul;
+        }
         $out[] = static::morph(intval($rub), $unit[1][0], $unit[1][1], $unit[1][2]); // rub
         $out[] = $kop . ' ' . static::morph($kop, $unit[0][0], $unit[0][1], $unit[0][2]); // kop
         return trim(preg_replace('/ {2,}/', ' ', join(' ', $out)));
@@ -121,13 +135,35 @@ class Formats
      * Склоняем словоформу
      * @ author runcore
      */
-    static function morph($n, $f1, $f2, $f5)
+    public static function morph($n, $f1, $f2, $f5)
     {
         $n = abs(intval($n)) % 100;
-        if ($n > 10 && $n < 20) return $f5;
+        if ($n > 10 && $n < 20) {
+            return $f5;
+        }
         $n = $n % 10;
-        if ($n > 1 && $n < 5) return $f2;
-        if ($n == 1) return $f1;
+        if ($n > 1 && $n < 5) {
+            return $f2;
+        }
+        if ($n === 1) {
+            return $f1;
+        }
         return $f5;
+    }
+    public static function translit($s)
+    {
+        $s = (string)$s;
+        $s = strip_tags($s);
+        $s = str_replace(array("\n", "\r"), " ", $s);
+        $s = preg_replace("/\s+/", ' ', $s);
+        $s = trim($s);
+        $s = mb_strtolower($s);
+        $s = strtr(
+            $s,
+            array('а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '')
+        );
+        $s = preg_replace("/[^0-9a-z_ ]/i", "", $s);
+        $s = str_replace(" ", "_", $s);
+        return $s;
     }
 }

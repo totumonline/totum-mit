@@ -1,153 +1,26 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: tatiana
- * Date: 20.10.16
- * Time: 19:31
- */
-
 namespace totum\models;
 
-
-use totum\common\Auth;
 use totum\common\errorException;
-use totum\common\Field;
-use totum\common\Log;
 use totum\common\Model;
-use totum\common\Sql;
+use totum\common\Totum;
+use totum\models\traits\WithTotumTrait;
 use totum\fieldTypes\Comments;
-use totum\tableTypes\calcsTable;
 use totum\tableTypes\JsonTables;
-use totum\tableTypes\RealTables;
-use totum\tableTypes\tableTypes;
-use totum\tableTypes\tmpTable;
 
 class TablesFields extends Model
 {
-    const TableId = 2;
-    static $cache;
-    protected static $TableFieldsTable;
+    use WithTotumTrait;
 
-    static function clearCache()
-    {
-        static::$cache = [];
-    }
+    /**
+     * @var |null
+     */
+    private $afterField = null;
 
-    static function getFullField($fieldRow)
-    {
-        $data = json_decode($fieldRow['data'], true);
-        return array_merge($data??[],
-            ['category' => $fieldRow['category'], 'name' => $fieldRow['name'], 'ord' => $fieldRow['ord'], 'id' => $fieldRow['id'], 'title' => $fieldRow['title']]);
-    }
-
-    static function getFields($tableId, $version = null, $withCache = true, $cycleId=0)
-    {
-        $cache = $tableId.'/'.$version;
-
-        if (empty(static::$cache[$cache]) || !$withCache || ($tableId != static::TableId && tableTypes::getTable(Table::getTableRowById(static::TableId))->isOnSaving)) {
-
-
-            $fields = [];
-            $where = ['table_id' => $tableId, 'version'=>$version];
-            $links=[];
-            foreach (Model::initService('tables_fields__v')->getAll($where,
-                'name, category, data, id, title, ord',
-                'ord, id') as $f) {
-                $f = $fields[$f['name']] = static::getFullField($f);
-
-                if (array_key_exists('type', $f) && $f['type'] == 'link') {
-                    $links[]= $f ;
-
-                } elseif ($tableId == static::TableId && $f['name'] == 'data_src') {
-                    if (Auth::isCreator()) {
-                        $fields[$f['name']]['jsonFields']['fieldSettings']['editRoles']['values']
-                            = $fields[$f['name']]['jsonFields']['fieldSettings']['addRoles']['values']
-                            = $fields[$f['name']]['jsonFields']['fieldSettings']['logRoles']['values']
-                            = $fields[$f['name']]['jsonFields']['fieldSettings']['webRoles']['values']
-                            = $fields[$f['name']]['jsonFields']['fieldSettings']['xmlRoles']['values']
-                            = $fields[$f['name']]['jsonFields']['fieldSettings']['xmlEditRoles']['values']
-                            = Model::init('roles')->getFieldIndexedById('title',
-                            ['is_del' => false],
-                            'title->>\'v\'');
-                        $fields[$f['name']]['jsonFields']['fieldSettings']['selectTable']['values'] = Model::init('tables')->getFieldIndexedByField(
-                            ['is_del' => false],
-                            'name',
-                            'title',
-                            'title->>\'v\'');
-
-                    }
-                }
-            }
-
-            foreach ($links as $f){
-                if ($linkTableRow = Table::getTableRowByName($f['linkTableName'])) {
-                    $linkTableId = $linkTableRow['id'];
-
-                    if ($tableId == $linkTableId) $fForLink = $fields[$f['linkFieldName']] ?? null;
-                    else {
-                        if($linkTableRow['type']=='calcs'){
-                            if(Table::getTableRowById($tableId)['type']=='calcs'){
-                                $_version=CalcsTableCycleVersion::getVersionForCycle($f['linkTableName'], $cycleId)[0];
-                            }else{
-                                $_version=CalcsTableCycleVersion::getDefaultVersion($f['linkTableName']);
-                            }
-                            $fForLink = static::getFields($linkTableId, $_version)[$f['linkFieldName']];
-                        }else{
-                            $fForLink = static::getFields($linkTableId)[$f['linkFieldName']];
-                        }
-                    }
-
-                    if ($fForLink) {
-                        $fieldFromLinkParams = [];
-                        foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect', 'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency', 'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull', 'viewTextMaxLength', 'values'] as $fV) {
-                            if (isset($fForLink[$fV])) {
-                                $fieldFromLinkParams[$fV] = $fForLink[$fV];
-                            }
-                        }
-                        if ($fieldFromLinkParams['type'] === 'button') {
-                            $fieldFromLinkParams['codeAction'] = $fForLink['codeAction'];
-                        } elseif ($fieldFromLinkParams['type'] == 'file') {
-                            $fields[$f['name']]['fileDuplicateOnCopy'] = false;
-                        }
-
-                        $fields[$f['name']] = array_merge($fields[$f['name']], $fieldFromLinkParams);
-
-                    }
-                    else
-                        $fields[$f['name']]['linkFieldError'] = true;
-
-                } else {
-                    $fields[$f['name']]['linkFieldError'] = true;
-                }
-                $fields[$f['name']]['code'] = 'Код селекта';
-                if($fields[$f['name']]['type']=='link')
-                    $fields[$f['name']]['type'] = 'string';
-
-            }
-
-            foreach ($fields as &$f) {
-                if ($f['category'] == 'filter') {
-                    if (empty($f['codeSelect']) && !empty($f['column']) && ($column = $fields[$f['column']] ?? null)) {
-                        if (isset($column['codeSelect'])) {
-                            $f['codeSelect'] = $column['codeSelect'];
-                        } elseif (isset($column['values'])) {
-                            $f['values'] = $column['values'];
-                        }
-                    }
-                }
-            }
-
-            static::$cache[$cache] = $fields;
-
-        }
-
-        return static::$cache[$cache];
-    }
-
-    function delete($where, $ignore = 0)
+    public function delete($where, $ignore = 0)
     {
         if ($rows = $this->getAll($where)) {
-            Sql::transactionStart();
+            $this->Sql->transactionStart();
             if (parent::delete($where, $ignore)) {
                 foreach ($rows as $fieldRow) {
                     $fieldRow['name'] = json_decode($fieldRow['name'], true)['v'];
@@ -157,50 +30,66 @@ class TablesFields extends Model
                     if (in_array($fieldRow['name'], Model::serviceFields)) {
                         throw new errorException('Нельзя удалять системные поля');
                     }
-                    $tableRow = Table::getTableRowById($fieldRow['table_id']);
-                    if ($tableRow['type'] != 'calcs') {
-                        tableTypes::getTable($tableRow, null)->deleteField($fieldRow);
+                    $tableRow = $this->Totum->getTableRow($fieldRow['table_id']);
+                    if ($tableRow['type'] !== 'calcs') {
+                        $this->Totum->getTable($tableRow, null)->deleteField($fieldRow);
                     }
 
                     $fieldData = json_decode($fieldRow['data'], true)['v'];
                     if ($fieldData['type'] === 'comments') {
-                        Comments::removeViewedForField($tableRow['id'], $fieldRow['name']);
+                        Comments::removeViewedForField($tableRow['id'], $fieldRow['name'], $this->Totum->getConfig());
                     }
                 }
             }
-            Sql::transactionCommit();
+            $this->Sql->transactionCommit();
         }
     }
 
-    function update($params, $where, $ignore = 0, $oldValue = null): Int
+    public function update($params, $where, $oldRow = null): int
     {
-        /*if (array_key_exists('data_src', $params)) {
-            $this->checkParams($params,
-                $oldValue['table_id']['v'],
-                $oldValue['data_src']['v'],
-                $oldValue['category']['v']);
-        }*/
+        if (array_key_exists('data_src', $params)) {
+            $this->checkParams(
+                $params,
+                $oldRow['table_id']['v'],
+                $oldRow['data_src']['v'],
+                $oldRow['category']['v']
+            );
+        }
 
-        $r = parent::update($params, $where, $ignore);
+        if (key_exists('name', $params)) {
+            $name = json_decode($params['name'], true)['v'];
+            if ($this->getPrepared(['table_name' => $oldRow['table_name']['v'], 'name' => $name])) {
+                throw new errorException('Поле name [[' . $name . ']] уже есть в таблице');
+            }
+            $tableRow = $this->Totum->getTableRow($oldRow['table_name']['v']);
 
-        $table = Table::getTableRowById($oldValue['table_id']['v']);
-        if ($table && $table['type'] != 'tmp' && $table['type'] != 'calcs') {
-            $Table = tableTypes::getTable($table);
+            if ($oldRow['category']['v'] === 'column' && Totum::isRealTable($tableRow)) {
+                $this->Sql->exec("ALTER TABLE {$oldRow['table_name']['v']} RENAME {$oldRow['name']['v']} TO {$name}");
+            }
+        }
+
+        $r = parent::update($params, $where);
+
+        $table = $this->Totum->getTableRow($oldRow['table_id']['v']);
+        if ($table && $table['type'] !== 'tmp' && $table['type'] !== 'calcs') {
+            $Table = $this->Totum->getTable($table);
             if (!empty($params['category'])) {
                 $newCategory = json_decode($params['category'], true)['v'];
-                if (!empty($params['category']) && $newCategory != $oldValue['category']['v']) {
-
-                    if (is_subclass_of(tableTypes::getTableClass($table), RealTables::class)) {
-
-                        if ($oldValue['category']['v'] === 'column') {
-                            $clearOldValue = array_map(function ($v) {
-                                if (is_array($v)) return $v['v']; else return $v;
+                if (!empty($params['category']) && $newCategory !== $oldRow['category']['v']) {
+                    if ($oldRow['category']['v'] === 'column') {
+                        $clearOldValue = array_map(
+                            function ($v) {
+                                if (is_array($v)) {
+                                    return $v['v'];
+                                } else {
+                                    return $v;
+                                }
                             },
-                                $oldValue);
-                            $Table->deleteField($clearOldValue);
-                        } elseif ($newCategory === 'column') {
-                            $Table->addField($oldValue['id']);
-                        }
+                            $oldRow
+                        );
+                        $Table->deleteField($clearOldValue);
+                    } elseif ($newCategory === 'column') {
+                        $Table->addField($oldRow['id']);
                     }
                 }
             }
@@ -210,28 +99,33 @@ class TablesFields extends Model
         return $r;
     }
 
-    function insert($vars, $returning = 'idFieldName', $ignore = false): Int
+    public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true): int
     {
-        if (!array_key_exists('data_src', $vars) || !($newData = json_decode($vars['data_src'],
-                true)['v'])
-        ) throw new errorException('Необходимо заполнить параметры');
+        if (!array_key_exists('data_src', $vars) || !($newData = json_decode(
+            $vars['data_src'],
+            true
+        )['v'])
+        ) {
+            throw new errorException('Необходимо заполнить параметры');
+        }
 
-        $decodedVars = array_map(function ($v) {
-            return json_decode($v, true)['v'];
-        },
-            $vars);
+        $decodedVars = array_map(
+            function ($v) {
+                return json_decode($v, true)['v'];
+            },
+            $vars
+        );
 
         if (!$decodedVars['table_id']) {
             throw new errorException('Выберите таблицу');
         }
-        if ($decodedVars['name'] == 'new_field') {
+        if ($decodedVars['name'] === 'new_field') {
             throw new errorException('Name поля не может быть new_field');
         }
         if (in_array($decodedVars['name'], Model::serviceFields)) {
             throw new errorException('[[' . $decodedVars['name'] . ']] - название технического поля. Выберите другое имя');
         }
-        if (in_array($decodedVars['name'], Model::reservedSqlWords)) {
-
+        if (in_array($decodedVars['name'], Model::RESERVED_WORDS)) {
             throw new errorException('[[' . $decodedVars['name'] . ']] - слово зарезервировано в sql. Выберите другое имя');
         }
         if (!is_array($vars['table_id'])) {
@@ -244,61 +138,86 @@ class TablesFields extends Model
         $name = $decodedVars['name'];
         $category = $decodedVars['category'];
 
-        if (!empty(static::getFields($tableRowId, $decodedVars['version'])[$name]))
+        if ($this->fieldExits($decodedVars['table_id'], $decodedVars['name'], $decodedVars['version'])) {
             throw new errorException('Поле [[' . $name . ']] уже существует в этой таблице.');
+        }
 
         /*$this->checkParams($vars, $tableRowId);*/
 
-        Sql::transactionStart();
-        if ($id = parent::insert($vars)) {
-            $tableRow = Table::getTableRowById($tableRowId);
+        $this->Sql->transactionStart();
+        if ($id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt)) {
+            $tableRow = $this->Totum->getTableRow($tableRowId);
 
-            if (isset($_POST['tableData']['afterField'])) {
-                $this->update([
-                    'ord=jsonb_build_object($$v$$,  ((ord->>\'v\')::integer+10)::text)'
-                ],
+            if (!is_null($this->afterField)) {
+                if ($fields = $this->executePrepared(
+                    false,
+                    (object)['params' => [$tableRowId, (int)$this->afterField]
+                        , 'whereStr' => "table_id->>'v'=? AND (data_src->'v'->'showInWebOtherPlace'->>'isOn'='true') AND (data_src->'v'->'showInWebOtherOrd'->>'isOn')='true' AND (data_src->'v'->'showInWebOtherOrd'->>'Val')::numeric > ?"],
+                    'id, data, data_src, category'
+                )->fetchAll()) {
+                    $update = [];
+                    foreach ($fields as $field) {
+                        $dataSrc = json_decode($field['data_src'], true);
+                        $data = json_decode($field['data'], true);
+
+                        if (($decodedVars['category'] === $field['category'] && ($data['showInWebOtherPlacement'] ?? false) === false)
+                            || $decodedVars['category'] === $data['showInWebOtherPlacement']
+                        ) {
+                            $dataSrc['showInWebOtherOrd']['Val'] += 10;
+                            $update[$field['id']] = ['data_src'=>$dataSrc];
+                        }
+                    }
+                    if ($update) {
+                        $this->Totum->getTable('tables_fields')->reCalculateFromOvers(['modify' => $update]);
+                    }
+                }
+
+                $this->update(
+                    ['ord=jsonb_build_object($$v$$,  ((ord->>\'v\')::integer+10)::text)'],
                     [
                         'table_id' => $tableRowId
                         , 'category' => $category
-                        , 'id!=' . $id
-                        , '(ord->>\'v\')::integer>' . (int)$_POST['tableData']['afterField']
-                    ]);
+                        , '!id=' => $id
+                        , '>Nord' => (int)$this->afterField
+                    ]
+                );
+                $this->afterField = null;
             }
 
             if ($tableRow['type'] !== 'calcs') {
-                $table = tableTypes::getTable($tableRow, null);
+                $table = $this->Totum->getTable($tableRow, null);
                 $table->addField($id);
                 $table->initFields(true);
             }
         }
-        Sql::transactionCommit();
+        $this->Sql->transactionCommit();
         return $id;
     }
 
-    function getFieldNameById($fieldId)
+    /**
+     * @param mixed $afterField
+     */
+    public function setAfterField($afterField): void
     {
-        $where = ['id' => $fieldId];
-        return Model::initService('tables_fields__v')->getField('name', $where);
+        $this->afterField = $afterField;
     }
 
-    function getFieldData($fieldName, $tableId)
-    {
-        $where = ['table_id' => $tableId, 'name' => $fieldName];
-        return Model::initService('tables_fields__v')->get($where, '*', 'ord');
-    }
 
     protected function checkParams(&$params, $tableRowId, $oldDataSrc = null, $category = null)
     {
-
-        if (empty($params['data_src'])) return;
-        if (is_null($category)) $category = json_decode($params['category'], true)['v'];
+        if (empty($params['data_src'])) {
+            return;
+        }
+        if (is_null($category)) {
+            $category = json_decode($params['category'], true)['v'];
+        }
 
         $newData = json_decode($params['data_src'], true)['v'];
 
-        $tableRow = Table::getTableRowById($tableRowId);
+        $tableRow = $this->Totum->getTableRow($tableRowId);
 
 
-        if ($category == 'filter') {
+        if ($category === 'filter') {
             if (!in_array($tableRow['type'], ['calcs', 'globcalcs'])) {
 
                 //Для реальных таблиц проставить индексы через изменение таблицы "Список таблиц"
@@ -306,42 +225,61 @@ class TablesFields extends Model
                 $oldColumnName = $oldDataSrc['column']["Val"] ?? '';
                 $newColumnName = $newData['column']["Val"] ?? '';
 
-                if ($newColumnName != $oldColumnName) {
-                    $fields = TablesFields::getFields($tableRowId, null, false);
-
-                    if ($newColumnName != '') {
-                        if (empty($fields[$newColumnName]) || $fields[$newColumnName]['category'] != 'column') ;
-                        else {
-                            tableTypes::getTable(Table::getTableRowById(Table::$TableId))->reCalculateFromOvers(
-                                ['modify' => [$tableRow['id'] => ['indexes' => '+' . $newColumnName]]]
-                            );
+                if ($newColumnName !== $oldColumnName) {
+                    $fields = $this->Totum->getTable($tableRowId)->getFields();
+                    $newIndexes = $tableRow['indexes'];
+                    if (!empty($newColumnName)) {
+                        if (!empty($fields[$newColumnName]) && $fields[$newColumnName]['category'] === 'column') {
+                            if (!in_array($newColumnName, $newIndexes)) {
+                                $newIndexes[] = $newColumnName;
+                            }
                         }
                     }
 
                     if (!empty($fields[$oldColumnName])) {
                         $countWithColumn = 0;
                         foreach ($fields as $k => $v) {
-                            if ($v['category'] === 'filter' && ($v['column'] ?? '') === $oldColumnName) $countWithColumn++;
+                            if ($v['category'] === 'filter' && ($v['column'] ?? '') === $oldColumnName) {
+                                $countWithColumn++;
+                            }
                         }
                         if ($countWithColumn < 2) {
-                            tableTypes::getTable(Table::getTableRowById(Table::$TableId))->reCalculateFromOvers(
-                                ['modify' => [$tableRow['id'] => ['indexes' => '-' . $newColumnName]]]
-                            );
+                            foreach ($newIndexes as $k => $index) {
+                                if ($index === $oldColumnName) {
+                                    unset($newIndexes[$k]);
+                                }
+                            }
+                            $newIndexes = array_values($newIndexes);
                         }
                     }
+                    if ($newIndexes !== $tableRow['indexes']) {
+                        $this->Totum->getTable('tables')->reCalculateFromOvers(
+                            ['modify' => [$tableRow['id'] => ['indexes' => $newIndexes]]]
+                        );
+                    }
                 }
-
             }
         }
-        if ($newData['type']['Val'] == 'text') {
+        if ($newData['type']['Val'] === 'text') {
             $newData['viewTextMaxLength']['Val'] = (int)$newData['viewTextMaxLength']['Val'];
-            if ($newData['viewTextMaxLength']['Val'] > 500) throw new errorException('Ограничение размера видимости текста в веб - не больше 500 символов');
+            if ($newData['viewTextMaxLength']['Val'] > 500) {
+                throw new errorException('Ограничение размера видимости текста в веб - не больше 500 символов');
+            }
         }
 
-        if ($category == 'footer' && !is_subclass_of(tableTypes::getTableClass($tableRow), JsonTables::class)) {
+        if ($category === 'footer' && !is_subclass_of(Totum::getTableClass($tableRow), JsonTables::class)) {
             throw new errorException('Нельзя создать поле [[футера]] [[не для рассчетных]] таблиц');
         }
-
     }
 
+    private function fieldExits($table_id, $name, $version)
+    {
+        return !!$this->executePrepared(
+            true,
+            ['table_id' => $table_id, 'name' => $name, 'version' => $version],
+            'id',
+            null,
+            '0,1'
+        )->fetch();
+    }
 }

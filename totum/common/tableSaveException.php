@@ -8,9 +8,6 @@
 
 namespace totum\common;
 
-
 class tableSaveException extends \Exception
 {
-
-
 }

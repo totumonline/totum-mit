@@ -4,7 +4,7 @@
 namespace totum\fieldTypes;
 
 use totum\common\NoValueField;
-use totum\common\Calculate;
+use totum\common\calculates\Calculate;
 use totum\tableTypes\aTable;
 
 class Chart extends NoValueField
@@ -18,7 +18,7 @@ class Chart extends NoValueField
     {
         parent::__construct($fieldData, $table);
 
-        if (!empty($this->data['codeChart']) && $this->data['codeChart'] != '=:') {
+        if (!empty($this->data['codeChart']) && $this->data['codeChart'] !== '=:') {
             $this->chartFormat = new Calculate($this->data['codeChart']);
         }
     }
@@ -33,16 +33,15 @@ class Chart extends NoValueField
         return ["v" => null];
     }
 
-    function addFormat(&$valArray, $row, $tbl)
+    public function addFormat(&$valArray, $row, $tbl)
     {
         parent::addFormat($valArray, $row, $tbl);
         if ($this->chartFormat) {
+            $Log = $this->table->calcLog(['field' => $this->data['name'], 'cType' => 'format', 'itemId' => $row['id'] ?? null]);
             if ($format = $this->chartFormat->exec($this->data, [], $row, $row, $tbl, $tbl, $this->table, [])) {
                 $valArray['ch'] = $format;
             }
-            $this->addInControllerLog('f',
-                ["text" => "Формирование графика", "children" => [$this->chartFormat->getLogVar()]],
-                $row);
+            $this->table->calcLog($Log, 'result', $valArray['ch']);
         }
     }
 }

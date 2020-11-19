@@ -73,7 +73,7 @@ class Auth
     {
         $where = ['on_off' => "true", 'login' => $login, 'pass' => md5($pass), 'interface' => $interface, 'is_del' => false];
         if ($userRow = static::getUserWhere($Config, $where)) {
-            return new User($Config, $userRow);
+            return new User($userRow, $Config);
         }
     }
 

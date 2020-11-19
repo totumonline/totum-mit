@@ -1070,7 +1070,7 @@ abstract class JsonTables extends aTable
             ) || $this->fields[$field]['type'] === 'numeric' ? 'numeric' : 'text');
         };
 
-        if (array_key_exists('order', $params)) {
+        if (!empty($params['order'])) {
             $orders = [];
             foreach ($params['order'] as $of) {
                 $field = $of['field'];

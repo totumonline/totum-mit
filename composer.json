@@ -29,7 +29,7 @@
     "phpunit/phpunit": "^5.7",
     "friendsofphp/php-cs-fixer": "^2.16",
     "totumonline/totum-front": "dev-dev",
-    "pheromone/phpcs-security-audit": "dev-master"
+    "pheromone/phpcs-security-audit": "^2.0.1"
   },
   "autoload": {
     "psr-4": {

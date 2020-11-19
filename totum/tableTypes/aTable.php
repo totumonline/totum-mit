@@ -2540,7 +2540,7 @@ abstract class aTable
                 }
                 break;
             case 'xml':
-                $visible = $field['showInXml'] && $isUserCreatorOrInRoles($field['xmlRoles']);
+                $visible = ($field['showInXml']??null) && $isUserCreatorOrInRoles($field['xmlRoles']??[]);
 
                 switch ($property) {
                     case 'visible':
@@ -2551,6 +2551,8 @@ abstract class aTable
                         return $field['showInXml'];
                     case 'editable':
                         return $visible && $field['apiEditable'] && $isUserCreatorOrInRoles($field['xmlEditRoles'] ?? []);
+                    default:
+                        throw new errorException('In channel ' . $channel . ' not supported action '.$property);
                 }
                 break;
             default:

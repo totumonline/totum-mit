@@ -858,7 +858,7 @@ abstract class JsonTables extends aTable
 
             if ($fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param')) {
                 foreach ($fieldsWithActionOnChange as $field) {
-                    if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
+                    if (key_exists($field['name'], $loadedTbl['params'] ?? []) && Calculate::compare(
                             '!==',
                             $loadedTbl['params'][$field['name']]['v'],
                             $tbl['params'][$field['name']]['v']

@@ -102,13 +102,9 @@ class Cycle
             $cycleTableName = $cycleTableRow['name'];
             $model = $Totum->getModel($cycleTableName, true);
             $cycleTableDataRow = $model->getPrepared(['cycle_id' => $oldId]);
-
-            $model->insertPrepared(['updated' => $cycleTableDataRow['updated'], 'cycle_id' => $newId]);
-            $updates[$tId] = $cycleTableDataRow['updated'];
-
             /** @var calcsTable $tId */
             $tId = $Cycle->getTable($cycleTableRow);
-
+            $updates[$tId->getTableRow()['id']] = $cycleTableDataRow['updated'] ?? '{}';
             $tId->setDuplicatedTbl(json_decode($cycleTableDataRow['tbl'], true), null /*Важно!*/);
         }
 

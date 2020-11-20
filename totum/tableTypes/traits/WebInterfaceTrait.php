@@ -4,6 +4,7 @@
 namespace totum\tableTypes\traits;
 
 use totum\common\Crypt;
+use totum\common\errorException;
 use totum\common\Field;
 use totum\tableTypes\aTable;
 use totum\tableTypes\JsonTables;
@@ -165,7 +166,21 @@ trait WebInterfaceTrait
         $this->calcLog($Log, 'result', $this->isTblUpdated(0) ? 'changed' : 'not changed');
     }
 
-    abstract public function checkEditRow($data, $tableData = null);
+    public function checkEditRow($data, $dataSetToDefault, $tableData = null)
+    {
+        $this->loadDataRow();
+        if ($tableData) {
+            $this->checkTableUpdated($tableData);
+        }
+        $id = $data['id'] ?? 0;
+        $this->checkIsUserCanViewIds('web', [$id]);
+        $this->reCalculate(['channel' => 'web', 'modify' => [$id => $data], 'setValuesToDefaults' => [$id => $dataSetToDefault], 'isCheck' => true]);
+
+        if (empty($this->tbl['rows'][$id])) {
+            throw new errorException('Строка с id ' . $id . ' не найдена');
+        }
+        return $this->tbl['rows'][$id];
+    }
 
 
     protected function prepareCsvImport(&$import, $csvString, $answers, $visibleFields = [], $type = 'full')

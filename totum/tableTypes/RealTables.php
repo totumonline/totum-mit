@@ -49,57 +49,6 @@ abstract class RealTables extends aTable
         }
     }
 
-    public function checkEditRow($editData, $tableData = null)
-    {
-        if ($tableData) {
-            $this->checkTableUpdated($tableData);
-        }
-        $table = [];
-        $id = $editData['id'];
-
-        $data = [];
-        $dataSetToDefault = [];
-
-        foreach ($editData as $k => $v) {
-            if (is_array($v) && array_key_exists('v', $v)) {
-                if (array_key_exists('h', $v)) {
-                    if ($v['h'] === false) {
-                        $dataSetToDefault[$k] = true;
-                        continue;
-                    }
-                }
-                $data[$k] = $v['v'];
-            }
-        }
-
-        if (!$this->loadFilteredRows('web', [$id])) {
-            throw new errorException('Строка с id ' . $id . ' не найдена');
-        }
-
-        $changedData = $this->modifyRow(
-            'web',
-            $data ?? [],
-            $dataSetToDefault ?? [],
-            [],
-            $this->tbl['rows'][$id],
-            true,
-            false
-        );
-
-        $data = ['rows' => [$changedData]];
-
-        $this->tbl['rows'] = [];
-
-        $data = $this->getValuesAndFormatsForClient($data, 'edit');
-
-        $changedData = $data['rows'][0];
-
-
-        $table['row'] = $changedData;
-        return $table;
-    }
-
-
     public function addField($fieldId)
     {
         $field = static::getFullField($this->Totum->getModel('tables_fields__v', true)->getById($fieldId));
@@ -299,9 +248,9 @@ abstract class RealTables extends aTable
                 $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
                 if ((!array_key_exists($field, $fields) && !in_array(
-                    $field,
-                    Model::serviceFields
-                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
+                            $field,
+                            Model::serviceFields
+                        )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
                     throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
                 }
                 if (in_array($field, Model::serviceFields)) {
@@ -499,13 +448,13 @@ abstract class RealTables extends aTable
             }
             array_push($paramsWhere, ... $untilId);
             return $this->model->executePreparedSimple(
-                true,
-                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                    true,
+                    "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
                         ',',
                         array_fill(0, count($untilId), '?')
                     ) . ")",
-                $paramsWhere
-            )->fetchColumn(1) + $isRefresh;
+                    $paramsWhere
+                )->fetchColumn(1) + $isRefresh;
         }
 
         return $this->model->executePrepared(
@@ -812,9 +761,9 @@ abstract class RealTables extends aTable
             foreach ($add as $rAdd) {
                 if ($this->tableRow['with_order_field'] ?? false) {
                     if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN(
-                        $fIds,
-                        $afterN
-                    )) {
+                            $fIds,
+                            $afterN
+                        )) {
                         $afterN = $rAdd['n'] = $n;
                     }
                 }
@@ -883,7 +832,8 @@ abstract class RealTables extends aTable
                     $setValuesToDefaults[$id] ?? [],
                     $setValuesToPinned[$id] ?? [],
                     $this->tbl['rows'][$id],
-                    $modifyCalculated
+                    $modifyCalculated,
+                    !$isCheck
                 );
             }
         }
@@ -1156,10 +1106,10 @@ abstract class RealTables extends aTable
                 $len = 4;
 
                 while (bccomp(
-                    $diff,
-                    ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
-                    $scaleDiff > $len ? $scaleDiff : $len
-                ) !== 1) {
+                        $diff,
+                        ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
+                        $scaleDiff > $len ? $scaleDiff : $len
+                    ) !== 1) {
                     $len += 4;
                 }
 
@@ -1449,7 +1399,7 @@ abstract class RealTables extends aTable
                             if (is_bool($value)) {
                                 $value = $value ? "true" : "false";
                             }
-                            $null="";
+                            $null = "";
                             if ($operator == '!=') {
                                 $null = " OR $fieldQuoted is NULL ";
                             }
@@ -1471,7 +1421,7 @@ abstract class RealTables extends aTable
                                 $q .= "OR $fieldQuotedJsonb @> ?::jsonb";
                                 $params[] = "[$value]";
                             }
-                            $null="";
+                            $null = "";
                             if ($operator == '!=') {
                                 $null = " OR $fieldQuoted is NULL ";
                             }
@@ -1528,9 +1478,9 @@ abstract class RealTables extends aTable
                                     $q .= " OR ";
                                 }
                                 $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
-                                    ',?',
-                                    count($value) - 1
-                                ) . ')';
+                                        ',?',
+                                        count($value) - 1
+                                    ) . ')';
                                 array_push($params, ...$value);
                             }
                             $where[] = "($q)";

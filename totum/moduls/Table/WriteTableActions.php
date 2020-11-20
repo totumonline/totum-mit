@@ -27,9 +27,9 @@ class WriteTableActions extends ReadTableActions
 
         $add = json_decode($this->post['data'], true) ?? [];
         if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists(
-            'afterField',
-            $this->post['tableData']
-        )) {
+                'afterField',
+                $this->post['tableData']
+            )) {
             $this->Totum->getModel('tables_fields')->setAfterField($this->post['tableData']['afterField']);
         }
 
@@ -49,9 +49,9 @@ class WriteTableActions extends ReadTableActions
         }
 
         if (!empty($this->post['ids']) && ($orderedIds = json_decode(
-            $this->post['orderedIds'],
-            true
-        ))) {
+                $this->post['orderedIds'],
+                true
+            ))) {
             return $this->modify(['reorder' => $orderedIds ?? []]);
         } else {
             throw new errorException('Таблица пуста');
@@ -105,7 +105,24 @@ class WriteTableActions extends ReadTableActions
 
     public function checkEditRow()
     {
-        $res = $this->Table->checkEditRow(json_decode($this->post['data'], true) ?? [], $this->post['tableData'] ?? []);
+        $editData = json_decode($this->post['data'], true) ?? [];
+        $data = ['id' => $editData['id'] ?? 0];
+        $dataSetToDefault = [];
+
+        foreach ($editData as $k => $v) {
+            if (is_array($v) && array_key_exists('v', $v)) {
+                if (array_key_exists('h', $v)) {
+                    if ($v['h'] === false) {
+                        $dataSetToDefault[$k] = true;
+                        continue;
+                    }
+                }
+                $data[$k] = $v['v'];
+            }
+        }
+
+        $row = $this->Table->checkEditRow($data, $dataSetToDefault, $this->post['tableData'] ?? []);
+        $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit')['rows'][0];
         $res['f'] = $this->getTableFormat();
         return $res;
     }
@@ -166,9 +183,9 @@ class WriteTableActions extends ReadTableActions
                 }
             } else {
                 $this->modify(['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => json_decode(
-                    $this->post['data'],
-                    true
-                ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
+                        $this->post['data'],
+                        true
+                    ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
             }
 
             return $this->getTableClientChangedData([]);/*$this->getTableClientData($this->post['offset'] ?? null,

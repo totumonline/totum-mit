@@ -81,33 +81,6 @@ abstract class JsonTables extends aTable
     {
     }
 
-    public function checkEditRow($editData, $tableData = null)
-    {
-        $this->loadDataRow();
-        if ($tableData) {
-            $this->checkTableUpdated($tableData);
-        }
-        $table = [];
-
-        $this->checkIsUserCanViewIds('web', [$editData['id']]);
-
-        $this->editRow($editData);
-
-        if (empty($this->tbl['rows'][$editData['id']])) {
-            throw new errorException('Строка с id ' . $editData['id'] . ' не найдена');
-        }
-
-        $changedData = $this->tbl['rows'][$editData['id']];
-
-        $data = ['rows' => [$changedData]];
-        $this->tbl['rows'] = [];
-        $data = $this->getValuesAndFormatsForClient($data, 'edit');
-        $changedData = $data['rows'][0];
-
-        $table['row'] = $changedData;
-        return $table;
-    }
-
     public function deleteField()
     {
     }
@@ -1033,27 +1006,6 @@ abstract class JsonTables extends aTable
     {
         //TODO сделать обработку codeActionOnDelete при удалении таблиц
     }
-
-    protected function editRow($editData)
-    {
-        $id = $editData['id'];
-        $data = [];
-        $dataSetToDefault = [];
-
-        foreach ($editData as $k => $v) {
-            if (is_array($v) && array_key_exists('v', $v)) {
-                if (array_key_exists('h', $v)) {
-                    if ($v['h'] === false) {
-                        $dataSetToDefault[$k] = true;
-                        continue;
-                    }
-                }
-                $data[$k] = $v['v'];
-            }
-        }
-        $this->reCalculate(['channel' => 'web', 'modify' => [$id => $data], 'setValuesToDefaults' => [$id => $dataSetToDefault], 'isCheck' => true]);
-    }
-
 
     protected function updateReceiverTables($level = 0)
     {

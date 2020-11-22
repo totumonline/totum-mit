@@ -745,7 +745,7 @@ class Select extends Field
                 if (empty($oldVal)) {
                     $oldVal = array();
                 }
-                switch ($modifyVal{0}) {
+                switch ($modifyVal[0]) {
                     case '-':
                         $modifyVal = [];
                         foreach ($oldVal as $v) {

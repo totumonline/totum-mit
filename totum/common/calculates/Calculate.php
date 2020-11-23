@@ -577,7 +577,7 @@ class Calculate
 
 
         $params = ['calc' => static::class, 'itemId' => $row['id'] ?? $oldRow['id'] ?? null];
-        if ($this->varName{0} === 'C') {
+        if ($this->varName[0] === 'C') {
             $params['name'] = $this->varName;
         } else {
             $params['field'] = $this->varName;
@@ -732,7 +732,7 @@ class Calculate
                 if ($m[1] === "") {
                     return '""';
                 }
-                $qoute = $this->CodeStrings[$m[1]]{0};
+                $qoute = $this->CodeStrings[$m[1]][0];
                 switch ($qoute) {
                     case '"':
                     case "'":
@@ -1278,7 +1278,7 @@ SQL;
         }
 
 
-        switch ($param{0}) {
+        switch ($param[0]) {
             case '@':
                 $r = $this->Table->getSelectByParams(
                     ['table' => $paramArray['table'], 'field' => $paramArray['field']],
@@ -1289,7 +1289,7 @@ SQL;
                 $isHashtag = true;
                 break;
             case '$':
-                if ($param{1} === '#') {
+                if ($param[1] === '#') {
                     $nameVar = substr($param, 2);
                     switch ($nameVar) {
                         case 'nh':
@@ -1353,7 +1353,7 @@ SQL;
 
                     $isHashtag = true;
                 } else {
-                    if ($param{1} === '$') {
+                    if ($param[1] === '$') {
                         $codeName = $this->getParam(
                             $param = substr($param, 1),
                             ['type' => 'param', 'param' => $param]
@@ -1404,7 +1404,7 @@ SQL;
             case '#':
                 $nameVar = substr($param, 1);
 
-                if ($nameVar{0} === '$') {
+                if ($nameVar[0] === '$') {
                     $nameVar = $this->getParam($nameVar, ['type' => 'param', 'param' => $nameVar]);
                 }
 

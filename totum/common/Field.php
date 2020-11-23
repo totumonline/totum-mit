@@ -503,7 +503,7 @@ class Field
                         $newVal['v'] =
                             $this->modifyValue(
                                 $newVal['v'],
-                                $oldVal['v'],
+                                $oldVal['v'] ?? null,
                                 $isCheck,
                                 $row
                             );

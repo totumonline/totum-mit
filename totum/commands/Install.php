@@ -4,6 +4,7 @@ namespace totum\commands;
 
 use Exception;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -18,22 +19,24 @@ class Install extends Command
     {
         $this->setName('install')
             ->setDescription('Install new schema and create Conf.php')
-            ->addArgument('lang', InputOption::VALUE_REQUIRED, 'Enter language ('.implode('/', Totum::LANGUAGES).')')
-            ->addArgument('multi', InputOption::VALUE_REQUIRED, 'Enter type of install (multi/no-multi)')
-            ->addArgument('schema', InputOption::VALUE_REQUIRED, 'Enter schema name')
-            ->addArgument('admin_email', InputOption::VALUE_REQUIRED, 'Enter admin email', '')
-            ->addArgument('totum_host', InputOption::VALUE_REQUIRED, 'Enter totum host')
-            ->addArgument('user_login', InputOption::VALUE_REQUIRED, 'Enter totum admin login', 'admin')
-            ->addArgument('user_pass', InputOption::VALUE_REQUIRED, 'Enter totum admin password', '1111')
+            ->addArgument('lang', InputArgument::REQUIRED, 'Enter language ('.implode('/', Totum::LANGUAGES).')')
+            ->addArgument('multi', InputArgument::REQUIRED, 'Enter type of install (multi/no-multi)')
+            ->addArgument('schema', InputArgument::REQUIRED, 'Enter schema name')
+            ->addArgument('admin_email', InputArgument::REQUIRED, 'Enter admin email')
+            ->addArgument('totum_host', InputArgument::REQUIRED, 'Enter totum host')
 
-            ->addArgument('dbname', InputOption::VALUE_REQUIRED, 'Enter database name', '')
-            ->addArgument('dbhost', InputOption::VALUE_REQUIRED, 'Enter database host', '')
-            ->addArgument('dbuser', InputOption::VALUE_REQUIRED, 'Enter database user', '')
-            ->addArgument('dbpass', InputOption::VALUE_REQUIRED, 'Enter database user password', '')
+            ->addArgument('dbname', InputArgument::REQUIRED, 'Enter database name')
+            ->addArgument('dbhost', InputArgument::REQUIRED, 'Enter database host')
+            ->addArgument('dbuser', InputArgument::REQUIRED, 'Enter database user')
+            ->addArgument('dbpass', InputArgument::REQUIRED, 'Enter database user password')
+            ->addArgument('dbport', InputArgument::OPTIONAL, 'Enter database host', 5432)
+
+            ->addArgument('user_login', InputArgument::OPTIONAL, 'Enter totum admin login', 'admin')
+            ->addArgument('user_pass', InputArgument::OPTIONAL, 'Enter totum admin password', '1111')
 
             ->addOption('pgdump', null, InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
             ->addOption('psql', null, InputOption::VALUE_REQUIRED, 'Enter psql(): ', '')
-            ->addOption('schema_exists', 'e', InputOption::VALUE_OPTIONAL, 'Enter Y for install in existing schema')
+            ->addOption('schema_exists', 'e', InputOption::VALUE_NONE, 'Enter Y for install in existing schema')
             ->addOption('db_string', 'd', InputOption::VALUE_OPTIONAL, 'Enter dbstring: postgresql://user:pass@host/dbname');
     }
 
@@ -53,13 +56,14 @@ class Install extends Command
         if ($confs['multy'] === '1' && empty($input->getOption('schema_exists'))) {
             $confs['schema_exists'] = true;
         } else {
-            $confs['schema_exists'] = $input->getOption('schema_exists') === 'Y';
+            $confs['schema_exists'] = (bool)$input->getOption('schema_exists');
         }
 
         if (!empty($dbString=$input->getOption('db_string'))) {
             if (preg_match('/^postgresql:\/\/(?<USER>[^:]+):(?<PASS>[^@]+)@(?<HOST>[^\/]+)\/(?<DBNAME>.+)$/', $dbString, $matches)) {
                 $confs['db_name'] = $matches['DBNAME'];
                 $confs['db_host'] = $matches['HOST'];
+                $confs['db_port'] = 5432;
                 $confs['db_user_login'] = $matches['USER'];
                 $confs['db_user_password'] = $matches['PASS'];
             } else {
@@ -68,6 +72,7 @@ class Install extends Command
         } else {
             $confs['db_name'] = $input->getArgument('dbname');
             $confs['db_host'] = $input->getArgument('dbhost');
+            $confs['db_port'] = $input->getArgument('dbport');
             $confs['db_user_login'] = $input->getArgument('dbuser');
             $confs['db_user_password'] = $input->getArgument('dbpass');
         }
@@ -82,7 +87,7 @@ class Install extends Command
 
         $TotumInstall = new TotumInstall($confs, 'admin', $output);
         $TotumInstall->install(function ($file) {
-            return dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'moduls' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . $file;
+            return __DIR__ . '/../moduls/install/' . $file;
         });
         $output->write('done', true);
     }

@@ -65,8 +65,9 @@ class TotumInstall
     public function createConfig($post, $host)
     {
         $post['db_schema'] = trim($post['db_schema']);
+        $post['db_port'] = $post['db_port'] ?? 5432;
         $db = [
-            'dsn' => 'pgsql:host=' . $post['db_host'] . ';dbname=' . $post['db_name'],
+            'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
             'host' => $post['db_host'],
             'username' => $post['db_user_login'],
             'dbname' => $post['db_name'],

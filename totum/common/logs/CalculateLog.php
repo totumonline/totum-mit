@@ -315,7 +315,7 @@ class CalculateLog
                     $data[] = $child->getLogsByElements($tableId, $this->params['field']);
                 }
 
-                $cTypeLetter = $cType{0};
+                $cTypeLetter = $cType[0];
                 if ($cTypeLetter === 'v') {
                     $cTypeLetter = 's';
                 }

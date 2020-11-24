@@ -6,11 +6,13 @@ namespace totum\moduls\Table;
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
+use totum\common\calculates\CalculateSelect;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\criticalErrorException;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\FormatParamsForSelectFromTable;
 use totum\common\IsTableChanged;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
@@ -38,12 +40,12 @@ class ReadTableActions extends Actions
         if ($this->post['status']) {
             $status = json_decode($this->post['status'], true);
             if (key_exists(
-                $this->Table->getTableRow()['id'],
-                $this->User->getTreeTables()
-            ) && in_array(
-                $this->Table->getTableRow()['id'],
-                $this->User->getFavoriteTables()
-            ) !== $status) {
+                    $this->Table->getTableRow()['id'],
+                    $this->User->getTreeTables()
+                ) && in_array(
+                    $this->Table->getTableRow()['id'],
+                    $this->User->getFavoriteTables()
+                ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -374,12 +376,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $width = $settings['fields'][$field['name']];
                         if ($table) {
                             $tableAll[] = $table[0] . $width . $table[1] . implode(
-                                '',
-                                $table['head']
-                            ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                                    '',
+                                    $table['head']
+                                ) . $table[2] . implode(
+                                    '',
+                                    $table['body']
+                                ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -392,12 +394,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
             if ($table) {
                 $tableAll[] = $table[0] . $width . $table[1] . implode(
-                    '',
-                    $table['head']
-                ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                        '',
+                        $table['head']
+                    ) . $table[2] . implode(
+                        '',
+                        $table['body']
+                    ) . $table[3];
             }
         }
 
@@ -436,9 +438,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $fields,
                 function ($field) use ($fields) {
                     if ($field['category'] === 'footer' && $field['column'] && array_key_exists(
-                        $field['column'],
-                        $fields
-                    )) {
+                            $field['column'],
+                            $fields
+                        )) {
                         return true;
                     }
                 }
@@ -481,12 +483,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
 
             $tableAll[] = $table[0] . $width . $table[1] . implode(
-                '',
-                $table['head']
-            ) . $table[2] . implode(
-                '',
-                $table['body']
-            ) . $table[3];
+                    '',
+                    $table['head']
+                ) . $table[2] . implode(
+                    '',
+                    $table['body']
+                ) . $table[3];
         }
 
 
@@ -499,12 +501,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
                     if ($table) {
                         $tableAll[] = $table[0] . $width . $table[1] . implode(
-                            '',
-                            $table['head']
-                        ) . $table[2] . implode(
-                            '',
-                            $table['body']
-                        ) . $table[3];
+                                '',
+                                $table['head']
+                            ) . $table[2] . implode(
+                                '',
+                                $table['body']
+                            ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -519,12 +521,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         if ($table) {
             $tableAll[] = $table[0] . $width . $table[1] . implode(
-                '',
-                $table['head']
-            ) . $table[2] . implode(
-                '',
-                $table['body']
-            ) . $table[3];
+                    '',
+                    $table['head']
+                ) . $table[2] . implode(
+                    '',
+                    $table['body']
+                ) . $table[3];
         }
 
         $style = $template['styles'];
@@ -583,8 +585,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $result['error'] = $error;
         }
 
-
-        if (($this->Table->getTableRow()['pagination'] ?? '0/0') === '0/0') {
+        if (($tree = $this->Table->getFields()['tree'] ?? null) && $tree['category'] === 'column' && $tree['type'] === 'tree') {
+            $result = array_merge($result, $this->getTreeTopLevel());
+        } elseif (($this->Table->getTableRow()['pagination'] ?? '0/0') === '0/0') {
             $result = array_merge($result, $this->getTableClientData(0, null, false));
         } else {
             $result = array_merge($result, $this->getTableClientData(0, 0, false));
@@ -919,13 +922,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         foreach ($fromString as $k => $v) {
             if (!key_exists($k, $vars) && !in_array(
-                $k,
-                $defs
-            )) {
+                    $k,
+                    $defs
+                )) {
                 if (key_exists('h', $this->Table->getTbl()['params'][$k]) || !key_exists(
-                    'code',
-                    $this->Table->getFields()[$k]
-                ) || ($this->Table->getFields()[$k]['codeOnlyInAdd'] ?? false)
+                        'code',
+                        $this->Table->getFields()[$k]
+                    ) || ($this->Table->getFields()[$k]['codeOnlyInAdd'] ?? false)
                 ) {
                     $vars[$k] = $v;
                 }
@@ -967,9 +970,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             throw new errorException('Поле [[' . $field . ']] в этой таблице не найдено');
         }
         if (empty($fields[$field]['showInWeb']) || (!empty($fields[$field]['logRoles']) && !array_intersect(
-            $fields[$field]['logRoles'],
-            $this->User->getRoles()
-        ))) {
+                    $fields[$field]['logRoles'],
+                    $this->User->getRoles()
+                ))) {
             throw new errorException('Доступ к логам запрещен');
         }
 
@@ -1062,9 +1065,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if ($field['type'] === 'button' || $field['category'] === 'filter') {
                     $field['logButton'] = false;
                 } elseif (!empty($field['logRoles']) && !array_intersect(
-                    $this->User->getRoles(),
-                    $field['logRoles']
-                )) {
+                        $this->User->getRoles(),
+                        $field['logRoles']
+                    )) {
                     $field['logButton'] = false;
                 }
             }
@@ -1090,10 +1093,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     = $fields['data_src']['jsonFields']['fieldSettings']['xmlRoles']['values']
                     = $fields['data_src']['jsonFields']['fieldSettings']['xmlEditRoles']['values']
                     = $this->Totum->getModel('roles')->getFieldIndexedById(
-                        'title',
-                        ['is_del' => false],
-                        'title->>\'v\''
-                    );
+                    'title',
+                    ['is_del' => false],
+                    'title->>\'v\''
+                );
                 $fields['data_src']['jsonFields']['fieldSettings']['selectTable']['values'] = $this->Totum->getModel('tables')->getFieldIndexedByField(
                     ['is_del' => false],
                     'name',
@@ -1277,9 +1280,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         continue;
                     }
                     $return['chdata']['rows'][$id] = ($return['chdata']['rows'][$id] ?? []) + array_intersect_key(
-                        $tbl['rows'][$id],
-                        $changes
-                    ) + array_intersect_key($tbl['rows'][$id], $selectOrFormatColumns);
+                            $tbl['rows'][$id],
+                            $changes
+                        ) + array_intersect_key($tbl['rows'][$id], $selectOrFormatColumns);
                     foreach ($changes as $k => $null) {
                         if (is_array($return['chdata']['rows'][$id][$k])) {
                             $return['chdata']['rows'][$id][$k]['changed'] = true;
@@ -1306,9 +1309,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     foreach ($pageIds as $id) {
                         if (!empty($rows[$id])) {
                             $return['chdata']['rows'][$id] = ($return['chdata']['rows'][$id] ?? []) + array_intersect_key(
-                                $rows[$id],
-                                $selectOrFormatColumns
-                            );
+                                    $rows[$id],
+                                    $selectOrFormatColumns
+                                );
                         }
                     }
                 }
@@ -1359,9 +1362,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $deCryptFilters = $this->deCryptFilters($filtersString);
         foreach ($deCryptFilters as $fName => $val) {
             if (key_exists(
-                $fName,
-                $this->Table->getFields()
-            ) && $this->Table->getFields()[$fName]['category'] === 'filter') {
+                    $fName,
+                    $this->Table->getFields()
+                ) && $this->Table->getFields()[$fName]['category'] === 'filter') {
                 if ($this->Table->isField('editable', 'web', $this->Table->getFields()[$fName])) {
                     $permittedFilters[$fName] = $val;
                 }
@@ -1369,5 +1372,113 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
 
         return $permittedFilters;
+    }
+
+    protected function getTreeTopLevel()
+    {
+        $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
+
+        $result = array_merge(
+            $result,
+            $this->getResultTree(
+                function ($k, $v) {
+                    if ($v[3] === null) {
+                        return 'this';
+                    } elseif (is_null($v['path'][3])) {
+                        return 'child';
+                    }
+                },
+                null
+            )
+        );
+        $result['filtersString'] = $this->getFiltersString();
+        return $result;
+    }
+
+    protected function getResultTree($filterFunc, $loadingIds)
+    {
+        $Tree = Field::init($this->Table->getFields()['tree'], $this->Table);
+        $val = ["v" => null];
+        $list = $Tree->calculateSelectList($val, [], $this->Table);
+        $ids = [];
+        $tree = [];
+        $thisNodes = [];
+        if (is_null($loadingIds)) {
+            if (!is_null($t = $Tree->getData('withEmptyVal'))) {
+                $tree[] = ['v' => null, 't' => $t];
+            }
+            $ids[] = "";
+        } else {
+            $ids = $loadingIds;
+            $thisNodes = array_intersect_key($list, array_flip($loadingIds));
+        }
+
+        foreach ($list as $k => $v) {
+            /*Без удаленных*/
+            if ($v[1] === 0) {
+                switch ($filterFunc($k, $v, $thisNodes)) {
+                    case 'this':
+                    case 'parent':
+                        $ids[] = (string)$k;
+                        $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => true, 'p' => $v[3]];
+                        break;
+                    case 'child':
+                        $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
+                        break;
+                }
+            }
+        }
+        $result['rows'] = [];
+
+        if ($ids) {
+            $treeIds = $this->Table->getByParams(
+                (new FormatParamsForSelectFromTable)
+                    ->where('tree', $ids)
+                    ->field('id')
+                    ->params(),
+                'list'
+            );
+            if ($treeIds) {
+                $result['rows'] = $this->Table->getSortedFilteredRows('web', 'web', $treeIds)['rows'];
+            }
+        }
+        $result['tree'] = $tree;
+
+        return $result;
+    }
+
+    public function loadTreeBranches()
+    {
+        if ($branchIds = $this->Request->getParsedBody()['branchIds'] ?? 0) {
+            $parentIds = ($this->Request->getParsedBody()['withParents'] ?? null) ? null : [];
+            return $this->getResultTree(
+                function ($k, $v, $thisNodes) use (&$parentIds, $branchIds) {
+                    if ($thisNodes && is_null($parentIds)) {
+                        foreach ($thisNodes as $thisNode) {
+                            $path = $thisNode;
+                            while ($path) {
+                                if ($path[3] ?? null) {
+                                    $parentIds[] = $path[3];
+                                }
+                                $path = $path['path'] ?? null;
+                            }
+                        }
+                        $parentIds = array_unique($parentIds);
+                    }
+
+                    if (in_array($k, $branchIds)) {
+                        return 'this';
+                    }
+                    elseif (in_array($k, $parentIds)) {
+                        return 'parent';
+                    } elseif (in_array($v[3] ?? null, $branchIds) || in_array($v[3] ?? null, $parentIds)) {
+                        return 'child';
+                    }
+                },
+                $branchIds
+            );
+        } else {
+            throw new errorException('Ошибка получения Id ветки');
+        }
     }
 }

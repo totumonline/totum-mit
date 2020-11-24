@@ -1149,12 +1149,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "71c0e0ea29ff873929f0e23c70a0cea3793e0c23"
+                "reference": "be1f7200f21da8e707d7dce3f0942cedae388be3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/71c0e0ea29ff873929f0e23c70a0cea3793e0c23",
-                "reference": "71c0e0ea29ff873929f0e23c70a0cea3793e0c23",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/be1f7200f21da8e707d7dce3f0942cedae388be3",
+                "reference": "be1f7200f21da8e707d7dce3f0942cedae388be3",
                 "shasum": ""
             },
             "require": {
@@ -1247,7 +1247,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-11-16T11:00:45+00:00"
+            "time": "2020-11-21T16:58:56+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -2614,12 +2614,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
-                "reference": "a5578a257c6bff4874a0089634c7c4b3f1c4e316"
+                "reference": "6f78d8cbef0a1382d266180e20a63cbf49eaf3b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/a5578a257c6bff4874a0089634c7c4b3f1c4e316",
-                "reference": "a5578a257c6bff4874a0089634c7c4b3f1c4e316",
+                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/6f78d8cbef0a1382d266180e20a63cbf49eaf3b4",
+                "reference": "6f78d8cbef0a1382d266180e20a63cbf49eaf3b4",
                 "shasum": ""
             },
             "require": {
@@ -2662,7 +2662,7 @@
                 "source": "https://github.com/squizlabs/PHP_CodeSniffer",
                 "wiki": "https://github.com/squizlabs/PHP_CodeSniffer/wiki"
             },
-            "time": "2020-11-18T23:18:00+00:00"
+            "time": "2020-11-20T05:26:09+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -2940,7 +2940,7 @@
             "description": "Symfony Filesystem Component",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/filesystem/tree/5.x"
+                "source": "https://github.com/symfony/filesystem/tree/v5.2.0-RC2"
             },
             "funding": [
                 {
@@ -3002,7 +3002,7 @@
             "description": "Symfony Finder Component",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/finder/tree/5.x"
+                "source": "https://github.com/symfony/finder/tree/v5.2.0-RC2"
             },
             "funding": [
                 {
@@ -3072,7 +3072,7 @@
                 "options"
             ],
             "support": {
-                "source": "https://github.com/symfony/options-resolver/tree/v5.2.0-RC1"
+                "source": "https://github.com/symfony/options-resolver/tree/v5.2.0-RC2"
             },
             "funding": [
                 {
@@ -3361,7 +3361,7 @@
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/process/tree/v5.2.0-RC1"
+                "source": "https://github.com/symfony/process/tree/v5.2.0-RC2"
             },
             "funding": [
                 {
@@ -3424,7 +3424,7 @@
             "description": "Symfony Stopwatch Component",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/stopwatch/tree/v5.2.0-RC1"
+                "source": "https://github.com/symfony/stopwatch/tree/v5.2.0-RC2"
             },
             "funding": [
                 {

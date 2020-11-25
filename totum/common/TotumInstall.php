@@ -700,7 +700,7 @@ CONF;
     public function checkSchemaExists($schema_exists_conf)
     {
         if (!preg_match('/^[a-z_0-9\-]+$/', $this->Config->getSchema())) {
-            throw new errorException('Формат имени схемы неверен. Английские буквы, цифры и - _');
+            throw new errorException('Формат имени схемы неверен. Строчные английские буквы, цифры и - _');
         }
 
         $prepare = $this->Sql->getPrepared('SELECT 1 FROM information_schema.schemata WHERE schema_name = ?');

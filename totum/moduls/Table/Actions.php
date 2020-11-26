@@ -70,7 +70,7 @@ class Actions
     public function getNotificationsTable()
     {
         $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "Нотификации"; width: 800; height: "80vh"; refresh: false; header: true; footer: true)');
-        $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'));
+        $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'), 'exec');
     }
 
     public function notificationUpdate()
@@ -151,6 +151,7 @@ class Actions
                     [],
                     $table->getTbl(),
                     $table,
+                    'exec',
                     $row['vars']['v']
                 );
 

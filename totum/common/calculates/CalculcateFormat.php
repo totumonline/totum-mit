@@ -41,6 +41,19 @@ class CalculcateFormat extends Calculate
         ksort($this->startPanelSections);
     }
 
+    protected function formStartSections()
+    {
+        foreach ($this->code as $k => $v) {
+            if (preg_match('/^(p|f)[\d]+=$/', $k, $matches)) {
+                $this->startSections[$matches[1]][$k] = $v;
+                unset($this->code[$k]);
+            }
+        }
+        foreach ($this->startSections as &$v) {
+            ksort($v);
+        }
+    }
+
     public function funcSetFloatFormat($params)
     {
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], static::floatFormat))) {
@@ -72,7 +85,7 @@ class CalculcateFormat extends Calculate
 
     public function getFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
     {
-        return $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, $this->startSections, 'f1');
+        return $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, 'f');
     }
 
     protected function funcPanelHtml($params)
@@ -104,7 +117,7 @@ class CalculcateFormat extends Calculate
 
     public function getPanelFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
     {
-        $result = $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, $this->startPanelSections, 'p1');
+        $result = $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, 'p');
 
         $buttons = [];
         foreach ($result as &$r) {
@@ -151,7 +164,7 @@ class CalculcateFormat extends Calculate
         return ['rows' => $result, 'hash' => $hash ?? null];
     }
 
-    protected function __getFormat($fieldName, $row, $tbl, aTable $table, $Vars, $startSections, $startSectionName)
+    protected function __getFormat($fieldName, $row, $tbl, aTable $table, $Vars, $sectionPart)
     {
         $this->formatArray = [];
         $this->fixedCodeVars = [];
@@ -168,20 +181,20 @@ class CalculcateFormat extends Calculate
         $result = [];
 
         try {
-            if (empty($startSections)) {
+            if (empty($this->startSections) || !key_exists($sectionPart, $this->startSections)) {
                 return [];
             }
-            switch ($startSectionName) {
-                case 'f1':
-                    foreach ($startSections as $k => $v) {
+            switch ($sectionPart) {
+                case 'f':
+                    foreach ($this->startSections[$sectionPart] as $k => $v) {
                         $this->execSubCode($v, $k);
                     }
                     $result = $this->formatArray;
 
                     break;
-                case 'p1':
+                case 'p':
                     $result = [];
-                    foreach ($startSections as $k => $v) {
+                    foreach ($this->startSections[$sectionPart] as $k => $v) {
                         $r = $this->execSubCode($v, $k);
                         if (is_array($r)) {
                             if (key_exists('type', $r) && in_array($r['type'], ['text', 'html', 'buttons', 'img'])) {
@@ -311,7 +324,7 @@ class CalculcateFormat extends Calculate
                             foreach ($params[$format] as $fieldparam) {
                                 $fieldparam = $this->getCodes($fieldparam);
                                 if (count($fieldparam) !== 3 || $fieldparam['comparison'] !== '=') {
-                                    throw new errorException('Неверное оформление параметра '.$fieldparam);
+                                    throw new errorException('Неверное оформление параметра ' . $fieldparam);
                                 }
                                 $fieldname = $this->__getValue($fieldparam[0]);
                                 $fieldvalue = $this->__getValue($fieldparam[1]);

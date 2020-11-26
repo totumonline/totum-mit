@@ -252,7 +252,7 @@ class Field
         return false;
     }
 
-    public function action($oldRow, $newRow, $oldTbl, $newTbl, $vars = [])
+    public function action($oldRow, $newRow, $oldTbl, $newTbl, string $type, $vars = [])
     {
         if (!empty($this->data['codeAction'])) {
             $CalculateCodeAction = new CalculateAction($this->data['codeAction']);
@@ -264,6 +264,7 @@ class Field
                     $oldTbl,
                     $newTbl,
                     $this->table,
+                    $type,
                     $vars
                 );
             } catch (errorException $e) {

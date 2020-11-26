@@ -404,12 +404,13 @@ abstract class RealTables extends aTable
                 $new = $row[$field['name']]['v'] ?? null;
 
                 if ($action !== 'Change' || Calculate::compare('!==', $old, $new)) {
-                    $this->changeIds['rowOperations'][] = function () use ($field, $oldRow, $row) {
+                    $this->changeIds['rowOperations'][] = function () use ($field, $oldRow, $row, $action) {
                         Field::init($field, $this)->action(
                             $oldRow,
                             $row,
                             $this->savedTbl,
-                            $this->tbl
+                            $this->tbl,
+                            strtolower($action)
                         );
                     };
                 }
@@ -538,7 +539,7 @@ abstract class RealTables extends aTable
             $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
             if ($fieldsWithActionOnChange) {
                 foreach ($fieldsWithActionOnChange as $field) {
-                    if (Calculate::compare(
+                    if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
                         '!==',
                         $loadedTbl['params'][$field['name']]['v'],
                         $tbl['params'][$field['name']]['v']
@@ -547,7 +548,8 @@ abstract class RealTables extends aTable
                             $loadedTbl['params'],
                             $tbl['params'],
                             $loadedTbl,
-                            $tbl
+                            $tbl,
+                            'change'
                         );
                     }
                 }

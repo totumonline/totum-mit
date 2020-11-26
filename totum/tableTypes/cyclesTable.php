@@ -138,7 +138,7 @@ class cyclesTable extends RealTables
                 $Cycle = Cycle::create($this->tableRow['id'], $addedRow['id'], $this->Totum);
                 if ($channel === 'web' && $Cycle->getFirstTableId()) {
                     $action = new CalculateAction('=: linkToTable(table: ' . $Cycle->getFirstTableId() . '; cycle: ' . $addedRow['id'] . ')');
-                    $action->execAction('addingRow', [], [], [], [], $this);
+                    $action->execAction('addingRow', [], [], [], [], $this, 'add');
                 }
             };
         }

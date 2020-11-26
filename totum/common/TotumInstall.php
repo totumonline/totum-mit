@@ -1033,6 +1033,7 @@ CONF;
                     [],
                     [],
                     $TablesTable,
+                    'exec',
                     ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $rolesMatches, 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => $schemaRow['isTableCreated']]
                 );
                 $TablesTable->calcLog($Log, 'result', $r);

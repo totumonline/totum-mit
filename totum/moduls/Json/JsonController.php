@@ -234,6 +234,7 @@ class JsonController extends Controller
                 [],
                 [],
                 $RemotesTable,
+                'exec',
                 [
                     'data' => $remote['data'] ?? null
                 ]

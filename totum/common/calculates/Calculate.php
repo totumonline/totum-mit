@@ -26,6 +26,8 @@ class Calculate
     protected static $codes;
     protected static $initCodes = [];
 
+    protected $startSections;
+
     protected $cachedCodes = [];
     protected $oldRow;
     protected $oldTbl;
@@ -51,6 +53,38 @@ class Calculate
     protected $CodeLineParams = [];
     protected $CodeStrings = [];
 
+
+    public function __construct($code)
+    {
+        if (!is_array($code)) {
+            if (!array_key_exists($code, static::$initCodes)) {
+                static::$initCodes[$code] = static::parseTotumCode($code);
+            }
+            $code = static::$initCodes[$code];
+        }
+
+        $this->fixedCodeNames = $code['==fixes=='] ?? [];
+        $this->CodeStrings = $code['==strings=='] ?? [];
+        $this->CodeLineParams = $code['==lineParams=='] ?? [];
+
+
+        unset($code['==fixes==']);
+        unset($code['==strings==']);
+        unset($code['==lineParams==']);
+
+        $this->code = $code;
+        $this->formStartSections();
+    }
+
+    protected function formStartSections()
+    {
+        if (!key_exists('=', $this->code)) {
+            throw new errorException('Ошибка кода - нет секции [[=]]');
+        } else {
+            $this->startSections = ['=' => $this->code['=']];
+            unset($this->code['=']);
+        }
+    }
 
     public static function parseTotumCode($code, $table_name = null)
     {
@@ -154,26 +188,6 @@ class Calculate
             $c['==usedFields=='] = $tableParams;
         }
         return $c;
-    }
-
-    public function __construct($code)
-    {
-        if (!is_array($code)) {
-            if (!array_key_exists($code, static::$initCodes)) {
-                static::$initCodes[$code] = static::parseTotumCode($code);
-            }
-            $code = static::$initCodes[$code];
-        }
-
-        $this->fixedCodeNames = $code['==fixes=='] ?? [];
-        $this->CodeStrings = $code['==strings=='] ?? [];
-        $this->CodeLineParams = $code['==lineParams=='] ?? [];
-
-
-        unset($code['==fixes==']);
-        unset($code['==strings==']);
-        unset($code['==lineParams==']);
-        $this->code = $code;
     }
 
     protected static function __compare_normalize($n)
@@ -471,9 +485,9 @@ class Calculate
                             } elseif ($comparison = $matches['comparison']) {
                                 if (array_key_exists('comparison', $code)) {
                                     throw new errorException('Оператор сравнения может быть только один в строке' . print_r(
-                                        $matches,
-                                        1
-                                    ));
+                                            $matches,
+                                            1
+                                        ));
                                 }
 
                                 $code['comparison'] = $comparison;
@@ -584,11 +598,13 @@ class Calculate
         $Log = $table->calcLog($params);
 
         try {
-            if (empty($this->code['='])) {
-                throw new errorException('Ошибка кода - нет секции [[=]]');
+            if (empty($this->startSections)) {
+                throw new errorException('Ошибка кода - нет стартовой секции ');
             }
-            $r = $this->execSubCode($this->code['='], '=');
 
+            foreach ($this->startSections as $sectionName => $section) {
+                $r = $this->execSubCode($section, $sectionName);
+            }
             $table->calcLog($Log, 'result', $r);
         } catch (errorException $e) {
             $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
@@ -619,6 +635,47 @@ class Calculate
         return $r ?? $this->error;
     }
 
+    protected function funcLinkToDataTable($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        if (!is_a($this, CalculateAction::class) && empty($params['hide'])) {
+            errorException::criticalException('Нельзя использовать linktodataTable вне actionCode без hide:true');
+        }
+
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
+
+        $tmp = $this->Table->getTotum()->getTable($tableRow);
+        $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ($params['params'] ?? [])]);
+        if (empty($params['hide'])) {
+            if (empty($params['width'])) {
+                $width = 130;
+                foreach ($tmp->getVisibleFields('web', true)['column'] as $field) {
+                    $width += $field['width'];
+                }
+                if ($width > 1200) {
+                    $width = 1200;
+                }
+            } else {
+                $width = $params['width'];
+            }
+            $table = [
+                'title' => $params['title'] ?? $tableRow['title'],
+                'table_id' => $tableRow['id'],
+                'sess_hash' => $tmp->getTableRow()['sess_hash'],
+                'width' => $width,
+                'height' => $params['height'] ?? '80vh'
+            ];
+            $this->Table->getTotum()->addToInterfaceDatas(
+                'table',
+                $table,
+                $params['refresh'] ?? false,
+                ['header' => $params['header'] ?? true,
+                    'footer' => $params['footer'] ?? true]
+            );
+        }
+        return $tmp->getTableRow()['sess_hash'];
+    }
 
     protected function funcExec($params)
     {
@@ -739,9 +796,9 @@ class Calculate
                         break;
                     default:
                         return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr(
-                            $this->CodeStrings[$m[1]],
-                            4
-                        ) . '`';
+                                $this->CodeStrings[$m[1]],
+                                4
+                            ) . '`';
                 }
             },
             $code
@@ -860,9 +917,9 @@ class Calculate
                 } else {
                     if (!is_null($res)) {
                         throw new errorException('Ошибка кода - отсутствие оператора в выражении [[' . $code . ']] ' . var_export(
-                            $codes,
-                            1
-                        ));
+                                $codes,
+                                1
+                            ));
                     }
 
                     $res = $rTmp;
@@ -1336,6 +1393,9 @@ SQL;
                         case 'nl':
                             $r = "\n";
                             break;
+                        case 'tb':
+                            $r = "\t";
+                            break;
                         case 'duplicatedId':
                             $r = $this->vars[$nameVar] ?? 0;
                             break;
@@ -1462,9 +1522,9 @@ SQL;
                         } elseif (key_exists($nameVar, $this->tbl['params'] ?? [])) {
                             $rowVar = $this->tbl['params'][$nameVar];
                         } elseif (key_exists(
-                            $nameVar,
-                            $this->oldRow ?? []
-                        ) && !key_exists(
+                                $nameVar,
+                                $this->oldRow ?? []
+                            ) && !key_exists(
                                 $nameVar,
                                 $this->row ?? []
                             )) {
@@ -1472,9 +1532,9 @@ SQL;
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {
                             $rowVar = ['v' => null];
                         } elseif ($nameVar === 'id' && key_exists(
-                            $this->varName,
-                            $this->Table->getFields()
-                        ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
+                                $this->varName,
+                                $this->Table->getFields()
+                            ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
                             $rowVar = null;
                         } else {
                             throw new errorException('Параметр [[' . $nameVar . ']] не найден');
@@ -1543,9 +1603,9 @@ SQL;
                             $r = array_map(
                                 function ($_ri) use ($item) {
                                     if (!is_array($_ri) || !key_exists(
-                                        $item,
-                                        $_ri
-                                    )) {
+                                            $item,
+                                            $_ri
+                                        )) {
                                         throw new errorException('Ключ [[' . $item . ']] не обнаружен в одном из элементов массива');
                                     }
                                     return $_ri[$item];
@@ -1584,11 +1644,11 @@ SQL;
 
         if (is_numeric($value)) {
             return number_format(
-                $value,
-                $params['dectimals'] ?? 0,
-                $params['decsep'] ?? ',',
-                $params['thousandssep'] ?? ''
-            )
+                    $value,
+                    $params['dectimals'] ?? 0,
+                    $params['decsep'] ?? ',',
+                    $params['thousandssep'] ?? ''
+                )
                 . ($params['unittype'] ?? '');
         }
     }
@@ -1936,9 +1996,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                'str',
-                $params
-            ) || is_array($params["str"])) {
+                    'str',
+                    $params
+                ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strLength');
             }
 
@@ -1952,9 +2012,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                'str',
-                $params
-            ) || is_array($params["str"])) {
+                    'str',
+                    $params
+                ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strMdF');
             }
 
@@ -2191,7 +2251,8 @@ SQL;
 
         if (array_key_exists('value', $params)) {
             $this->vars[$params['name']] = $params['value'];
-        } elseif (array_key_exists($params['name'], $this->vars)) ; elseif (array_key_exists('default', $params)) {
+        } elseif (array_key_exists($params['name'], $this->vars)) ;
+        elseif (array_key_exists('default', $params)) {
             $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
         } else {
             throw new errorException('Параметр [[' . $params['name'] . ']] не был установлен в этом коде');
@@ -2422,9 +2483,9 @@ SQL;
             case 'key':
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     $isAssoc = (array_keys($params['list']) !== range(
-                        0,
-                        count($params['list']) - 1
-                    )) && count($params['list']) > 0;
+                                0,
+                                count($params['list']) - 1
+                            )) && count($params['list']) > 0;
 
                     if ($isAssoc) {
                         krsort($params['list'], $flags);
@@ -2452,9 +2513,9 @@ SQL;
                 break;
             case 'value':
                 $isAssoc = (array_keys($params['list']) !== range(
-                    0,
-                    count($params['list']) - 1
-                )) && count($params['list']) > 0;
+                            0,
+                            count($params['list']) - 1
+                        )) && count($params['list']) > 0;
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     if ($isAssoc) {
                         arsort($params['list'], $flags);
@@ -3285,10 +3346,10 @@ SQL;
         /*TODO убрать загрузку всех шаблонов, сделать подгрузку только требуемых*/
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-            [],
-            'styles, html, name',
-            'name'
-        )) || (!array_key_exists(
+                [],
+                'styles, html, name',
+                'name'
+            )) || (!array_key_exists(
                 $params['template'],
                 $templates
             ))) {
@@ -3361,11 +3422,11 @@ SQL;
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     $value = number_format(
-                                                        $value,
-                                                        $numberVals[0],
-                                                        $numberVals[1] ?? '.',
-                                                        $numberVals[2] ?? ''
-                                                    )
+                                                            $value,
+                                                            $numberVals[0],
+                                                            $numberVals[1] ?? '.',
+                                                            $numberVals[2] ?? ''
+                                                        )
                                                         . ($numberVals[3] ?? '');
                                                 }
                                             }
@@ -3422,9 +3483,9 @@ SQL;
 
         if ($style) {
             return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
-                $templates[$params['template']]['html'],
-                $params['data'] ?? []
-            ) . '</body>';
+                    $templates[$params['template']]['html'],
+                    $params['data'] ?? []
+                ) . '</body>';
         } else {
             return $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []);
         }

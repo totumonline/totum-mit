@@ -133,8 +133,12 @@ abstract class JsonTables extends aTable
 
             /*Возможно, здесь тоже стоит разнести сохранение и onSaveTable, но логика сложная и можно поломать пересчеты неочевидным образом*/
             if ($this->isOnSaving) {
-                $this->Cycle->saveTables();
-                $this->updateReceiverTables($level);
+                if ($this->Cycle) {
+                    $this->Cycle->saveTables();
+                    $this->updateReceiverTables($level);
+                } else {
+                    $this->saveTable();
+                }
             } else {
                 /*Это верхний уровень сохранения пересчетов для этой таблицы*/
 
@@ -805,71 +809,105 @@ abstract class JsonTables extends aTable
                         null,
                         $tbl['params'],
                         null,
-                        $tbl
+                        $tbl,
+                        'add'
                     );
                 }
             }
 
-            $ColumnFootersOnChange = [];
-            $CommonFootersOnChange = [];
+            $ColumnFootersOnAdd = [];
+            $CommonFootersOnAdd = [];
             if ($fieldsWithActionOnAdd = $this->getFieldsForAction('Add', 'footer')) {
                 foreach ($fieldsWithActionOnAdd as $field) {
                     if (!empty($field['column'])) {
-                        $ColumnFootersOnChange[$field['column']][] = $field;
+                        $ColumnFootersOnAdd[$field['column']][] = $field;
                     } else {
-                        $CommonFootersOnChange[] = $field;
+                        $CommonFootersOnAdd[] = $field;
                     }
                 }
             }
-
-            if ($tbl['rows']) {
+            if ($this->getTableRow()['calculate_by_columns']) {
                 foreach ($this->sortedFields['column'] as $field) {
                     if (!empty($field['CodeActionOnAdd'])) {
-                        foreach ($tbl['rows'] as $row) {
+                        foreach ($tbl['rows'] ?? [] as $row) {
                             Field::init($field, $this)->action(
                                 null,
                                 $row,
                                 null,
-                                $tbl
+                                $tbl,
+                                'add'
                             );
                         }
                     }
-                    foreach ($ColumnFootersOnChange[$field['name']] ?? [] as $field) {
-                        Field::init($field, $this)->action(
+                    foreach ($ColumnFootersOnAdd[$field['name']] ?? [] as $_field) {
+                        Field::init($_field, $this)->action(
                             null,
                             $tbl['params'],
                             null,
-                            $tbl
+                            $tbl,
+                            'add'
+                        );
+                    }
+                }
+            } else {
+                foreach ($this->sortedFields['column'] as $field) {
+                    if (!empty($field['CodeActionOnAdd'])) {
+                        foreach ($tbl['rows'] ?? [] as $row) {
+                            Field::init($field, $this)->action(
+                                null,
+                                $row,
+                                null,
+                                $tbl,
+                                'add'
+                            );
+                        }
+                    }
+                }
+                foreach ($this->sortedFields['column'] as $field) {
+                    foreach ($ColumnFootersOnAdd[$field['name']] ?? [] as $_field) {
+                        Field::init($_field, $this)->action(
+                            null,
+                            $tbl['params'],
+                            null,
+                            $tbl,
+                            'add'
                         );
                     }
                 }
             }
 
-            foreach ($CommonFootersOnChange as $field) {
+            foreach ($CommonFootersOnAdd as $field) {
                 Field::init($field, $this)->action(
                     null,
                     $tbl['params'],
                     null,
-                    $tbl
+                    $tbl,
+                    'add'
                 );
             }
         } else {
             //При изменении таблицы
 
+            $checkAndChange = function ($field) use ($tbl, $loadedTbl) {
+                if (key_exists($field['name'], $loadedTbl['params'] ?? []) && Calculate::compare(
+                        '!==',
+                        $loadedTbl['params'][$field['name']]['v'],
+                        $tbl['params'][$field['name']]['v']
+                    )) {
+                    Field::init($field, $this)->action(
+                        $loadedTbl['params'],
+                        $tbl['params'],
+                        $loadedTbl,
+                        $tbl,
+                        'change'
+                    );
+                }
+            };
+
+
             if ($fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param')) {
                 foreach ($fieldsWithActionOnChange as $field) {
-                    if (key_exists($field['name'], $loadedTbl['params'] ?? []) && Calculate::compare(
-                            '!==',
-                            $loadedTbl['params'][$field['name']]['v'],
-                            $tbl['params'][$field['name']]['v']
-                        )) {
-                        Field::init($field, $this)->action(
-                            $loadedTbl['params'] ?? [],
-                            $tbl['params'],
-                            $loadedTbl,
-                            $tbl
-                        );
-                    }
+                    $checkAndChange($field);
                 }
             }
 
@@ -911,16 +949,18 @@ abstract class JsonTables extends aTable
                     $actionIt = false;
                     if (empty($loadedTbl['rows'][$row['id']])) {
                         if (!empty($field['CodeActionOnAdd'])) {
-                            $actionIt = true;
+                            $actionIt = 'add';
                         }
-                    } elseif (!empty($field['CodeActionOnChange']) && key_exists($field['name'],
-                            $loadedTbl['rows'][$row['id']])) {
+                    } elseif (!empty($field['CodeActionOnChange']) && key_exists(
+                            $field['name'],
+                            $loadedTbl['rows'][$row['id']]
+                        )) {
                         if (Calculate::compare(
                             '!==',
                             $loadedTbl['rows'][$row['id']][$field['name']]['v'],
                             $row[$field['name']]['v']
                         )) {
-                            $actionIt = true;
+                            $actionIt = 'change';
                         }
                     }
 
@@ -929,7 +969,8 @@ abstract class JsonTables extends aTable
                             $loadedTbl['rows'][$row['id']] ?? null,
                             $row,
                             $loadedTbl,
-                            $tbl
+                            $tbl,
+                            $actionIt
                         );
                     }
                 }
@@ -939,7 +980,8 @@ abstract class JsonTables extends aTable
                             $Oldrow,
                             [],
                             $loadedTbl,
-                            $tbl
+                            $tbl,
+                            'delete'
                         );
                     }
                     if ($field['type'] === 'file') {
@@ -954,34 +996,12 @@ abstract class JsonTables extends aTable
                 }
 
                 foreach ($ColumnFootersOnChange[$field['name']] ?? [] as $_field) {
-                    if (Calculate::compare(
-                        '!==',
-                        $loadedTbl['params'][$_field['name']]['v'] ?? null,
-                        $tbl['params'][$_field['name']]['v']
-                    )) {
-                        Field::init($_field, $this)->action(
-                            $loadedTbl['params'] ?? null,
-                            $tbl['params'],
-                            $loadedTbl,
-                            $tbl
-                        );
-                    }
+                    $checkAndChange($_field);
                 }
             }
 
             foreach ($CommonFootersOnChange as $field) {
-                if (Calculate::compare(
-                    '!==',
-                    $loadedTbl['params'][$field['name']]['v'],
-                    $tbl['params'][$field['name']]['v']
-                )) {
-                    Field::init($field, $this)->action(
-                        $loadedTbl['params'],
-                        $tbl['params'],
-                        $loadedTbl,
-                        $tbl
-                    );
-                }
+                $checkAndChange($field);
             }
         }
         $this->calcLog($Log, 'result', 'done');

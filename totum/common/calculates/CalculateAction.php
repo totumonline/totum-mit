@@ -15,11 +15,39 @@ use totum\common\FieldModifyItem;
 use totum\common\Formats;
 use totum\common\sql\SqlException;
 use totum\common\TotumInstall;
+use totum\tableTypes\aTable;
 use totum\tableTypes\RealTables;
 use \Exception;
+use function Sodium\add;
 
 class CalculateAction extends Calculate
 {
+    protected $allStartSections = [];
+
+    protected function formStartSections()
+    {
+        foreach ($this->code as $k => $v) {
+            if (preg_match('/^([a-z]*)([\d]*)=$/', $k, $matches) && (!$matches[1] || $matches[2]!=="")) {
+                $this->allStartSections[$matches[1]][$k] = $v;
+                unset($this->code[$k]);
+            }
+        }
+        foreach ($this->allStartSections as &$v) {
+            uksort(
+                $v,
+                function ($a, $b) {
+                    if ($a === '=') {
+                        return -1;
+                    }
+                    if ($b === '=') {
+                        return 1;
+                    }
+                    return $a <=> $b;
+                }
+            );
+        }
+    }
+
     protected function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
@@ -40,7 +68,7 @@ class CalculateAction extends Calculate
                         $this->oldTbl,
                         $this->tbl,
                         $this->Table,
-                        $Vars
+                        $this->vars['tpa']
                     );
                     $this->newLogParent['children'][] = $CA->getLogVar();
 
@@ -160,11 +188,36 @@ class CalculateAction extends Calculate
         }
     }
 
-    public function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, $table, $var = [])
+    public function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, $table, string $type, $var = [])
     {
+        $var['tpa'] = $type;
         $r = $this->exec(['name' => $varName], null, $oldRow, $newRow, $oldTbl, $newTbl, $table, $var);
-
         return $r;
+    }
+
+    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
+    {
+        switch ($vars['tpa'] ?? null) {
+            case 'add':
+                $s = 'ad';
+                break;
+            case 'delete':
+                $s = 'dl';
+                break;
+            case 'change':
+                $s = 'ch';
+                break;
+            case 'click':
+                $s = 'cl';
+                break;
+            case 'exec':
+                $s = 'ex';
+                break;
+            default:
+                throw new errorException('Системная ошибка. Не указан тип действия');
+        }
+        $this->startSections = array_merge($this->allStartSections[''] ?? [], $this->allStartSections[$s] ?? []);
+        $r = parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
     }
 
     protected function funcSchemaUpdate($params)
@@ -304,9 +357,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-                'email',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'email',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -355,17 +408,17 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, [], []);
         if (array_key_exists(
-                'options',
-                $params
-            ) && !is_array($params['options'])) {
+            'options',
+            $params
+        ) && !is_array($params['options'])) {
             throw new errorException('options должно быть типа row');
         }
 
 
         $toBfl = $params['bfl'] ?? in_array(
-                'soap',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'soap',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,
@@ -485,10 +538,10 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-                [],
-                'styles, html, name',
-                'name'
-            )) || (!array_key_exists(
+            [],
+            'styles, html, name',
+            'name'
+        )) || (!array_key_exists(
                 $params['template'],
                 $templates
             ))) {
@@ -505,8 +558,9 @@ class CalculateAction extends Calculate
                 function ($matches) use ($data, $templates, &$funcReplaceTemplates, &$style, &$usedStyles) {
                     if (array_key_exists($matches[2], $data)) {
                         if (is_array($data[$matches[2]])) {
-                            if (empty($data[$matches[2]])) $value = null;
-                            else {
+                            if (empty($data[$matches[2]])) {
+                                $value = null;
+                            } else {
                                 if (!empty($matches[3])) {
                                     $value = $data[$matches[2]][$matches[3]] ?? null;
                                 } else {
@@ -558,11 +612,11 @@ class CalculateAction extends Calculate
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     if (is_numeric($value)) {
                                                         $value = number_format(
-                                                                $value,
-                                                                $numberVals[0],
-                                                                $numberVals[1] ?? '.',
-                                                                $numberVals[2] ?? ''
-                                                            )
+                                                            $value,
+                                                            $numberVals[0],
+                                                            $numberVals[1] ?? '.',
+                                                            $numberVals[2] ?? ''
+                                                        )
                                                             . ($numberVals[3] ?? '');
                                                     }
                                                 }
@@ -639,42 +693,6 @@ class CalculateAction extends Calculate
         }
     }
 
-    protected function funcLinkToDataTable($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
-
-        $tmp = $this->Table->getTotum()->getTable($tableRow);
-        $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ($params['params'] ?? [])]);
-
-        if (empty($params['width'])) {
-            $width = 130;
-            foreach ($tmp->getVisibleFields('web', true)['column'] as $field) {
-                $width += $field['width'];
-            }
-            if ($width > 1200) {
-                $width = 1200;
-            }
-        } else {
-            $width = $params['width'];
-        }
-        $table = [
-            'title' => $params['title'] ?? $tableRow['title'],
-            'table_id' => $tableRow['id'],
-            'sess_hash' => $tmp->getTableRow()['sess_hash'],
-            'width' => $width,
-            'height' => $params['height'] ?? '80vh'
-        ];
-
-        $this->Table->getTotum()->addToInterfaceDatas(
-            'table',
-            $table,
-            $params['refresh'] ?? false,
-            ['header' => $params['header'] ?? true,
-                'footer' => $params['footer'] ?? true]
-        );
-    }
 
     protected function funcLinkToAnonymTable($params)
     {
@@ -694,9 +712,9 @@ class CalculateAction extends Calculate
         $t = $tableRow['id'];
         if ($d) {
             $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
-                    json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->getCryptSolt()
-                ));
+                json_encode($d, JSON_UNESCAPED_UNICODE),
+                $this->Table->getTotum()->getConfig()->getCryptSolt()
+            ));
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
     }
@@ -736,9 +754,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!key_exists(
-                'num',
-                $params
-            ) || !is_numeric(strval($params['num']))) {
+            'num',
+            $params
+        ) || !is_numeric(strval($params['num']))) {
             throw new errorException('Параметр num обязателен и должен быть числом');
         }
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
@@ -799,7 +817,8 @@ class CalculateAction extends Calculate
                 }
             }
             if ($filters) {
-                $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));;
+                $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));
+                ;
                 $link .= '?f=' . urlencode($cripted);
                 $iParams = true;
             }
@@ -835,9 +854,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
+            '`https?://`',
+            $params['uri']
+        )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -863,9 +882,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
+            '`https?://`',
+            $params['uri']
+        )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -885,9 +904,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-                'script',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'script',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
 
         try {
             $r = $this->cURL(
@@ -1380,7 +1399,8 @@ class CalculateAction extends Calculate
                     $row,
                     $table->getTbl(),
                     $table->getTbl(),
-                    $table
+                    $table,
+                    'exec'
                 );
             }
         } else {
@@ -1390,7 +1410,8 @@ class CalculateAction extends Calculate
                 $table->getTbl()['params'],
                 $table->getTbl(),
                 $table->getTbl(),
-                $table
+                $table,
+                'exec'
             );
         }
     }

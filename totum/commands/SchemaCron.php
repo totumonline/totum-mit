@@ -57,7 +57,7 @@ class SchemaCron extends Command
                     $Totum->transactionStart();
                     $Table = $Totum->getTable('crons');
                     $Calc = new CalculateAction($cronRow['code']);
-                    $Calc->execAction('CRON', $cronRow, $cronRow, $Table->getTbl(), $Table->getTbl(), $Table, []);
+                    $Calc->execAction('CRON', $cronRow, $cronRow, $Table->getTbl(), $Table->getTbl(), $Table, 'exec', []);
                     $Totum->transactionCommit();
                 } catch (errorException $e) {
                     $Conf = $Conf->getClearConf();

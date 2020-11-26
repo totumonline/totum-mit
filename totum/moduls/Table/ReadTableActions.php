@@ -153,6 +153,7 @@ class ReadTableActions extends Actions
                     $this->Table->getTbl(),
                     $this->Table->getTbl(),
                     $this->Table,
+                    'exec',
                     $data['buttons'][$this->post['index']]['vars'] ?? []
                 );
             } else {
@@ -207,6 +208,7 @@ class ReadTableActions extends Actions
                         [],
                         $this->Table->getTbl(),
                         $this->Table,
+                        'exec',
                         $row['vars'] ?? []
                     );
                     break;
@@ -238,6 +240,7 @@ class ReadTableActions extends Actions
                 $this->Table->getTbl(),
                 $this->Table->getTbl(),
                 $this->Table,
+                'exec',
                 ($data['vars'] ?? []) + ['input' => $this->post['val']]
             );
 
@@ -798,6 +801,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $row,
             $this->Table->getTbl(),
             $this->Table->getTbl(),
+            'exec',
             $vars
         );
         $this->Table->calcLog($Log, 'result', 'done');

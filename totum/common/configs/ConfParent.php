@@ -127,6 +127,7 @@ abstract class ConfParent
                 $Table->getTbl(),
                 $Table->getTbl(),
                 $Table,
+                'exec',
                 ['vars' => ['text' => 'Ошибка крона <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]
             );
         } catch (\Exception $e) {

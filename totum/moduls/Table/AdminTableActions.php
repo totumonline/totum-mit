@@ -101,14 +101,14 @@ class AdminTableActions extends WriteTableActions
 CODE;
 
         $calc = new CalculateAction($code);
-        $calc->exec(
-            ['name' => 'CODE_TABLE_ACTION_renameField'],
-            [],
+        $calc->execAction(
+            'CODE_TABLE_ACTION_renameField',
             [],
             [],
             [],
             [],
             $this->Table,
+            'exec',
             ['row' => ['table_name' => $this->Table->getTableRow()['name'], 'field_name' => $name]]
         );
     }
@@ -171,6 +171,7 @@ CODE;
             [],
             [],
             $this->Totum->getTable('tables'),
+            'exec',
             $Vars
         );
     }

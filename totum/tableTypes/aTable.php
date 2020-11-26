@@ -641,7 +641,7 @@ abstract class aTable
 
         $CA = new CalculateAction($this->fields[$fieldName]['selectTableAction']);
         try {
-            $CA->execAction($fieldName, $itemData, $itemData, $this->tbl, $this->tbl, $this);
+            $CA->execAction($fieldName, $itemData, $itemData, $this->tbl, $this->tbl, $this, 'exec');
         } catch (errorException $e) {
             $e->addPath('Таблица [[' . $this->tableRow['name'] . ']]; Поле [[' . $this->fields[$fieldName]['title'] . ']]');
             throw $e;

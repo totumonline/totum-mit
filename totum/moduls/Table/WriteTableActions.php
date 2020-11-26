@@ -175,6 +175,7 @@ class WriteTableActions extends ReadTableActions
                         $this->Table->getTbl(),
                         $this->Table->getTbl(),
                         $this->Table,
+                        'exec',
                         ['ids' => $ids]
                     );
                 } catch (errorException $e) {

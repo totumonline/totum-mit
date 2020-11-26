@@ -40,6 +40,7 @@ class RemotesController extends Controller
                             $table->getTbl(),
                             $table->getTbl(),
                             $table,
+                            'exec',
                             [
                                 'get' => $request->getQueryParams() ?? [],
                                 'post' => $request->getParsedBody() ?? [],

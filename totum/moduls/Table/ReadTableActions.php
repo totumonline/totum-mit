@@ -585,8 +585,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $result['error'] = $error;
         }
 
-        if (($tree = $this->Table->getFields()['tree'] ?? null) && $tree['category'] === 'column' && $tree['type'] === 'tree') {
-            $result = array_merge($result, $this->getTreeTopLevel());
+        if (($tree = $this->Table->getFields()['tree'] ?? null) && $tree['category'] === 'column' && $tree['type'] === 'tree' && !empty($tree['treeViewType'])) {
+            $result = array_merge($result,
+                $this->getTreeTopLevel($tree['treeViewLoad'] ?? null, $tree['treeViewOpen'] ?? null));
         } elseif (($this->Table->getTableRow()['pagination'] ?? '0/0') === '0/0') {
             $result = array_merge($result, $this->getTableClientData(0, null, false));
         } else {
@@ -1374,15 +1375,17 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $permittedFilters;
     }
 
-    protected function getTreeTopLevel()
+    protected function getTreeTopLevel($load, $open)
     {
         $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
 
         $result = array_merge(
             $result,
             $this->getResultTree(
-                function ($k, $v) {
-                    if ($v[3] === null) {
+                function ($k, $v) use ($load, $open) {
+                    if ($v[3] === null || $load || $open) {
+                        if (!$open)
+                            return 'closed';
                         return 'this';
                     } elseif (is_null($v['path'][3])) {
                         return 'child';
@@ -1419,8 +1422,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 switch ($filterFunc($k, $v, $thisNodes)) {
                     case 'this':
                     case 'parent':
-                        $ids[] = (string)$k;
                         $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => true, 'p' => $v[3]];
+                        $ids[] = (string)$k;
+                        break;
+                    case 'closed':
+                        $ids[] = (string)$k;
+                        $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => false, 'p' => $v[3]];
                         break;
                     case 'child':
                         $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
@@ -1451,8 +1458,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         if ($branchIds = $this->Request->getParsedBody()['branchIds'] ?? 0) {
             $parentIds = ($this->Request->getParsedBody()['withParents'] ?? null) ? null : [];
+            $recurcive = !!($this->Request->getParsedBody()['recurcive'] ?? null);
             return $this->getResultTree(
-                function ($k, $v, $thisNodes) use (&$parentIds, $branchIds) {
+                function ($k, $v, $thisNodes) use (&$parentIds, $branchIds, $recurcive) {
                     if ($thisNodes && is_null($parentIds)) {
                         foreach ($thisNodes as $thisNode) {
                             $path = $thisNode;
@@ -1468,9 +1476,17 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
                     if (in_array($k, $branchIds)) {
                         return 'this';
-                    }
-                    elseif (in_array($k, $parentIds)) {
+                    } elseif (in_array($k, $parentIds)) {
                         return 'parent';
+                    } elseif ($recurcive) {
+                        $path = $v;
+                        while ($path) {
+                            if (in_array($path[3] ?? null, $branchIds)) {
+                                return 'parent';
+                            }
+                            $path = $path['path'] ?? null;
+                        }
+                        return false;
                     } elseif (in_array($v[3] ?? null, $branchIds) || in_array($v[3] ?? null, $parentIds)) {
                         return 'child';
                     }

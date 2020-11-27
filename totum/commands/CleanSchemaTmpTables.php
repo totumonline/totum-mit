@@ -24,8 +24,9 @@ class CleanSchemaTmpTables extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $Conf = new Conf();
-        if ($schema = $input->getArgument('schema')) {
-            if (is_callable([$Conf, 'setHostSchema'])) {
+
+        if (is_callable([$Conf, 'setHostSchema'])) {
+            if ($schema = $input->getArgument('schema')) {
                 $Conf->setHostSchema(null, $schema);
             }
         }

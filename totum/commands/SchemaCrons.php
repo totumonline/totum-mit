@@ -27,8 +27,9 @@ class SchemaCrons extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $Conf = new Conf();
-        if ($schema = $input->getArgument('schema')) {
-            if (is_callable([$Conf, 'setHostSchema'])) {
+
+        if (is_callable([$Conf, 'setHostSchema'])) {
+            if ($schema = $input->getArgument('schema')) {
                 $Conf->setHostSchema(null, $schema);
             }
         }
@@ -66,8 +67,8 @@ class SchemaCrons extends Command
                     continue 2;
                 }
             }
-            $schemaName=$Conf->getSchema();
-            $id=$rule['id'];
+            $schemaName = $Conf->getSchema();
+            $id = $rule['id'];
             `bin/totum schema-cron $id $schemaName > /dev/null 2>&1 &`;
         }
     }

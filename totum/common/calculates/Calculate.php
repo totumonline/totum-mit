@@ -806,6 +806,31 @@ class Calculate
         return $code;
     }
 
+    protected function inVarsApply($inVars)
+    {
+        $pastVals = [];
+        foreach ($inVars as $k => $v) {
+            if (array_key_exists($k, $this->vars)) {
+                $pastVals[$k] = [true, $this->vars[$k]];
+            } else {
+                $pastVals[$k] = [false];
+            }
+            $this->vars[$k] = $v;
+        }
+        return $pastVals;
+    }
+
+    protected function inVarsRevert($pastVals)
+    {
+        foreach ($pastVals as $k => $v) {
+            if (!$v[0]) {
+                unset($this->vars[$k]);
+            } else {
+                $this->vars[$k] = $v[1];
+            }
+        }
+    }
+
     protected function execSubCode($code, $codeName, $notLoging = false, $inVars = [])
     {
         $Log = $this->Table->calcLog(['name' => $codeName, 'code' => function () use ($code) {
@@ -813,15 +838,7 @@ class Calculate
         }]);
 
         try {
-            $pastVals = [];
-            foreach ($inVars as $k => $v) {
-                if (array_key_exists($k, $this->vars)) {
-                    $pastVals[$k] = [true, $this->vars[$k]];
-                } else {
-                    $pastVals[$k] = [false];
-                }
-                $this->vars[$k] = $v;
-            }
+            $pastVals = $this->inVarsApply($inVars);
 
             $codes = $this->getCodes($code);
 
@@ -931,13 +948,7 @@ class Calculate
                 $result = $r;
             }
 
-            foreach ($pastVals as $k => $v) {
-                if (!$v[0]) {
-                    unset($this->vars[$k]);
-                } else {
-                    $this->vars[$k] = $v[1];
-                }
-            }
+            $this->inVarsRevert($pastVals);
 
             $this->Table->calcLog($Log, 'result', $result);
         } catch (\Exception $e) {
@@ -2450,7 +2461,7 @@ SQL;
                 if (is_null($MainList)) {
                     $MainList = $list;
                 } else {
-                    $MainList = array_diff($MainList, $list);
+                    $MainList = @array_diff($MainList, $list);
                 }
             }
         }
@@ -2554,6 +2565,65 @@ SQL;
         }
 
         return array_values($MainList);
+    }
+
+    protected function funclistReplace($params)
+    {
+        $params = $this->getParamsArray($params, ['action'], ['action'], []);
+        $this->__checkListParam($params['list'], 'list', 'listReplace');
+        $key = $params['key'] ?? null;
+        $value = $params['value'] ?? null;
+        if (!key_exists('action', $params)) {
+            throw new errorException('Параметр action обязателен');
+        }
+
+        $actions = [];
+        foreach ($params['action'] as $_a) {
+            $actions[] = $this->getCodes($_a);
+        }
+
+        $list = $params['list'];
+        foreach ($list as $k => $v) {
+            $inVars = [];
+            $pastVals = [];
+            if ($key) {
+                $inVars[$key] = $k;
+            }
+            if ($value) {
+                $inVars[$v] = $v;
+            }
+            if ($inVars) {
+                $pastVals = $this->inVarsApply($inVars);
+            }
+
+            foreach ($actions as $a=>$action) {
+                $Log = $this->Table->calcLog(['name' => 'iteration ' . $k.' / action'.($a+1)]);
+
+                try {
+                    if (count($action) > 1) {
+                        if (!is_array($v)) {
+                            throw new errorException('Элемент с ключом [' . $k . '] не является row или list');
+                        }
+                        $_k = $this->__getValue($action[0]);
+                        $_v = $this->__getValue($action[1]);
+                        $list[$k][$_k] = $_v;
+                        $this->Table->calcLog($Log, 'result', [$_k => $_v]);
+                    } else {
+                        $list[$k] = $this->__getValue($action[0]);
+                        $this->Table->calcLog($Log, 'result', $list[$k]);
+                    }
+                } catch (\Exception $e) {
+                    $this->Table->calcLog($Log, 'error', $e->getMessage());
+                    throw $e;
+                }
+            }
+
+            if ($pastVals) {
+                $this->inVarsRevert($pastVals);
+            }
+        }
+
+        return $list;
     }
 
     protected function funcListAdd($params)

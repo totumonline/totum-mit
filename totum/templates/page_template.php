@@ -7,11 +7,11 @@
     <script src="/js/libs.js?v=1afab8b"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=3366d67">
+          href="/css/main.css?v=9b9a595">
 
     <?php
     if ($isCreatorView ?? null) { ?>
-        <script src="/js/functions.json?v=09a9d1b"></script>
+        <script src="/js/functions.json?v=4a0975f"></script>
         <?php
         if (!empty($GLOBALS['CalculateExtentions']) && is_object($GLOBALS['CalculateExtentions']) && property_exists(
                 $GLOBALS['CalculateExtentions'],
@@ -22,7 +22,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=64d1d86"></script>
+    <script src="/js/main.js?v=ad9f4cc"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

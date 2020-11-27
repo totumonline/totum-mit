@@ -31,11 +31,13 @@ class SchemaCron extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $Conf = new Conf();
-        if ($schema = $input->getArgument('schema')) {
-            if (is_callable([$Conf, 'setHostSchema'])) {
+
+        if (is_callable([$Conf, 'setHostSchema'])) {
+            if ($schema = $input->getArgument('schema')) {
                 $Conf->setHostSchema(null, $schema);
             }
         }
+
 
         if ($cronId = $input->getArgument('cronId')) {
             if ($cronRow = $Conf->getModel('crons')->get(['id' => (int)$cronId, 'status' => 'true'])) {
@@ -57,7 +59,14 @@ class SchemaCron extends Command
                     $Totum->transactionStart();
                     $Table = $Totum->getTable('crons');
                     $Calc = new CalculateAction($cronRow['code']);
-                    $Calc->execAction('CRON', $cronRow, $cronRow, $Table->getTbl(), $Table->getTbl(), $Table, 'exec', []);
+                    $Calc->execAction('CRON',
+                        $cronRow,
+                        $cronRow,
+                        $Table->getTbl(),
+                        $Table->getTbl(),
+                        $Table,
+                        'exec',
+                        []);
                     $Totum->transactionCommit();
                 } catch (errorException $e) {
                     $Conf = $Conf->getClearConf();

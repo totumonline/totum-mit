@@ -67,7 +67,12 @@ class SchemaCrons extends Command
                     continue 2;
                 }
             }
-            $schemaName = $Conf->getSchema();
+            $schemaName = "";
+
+            if (is_callable([$Conf, 'setHostSchema'])) {
+                $Conf->getSchema();
+            }
+
             $id = $rule['id'];
             `bin/totum schema-cron $id $schemaName > /dev/null 2>&1 &`;
         }

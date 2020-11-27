@@ -302,6 +302,11 @@ class CalculateLog
                 array_push($tree['children'], ...$ids['']);
             }
         }
+
+        if ($tree['text'] == '' && $tree['children'] === []) {
+            return null;
+        }
+
         return $tree;
     }
 
@@ -494,8 +499,10 @@ class CalculateLog
 
         foreach ($this->params as $name => $val) {
             if (preg_match('/^$|#|json|math/', $name)) {
-                $tree['children'][] = ['text' => $name . " = " . json_encode($val,
-                        JSON_UNESCAPED_UNICODE), 'icon' => 'fa fa-hash'];
+                $tree['children'][] = ['text' => $name . " = " . json_encode(
+                    $val,
+                    JSON_UNESCAPED_UNICODE
+                ), 'icon' => 'fa fa-hash'];
             }
         }
 

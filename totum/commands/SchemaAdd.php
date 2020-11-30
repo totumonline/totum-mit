@@ -4,6 +4,7 @@
 namespace totum\commands;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -20,8 +21,8 @@ class SchemaAdd extends Command
     {
         $this->setName('schema-add')
             ->setDescription('Add new schema')
-            ->addArgument('name', InputOption::VALUE_REQUIRED, 'Enter schema name')
-            ->addArgument('host', InputOption::VALUE_REQUIRED, 'Enter schema host')
+            ->addArgument('name', InputArgument::REQUIRED, 'Enter schema name')
+            ->addArgument('host', InputArgument::REQUIRED, 'Enter schema host')
             ->addArgument('user_login', InputOption::VALUE_REQUIRED, 'Enter totum admin login', 'admin')
             ->addArgument('user_pass', InputOption::VALUE_REQUIRED, 'Enter totum admin password', '1111');
     }
@@ -32,6 +33,14 @@ class SchemaAdd extends Command
             $output->writeln('ERROR: config class not found');
         }
         $Conf=new Conf('dev');
+
+        if (!$input->getArgument('name')) {
+            throw new errorException('Enter schema name');
+        }
+        if (!$input->getArgument('host')) {
+            throw new errorException('Enter schema host');
+        }
+
         $Conf->setHostSchema($input->getArgument('host'), $input->getArgument('name'));
 
         $TotumInstall=new TotumInstall($Conf, new User(['login' => 'service', 'roles' => ["1"], 'id' => 1], $Conf), $output);

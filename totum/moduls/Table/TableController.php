@@ -105,8 +105,10 @@ class TableController extends interfaceController
                 $result['interfaceDatas'] = $links;
             }
             $this->Totum->transactionCommit();
-        } catch (\Exception $exception) {
+        } catch (errorException $exception) {
             $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess'])? "<br/>" . $exception->getPathMess() : '')];
+        } catch (criticalErrorException $exception) {
+            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
         }
 
         if ($this->User->isCreator() && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {

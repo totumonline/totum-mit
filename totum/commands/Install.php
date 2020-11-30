@@ -25,18 +25,18 @@ class Install extends Command
             ->addArgument('admin_email', InputArgument::REQUIRED, 'Enter admin email')
             ->addArgument('totum_host', InputArgument::REQUIRED, 'Enter totum host')
 
-            ->addArgument('dbname', InputArgument::REQUIRED, 'Enter database name')
-            ->addArgument('dbhost', InputArgument::REQUIRED, 'Enter database host')
-            ->addArgument('dbuser', InputArgument::REQUIRED, 'Enter database user')
-            ->addArgument('dbpass', InputArgument::REQUIRED, 'Enter database user password')
-            ->addArgument('dbport', InputArgument::OPTIONAL, 'Enter database host', 5432)
-
             ->addArgument('user_login', InputArgument::OPTIONAL, 'Enter totum admin login', 'admin')
             ->addArgument('user_pass', InputArgument::OPTIONAL, 'Enter totum admin password', '1111')
 
-            ->addOption('pgdump', null, InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
+            ->addArgument('dbname', InputArgument::OPTIONAL, 'Enter database name')
+            ->addArgument('dbhost', InputArgument::OPTIONAL, 'Enter database host')
+            ->addArgument('dbuser', InputArgument::OPTIONAL, 'Enter database user')
+            ->addArgument('dbpass', InputArgument::OPTIONAL, 'Enter database user password')
+            ->addArgument('dbport', InputArgument::OPTIONAL, 'Enter database database port', 5432)
+
+             ->addOption('pgdump', null, InputOption::VALUE_REQUIRED, 'Enter pg_dump(): ', '')
             ->addOption('psql', null, InputOption::VALUE_REQUIRED, 'Enter psql(): ', '')
-            ->addOption('schema_exists', 'e', InputOption::VALUE_NONE, 'Enter Y for install in existing schema')
+            ->addOption('schema_exists', 'e', InputOption::VALUE_NONE, 'Set for install in existing schema')
             ->addOption('db_string', 'd', InputOption::VALUE_OPTIONAL, 'Enter dbstring: postgresql://user:pass@host/dbname');
     }
 

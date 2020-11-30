@@ -4,6 +4,7 @@
 namespace totum\commands;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,11 +24,11 @@ class SchemaUpdate extends Command
             ->setDescription('Update schema')
             ->addArgument(
                 'matches',
-                InputOption::VALUE_REQUIRED,
+                InputArgument::OPTIONAL,
                 'Enter source name',
                 'totum_' . (new Conf())->getLang()
             )
-            ->addArgument('file', InputOption::VALUE_REQUIRED, 'Enter schema update filepath', 'sys_update');
+            ->addArgument('file', InputArgument::OPTIONAL, 'Enter schema update filepath', 'sys_update');
 
         if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
             $this->addOption('schema', 's', InputOption::VALUE_REQUIRED, 'Enter schema name', '');

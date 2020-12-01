@@ -68,7 +68,8 @@ class CalculateAction extends Calculate
                         $this->oldTbl,
                         $this->tbl,
                         $this->Table,
-                        $this->vars['tpa']
+                        $this->vars['tpa'],
+                        $Vars
                     );
                     $this->newLogParent['children'][] = $CA->getLogVar();
 

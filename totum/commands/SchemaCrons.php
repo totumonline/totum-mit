@@ -70,7 +70,7 @@ class SchemaCrons extends Command
             $schemaName = "";
 
             if (is_callable([$Conf, 'setHostSchema'])) {
-                $Conf->getSchema();
+                $schemaName=$Conf->getSchema();
             }
 
             $id = $rule['id'];

@@ -218,7 +218,7 @@ class CalculateAction extends Calculate
                 throw new errorException('Системная ошибка. Не указан тип действия');
         }
         $this->startSections = array_merge($this->allStartSections[''] ?? [], $this->allStartSections[$s] ?? []);
-        $r = parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
+        return parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
     }
 
     protected function funcSchemaUpdate($params)

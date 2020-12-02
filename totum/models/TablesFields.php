@@ -161,7 +161,7 @@ class TablesFields extends Model
                         $data = json_decode($field['data'], true);
 
                         if (($decodedVars['category'] === $field['category'] && ($data['showInWebOtherPlacement'] ?? false) === false)
-                            || $decodedVars['category'] === $data['showInWebOtherPlacement']
+                            || $decodedVars['category'] === ($data['showInWebOtherPlacement'] ?? false)
                         ) {
                             $dataSrc['showInWebOtherOrd']['Val'] += 10;
                             $update[$field['id']] = ['data_src'=>$dataSrc];

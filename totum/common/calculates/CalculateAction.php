@@ -217,7 +217,7 @@ class CalculateAction extends Calculate
             default:
                 throw new errorException('Системная ошибка. Не указан тип действия');
         }
-        $this->startSections = array_merge($this->allStartSections[''] ?? [], $this->allStartSections[$s] ?? []);
+        $this->startSections = array_merge($this->allStartSections[''] ?? [], $this->allStartSections['a'] ?? [], $this->allStartSections[$s] ?? []);
         return parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
     }
 

@@ -172,14 +172,26 @@ class Tree extends Field
         }
 
         if (empty($val['__isForChildTree'])) {
-            foreach ($list as &$l) {
+            $remove_children = function ($id) use (&$list, &$remove_children) {
+                foreach ($list as $k=>$v) {
+                    if (($v[3]??null)==$id) {
+                        $remove_children($k);
+                        unset($list[$k]);
+                    }
+                }
+            };
+            foreach ($list as $k=>&$l) {
                 if ($l[3] ?? null) {
-                    $l['path'] =& $list[$l[3]];
+                    if (key_exists($l[3], $list)) {
+                        $l['path'] =& $list[$l[3]];
+                    } else {
+                        $remove_children($k);
+                        unset($list[$k]);
+                    }
                 }
             }
             unset($l);
         }
-
         return $this->commonSelectList = $list;
     }
 
@@ -259,7 +271,7 @@ class Tree extends Field
         $addInArrays = function ($k, $noCheckParent = false, $formDeepLevel = false) use (&$listMain, $checkedVals, &$deepLevels, &$objMain, &$list, &$addInArrays) {
             if ($k !== "" && !key_exists($k, $objMain) && ($v = $list[$k] ?? null)) {
                 $listMain[] = $k;
-                $parent = $v[3]??null;
+                $parent = $v[3] ?? null;
 
                 if (in_array($k, $checkedVals)) {
                     $objMain[$k] = ["id" => $k, "parent" => $parent ?? '#', "text" => $v[0]];

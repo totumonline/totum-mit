@@ -2590,7 +2590,7 @@ SQL;
                 $inVars[$key] = $k;
             }
             if ($value) {
-                $inVars[$v] = $v;
+                $inVars[$value] = $v;
             }
             if ($inVars) {
                 $pastVals = $this->inVarsApply($inVars);

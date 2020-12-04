@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "286cf2a91d668a3cf33b7562d3cba103",
+    "content-hash": "150ab1e81abc9df6c26b12833eafd23f",
     "packages": [
         {
             "name": "guzzlehttp/psr7",
@@ -356,6 +356,77 @@
                 "source": "https://github.com/ralouphie/getallheaders/tree/develop"
             },
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "salsify/json-streaming-parser",
+            "version": "v8.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/salsify/jsonstreamingparser.git",
+                "reference": "4ae5394136a037e09402ba8b48dbf4e20475e69d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/salsify/jsonstreamingparser/zipball/4ae5394136a037e09402ba8b48dbf4e20475e69d",
+                "reference": "4ae5394136a037e09402ba8b48dbf4e20475e69d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-mbstring": "*",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "ext-json": "*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "8.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "JsonStreamingParser\\": "src",
+                    "JsonStreamingParser\\Test\\": "tests"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Rob Gonzalez",
+                    "email": "rob@salsify.com",
+                    "homepage": "http://salsify.com/"
+                },
+                {
+                    "name": "Maxim Gnatenko",
+                    "email": "mgnatenko@gmail.com"
+                },
+                {
+                    "name": "Max Grigorian",
+                    "email": "maxakawizard@gmail.com",
+                    "homepage": "http://wizardcat.com/"
+                },
+                {
+                    "name": "ThePanz",
+                    "email": "thepanz@gmail.com"
+                }
+            ],
+            "description": "A streaming parser for JSON in PHP.",
+            "homepage": "https://github.com/salsify/jsonstreamingparser",
+            "keywords": [
+                "json",
+                "parser",
+                "streaming"
+            ],
+            "support": {
+                "issues": "https://github.com/salsify/jsonstreamingparser/issues",
+                "source": "https://github.com/salsify/jsonstreamingparser/tree/master"
+            },
+            "time": "2020-05-22T20:10:04+00:00"
         },
         {
             "name": "symfony/console",

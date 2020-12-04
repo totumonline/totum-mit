@@ -12,9 +12,9 @@ use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Formats;
-use totum\common\logs\CalculateLogEmpty;
 use totum\common\Model;
 use totum\common\sql\SqlException;
+use totum\common\Json\TotumJson;
 use totum\fieldTypes\File;
 use totum\models\TablesFields;
 use totum\tableTypes\aTable;
@@ -135,19 +135,48 @@ class Calculate
                     }
                 }
 
+                $replace_line_params = function ($line) use (&$lineParams) {
+                    return preg_replace_callback(
+                        '/{([^}]+)}/',
+                        function ($matches) use (&$lineParams) {
+                            if ($matches[1] === "") {
+                                return '{}';
+                            }
+                            $Num = count($lineParams);
+                            $lineParams[] = $matches[1];
+                            return '{' . $Num . '}';
+                        },
+                        $line
+                    );
+                };
+                $replace_strings = function ($line) use (&$strings, &$replace_line_params, &$replace_strings) {
+                    return preg_replace_callback(
+                        '/(?|(math|json)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
+                        function ($matches) use (&$strings, &$replace_line_params, &$replace_strings) {
+                            if ($matches[1] === "") {
+                                return '""';
+                            }
+                            switch ($matches[1]) {
+                                case 'json':
 
-                $line = preg_replace_callback(
-                    '/(?|(math|json)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
-                    function ($matches) use (&$strings) {
-                        if ($matches[1] === "") {
-                            return '""';
-                        }
-                        $stringNum = count($strings);
-                        $strings[] = $matches[1] . $matches[2];
-                        return '"' . $stringNum . '"';
-                    },
-                    $line
-                );
+                                    $matches[2] = $replace_strings($matches[2]);
+                                    $matches[2] = $replace_line_params($matches[2]);
+
+                                    break;
+                                case 'math':
+                                    $matches[2] = $replace_strings($matches[2]);
+                                    $matches[2] = $replace_line_params($matches[2]);
+                                    break;
+                            }
+                            $stringNum = count($strings);
+                            $strings[] = $matches[1] . $matches[2];
+                            return '"' . $stringNum . '"';
+                        },
+                        $line);
+                };
+
+
+                $line = $replace_strings($line);
                 $line = str_replace(' ', '', $line);
 
                 if ($table_name && preg_match_all('/(.?)#([a-z_0-9]+)/', $line, $matches)) {
@@ -158,18 +187,7 @@ class Calculate
                     }
                 }
 
-                $line = preg_replace_callback(
-                    '/{([^}]+)}/',
-                    function ($matches) use (&$lineParams) {
-                        if ($matches[1] === "") {
-                            return '{}';
-                        }
-                        $Num = count($lineParams);
-                        $lineParams[] = $matches[1];
-                        return '{' . $Num . '}';
-                    },
-                    $line
-                );
+                $line = $replace_line_params($line);
                 $c[$lineName] = $line;
             }
         }
@@ -618,10 +636,12 @@ class Calculate
         } catch (\Exception $e) {
             $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
             if (is_a($e, SqlException::class)) {
-                $this->newLog['children'][] = ['type' => 'error', 'text' => 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]'];
+                $this->newLog['children'][] =
+                    ['type' => 'error', 'text' => 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]'];
                 $this->error = 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]';
             } else {
-                $this->newLog['children'][] = ['type' => 'error', 'text' => 'Критическая ошибка при обработке кода [[' . $e->getMessage() . ']]'];
+                $this->newLog['children'][] =
+                    ['type' => 'error', 'text' => 'Критическая ошибка при обработке кода [[' . $e->getMessage() . ']]'];
                 $this->error = 'Критическая ошибка при обработке кода [[' . $e->getMessage() . ']]';
             }
             $table->calcLog($Log, 'error', $this->error);
@@ -680,7 +700,7 @@ class Calculate
     protected function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $kod = $params['code'] ?? $params['kod'];
+            $kod = $params['code'] ?? $params['kod'] ?? '';
             $CA = new Calculate($kod);
             if (!empty($kod)) {
                 try {
@@ -904,10 +924,7 @@ class Calculate
                                     $rTmp = $this->getMathFromString(substr($this->CodeStrings[$r['string']], 4));
                                     break;
                                 case 'json':
-                                    $rTmp = json_decode(substr($this->CodeStrings[$r['string']], 4), true);
-                                    if (json_last_error() && ($error = json_last_error_msg())) {
-                                        throw new errorException($error);
-                                    }
+                                    $rTmp = $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4));
                                     break;
                                 default:
                                     $rTmp = substr($this->CodeStrings[$r['string']], 1);
@@ -2573,6 +2590,7 @@ SQL;
         $this->__checkListParam($params['list'], 'list', 'listReplace');
         $key = $params['key'] ?? null;
         $value = $params['value'] ?? null;
+
         if (!key_exists('action', $params)) {
             throw new errorException('Параметр action обязателен');
         }
@@ -2596,8 +2614,8 @@ SQL;
                 $pastVals = $this->inVarsApply($inVars);
             }
 
-            foreach ($actions as $a=>$action) {
-                $Log = $this->Table->calcLog(['name' => 'iteration ' . $k.' / action'.($a+1)]);
+            foreach ($actions as $a => $action) {
+                $Log = $this->Table->calcLog(['name' => 'iteration ' . $k . ' / action' . ($a + 1)]);
 
                 try {
                     if (count($action) > 1) {
@@ -3208,8 +3226,9 @@ SQL;
             throw new errorException('Не найден параметр [[' . $paramName . ']]');
         }
 
-        if (!is_numeric((string)$isDigit)) {
-            throw new errorException('Параметр [[' . $paramName . ']] должен быть числом а не [[' . $isDigit . ']]');
+        if (is_array($isDigit) || !is_numeric((string)$isDigit)) {
+            throw new errorException('Параметр [[' . $paramName . ']] должен быть числом а не [['
+                . json_encode($isDigit, JSON_UNESCAPED_UNICODE) . ']]');
         }
     }
 
@@ -3298,11 +3317,7 @@ SQL;
                         return $this->getMathFromString(substr($this->CodeStrings[$paramArray['string']], 4));
                         break;
                     case 'json':
-                        $rTmp = json_decode(substr($this->CodeStrings[$paramArray['string']], 4), true);
-                        if (json_last_error() && ($error = json_last_error_msg())) {
-                            throw new errorException($error);
-                        }
-                        return $rTmp;
+                        return $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4));
                         break;
                     default:
                         return substr($this->CodeStrings[$paramArray['string']], 1);
@@ -3738,5 +3753,29 @@ SQL;
         $table->addCalculateLogInstance($this->Table->getCalculateLog());
 
         return $table;
+    }
+
+    protected function parseTotumJson(string $str)
+    {
+        /*$r=json_decode($str, true);
+        if (json_last_error() && ($error = json_last_error_msg())) {
+            throw new errorException($error);
+        }*/
+
+        try {
+            $TJ = new TotumJson($str);
+            $TJ->setTotumCalculate(function ($param) {
+                return $this->execSubCode($param, 'paramFromJson');
+            });
+            $TJ->setStringCalculate(function ($str) {
+                if (key_exists($str, $this->CodeStrings)) {
+                    return substr($this->CodeStrings[$str], 1);
+                } else return $str;
+            });
+            $TJ->parse();
+        } catch (\Exception $e) {
+            throw new errorException($e->getMessage());
+        }
+        return $TJ->getJson();
     }
 }

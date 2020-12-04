@@ -158,10 +158,10 @@ class Calculate
                             }
                             switch ($matches[1]) {
                                 case 'json':
-
-                                    $matches[2] = $replace_strings($matches[2]);
-                                    $matches[2] = $replace_line_params($matches[2]);
-
+                                    if (!json_decode($matches[2]) && json_last_error()) {
+                                        $matches[2] = $replace_strings($matches[2]);
+                                        $matches[2] = $replace_line_params($matches[2]);
+                                    }
                                     break;
                                 case 'math':
                                     $matches[2] = $replace_strings($matches[2]);
@@ -3757,25 +3757,23 @@ SQL;
 
     protected function parseTotumJson(string $str)
     {
-        /*$r=json_decode($str, true);
+        $r = json_decode($str, true);
         if (json_last_error() && ($error = json_last_error_msg())) {
-            throw new errorException($error);
-        }*/
-
-        try {
-            $TJ = new TotumJson($str);
-            $TJ->setTotumCalculate(function ($param) {
-                return $this->execSubCode($param, 'paramFromJson');
-            });
-            $TJ->setStringCalculate(function ($str) {
-                if (key_exists($str, $this->CodeStrings)) {
-                    return substr($this->CodeStrings[$str], 1);
-                } else return $str;
-            });
-            $TJ->parse();
-        } catch (\Exception $e) {
-            throw new errorException($e->getMessage());
-        }
-        return $TJ->getJson();
+            try {
+                $TJ = new TotumJson($str);
+                $TJ->setTotumCalculate(function ($param) {
+                    return $this->execSubCode($param, 'paramFromJson');
+                });
+                $TJ->setStringCalculate(function ($str) {
+                    if (key_exists($str, $this->CodeStrings)) {
+                        return substr($this->CodeStrings[$str], 1);
+                    } else return $str;
+                });
+                $TJ->parse();
+            } catch (\Exception $e) {
+                throw new errorException($e->getMessage());
+            }
+            return $TJ->getJson();
+        } else return $r;
     }
 }

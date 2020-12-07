@@ -119,7 +119,7 @@ class CalculateSelect extends Calculate
         if (empty($params['parent'])) {
             throw new errorException('Параметр parent должен быть заполнен');
         } else {
-            $this->parentName=$params['parent'];
+            $this->parentName = $params['parent'];
         }
         $params2['field'][] = $params['parent'];
 
@@ -162,7 +162,6 @@ class CalculateSelect extends Calculate
                 }
             }
         }
-
         foreach ($rows as $row) {
             $r = ['value' => $row[$params['bfield']]
                 , 'is_del' => $row['is_del']
@@ -174,6 +173,37 @@ class CalculateSelect extends Calculate
                 $r['disabled'] = true;
             }
             $treeRows[] = $r;
+        }
+
+
+        if (!empty($params['roots'])) {
+            $TreeRowsChildrenIndexed = [];
+            $TreeRowsIndexed = [];
+            $newTreeRows = [];
+
+            foreach ($treeRows as $row) {
+                if ($parent = ($row['parent'] ?? null)) {
+                    $TreeRowsChildrenIndexed[$row['parent']][] = $row;
+                }
+                $TreeRowsIndexed[$row['value']] = $row;
+            }
+            $getChildren = function ($parent) use (&$getChildren, &$newTreeRows, $TreeRowsIndexed, $TreeRowsChildrenIndexed) {
+                if (key_exists($parent, $TreeRowsChildrenIndexed)) {
+                    foreach ($TreeRowsChildrenIndexed[$parent] as $child) {
+                        $newTreeRows[] = $child;
+                        $getChildren($child['value']);
+                    }
+                }
+            };
+
+            foreach ((array)$params['roots'] as $root) {
+                if (key_exists($root, $TreeRowsIndexed)) {
+                    $TreeRowsIndexed[$root]['parent']=null;
+                    $newTreeRows[] = $TreeRowsIndexed[$root];
+                    $getChildren($root);
+                }
+            }
+            return $newTreeRows;
         }
 
 

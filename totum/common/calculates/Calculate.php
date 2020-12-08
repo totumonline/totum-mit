@@ -420,7 +420,7 @@ class Calculate
     {
         $date = null;
         if (is_array($dateFromParams)) {
-            debug_print_backtrace();
+            throw new errorException('Получен список вместо даты');
         }
         foreach (['Y-m-d', 'd.m.y', 'd.m.Y', 'Y-m-d H:i', 'd.m.y H:i', 'd.m.Y H:i', 'Y-m-d H:i:s'] as $format) {
             if ($date = date_create_from_format($format, $dateFromParams)) {

@@ -3,6 +3,7 @@
 
 namespace totum\moduls\Table;
 
+use Composer\DependencyResolver\Pool;
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
@@ -43,9 +44,9 @@ class ReadTableActions extends Actions
                 $this->Table->getTableRow()['id'],
                 $this->User->getTreeTables()
             ) && in_array(
-                    $this->Table->getTableRow()['id'],
-                    $this->User->getFavoriteTables()
-                ) !== $status) {
+                $this->Table->getTableRow()['id'],
+                $this->User->getFavoriteTables()
+            ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -382,9 +383,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 '',
                                 $table['head']
                             ) . $table[2] . implode(
-                                    '',
-                                    $table['body']
-                                ) . $table[3];
+                                '',
+                                $table['body']
+                            ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -400,9 +401,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['head']
                 ) . $table[2] . implode(
-                        '',
-                        $table['body']
-                    ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
             }
         }
 
@@ -489,9 +490,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
 
@@ -507,9 +508,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             '',
                             $table['head']
                         ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                            '',
+                            $table['body']
+                        ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -527,9 +528,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
         $style = $template['styles'];
@@ -588,7 +589,17 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $result['error'] = $error;
         }
 
-        if (($tree = $this->Table->getFields()['tree'] ?? null) && $tree['category'] === 'column' && $tree['type'] === 'tree' && !empty($tree['treeViewType'])) {
+        if (($this->Table->getTableRow()['panels_view']??null)
+            && $this->Table->getTableRow()['panels_view']['state']==='panel') {
+            $result['viewType']='panels';
+
+
+
+
+        } elseif (($tree = $this->Table->getFields()['tree'] ?? null)
+            && $tree['category'] === 'column'
+            && $tree['type'] === 'tree'
+            && !empty($tree['treeViewType'])) {
             $result = array_merge(
                 $result,
                 $this->getTreeTopLevel($tree['treeViewLoad'] ?? null, $tree['treeViewOpen'] ?? null)
@@ -613,7 +624,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $data;
     }
 
-    protected function getTableClientData($pageIds = 0, $onPage = null, $calcFilters = true)
+    protected function getTableClientData($pageIds = 0, $onPage = null, $calcFilters = true, $onlyFields = null)
     {
         if ($calcFilters) {
             $this->Table->reCalculateFilters(
@@ -795,15 +806,15 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $this->getTableClientChangedData([]);
     }
 
-    protected function clickToButton($field, $row, $vars)
+    protected function clickToButton($fieldParams, $row, $vars, $type = 'exec')
     {
         $Log = $this->Table->calcLog(['name' => 'CLICK']);
-        Field::init($field, $this->Table)->action(
+        Field::init($fieldParams, $this->Table)->action(
             $row,
             $row,
             $this->Table->getTbl(),
             $this->Table->getTbl(),
-            'exec',
+            $type,
             $vars
         );
         $this->Table->calcLog($Log, 'result', 'done');
@@ -1068,6 +1079,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $field[$param] = true;
                 }
             }
+
+            if (!is_a($this, WriteTableActions::class)
+                && !empty($field['CodeActionOnClick'])
+                && empty($field['clickableOnOnlyRead'])) {
+                unset($field['CodeActionOnClick']);
+            }
+
+
             if ($field['logButton'] = $field['logging'] ?? true) {
                 if ($field['type'] === 'button' || $field['category'] === 'filter') {
                     $field['logButton'] = false;
@@ -1158,8 +1177,29 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     public function dblClick()
     {
-        if ($this->Table->getTableRow()['type'] === 'cycles') {
-            if (!empty($id = (int)$this->post['id'])) {
+        $id = (int)$this->post['id'] ?? 0;
+        $field = $this->post['field'] ?? '';
+
+
+        if ($field && key_exists(
+            $field,
+            $this->Table->getFields()
+        ) && (($fieldParams = $this->Table->getFields()[$field])['CodeActionOnClick'] ?? false)) {
+            if (!is_a($this, WriteTableActions::class) && empty($fieldParams['clickableOnOnlyRead'])) {
+                throw new errorException('Действие недоступно при просмотре');
+            }
+            if ($id) {
+                if ($this->Table->loadFilteredRows('web', [$id])) {
+                    $row = $this->Table->getTbl()['rows'][$id];
+                } else {
+                    return ['result' => 'Row not found'];
+                }
+            } else {
+                $row = $this->Table->getTbl()['params'];
+            }
+            $this->clickToButton($fieldParams, $row, [], 'click');
+        } elseif ($this->Table->getTableRow()['type'] === 'cycles') {
+            if (!empty($id)) {
                 if ($this->Table->loadFilteredRows('web', [$id])) {
                     if (key_exists('button_to_cycle', $this->Table->getFields())) {
                         $this->clickToButton(
@@ -1183,6 +1223,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 }
             }
         }
+        return ['ok' => 1];
     }
 
     protected function getTableFormat()
@@ -1268,7 +1309,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
 
             if ($changedIds['changed'] += ($modify ?? [])) {
-
                 //Подумать - а не дублируется ли с тем блоком, что ниже
                 $selectOrFormatColumns = [];
                 foreach ($sortedVisibleFields['column'] as $k => $v) {
@@ -1414,7 +1454,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $tree = [];
         $thisNodes = [];
         if (is_null($loadingIds)) {
-            if ($Tree->getData('treeViewType')!=='self' && !is_null($t = $Tree->getData('withEmptyVal'))) {
+            if ($Tree->getData('treeViewType') !== 'self' && !is_null($t = $Tree->getData('withEmptyVal'))) {
                 $tree[] = ['v' => null, 't' => $t];
             }
             $ids[] = "";
@@ -1458,10 +1498,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $treeIds,
                     $this->Table->getByParams(
                         (new FormatParamsForSelectFromTable)
-                        ->where('tree_category', $ids)
-                        ->where('tree_category', "", "!=")
-                        ->field('id')
-                        ->params(),
+                            ->where('tree_category', $ids)
+                            ->where('tree_category', "", "!=")
+                            ->field('id')
+                            ->params(),
                         'list'
                     )
                 );

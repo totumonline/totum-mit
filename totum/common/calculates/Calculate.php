@@ -160,7 +160,6 @@ class Calculate
                                 case 'json':
                                     if (!json_decode($matches[2]) && json_last_error()) {
                                         $matches[2] = $replace_strings($matches[2]);
-                                        $matches[2] = $replace_line_params($matches[2]);
                                     }
                                     break;
                                 case 'math':
@@ -172,7 +171,8 @@ class Calculate
                             $strings[] = $matches[1] . $matches[2];
                             return '"' . $stringNum . '"';
                         },
-                        $line);
+                        $line
+                    );
                 };
 
 
@@ -307,7 +307,6 @@ class Calculate
                 break;
             default:
                 throw new errorException('Для сравнения листов только =, == и !=');
-
         }
         return $r;
     }
@@ -383,7 +382,6 @@ class Calculate
                     break;
                 default:
                     throw new errorException('Для сравнения листов только =, == и !=, !==, не ' . $operator);
-
             }
         } elseif (is_numeric($n) && is_numeric($n2)) {
             switch ($n <=> $n2) {
@@ -503,9 +501,9 @@ class Calculate
                             } elseif ($comparison = $matches['comparison']) {
                                 if (array_key_exists('comparison', $code)) {
                                     throw new errorException('Оператор сравнения может быть только один в строке' . print_r(
-                                            $matches,
-                                            1
-                                        ));
+                                        $matches,
+                                        1
+                                    ));
                                 }
 
                                 $code['comparison'] = $comparison;
@@ -815,10 +813,24 @@ class Calculate
                         return $qoute . substr($this->CodeStrings[$m[1]], 1) . $qoute;
                         break;
                     default:
+                        $back_replace_strings = function ($str) {
+                            return preg_replace_callback(
+                                '/"(\d+)"/',
+                                function ($matches) {
+                                    if ($matches[1] === "") {
+                                        return '""';
+                                    }
+                                    return '"' . $this->CodeStrings[$matches[1]] . '"';
+                                },
+                                $str
+                            );
+                        };
+
+                        $replaced = $back_replace_strings($this->CodeStrings[$m[1]]);
                         return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr(
-                                $this->CodeStrings[$m[1]],
-                                4
-                            ) . '`';
+                            $replaced,
+                            4
+                        ) . '`';
                 }
             },
             $code
@@ -951,9 +963,9 @@ class Calculate
                 } else {
                     if (!is_null($res)) {
                         throw new errorException('Ошибка кода - отсутствие оператора в выражении [[' . $code . ']] ' . var_export(
-                                $codes,
-                                1
-                            ));
+                            $codes,
+                            1
+                        ));
                     }
 
                     $res = $rTmp;
@@ -1149,7 +1161,6 @@ SQL;
                 };
                 break;
             case '/':
-
                 $func = function ($l, $num) {
                     if (empty($num)) {
                         throw new errorException('Деление на ноль');
@@ -1550,19 +1561,19 @@ SQL;
                         } elseif (key_exists($nameVar, $this->tbl['params'] ?? [])) {
                             $rowVar = $this->tbl['params'][$nameVar];
                         } elseif (key_exists(
-                                $nameVar,
-                                $this->oldRow ?? []
-                            ) && !key_exists(
-                                $nameVar,
-                                $this->row ?? []
-                            )) {
+                            $nameVar,
+                            $this->oldRow ?? []
+                        ) && !key_exists(
+                            $nameVar,
+                            $this->row ?? []
+                        )) {
                             $rowVar = ['v' => null];
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {
                             $rowVar = ['v' => null];
                         } elseif ($nameVar === 'id' && key_exists(
-                                $this->varName,
-                                $this->Table->getFields()
-                            ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
+                            $this->varName,
+                            $this->Table->getFields()
+                        ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
                             $rowVar = null;
                         } else {
                             throw new errorException('Параметр [[' . $nameVar . ']] не найден');
@@ -1631,9 +1642,9 @@ SQL;
                             $r = array_map(
                                 function ($_ri) use ($item) {
                                     if (!is_array($_ri) || !key_exists(
-                                            $item,
-                                            $_ri
-                                        )) {
+                                        $item,
+                                        $_ri
+                                    )) {
                                         throw new errorException('Ключ [[' . $item . ']] не обнаружен в одном из элементов массива');
                                     }
                                     return $_ri[$item];
@@ -1672,11 +1683,11 @@ SQL;
 
         if (is_numeric($value)) {
             return number_format(
-                    $value,
-                    $params['dectimals'] ?? 0,
-                    $params['decsep'] ?? ',',
-                    $params['thousandssep'] ?? ''
-                )
+                $value,
+                $params['dectimals'] ?? 0,
+                $params['decsep'] ?? ',',
+                $params['thousandssep'] ?? ''
+            )
                 . ($params['unittype'] ?? '');
         }
     }
@@ -1705,8 +1716,6 @@ SQL;
             case 'minute':
                 return ($date2->getTimestamp() - $date1->getTimestamp()) / (60);
             case 'hour':
-
-
                 return ($date2->getTimestamp() - $date1->getTimestamp()) / (60 * 60);
             default:
                 return ($date2->getTimestamp() - $date1->getTimestamp()) / (24 * 60 * 60);
@@ -2024,9 +2033,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                    'str',
-                    $params
-                ) || is_array($params["str"])) {
+                'str',
+                $params
+            ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strLength');
             }
 
@@ -2040,9 +2049,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                    'str',
-                    $params
-                ) || is_array($params["str"])) {
+                'str',
+                $params
+            ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strMdF');
             }
 
@@ -2279,8 +2288,8 @@ SQL;
 
         if (array_key_exists('value', $params)) {
             $this->vars[$params['name']] = $params['value'];
-        } elseif (array_key_exists($params['name'], $this->vars)) ;
-        elseif (array_key_exists('default', $params)) {
+        } elseif (array_key_exists($params['name'], $this->vars)) {
+        } elseif (array_key_exists('default', $params)) {
             $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
         } else {
             throw new errorException('Параметр [[' . $params['name'] . ']] не был установлен в этом коде');
@@ -2511,9 +2520,9 @@ SQL;
             case 'key':
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     $isAssoc = (array_keys($params['list']) !== range(
-                                0,
-                                count($params['list']) - 1
-                            )) && count($params['list']) > 0;
+                        0,
+                        count($params['list']) - 1
+                    )) && count($params['list']) > 0;
 
                     if ($isAssoc) {
                         krsort($params['list'], $flags);
@@ -2541,9 +2550,9 @@ SQL;
                 break;
             case 'value':
                 $isAssoc = (array_keys($params['list']) !== range(
-                            0,
-                            count($params['list']) - 1
-                        )) && count($params['list']) > 0;
+                    0,
+                    count($params['list']) - 1
+                )) && count($params['list']) > 0;
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     if ($isAssoc) {
                         arsort($params['list'], $flags);
@@ -2559,7 +2568,6 @@ SQL;
                 break;
             default:
                 throw new errorException('Некорректный параметр key');
-
         }
 
         return $params['list'];
@@ -2938,7 +2946,6 @@ SQL;
                 };
                 break;
             case 'item':
-
                 if (!array_key_exists('item', $params)) {
                     throw new errorException('Параметр [[item]] не найден');
                 }
@@ -3378,8 +3385,8 @@ SQL;
                         }
                         break;
                     default:
-                        if (in_array($param, $notExecParams)) ;
-                        elseif (in_array($param, $threePartParams)) {
+                        if (in_array($param, $notExecParams)) {
+                        } elseif (in_array($param, $threePartParams)) {
                             try {
                                 $whereCodes = $this->getCodes($paramVal);
                             } catch (errorException $e) {
@@ -3431,13 +3438,13 @@ SQL;
         /*TODO убрать загрузку всех шаблонов, сделать подгрузку только требуемых*/
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-                [],
-                'styles, html, name',
-                'name'
-            )) || (!array_key_exists(
-                $params['template'],
-                $templates
-            ))) {
+            [],
+            'styles, html, name',
+            'name'
+        )) || (!array_key_exists(
+            $params['template'],
+            $templates
+        ))) {
             throw new errorException('Шаблон не найден');
         }
 
@@ -3507,11 +3514,11 @@ SQL;
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     $value = number_format(
-                                                            $value,
-                                                            $numberVals[0],
-                                                            $numberVals[1] ?? '.',
-                                                            $numberVals[2] ?? ''
-                                                        )
+                                                        $value,
+                                                        $numberVals[0],
+                                                        $numberVals[1] ?? '.',
+                                                        $numberVals[2] ?? ''
+                                                    )
                                                         . ($numberVals[3] ?? '');
                                                 }
                                             }
@@ -3568,9 +3575,9 @@ SQL;
 
         if ($style) {
             return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
-                    $templates[$params['template']]['html'],
-                    $params['data'] ?? []
-                ) . '</body>';
+                $templates[$params['template']]['html'],
+                $params['data'] ?? []
+            ) . '</body>';
         } else {
             return $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []);
         }
@@ -3586,19 +3593,22 @@ SQL;
 
     protected function getMathFromString($string)
     {
+
+        $string = preg_replace('/\s+/', '', $string);
+
         $actions = preg_split(
-            '`((?<=[^(+\-\^*/])[()+\-\^*/]|[(])`',
+            '`((?<=[^(+\-^*/])[()+\-^*/]|[(])`',
             $string,
             null,
             PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
         );
 
-        $pack_Sc = function ($actions) {
+        $pack_Sc = function ($actions) use (&$pack_Sc, &$calcIt) {
             $sc = 0;
             $interval_start = null;
             $i = 0;
             while ($i < count($actions)) {
-                if (trim($actions[$i]) === "") {
+                if ($actions[$i] === "") {
                     array_splice($actions, $i, 1);
                     continue;
                 }
@@ -3613,27 +3623,15 @@ SQL;
                             throw new errorException('Непарная закрывающая скобка');
                         }
                         if (--$sc == 0) {
-                            $interval = ['type' => 'interval', 'data' => array_slice(
-                                $actions,
-                                $interval_start + 1,
-                                $i - $interval_start - 1
-                            )];
-                            if (key_exists($interval_start - 1, $actions) && $actions[$interval_start - 1] === '-') {
-                                $interval['minus'] = true;
-                                $interval_start--;
-                                $interval['data'] = array_slice(
-                                    $actions,
-                                    $interval_start + 1,
-                                    $i - $interval_start - 1
-                                );
-                            }
                             array_splice(
                                 $actions,
                                 $interval_start,
                                 $i + 1 - $interval_start,
-                                [
-                                    $interval
-                                ]
+                                $calcIt($pack_Sc(array_slice(
+                                    $actions,
+                                    $interval_start + 1,
+                                    $i - $interval_start - 1
+                                )))
                             );
                             $i = $interval_start - 1;
                         }
@@ -3641,82 +3639,70 @@ SQL;
                 }
                 $i++;
             }
-
             return $actions;
         };
 
-        $checkValue = function ($in) use (&$calcIt) {
-            $var = $in;
-            if (is_string($var)) {
-                if (!is_numeric($var)) {
-                    $var = $this->execSubCode($var, 'MathCode');
-                }
-            } elseif (is_array($var)) {
-                if (($var['type'] ?? '') !== 'interval') {
-                    throw new errorException('Не корректное значение в math ');
-                }
-                $val = $calcIt($var['data']);
-                $var = ($var['minus'] ?? false ? -1 : 1) * $val;
+        $checkValue = function ($var) {
+            if ($var && !is_numeric($var)) {
+                $var = $this->execSubCode($var, 'MathCode');
             }
             return $var;
         };
 
-        $calcIt = function ($actions) use ($pack_Sc, $checkValue, $string) {
-            $actions_next = $pack_Sc($actions);
-
+        $calcIt = function ($action) use ($checkValue, $string) {
             $i = 0;
-            while ($i < count($actions_next)) {
-                switch ((string)$actions_next[$i]) {
+            while ($i < count($action)) {
+                switch ((string)$action[$i]) {
                     case '^':
-                        $left = $checkValue($actions_next[$i - 1]);
-                        $right = $checkValue($actions_next[$i + 1]);
-                        $val = $this->operatorExec($actions_next[$i], $left, $right);
-                        array_splice($actions_next, $i - 1, 3, $val);
+                        $left = $checkValue($action[$i - 1]);
+                        $right = $checkValue($action[$i + 1]);
+                        $val = $this->operatorExec($action[$i], $left, $right);
+                        array_splice($action, $i - 1, 3, $val);
                         $i--;
-
                 }
                 $i++;
             }
 
             $i = 0;
-            while ($i < count($actions_next)) {
-                switch ((string)$actions_next[$i]) {
+            while ($i < count($action)) {
+                switch ((string)$action[$i]) {
                     case '/':
                     case '*':
-                        $left = $checkValue($actions_next[$i - 1]);
-                        $right = $checkValue($actions_next[$i + 1]);
-
-
-                        $val = $this->operatorExec($actions_next[$i], $left, $right);
-                        array_splice($actions_next, $i - 1, 3, $val);
+                        $left = $checkValue($action[$i - 1]);
+                        $right = $checkValue($action[$i + 1]);
+                        $val = $this->operatorExec($action[$i], $left, $right);
+                        array_splice($action, $i - 1, 3, $val);
                         $i--;
-
                 }
                 $i++;
             }
 
             $i = 0;
-            while ($i < count($actions_next)) {
-                switch ((string)$actions_next[$i]) {
+
+            while ($i < count($action)) {
+                switch ((string)$action[$i]) {
                     case '+':
                     case '-':
-                        $left = $checkValue($actions_next[$i - 1]);
-                        $right = $checkValue($actions_next[$i + 1]);
+                        $left = $i === 0 ? 0 : $checkValue($action[$i - 1]);
+                        $right = $checkValue($action[$i + 1]);
 
-                        $val = $this->operatorExec($actions_next[$i], $left, $right);
-                        array_splice($actions_next, $i - 1, 3, $val);
+                        $val = $this->operatorExec($action[$i], $left, $right);
+
+                        if ($i === 0) {
+                            array_splice($action, 0, 2, $val);
+                        } else {
+                            array_splice($action, $i - 1, 3, $val);
+                        }
                         $i--;
-
                 }
                 $i++;
             }
-            if (count($actions_next) !== 1 || !is_numeric((string)$actions_next[0])) {
+            if (count($action) !== 1 || !is_numeric((string)$action[0])) {
                 throw new errorException('Ошибка вычисления математической формулы:' . $string);
             }
-            return $actions_next[0];
+            return $action[0];
         };
-
-        return $calcIt($actions);
+        return $calcIt($pack_Sc($actions));
     }
 
     protected function getSourceTable($params)
@@ -3767,13 +3753,18 @@ SQL;
                 $TJ->setStringCalculate(function ($str) {
                     if (key_exists($str, $this->CodeStrings)) {
                         return substr($this->CodeStrings[$str], 1);
-                    } else return $str;
+                    } else {
+                        return $str;
+                    }
                 });
                 $TJ->parse();
             } catch (\Exception $e) {
                 throw new errorException($e->getMessage());
             }
+
             return $TJ->getJson();
-        } else return $r;
+        } else {
+            return $r;
+        }
     }
 }

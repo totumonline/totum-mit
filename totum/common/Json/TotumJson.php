@@ -274,46 +274,33 @@ class TotumJson extends TotumJsonParcer
 
     protected function processTotumParam(string $char)
     {
-        if ($this->TotumParamStarts["ultimate"]) {
-            if ($char === $this->TotumParamStarts["ultimate"]) {
-                if ($char === '}') {
-                    $this->buffer.= $char;
-                    $this->endTotum();
-                    return;
+        switch ($char) {
+            case '"':
+            case "'":
+                break;
+            case '[':
+                $this->TotumParamStarts[$char]++;
+                break;
+            case ']':
+                if ($this->TotumParamStarts["["]) {
+                    $this->TotumParamStarts["["]--;
                 } else {
-                    $this->TotumParamStarts["ultimate"] = '';
-                }
-            }
-        } else {
-            switch ($char) {
-                case '{':
-                    $this->TotumParamStarts["ultimate"] = '}';
-                    break;
-                case '"':
-                case "'":
-                    break;
-                case '[':
-                    $this->TotumParamStarts[$char]++;
-                    break;
-                case ']':
-                    if ($this->TotumParamStarts["["]) {
-                        $this->TotumParamStarts["["]--;
-                    } else {
-                        $this->endTotum();
-                        $this->consumeChar($char);
-                        return;
-                    }
-                    break;
-                case ':':
-                case ',':
                     $this->endTotum();
                     $this->consumeChar($char);
                     return;
+                }
+                break;
+            case ':':
+            case ',':
+            case '}':
+                $this->endTotum();
+                $this->consumeChar($char);
+                return;
 
-            }
         }
         $this->buffer .= $char;
     }
+
     protected function endString(): void
     {
         $popped = array_pop($this->stack);
@@ -329,8 +316,7 @@ class TotumJson extends TotumJsonParcer
         $this->buffer = '';
     }
 
-    protected
-    function endTotum()
+    protected function endTotum()
     {
         $this->listener->value(($this->totumCalculate)($this->buffer));
         $this->state = self::STATE_AFTER_VALUE;

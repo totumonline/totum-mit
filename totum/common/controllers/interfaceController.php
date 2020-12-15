@@ -36,8 +36,9 @@ abstract class interfaceController extends Controller
 
         $controllerFile = (new \ReflectionClass(get_called_class()))->getFileName();
 
+        $dir = '\\'.DIRECTORY_SEPARATOR;
         $modul = preg_replace(
-            '`^.*?([^' . DIRECTORY_SEPARATOR . ']+)' . DIRECTORY_SEPARATOR . '[^' . DIRECTORY_SEPARATOR . ']+$`',
+            "`^.*?([^{$dir}]+){$dir}[^{$dir}]+$`",
             '$1',
             $controllerFile
         );
@@ -121,8 +122,8 @@ abstract class interfaceController extends Controller
                     }
                 } else {
                     $var = htmlspecialchars($var);
-                    if ($name==='error') {
-                        $var=str_replace('&lt;br/&gt;', '<br/><br/>', $var);
+                    if ($name === 'error') {
+                        $var = str_replace('&lt;br/&gt;', '<br/><br/>', $var);
                     }
                 }
                 return $var;

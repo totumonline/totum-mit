@@ -44,9 +44,9 @@ class ReadTableActions extends Actions
                 $this->Table->getTableRow()['id'],
                 $this->User->getTreeTables()
             ) && in_array(
-                $this->Table->getTableRow()['id'],
-                $this->User->getFavoriteTables()
-            ) !== $status) {
+                    $this->Table->getTableRow()['id'],
+                    $this->User->getFavoriteTables()
+                ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -383,9 +383,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 '',
                                 $table['head']
                             ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                                    '',
+                                    $table['body']
+                                ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -401,9 +401,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['head']
                 ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                        '',
+                        $table['body']
+                    ) . $table[3];
             }
         }
 
@@ -490,9 +490,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                '',
-                $table['body']
-            ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
         }
 
 
@@ -508,9 +508,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             '',
                             $table['head']
                         ) . $table[2] . implode(
-                            '',
-                            $table['body']
-                        ) . $table[3];
+                                '',
+                                $table['body']
+                            ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -528,9 +528,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                '',
-                $table['body']
-            ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
         }
 
         $style = $template['styles'];
@@ -589,13 +589,48 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $result['error'] = $error;
         }
 
-        if (($this->Table->getTableRow()['panels_view']??null)
-            && $this->Table->getTableRow()['panels_view']['state']==='panel') {
-            $result['viewType']='panels';
+        $getCookie = function ($p) {
+            $cookie = json_decode(($_COOKIE['panels'] ?? '[]'), true);
+            return in_array($this->Table->getTableRow()['id'], ($cookie[$p] ?? []));
+        };
+        if (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null)) &&
+            ($panelViewSettings['state'] === 'panel'
+                || (
+                    $panelViewSettings['state'] === 'both'
+                    && (
+                        $panelViewSettings['panels_view_first'] ? !$getCookie('t') : $getCookie('p')
+                    )
+                ))
+        ) {
+            $result['viewType'] = 'panels';
+            $fields = array_column($panelViewSettings['fields'], 'field');
 
+            if ($panelViewSettings['kanban'] && $kanban = $this->Table->getFields()[$panelViewSettings['kanban']]) {
+                if (!in_array($panelViewSettings['kanban'], $fields)) {
+                    $fields[] = $panelViewSettings['kanban'];
+                }
+                $result["kanban"] = [];
+                foreach (Field::init($kanban, $this->Table)->calculateSelectList(
+                    $val,
+                    [],
+                    $this->Table->getTbl()
+                ) as $k => $v) {
+                    if (!$v[1]) {
+                        $result["kanban"][] = [$k, $v[0]];
+                    }
+                }
+            }
 
-
-
+            $result['fields'] = array_intersect_key($result['fields'], array_flip($fields));
+            $result = array_merge(
+                $result,
+                $this->getTableClientData(
+                    0,
+                    null,
+                    false,
+                    $fields
+                )
+            );
         } elseif (($tree = $this->Table->getFields()['tree'] ?? null)
             && $tree['category'] === 'column'
             && $tree['type'] === 'tree'
@@ -638,9 +673,25 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $data['rows'] = [];
 
         if (is_null($onPage)) {
-            $data['rows'] = $this->Table->getSortedFilteredRows('web', 'web')['rows'];
+            $data['rows'] = $this->Table->getSortedFilteredRows(
+                'web',
+                'web',
+                [],
+                null,
+                null,
+                null,
+                $onlyFields
+            )['rows'];
         } elseif ($onPage > 0) {
-            $data['rows'] = $this->Table->getSortedFilteredRows('web', 'web', [], $pageIds, 0, $onPage)['rows'];
+            $data['rows'] = $this->Table->getSortedFilteredRows(
+                'web',
+                'web',
+                [],
+                $pageIds,
+                0,
+                $onPage,
+                $onlyFields
+            )['rows'];
         }
         $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
         $result['rows'] = $data['rows'];
@@ -1144,7 +1195,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function tableRowForClient($tableRow)
     {
         $fields = ['title', 'updated', 'type', 'id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field',
-            'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination'];
+            'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination', 'panels_view'];
         if ($this->User->isCreator()) {
             $fields = array_merge(
                 $fields,
@@ -1156,6 +1207,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $tableRow['description'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $tableRow['description']);
         }
         $_tableRow = array_intersect_key($tableRow, array_flip($fields));
+
+        if (($tableRow['panels_view'] ?? null) && $tableRow['panels_view']['state'] === 'panel') {
+            $_tableRow['panels_view'] = $tableRow['panels_view'];
+        }
 
         if ($this->Table->getTableRow()['type'] === 'calcs') {
             $_tableRow['fields_sets'] = $this->Table->changeFieldsSets();

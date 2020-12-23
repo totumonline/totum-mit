@@ -108,7 +108,8 @@ class Conf extends ConfParent{
     $multyPhp
     
     const db=$dbExport;
-    const timeLimit = 10;
+    
+    public static \$timeLimit = 120;
     
     const adminEmail="{$post['admin_email']}";
     

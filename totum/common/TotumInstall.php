@@ -1016,7 +1016,7 @@ CONF;
             }
 
 
-            if ($schemaRow['code']) {
+            if ($schemaRow['code'] ?? null) {
                 $this->consoleLog(
                     'exec code: ' . substr(
                         $schemaRow['code'],

@@ -87,8 +87,10 @@ class Model
 
     public function dropColumn($name)
     {
+        $this->preparedCache = [];
+
         $this->Sql->exec('ALTER TABLE ' . $this->table . ' DROP COLUMN IF EXISTS "' . $name . '" ');
-        $this->Sql->exec('ANALYZE ' . $this->table);
+        //$this->Sql->exec('ANALYZE ' . $this->table);
     }
 
     public function dropTable()
@@ -123,6 +125,7 @@ class Model
 
     public function addColumn($fieldName)
     {
+        $this->preparedCache = [];
         $this->Sql->exec('ALTER TABLE ' . $this->table . ' ADD COLUMN ' . $fieldName . ' JSONB NOT NULL DEFAULT \'{"v":null}\' ');
     }
 
@@ -368,10 +371,10 @@ class Model
                         }
                     } elseif (preg_match('/NOTIN$/', $k)) {
                         $where_str .= self::quoteWhereField(preg_replace(
-                            '/NOTIN$/',
-                            '',
-                            $k
-                        )) . ' NOT IN (' . implode(
+                                '/NOTIN$/',
+                                '',
+                                $k
+                            )) . ' NOT IN (' . implode(
                                 ',',
                                 $this->Sql->quote((array)$v, $k === 'id')
                             ) . ')';
@@ -586,9 +589,9 @@ class Model
         }
         if ($vars) {
             $strVars = '("' . implode('", "', array_keys($vars)) . '" )  VALUES (?' . str_repeat(
-                ', ?',
-                count($vars) - 1
-            ) . ') ';
+                    ', ?',
+                    count($vars) - 1
+                ) . ') ';
         } else {
             $strVars = ' DEFAULT VALUES ';
         }

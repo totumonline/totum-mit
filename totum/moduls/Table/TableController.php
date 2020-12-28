@@ -84,13 +84,16 @@ class TableController extends interfaceController
     public function actionAjaxActions(ServerRequestInterface $request)
     {
         $this->checkTableByUri($request);
-        $this->Totum->transactionStart();
 
         try {
             if (!($method = $request->getParsedBody()['method'] ?? '')) {
                 throw new errorException('Ошибка. Не указан метод');
             }
             $Actions = $this->getTableActions($request, $method);
+
+            if(!in_array($method, ['checkForNotifications', 'checkTableIsChanged'])){
+                $this->Totum->transactionStart();
+            }
 
             /** @var string $method */
             $result = $Actions->$method();

@@ -57,9 +57,6 @@ class IsTableChanged
     {
         $this->subcribeToChanges();
         $Table = $Totum->getTable($this->tableId, $this->cycleId, true);
-
-        $stampnow = date_create(date('Y-m-d H:i:00'))->format('U');
-
         $isChanged = $Table->getChangedString($code);
         $i = 0;
 

@@ -89,8 +89,8 @@ class Model
     {
         $this->preparedCache = [];
 
-        $this->Sql->exec('ALTER TABLE ' . $this->table . ' DROP COLUMN IF EXISTS "' . $name . '" ');
-        //$this->Sql->exec('ANALYZE ' . $this->table);
+        $this->Sql->exec('ALTER TABLE ' . $this->table . ' DROP COLUMN IF EXISTS "' . $name . '" ', [], true);
+        $this->Sql->exec('ANALYZE ' . $this->table);
     }
 
     public function dropTable()
@@ -126,7 +126,7 @@ class Model
     public function addColumn($fieldName)
     {
         $this->preparedCache = [];
-        $this->Sql->exec('ALTER TABLE ' . $this->table . ' ADD COLUMN ' . $fieldName . ' JSONB NOT NULL DEFAULT \'{"v":null}\' ');
+        $this->Sql->exec('ALTER TABLE ' . $this->table . ' ADD COLUMN ' . $fieldName . ' JSONB NOT NULL DEFAULT \'{"v":null}\' ', [], true);
     }
 
     public static function init(Conf $Config, $isService = false)

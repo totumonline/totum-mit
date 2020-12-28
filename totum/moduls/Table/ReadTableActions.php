@@ -1566,6 +1566,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $result['rows'] = $this->Table->getSortedFilteredRows('web', 'web', $treeIds)['rows'];
             }
         }
+
         $result['tree'] = $tree;
 
         return $result;

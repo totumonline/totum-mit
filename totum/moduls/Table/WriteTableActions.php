@@ -73,7 +73,7 @@ class WriteTableActions extends ReadTableActions
 
         $columnFilter = [];
         foreach ($this->Table->getSortedFields()['filter'] as $k => $f) {
-            if ($f['column'] ?? false) {
+            if (($f['showInWeb'] ?? false) && $f['column'] ?? false) {
                 $columnFilter[$f['column']] = $k;
             }
         }

@@ -262,9 +262,6 @@ class TablesFields extends Model
         }
         if ($newData['type']['Val'] === 'text') {
             $newData['viewTextMaxLength']['Val'] = (int)$newData['viewTextMaxLength']['Val'];
-            if ($newData['viewTextMaxLength']['Val'] > 500) {
-                throw new errorException('Ограничение размера видимости текста в веб - не больше 500 символов');
-            }
         }
 
         if ($category === 'footer' && !is_subclass_of(Totum::getTableClass($tableRow), JsonTables::class)) {

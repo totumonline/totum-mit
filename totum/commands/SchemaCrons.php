@@ -8,7 +8,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use totum\common\configs\MultiTrait;
-use totum\common\Model;
 use totum\config\Conf;
 
 class SchemaCrons extends Command
@@ -74,7 +73,8 @@ class SchemaCrons extends Command
             }
 
             $id = $rule['id'];
-            `bin/totum schema-cron $id $schemaName > /dev/null 2>&1 &`;
+
+            `{$_SERVER['SCRIPT_FILENAME']} schema-cron $id $schemaName > /dev/null 2>&1 &`;
         }
     }
 }

@@ -7,6 +7,10 @@ use totum\common\configs\ConfParent;
 class Conf extends ConfParent{
     use WithPhpMailerTrait;
 
+    //protected $execSSHOn = true;
+    protected $hostName="";
+    protected $schemaName="";
+
     const db=array (
       'dsn' => 'pgsql:host=;dbname=',
       'host' => 'localhost',
@@ -18,14 +22,15 @@ class Conf extends ConfParent{
       'psql' => '',
       'schema' => 'new_totum',
     );
-    const timeLimit = 10;
+
+    public static $timeLimit = 30;
 
     const adminEmail="";
 
     const ANONYM_ALIAS="An";
 
-    const backup_loginparol = '';
-    const backup_server = 'https://webdav.yandex.ru/';
+    const LANG = "ru";
+
 
     function getDefaultSender(){
         return "no-reply@localhost:8080";

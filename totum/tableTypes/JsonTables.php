@@ -403,7 +403,7 @@ abstract class JsonTables extends aTable
 
                         foreach ($this->sortedFields['column'] as $field) {
                             if ($field['type'] === 'file') {
-                                $this->deleteFilesOnCommit($this->tbl['rows'][$row['id']][$field['name']]['v']);
+                                $this->deleteFilesOnCommit($row[$field['name']]['v']);
                             }
                         }
 

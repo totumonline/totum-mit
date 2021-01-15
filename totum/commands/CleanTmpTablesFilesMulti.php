@@ -21,7 +21,7 @@ class CleanTmpTablesFilesMulti extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         foreach (array_unique(array_values(Conf::getSchemas())) as $schemaName) {
-            `bin/totum clean-tmp-tables-files -s $schemaName > /dev/null 2>&1 &`;
+            `{$_SERVER['SCRIPT_FILENAME']} clean-tmp-tables-files -s $schemaName > /dev/null 2>&1 &`;
         }
     }
 }

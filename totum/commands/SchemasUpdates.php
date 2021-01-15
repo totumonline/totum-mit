@@ -32,7 +32,7 @@ class SchemasUpdates extends Command
         foreach (array_unique(array_values(Conf::getSchemas())) as $schemaName) {
             $output->writeln('update ' . $schemaName." with source $matches from $file");
 
-            $p=popen("bin/totum schema-update $matches $file -s $schemaName", 'r');
+            $p=popen("{$_SERVER['SCRIPT_FILENAME']} schema-update $matches $file -s $schemaName", 'r');
             while (is_resource($p) && $p && !feof($p)) {
                 $output->write("  ".fread($p, 1024));
             }

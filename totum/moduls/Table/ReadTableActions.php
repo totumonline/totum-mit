@@ -1236,7 +1236,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     public function dblClick()
     {
-        $id = (int)$this->post['id'] ?? 0;
+        $id = (int)($this->post['id'] ?? 0);
         $field = $this->post['field'] ?? '';
 
 
@@ -1282,7 +1282,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 }
             }
         }
-        return ['ok' => 1];
+        return $this->getTableClientChangedData([]);
     }
 
     protected function getTableFormat()

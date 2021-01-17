@@ -51,35 +51,21 @@ use totum\config\Conf;
                     id="recover"
                     class="form-control btn btn-default">Отправить новый пароль на email
             </button>
-        <?php
+            <?php
         } ?>
     </div>
 </div>
 
 <script>
     $(function () {
+
         try {
-
-            let i = 1;
-
-            try {
-                LOGINJS();
-
-            } catch (e) {
-
-                $('body').html('<div style="width: 600px; margin: auto; padding-top: 50px; font-size: 16px; text-align: center;" id="comeinBlock">' +
-                    '<img src="/imgs/start.png" alt="">' +
-                    '<div style="padding-bottom: 10px;">Сервис оптимизирован под десктопные броузеры Chrome, Safari, Yandex последних версий. Похоже, ваша версия броузера не поддерживается. Ошибка - для разработчиков: ' + e.stack + '</div>' +
-                    '</div>');
-            }
-
+            LOGINJS();
         } catch (e) {
             $('body').html('<div style="width: 600px; margin: auto; padding-top: 50px; font-size: 16px; text-align: center;" id="comeinBlock">' +
                 '<img src="/imgs/start.png" alt="">' +
-                '<div style="padding-bottom: 10px;">Сервис оптимизирован под десктопные броузеры Chrome, Safari, Yandex последних версий. Похоже, ваша версия броузера не поддерживается</div>' +
+                '<div style="padding-bottom: 10px;">Сервис оптимизирован под десктопные броузеры Chrome, Safari, Yandex последних версий. Похоже, ваша версия броузера не поддерживается. Ошибка - для разработчиков: ' + e.toString() + '</div>' +
                 '</div>');
         }
-
-
     })
 </script>

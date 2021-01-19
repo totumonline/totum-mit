@@ -610,15 +610,23 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $fields[] = $panelViewSettings['kanban'];
                 }
                 $result["kanban"] = [];
-                foreach (Field::init($kanban, $this->Table)->calculateSelectList(
+                $results=Field::init($kanban, $this->Table)->calculateSelectList(
                     $val,
                     [],
                     $this->Table->getTbl()
-                ) as $k => $v) {
+                );
+                unset($results['previewdata']);
+
+                if($kanban['withEmptyVal'] ?? false){
+                    $result["kanban"][] = ["", $kanban['withEmptyVal']];
+                }
+
+                foreach ($results as $k => $v) {
                     if (!$v[1]) {
                         $result["kanban"][] = [$k, $v[0]];
                     }
                 }
+
             }
             foreach ($result['fields'] as $k => $v) {
                 if ($v['category'] === 'column' && !in_array($k, $fields)) {

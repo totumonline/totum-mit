@@ -451,7 +451,7 @@ class Calculate
                 $string = preg_replace_callback(
                     '`(?<func>(?<func_name>[a-zA-Z]{2,}\d*)*\((?<func_params>[^)]*)\))' . //func,func_name,func_params
                     '|(?<num>\-?[\d.,]+\%?)' .                      //num
-                    '|(?<operator>\+|\-|\*|/)' .       //operator
+                    '|(?<operator>\^|\+|\-|\*|/)' .       //operator
                     '|(?<string>"[^"]*")' .            //string
                     '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
                     '|(?<bool>false|true)' .   //10

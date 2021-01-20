@@ -7,8 +7,8 @@
     <script src="/js/libs.js?v=1afab8b"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=f2cc046">
-    <script src="/js/main.js?v=3b91b9f"></script>
+          href="/css/main.css?v=de40d00">
+    <script src="/js/main.js?v=eeeb092"></script>
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 

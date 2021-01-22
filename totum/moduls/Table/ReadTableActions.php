@@ -342,6 +342,9 @@ class ReadTableActions extends Actions
 
                 if ($pageViewType === 'panels' && $this->Table->getTableRow()['with_order_field']) {
                     $result['chdata']['nsorted_ids'] = array_column($result['chdata']['rows'], 'id');
+                } elseif ($pageViewType === 'paging') {
+                    $params = $this->Table->filtersParamsForLoadRows('web');
+                    $result['allCount'] = $params === false ? 0 : $this->Table->countByParams($params);
                 }
         }
 

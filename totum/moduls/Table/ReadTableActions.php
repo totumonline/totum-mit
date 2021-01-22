@@ -307,10 +307,44 @@ class ReadTableActions extends Actions
 
     public function refresh()
     {
-        $result = ['chdata' => $this->getTableClientData(
-            json_decode($this->post['ids'], true),
-            $this->post['onPage'] ?? null
-        )];
+        switch ($pageViewType = $this->getPageViewType()) {
+            case 'tree':
+                $this->Table->reCalculateFilters(
+                    'web',
+                    false,
+                    false,
+                    ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+                );
+
+                $result = ['chdata' => $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']])];
+                $treeIndex = json_decode($this->post['tree'], true);
+                $result['chdata'] = array_merge(
+                    $result['chdata'],
+                    $this->getResultTree(
+                        function ($k, $v) use ($treeIndex) {
+                            if (key_exists($k, $treeIndex)) {
+                                if ($treeIndex[$k])
+                                    return 'loaded';
+                                else {
+                                    return 'child';
+                                }
+                            }
+                        },
+                        [""]
+                    )
+                );
+                break;
+            default:
+                $result = ['chdata' => $this->getTableClientData(
+                    json_decode($this->post['ids'], true),
+                    $this->post['onPage'] ?? null
+                )];
+
+                if ($pageViewType === 'panels' && $this->Table->getTableRow()['with_order_field']) {
+                    $result['chdata']['nsorted_ids'] = array_column($result['chdata']['rows'], 'id');
+                }
+        }
+
 
         $result['updated'] = $this->Table->getUpdated();
         $result['refresh'] = true;
@@ -589,74 +623,98 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $result['error'] = $error;
         }
 
-        $getCookie = function ($p) {
-            $cookie = json_decode(($_COOKIE['panels'] ?? '[]'), true);
-            return in_array($this->Table->getTableRow()['id'], ($cookie[$p] ?? []));
-        };
-        if (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null)) &&
-            ($panelViewSettings['state'] === 'panel'
+        switch ($this->getPageViewType()) {
+            case 'panels':
+                $result['viewType'] = 'panels';
+                $panelViewSettings = $this->Table->getTableRow()['panels_view'];
+                $fields = array_column($panelViewSettings['fields'], 'field');
+
+                if ($panelViewSettings['kanban'] && $kanban = $this->Table->getFields()[$panelViewSettings['kanban']]) {
+                    if (!in_array($panelViewSettings['kanban'], $fields)) {
+                        $fields[] = $panelViewSettings['kanban'];
+                    }
+                    $result["kanban"] = [];
+                    $results = Field::init($kanban, $this->Table)->calculateSelectList(
+                        $val,
+                        [],
+                        $this->Table->getTbl()
+                    );
+                    unset($results['previewdata']);
+
+                    if ($kanban['withEmptyVal'] ?? false) {
+                        $result["kanban"][] = ["", $kanban['withEmptyVal']];
+                    }
+
+                    foreach ($results as $k => $v) {
+                        if (!$v[1]) {
+                            $result["kanban"][] = [$k, $v[0]];
+                        }
+                    }
+                }
+                foreach ($result['fields'] as $k => $v) {
+                    if ($v['category'] === 'column' && !in_array($k, $fields)) {
+                        unset($result['fields'][$k]);
+                    }
+                }
+
+                $result = array_merge(
+                    $result,
+                    $this->getTableClientData(
+                        0,
+                        null,
+                        false,
+                        $fields
+                    )
+                );
+                break;
+            case 'tree':
+                $tree = $this->Table->getFields()['tree'];
+                $result = array_merge(
+                    $result,
+                    $this->getTreeTopLevel($tree['treeViewLoad'] ?? null, $tree['treeViewOpen'] ?? null)
+                );
+                break;
+            case 'paging':
+                $result = array_merge($result, $this->getTableClientData(0, 0, false));
+                break;
+            default:
+                $result = array_merge($result, $this->getTableClientData(0, null, false));
+
+        }
+
+        return $result;
+    }
+
+    protected function getPageViewType(): string
+    {
+        if (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null))
+        ) {
+            $getCookie = function ($p) {
+                $cookie = json_decode(($_COOKIE['panels'] ?? '[]'), true);
+                return in_array($this->Table->getTableRow()['id'], ($cookie[$p] ?? []));
+            };
+
+            if ($panelViewSettings['state'] === 'panel'
                 || (
                     $panelViewSettings['state'] === 'both'
                     && (
                     $panelViewSettings['panels_view_first'] ? !$getCookie('t') : $getCookie('p')
                     )
-                ))
-        ) {
-            $result['viewType'] = 'panels';
-            $fields = array_column($panelViewSettings['fields'], 'field');
-
-            if ($panelViewSettings['kanban'] && $kanban = $this->Table->getFields()[$panelViewSettings['kanban']]) {
-                if (!in_array($panelViewSettings['kanban'], $fields)) {
-                    $fields[] = $panelViewSettings['kanban'];
-                }
-                $result["kanban"] = [];
-                $results=Field::init($kanban, $this->Table)->calculateSelectList(
-                    $val,
-                    [],
-                    $this->Table->getTbl()
-                );
-                unset($results['previewdata']);
-
-                if($kanban['withEmptyVal'] ?? false){
-                    $result["kanban"][] = ["", $kanban['withEmptyVal']];
-                }
-
-                foreach ($results as $k => $v) {
-                    if (!$v[1]) {
-                        $result["kanban"][] = [$k, $v[0]];
-                    }
-                }
-
+                )) {
+                return 'panels';
             }
-            foreach ($result['fields'] as $k => $v) {
-                if ($v['category'] === 'column' && !in_array($k, $fields)) {
-                    unset($result['fields'][$k]);
-                }
-            }
-
-            $result = array_merge(
-                $result,
-                $this->getTableClientData(
-                    0,
-                    null,
-                    false,
-                    $fields
-                )
-            );
-        } elseif (($tree = $this->Table->getFields()['tree'] ?? null)
+        }
+        if (($tree = $this->Table->getFields()['tree'] ?? null)
             && $tree['category'] === 'column'
             && $tree['type'] === 'tree'
             && !empty($tree['treeViewType'])) {
-            $result = array_merge(
-                $result,
-                $this->getTreeTopLevel($tree['treeViewLoad'] ?? null, $tree['treeViewOpen'] ?? null)
-            );
-        } elseif (($this->Table->getTableRow()['pagination'] ?? '0/0') === '0/0') {
-            $result = array_merge($result, $this->getTableClientData(0, null, false));
-        } else {
-            $result = array_merge($result, $this->getTableClientData(0, 0, false));
+            return 'tree';
         }
-        return $result;
+        if (($this->Table->getTableRow()['pagination'] ?? '0/0') !== '0/0') {
+            return 'paging';
+        }
+
+        return 'common';
     }
 
     protected function addValuesAndFormats($data)
@@ -705,6 +763,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $onlyFields
             )['rows'];
         }
+
         $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
         $result['rows'] = $data['rows'];
 
@@ -841,6 +900,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             false,
             ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
+
         if ($click = json_decode($this->post['data'], true) ?? []) {
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
@@ -880,6 +940,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $type,
             $vars
         );
+        $this->Table->reCalculateFilters(
+            'web',
+            false,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+
         $this->Table->calcLog($Log, 'result', 'done');
     }
 
@@ -1520,7 +1587,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $ids = [];
         $tree = [];
         $thisNodes = [];
-        if (is_null($loadingIds)) {
+        if (!is_array($loadingIds)) {
             if ($Tree->getData('treeViewType') !== 'self' && !is_null($t = $Tree->getData('withEmptyVal'))) {
                 $tree[] = ['v' => null, 't' => $t];
             }
@@ -1529,7 +1596,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $ids = $loadingIds;
             $thisNodes = array_intersect_key($list, array_flip($loadingIds));
         }
-
         foreach ($list as $k => $v) {
             /*Без удаленных*/
             if ($v[1] === 0) {
@@ -1544,6 +1610,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => false, 'p' => $v[3]];
                         break;
                     case 'child':
+                        $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
+                        break;
+                    case 'loaded':
+                        $ids[] = (string)$k;
                         $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
                         break;
                 }

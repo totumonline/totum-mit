@@ -370,7 +370,6 @@ class ReadTableActions extends Actions
             $name,
             $switcher ? 1 : 0,
             [
-                'expires' => time() + 60 * 60 * 24 * 30,
                 'path' => $path,
                 'httponly' => true
             ]

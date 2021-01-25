@@ -94,6 +94,7 @@ abstract class aTable
         'added' => [],
         'changed' => [],
         'rowOperations' => [],
+        'rowOperationsPre' => [],
     ];
     protected $onCalculating = false //Рассчитывается ли таблица - для некеширования запросов к ней
     ;

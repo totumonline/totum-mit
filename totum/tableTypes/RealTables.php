@@ -537,6 +537,10 @@ abstract class RealTables extends aTable
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
         if ($fieldsWithActionOnChange || !empty($this->changeIds['rowOperations'])) {
             $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
+
+            while ($func = array_shift($this->changeIds['rowOperationsPre'])) {
+                $func();
+            }
             if ($fieldsWithActionOnChange) {
                 foreach ($fieldsWithActionOnChange as $field) {
                     if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(

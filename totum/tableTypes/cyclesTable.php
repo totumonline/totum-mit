@@ -157,8 +157,8 @@ class cyclesTable extends RealTables
             ]
         );
 
-        $this->changeIds['rowOperations'][] = function () use ($baseRow, $newRow) {
-            $Log=$this->calcLog(['name'=>'DUPLICATE CYCLE']);
+        $this->changeIds['rowOperationsPre'][] = function () use ($baseRow, $newRow) {
+            $Log = $this->calcLog(['name' => 'DUPLICATE CYCLE']);
             Cycle::duplicate($this->tableRow['id'], $baseRow['id'], $newRow['id'], $this->Totum);
             $this->calcLog($Log, 'result', 'done');
         };

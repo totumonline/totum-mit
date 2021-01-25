@@ -892,7 +892,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         };
         $addLinkToSelectTableSinFields($visibleFields);
 
-        $readOnly = ($this->User ? ($this->User->getTables()[$this->Table->getTableRow()['id']] ?? null) !== 1 : 1);
+        $readOnly = !is_a($this, WriteTableActions::class);
 
         $result['control'] = [
             'editing' => !$readOnly,
@@ -1060,7 +1060,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         if ($filters) {
             return $this->editFilters($filters, $data["setValuesToDefaults"] ?? false);
-        } elseif (!is_a($this, ReadTableActions::class)) {
+        } elseif (!is_a($this, WriteTableActions::class)) {
             throw new errorException('Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений');
         } else {
             $clearFields = $data["params"] ?? [];

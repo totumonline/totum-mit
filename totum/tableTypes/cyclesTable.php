@@ -19,14 +19,7 @@ class cyclesTable extends RealTables
     {
         if (in_array($inVars['channel'] ?? null, ['web', 'edit'])) {
             if ($this->getTableRow()['cycles_access_type'] === '1' && isset($this->fields['creator_id']) && !$this->getUser()->isCreator()) {
-                $where = '';
-                foreach ($this->User->getConnectedUsers() as $uId) {
-                    if ($where !== '') {
-                        $where .= ' OR ';
-                    }
-                    $where .= 'creator_id->\'v\' @>\'["' . $uId . '"]\'::JSONB';
-                }
-                $this->elseWhere[] = $where;
+                $this->elseWhere['creator_id'] = $this->User->getConnectedUsers();
             }
         }
         parent::reCalculate($inVars);

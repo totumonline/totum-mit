@@ -665,7 +665,7 @@ abstract class JsonTables extends aTable
                     $channel,
                     $changedFlag,
                     $newVal,
-                    $this->savedTbl['params'],
+                    $this->savedTbl['params']??[],
                     $this->tbl['params'],
                     $this->savedTbl,
                     $this->tbl,

@@ -1451,6 +1451,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $return = [];
 
         if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh'])) {
+
+            $this->Table->reCalculateFilters(
+                'web',
+                false,
+                false,
+                ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+            );
+
             $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
             $pageIds = json_decode($this->post['ids'], true);
 

@@ -337,7 +337,7 @@ class CalculateAction extends Calculate
             'input',
             array_intersect_key(
                 $params,
-                ["value" => 1, "title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1]
+                ["value" => 1, "title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1, "close" => 1]
             )
         );
     }

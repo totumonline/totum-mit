@@ -143,7 +143,7 @@ class ReadTableActions extends Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
             if (key_exists('index', $this->post) && $data['buttons'][$this->post['index']] ?? null) {
-                if ($this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]) {
+                if ($this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]??false ) {
                     $data['buttons'][$this->post['index']]['code'] = $this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]['codeAction'] ?? '';
                 }
                 $CA = new CalculateAction($data['buttons'][$this->post['index']]['code']);
@@ -157,6 +157,7 @@ class ReadTableActions extends Actions
                     'exec',
                     $data['buttons'][$this->post['index']]['vars'] ?? []
                 );
+                return ["ok"=>1];
             } else {
                 throw new errorException('Ошибка интерфейса - выбрана несуществующая кнопка');
             }

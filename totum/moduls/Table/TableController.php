@@ -489,13 +489,14 @@ class TableController extends interfaceController
                 $result['calcstable_cycle_version_filters'] = Crypt::getCrypted(json_encode(
                     [
                         'fl_table' => $this->Table->getTableRow()['tree_node_id'],
-                        'fl_cycle' => $this->Table->getCycle()->getId()
                     ],
                     JSON_UNESCAPED_UNICODE
                 ));
                 $result['calcstable_versions_filters'] = Crypt::getCrypted(json_encode(
                     [
                         'fl_table' => $this->Table->getTableRow()['tree_node_id'],
+                        'fl_name' => $this->Table->getTableRow()['name'],
+                        'fl_cycle' => $this->Table->getCycle()->getId()
                     ],
                     JSON_UNESCAPED_UNICODE
                 ));

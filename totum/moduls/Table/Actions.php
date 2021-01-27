@@ -53,14 +53,14 @@ class Actions
 
     public function reuser()
     {
-        if (!$this->User->isCreator() && !Auth::isCreatorOnShadow()) {
-            throw new errorException('Функция доступна только Создателю');
+        if (!Auth::isCanBeOnShadow($this->User)) {
+            throw new errorException('Функция вам недоступна');
         }
-        $user = $this->Totum->getModel('users')->get(['id' => $this->post['userId'], 'is_del' => false]);
+        $user = Auth::getUsersForShadow($this->Totum->getConfig(), $this->User, $this->post['userId']);
         if (!$user) {
             throw new errorException('Пользователь не найден');
         }
-        Auth::reUserFromCreator($this->Totum->getConfig(), $user['id'], $this->User->getId());
+        Auth::asUser($this->Totum->getConfig(), $user[0]['id'], $this->User);
 
         $this->Totum->addToInterfaceLink($this->Request->getParsedBody()['location'], 'self', 'reload');
 
@@ -160,15 +160,15 @@ class Actions
             if ($actived) {
                 $result['deactivated'] = [];
                 if ($ids = ($model->getColumn(
-                    'id',
-                    ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'false']
-                ) ?? [])) {
+                        'id',
+                        ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'false']
+                    ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
                 if ($ids = ($model->getColumn(
-                    'id',
-                    ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'true', '>active_dt_from' => date('Y-m-d H:i')]
-                ) ?? [])) {
+                        'id',
+                        ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'true', '>active_dt_from' => date('Y-m-d H:i')]
+                    ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
                 if (empty($result['deactivated'])) {
@@ -200,12 +200,12 @@ class Actions
             $result = $getNotification();
         }
         echo json_encode($result + ['notifications' => array_map(
-            function ($n) {
-                $n[0] = 'notification';
-                return $n;
-            },
-            $this->Totum->getInterfaceDatas()
-        )]);
+                function ($n) {
+                    $n[0] = 'notification';
+                    return $n;
+                },
+                $this->Totum->getInterfaceDatas()
+            )]);
         die;
     }
 }

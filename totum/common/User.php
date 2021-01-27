@@ -5,6 +5,7 @@ namespace totum\common;
 
 use Exception;
 use totum\config\Conf;
+use totum\models\Table;
 
 class User
 {
@@ -25,6 +26,9 @@ class User
      * @var array
      */
     private $tables;
+    /**
+     * @var mixed
+     */
 
     public function __get($name)
     {
@@ -42,8 +46,18 @@ class User
     {
         $this->allData = $allData;
         $this->roles = $allData['roles'];
+
+        /*EXTRA ROLES*/
+        if (($allData['user_manager'] ?? false) && !in_array(1, $this->roles)) {
+            $this->roles[] = -1;
+        }
+        if (($allData['sudo'] ?? false) && !in_array(1, $this->roles)) {
+            $this->roles[] = -2;
+        }
+
         $this->Config = $Config;
     }
+
     public function isCreator()
     {
         return $this->isCreatorValue ?? $this->isCreatorValue = in_array('1', $this->roles);
@@ -70,6 +84,14 @@ class User
     public function getVar(string $string)
     {
         return $this->allData[$string];
+    }
+
+    /**
+     * @param int $shadowRole
+     */
+    public function setShadowRole($shadowRole): ?int
+    {
+        $this->shadowRole = $shadowRole;
     }
 
     private function loadRolesTables()
@@ -109,6 +131,16 @@ class User
             );
         }
 
+        /*EXTRA ROLES*/
+        if (in_array(-1, $this->roles)) {
+            $user_manager_tables = Table::init($this->Config)->getColumn(
+                'id',
+                ['name' => Auth::$userManageTables]
+            );
+            foreach ($user_manager_tables as $id) {
+                $tables[$id] = 1;
+            }
+        }
         return $this->tables = ['oneCycle' => array_unique($oneCycleTables ?? []), 'all' => $tables, 'tree' => $treeTables];
     }
 

@@ -91,7 +91,7 @@ class TableController extends interfaceController
             }
             $Actions = $this->getTableActions($request, $method);
 
-            if(!in_array($method, ['checkForNotifications', 'checkTableIsChanged'])){
+            if (!in_array($method, ['checkForNotifications', 'checkTableIsChanged'])) {
                 $this->Totum->transactionStart();
             }
 
@@ -109,7 +109,7 @@ class TableController extends interfaceController
             }
             $this->Totum->transactionCommit();
         } catch (errorException $exception) {
-            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess'])? "<br/>" . $exception->getPathMess() : '')];
+            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
         } catch (criticalErrorException $exception) {
             $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
         }
@@ -201,12 +201,11 @@ class TableController extends interfaceController
 
                 if (!empty($anchors[$t['tree_node_id']][$t['id']])) {
                     foreach ($anchors[$t['tree_node_id']][$t['id']] as $index) {
-                        $tree[$index]['parent']='table' . $t['id'];
+                        $tree[$index]['parent'] = 'table' . $t['id'];
                     }
                 }
             }
-        }
-;
+        };
         /*sort through folders and tables*/
         {
             $ords = array_column($tree, 'ord');
@@ -285,16 +284,25 @@ class TableController extends interfaceController
             if ($this->User) {
                 $this->__addAnswerVar('isCreatorView', $this->User->isCreator());
                 $this->__addAnswerVar('UserName', $this->User->getVar('fio'), true);
-                if ($this->User->isCreator() || Auth::isCreatorOnShadow()) {
-                    $this->__addAnswerVar(
-                        'reUsers',
-                        $this->Config->getModel('users')->getFieldIndexedById(
-                            'fio',
-                            ['is_del' => false, 'interface' => 'web', 'on_off' => 'true', '!login' => ['service', 'cron']]
-                        )
-                    );
-
-                    $this->__addAnswerVar('isCreatorNotItself', Auth::isCreatorNotItself());
+                $userManager = array_intersect(Auth::$userManageRoles, $this->User->getRoles());
+                $suDo = Auth::isCanBeOnShadow($this->User);
+                if ($suDo || $userManager) {
+                    if ($suDo) {
+                        $reUsers = Auth::getUsersForShadow($this->Config, $this->User);
+                        $this->__addAnswerVar(
+                            'reUsers',
+                            array_combine(array_column($reUsers, 'id'), array_column($reUsers, 'fio'))
+                        );
+                        $this->__addAnswerVar('isCreatorNotItself', Auth::isUserNotItself());
+                    } else {
+                        $this->__addAnswerVar(
+                            'reUsers',
+                            []
+                        );
+                    }
+                    if ($userManager) {
+                        $this->__addAnswerVar('UserTables', Auth::getUserManageTables($this->Config));
+                    }
                 }
             }
             $this->__addAnswerVar('schema_name', $this->Config->getSettings('totum_name'), true);

@@ -7,7 +7,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 trait WithPhpMailerTrait
 {
-    abstract protected function getDefaultSender(): string;
+    abstract protected function getDefaultSender();
 
     public function sendMail($to, $title, $body, $attachments = [], $from = null)
     {

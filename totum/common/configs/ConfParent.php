@@ -88,7 +88,7 @@ abstract class ConfParent
         $this->env = $env;
     }
 
-    public function getDefaultSender()
+    public function getDefaultSender(): string
     {
         return "no-reply@".$this->getFullHostName();
     }

@@ -117,10 +117,6 @@ class Conf extends ConfParent{
     
     const LANG="{$post['lang']}";
     
-    function getDefaultSender(){
-        return "no-reply@$host";
-    }
-    
     /***getSchemas***/
     static function getSchemas()
     {

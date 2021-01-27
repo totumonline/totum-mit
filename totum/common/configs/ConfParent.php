@@ -88,6 +88,11 @@ abstract class ConfParent
         $this->env = $env;
     }
 
+    public function getDefaultSender()
+    {
+        return "no-reply@".$this->getFullHostName();
+    }
+
     public function setSessionCookieParams()
     {
         session_set_cookie_params([

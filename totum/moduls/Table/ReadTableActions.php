@@ -192,7 +192,7 @@ class ReadTableActions extends Actions
             $data = json_decode($data, true);
             foreach ($data as $row) {
                 if ($row['ind'] === ($this->post['index'] ?? null)) {
-                    if (key_exists($row['code'], $this->Table->getFields())) {
+                    if (is_string($row['code']) && key_exists($row['code'], $this->Table->getFields())) {
                         $row['code'] = $this->Table->getFields()[$row['code']]['codeAction'];
                     }
                     $CA = new CalculateAction($row['code']);
@@ -218,37 +218,6 @@ class ReadTableActions extends Actions
             }
         } else {
             throw new errorException('Предложенный выбор устарел.');
-        }
-        return ['ok' => 1];
-    }
-
-    /**
-     * Клик по linkToInout
-     *
-     *
-     * @throws errorException
-     */
-    public function linkInputClick()
-    {
-        $model = $this->Totum->getModel('_tmp_tables', true);
-        $key = ['table_name' => '_linkToInput', 'user_id' => $this->User->getId(), 'hash' => $this->post['hash'] ?? null];
-        if ($data = $model->getField('tbl', $key)) {
-            $data = json_decode($data, true);
-            $CA = new CalculateAction($data['code']);
-            $CA->execAction(
-                'CODE',
-                [],
-                [],
-                $this->Table->getTbl(),
-                $this->Table->getTbl(),
-                $this->Table,
-                'exec',
-                ($data['vars'] ?? []) + ['input' => $this->post['val']]
-            );
-
-            $model->delete($key);
-        } else {
-            throw new errorException('Предложенный ввод устарел.');
         }
         return ['ok' => 1];
     }

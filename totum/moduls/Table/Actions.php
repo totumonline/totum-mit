@@ -6,10 +6,12 @@ namespace totum\moduls\Table;
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
+use totum\common\calculates\CalculcateFormat;
 use totum\common\errorException;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\common\User;
+use totum\models\TablesFields;
 use totum\tableTypes\aTable;
 
 class Actions
@@ -73,6 +75,64 @@ class Actions
         $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'), 'exec');
     }
 
+    public function loadUserButtons()
+    {
+        $result = null;
+        $Table = $this->Totum->getTable('settings');
+        $fieldData = $Table->getFields()['h_user_settings_buttons'] ?? null;
+
+        if ($fieldData) {
+            $clc = new CalculcateFormat($fieldData['format']);
+
+            $result = $clc->getPanelFormat(
+                'h_user_settings_buttons',
+                $Table->getTbl()['params'],
+                $Table->getTbl(),
+                $Table
+            );
+        }
+        return ['panelFormats' => $result];
+    }
+    /**
+     * Клик по кнопке в панельке поля
+     *
+     * @throws errorException
+     */
+    public function userButtonsClick()
+    {
+        $model = $this->Totum->getModel('_tmp_tables', true);
+        $key = ['table_name' => '_panelbuttons', 'user_id' => $this->User->getId(), 'hash' => $this->post['hash'] ?? null];
+        if ($data = $model->getField('tbl', $key)) {
+            $data = json_decode($data, true);
+            foreach ($data as $row) {
+                if ($row['ind'] === ($this->post['index'] ?? null)) {
+                    $Table = $this->Totum->getTable('settings');
+                    if (is_string($row['code']) && key_exists($row['code'], $Table->getFields())) {
+                        $row['code'] = $Table->getFields()[$row['code']]['codeAction'];
+                    }
+                    $CA = new CalculateAction($row['code']);
+                    $item = $Table->getTbl()['params'];
+
+
+                    $CA->execAction(
+                        $row['field'],
+                        [],
+                        $item,
+                        [],
+                        $Table->getTbl(),
+                        $Table,
+                        'exec',
+                        $row['vars'] ?? []
+                    );
+                    break;
+                }
+            }
+        } else {
+            throw new errorException('Предложенный выбор устарел.');
+        }
+        return ['ok' => 1];
+    }
+
     public function notificationUpdate()
     {
         if (!empty($this->post['id'])) {
@@ -105,7 +165,38 @@ class Actions
         }
         return ['ok' => 1];
     }
+    /**
+     * Клик по linkToInout
+     *
+     *
+     * @throws errorException
+     */
+    public function linkInputClick()
+    {
+        $model = $this->Totum->getModel('_tmp_tables', true);
+        $key = ['table_name' => '_linkToInput', 'user_id' => $this->User->getId(), 'hash' => $this->post['hash'] ?? null];
+        if ($data = $model->getField('tbl', $key)) {
+            $data = json_decode($data, true);
+            $CA = new CalculateAction($data['code']);
 
+            $Table = $this->Table ?? $this->Totum->getTable('settings');
+            $CA->execAction(
+                'CODE',
+                [],
+                [],
+                $Table->getTbl(),
+                $Table->getTbl(),
+                $Table,
+                'exec',
+                ($data['vars'] ?? []) + ['input' => $this->post['val']]
+            );
+
+            $model->delete($key);
+        } else {
+            throw new errorException('Предложенный ввод устарел.');
+        }
+        return ['ok' => 1];
+    }
     public function checkForNotifications()
     {
         /*TODO FOR MY TEST SERVER */

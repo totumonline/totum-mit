@@ -46,18 +46,13 @@ if (is_null($isCreatorView ?? null)) {
                     id="UserFio"><?= $UserName ?></li>
                 <li><a href="/Auth/logout/">Выход</a></li>
             </ul>
-            <?php
-            if (($reUsers ?? null) ||( $UserTables??null)) {
-                ?>
                 <script>
                     (function () {
                         let reUsers = <?=json_encode($reUsers??[], JSON_UNESCAPED_UNICODE); ?>;
                         let UserTables = <?=json_encode($UserTables ?? [], JSON_UNESCAPED_UNICODE); ?>;
-                        App.reUserInterface(reUsers, <?=!empty($isCreatorNotItself) ? 'true' : 'false'?>, UserTables);
+                        App.reUserInterface(reUsers, UserTables, <?=!empty($isCreatorNotItself) ? 'true' : 'false'?>, <?=!empty($isCreatorView) ? 'true' : 'false'?>);
                     }());
                 </script>
-                <?php
-            } ?>
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>

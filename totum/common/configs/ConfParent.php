@@ -97,10 +97,9 @@ abstract class ConfParent
     {
         session_set_cookie_params([
             'path' => '/',
-            'domain' => $this->hostName,
             'httponly' => true,
             'samesite' => 'Strict'
-        ], '/', $this->hostName);
+        ]);
     }
 
     public function getBaseDir()

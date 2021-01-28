@@ -77,12 +77,6 @@ class TotumInstall
             'psql' => $post['psql']
         ];
         $dbExport = var_export($db, true);
-        if (strpos($host, 'localhost:')!==0) {
-            $session_domain="";
-        } else {
-            $session_domain="'domain' => \$this->hostName,";
-        }
-
 
         if ($post['multy'] === '1') {
             $multyPhp = ' use MultiTrait;';
@@ -128,7 +122,6 @@ class Conf extends ConfParent{
     {
         session_set_cookie_params([
             'path' => '/',
-            $session_domain
             /*'secure' => true,*/ //-- uncomment this if your totum always on ssl
             'httponly' => true,
             'samesite' => 'Strict'

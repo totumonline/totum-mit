@@ -9,6 +9,7 @@
 namespace totum\common;
 
 /*TODO возвращать через конфиг - подготовка к мультилэнгвич*/
+
 class Formats
 {
     const weekDaysShort = [
@@ -58,6 +59,20 @@ class Formats
         'ноябрь',
         'декабрь'
     ];
+    const monthsShort = [
+        1 => 'янв',
+        'фев',
+        'мар',
+        'апр',
+        'май',
+        'июн',
+        'июл',
+        'авг',
+        'сент',
+        'окт',
+        'ноя',
+        'дек'
+    ];
 
 
     /**
@@ -74,6 +89,20 @@ class Formats
             return $ImRodRoded[0];
         } elseif (in_array($ostDel, [2, 3, 4])) {
             return $ImRodRoded[2];
+        }
+    }
+
+    public function getConstant($name)
+    {
+        switch ($name) {
+            case 'monthsShort':
+                return static::monthsShort;
+            case 'months':
+                return static::months;
+            case 'weekDays':
+                return static::weekDays;
+            case 'weekDaysShort':
+                return static::weekDaysShort;
         }
     }
 
@@ -150,6 +179,7 @@ class Formats
         }
         return $f5;
     }
+
     public static function translit($s)
     {
         $s = (string)$s;

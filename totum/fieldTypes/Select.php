@@ -13,10 +13,8 @@ use totum\common\calculates\CalculateSelect;
 use totum\common\calculates\CalculateSelectPreview;
 use totum\common\calculates\CalculateSelectValue;
 use totum\common\calculates\CalculateSelectViewValue;
-use totum\common\Controller;
 use totum\common\errorException;
 use totum\common\Field;
-use totum\common\Formats;
 use totum\tableTypes\aTable;
 
 class Select extends Field

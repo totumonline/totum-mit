@@ -501,9 +501,9 @@ class Calculate
                             } elseif ($comparison = $matches['comparison']) {
                                 if (array_key_exists('comparison', $code)) {
                                     throw new errorException('Оператор сравнения может быть только один в строке' . print_r(
-                                            $matches,
-                                            1
-                                        ));
+                                        $matches,
+                                        1
+                                    ));
                                 }
 
                                 $code['comparison'] = $comparison;
@@ -828,9 +828,9 @@ class Calculate
 
                         $replaced = $back_replace_strings($this->CodeStrings[$m[1]]);
                         return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr(
-                                $replaced,
-                                4
-                            ) . '`';
+                            $replaced,
+                            4
+                        ) . '`';
                 }
             },
             $code
@@ -963,9 +963,9 @@ class Calculate
                 } else {
                     if (!is_null($res)) {
                         throw new errorException('Ошибка кода - отсутствие оператора в выражении [[' . $code . ']] ' . var_export(
-                                $codes,
-                                1
-                            ));
+                            $codes,
+                            1
+                        ));
                     }
 
                     $res = $rTmp;
@@ -1561,9 +1561,9 @@ SQL;
                         } elseif (key_exists($nameVar, $this->tbl['params'] ?? [])) {
                             $rowVar = $this->tbl['params'][$nameVar];
                         } elseif (key_exists(
-                                $nameVar,
-                                $this->oldRow ?? []
-                            ) && !key_exists(
+                            $nameVar,
+                            $this->oldRow ?? []
+                        ) && !key_exists(
                                 $nameVar,
                                 $this->row ?? []
                             )) {
@@ -1571,9 +1571,9 @@ SQL;
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {
                             $rowVar = ['v' => null];
                         } elseif ($nameVar === 'id' && key_exists(
-                                $this->varName,
-                                $this->Table->getFields()
-                            ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
+                            $this->varName,
+                            $this->Table->getFields()
+                        ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
                             $rowVar = null;
                         } else {
                             throw new errorException('Параметр [[' . $nameVar . ']] не найден');
@@ -1642,9 +1642,9 @@ SQL;
                             $r = array_map(
                                 function ($_ri) use ($item) {
                                     if (!is_array($_ri) || !key_exists(
-                                            $item,
-                                            $_ri
-                                        )) {
+                                        $item,
+                                        $_ri
+                                    )) {
                                         throw new errorException('Ключ [[' . $item . ']] не обнаружен в одном из элементов массива');
                                     }
                                     return $_ri[$item];
@@ -1683,11 +1683,11 @@ SQL;
 
         if (is_numeric($value)) {
             return number_format(
-                    $value,
-                    $params['dectimals'] ?? 0,
-                    $params['decsep'] ?? ',',
-                    $params['thousandssep'] ?? ''
-                )
+                $value,
+                $params['dectimals'] ?? 0,
+                $params['decsep'] ?? ',',
+                $params['thousandssep'] ?? ''
+            )
                 . ($params['unittype'] ?? '');
         }
     }
@@ -1900,9 +1900,7 @@ SQL;
     protected function funcNowDate($params)
     {
         $params = $this->getParamsArray($params);
-        $format = $params['format'] ?? 'Y-m-d H:i';
-
-        return date($format);
+        return $this->dateFormat(date_create(), ($params['format'] ?? 'Y-m-d H:i'), $params['lang']??null);
     }
 
     protected function funcNowField()
@@ -2033,9 +2031,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                    'str',
-                    $params
-                ) || is_array($params["str"])) {
+                'str',
+                $params
+            ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strLength');
             }
 
@@ -2049,9 +2047,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                    'str',
-                    $params
-                ) || is_array($params["str"])) {
+                'str',
+                $params
+            ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strMdF');
             }
 
@@ -2109,7 +2107,7 @@ SQL;
                     $date->modify($periodVal . ' ' . $datePeriodStr);
                 }
             }
-            return $date->format($params['format'] ?? 'Y-m-d H:i');
+            return $this->dateFormat($date, ($params['format'] ?? 'Y-m-d H:i'), $params['lang']??null);
         } else {
             throw new errorException('Ошибка параметров функции DateAdd');
         }
@@ -2154,7 +2152,7 @@ SQL;
             }
             $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
 
-            if (empty($params['format']) || !($formated = $date->format(strval($params['format'])))) {
+            if (empty($params['format']) || !($formated = $this->dateFormat($date, strval($params['format']), $params['lang']??null))) {
                 throw new errorException('Ошибка  параметра format функции [[DateFormat]]');
             }
 
@@ -2162,6 +2160,44 @@ SQL;
         } else {
             throw new errorException('Ошибка параметров функции DateFormat');
         }
+    }
+
+    protected function dateFormat(\DateTime $date, $fStr, $lang= null): string
+    {
+        switch ($lang) {
+                case 'ru':
+                    $result = '';
+                    $format = new Formats;
+                    foreach (preg_split(
+                        '/([DlMF])/',
+                        $fStr,
+                        null,
+                        PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
+                    ) as $split) {
+                        $var = null;
+                        switch ($split) {
+                            case 'D':
+                                $var = "weekDaysShort";
+                                // no break
+                            case 'l':
+                                $var = $var ?? "weekDays";
+                                $result .= $format->getConstant($var)[$date->format('N')];
+                                break;
+                            case 'F':
+                                $var = "months";
+                                // no break
+                            case 'M':
+                                $var = $var ?? "monthsShort";
+                                $result .= $format->getConstant($var)[$date->format('n')];
+                                break;
+                            default:
+                                $result .= $date->format($split);
+                        }
+                    }
+                    return $result;
+                default:
+                    return $date->format($fStr);
+            }
     }
 
     protected function funcDateWeekDay($params)
@@ -2520,9 +2556,9 @@ SQL;
             case 'key':
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     $isAssoc = (array_keys($params['list']) !== range(
-                                0,
-                                count($params['list']) - 1
-                            )) && count($params['list']) > 0;
+                        0,
+                        count($params['list']) - 1
+                    )) && count($params['list']) > 0;
 
                     if ($isAssoc) {
                         krsort($params['list'], $flags);
@@ -2550,9 +2586,9 @@ SQL;
                 break;
             case 'value':
                 $isAssoc = (array_keys($params['list']) !== range(
-                            0,
-                            count($params['list']) - 1
-                        )) && count($params['list']) > 0;
+                    0,
+                    count($params['list']) - 1
+                )) && count($params['list']) > 0;
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     if ($isAssoc) {
                         arsort($params['list'], $flags);
@@ -3438,10 +3474,10 @@ SQL;
         /*TODO убрать загрузку всех шаблонов, сделать подгрузку только требуемых*/
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-                [],
-                'styles, html, name',
-                'name'
-            )) || (!array_key_exists(
+            [],
+            'styles, html, name',
+            'name'
+        )) || (!array_key_exists(
                 $params['template'],
                 $templates
             ))) {
@@ -3514,11 +3550,11 @@ SQL;
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     $value = number_format(
-                                                            $value,
-                                                            $numberVals[0],
-                                                            $numberVals[1] ?? '.',
-                                                            $numberVals[2] ?? ''
-                                                        )
+                                                        $value,
+                                                        $numberVals[0],
+                                                        $numberVals[1] ?? '.',
+                                                        $numberVals[2] ?? ''
+                                                    )
                                                         . ($numberVals[3] ?? '');
                                                 }
                                             }
@@ -3575,9 +3611,9 @@ SQL;
 
         if ($style) {
             return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
-                    $templates[$params['template']]['html'],
-                    $params['data'] ?? []
-                ) . '</body>';
+                $templates[$params['template']]['html'],
+                $params['data'] ?? []
+            ) . '</body>';
         } else {
             return $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []);
         }
@@ -3593,7 +3629,6 @@ SQL;
 
     protected function getMathFromString($string)
     {
-
         $string = preg_replace('/\s+/', '', $string);
 
         $actions = preg_split(

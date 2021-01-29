@@ -124,7 +124,6 @@ class Select extends Field
                 $addInArrays($k, $v);
             }
         }
-
         return ['list' => $listMain, 'indexed' => $objMain, 'sliced' => $isSliced, 'previewdata' => $previewdata];
     }
 

@@ -58,23 +58,7 @@ class TableController extends interfaceController
 
     public function actionMain(ServerRequestInterface $request)
     {
-        $tree = [];
 
-        foreach (Table::init($this->Config)->getAll(
-            ['id' => $this->User->getFavoriteTables()],
-            'id, top, title, type',
-            'sort'
-        ) as $t) {
-            $tree[] = [
-                'id' => 'table' . $t['id']
-                , 'href' => $this->modulePath . $t['top'] . '/' . $t['id']
-                , 'text' => $t['title']
-                , 'type' => 'table_' . $t['type']
-                , 'parent' => '#'
-            ];
-        }
-        $this->__addAnswerVar('treeData', $tree);
-        $this->__addAnswerVar('ModulePath', '');
         $this->__addAnswerVar(
             'html',
             preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page'))
@@ -133,6 +117,9 @@ class TableController extends interfaceController
     {
         $this->__addAnswerVar('Branch', $this->branchId);
         $this->__addAnswerVar('ModulePath', $this->modulePath);
+
+
+
         $tree = [];
         $branchIds = [];
 
@@ -274,6 +261,21 @@ class TableController extends interfaceController
         }
         $tree = array_values($tree);
 
+        if (empty($tree)) {
+            foreach (Table::init($this->Config)->getAll(
+                ['id' => $this->User->getFavoriteTables()],
+                'id, top, title, type',
+                'sort'
+            ) as $t) {
+                $tree[] = [
+                    'id' => 'table' . $t['id']
+                    , 'href' => $this->modulePath . $t['top'] . '/' . $t['id']
+                    , 'text' => $t['title']
+                    , 'type' => 'table_' . $t['type']
+                    , 'parent' => '#'
+                ];
+            }
+        }
 
         $this->__addAnswerVar('treeData', $tree);
     }
@@ -311,9 +313,8 @@ class TableController extends interfaceController
             $this->__addAnswerVar('topBranches', $this->getTopBranches(), true);
             $this->__addAnswerVar('totumFooter', $this->Config->getTotumFooter());
 
-            if (empty($this->answerVars['treeData'])) {
-                $this->setTreeData();
-            }
+
+            $this->setTreeData();
 
             if (isset($this->Table)) {
                 $this->__addAnswerVar('title', $this->Table->getTableRow()['title'], true);

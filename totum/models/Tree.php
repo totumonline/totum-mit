@@ -34,11 +34,11 @@ class Tree extends Model
         $r = $params ? parent::update($params, $where, $oldRow) : 0;
         if (array_key_exists('parent_id', $params) || empty($oldRow['top']['v'])) {
             $treeVModel = $this->treeVModel ?? $this->treeVModel = (new Model(
-                $this->Sql,
-                Conf::getTableNameByModel(TreeV::class),
-                null,
-                true
-            ));
+                    $this->Sql,
+                    Conf::getTableNameByModel(TreeV::class),
+                    null,
+                    true
+                ));
 
             foreach ($this->getColumn('id') as $id) {
                 $params = [];
@@ -83,6 +83,8 @@ class Tree extends Model
     FROM tree__v
     WHERE type='link' AND (ARRAY(SELECT * FROM   jsonb_array_elements_text(roles::jsonb) elem ) && ARRAY[{$roles}] OR roles='[]')
 SQL;
+        } else {
+            $roles = '';
         }
 
         $anchorsSql = <<<SQL
@@ -90,7 +92,7 @@ SQL;
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
     WHERE type='anchor' AND default_table IN (
-       select id from tables where (ARRAY(SELECT * FROM   jsonb_array_elements_text(edit_roles->'v') ) && ARRAY[{$roles}]) OR (ARRAY(SELECT * FROM   jsonb_array_elements_text(read_roles->'v') ) && ARRAY[{$roles}])
+       select id from tables where (ARRAY(SELECT * FROM   jsonb_array_elements_text(edit_roles->'v') ) && ARRAY[{$roles}]::text[]) OR (ARRAY(SELECT * FROM   jsonb_array_elements_text(read_roles->'v') ) && ARRAY[{$roles}]::text[])
     ) 
 SQL;
 

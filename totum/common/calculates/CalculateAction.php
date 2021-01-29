@@ -1116,7 +1116,7 @@ class CalculateAction extends Calculate
         }
 
         $rows = $MainList;
-        foreach ($params['field'] as $f) {
+        foreach (($params['field'] ?? []) as $f) {
             $f = $this->getExecParamVal($f);
             $rows = array_replace($rows, $f);
         }

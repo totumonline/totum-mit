@@ -8,7 +8,7 @@
 
 namespace totum\common\calculates;
 
-use totum\common\Controller;
+use totum\common\controllers\Controller;
 use totum\common\errorException;
 use totum\common\sql\SqlException;
 use totum\moduls\Forms\FormsController;
@@ -342,7 +342,7 @@ class CalculcateFormat extends Calculate
 
     protected function funcSetFormFieldFormat($params)
     {
-        if (get_class(Controller::getActiveController()) !== FormsController::class) {
+        if ($this->Table->getTotum()->getSpecialInterface()!=='form') {
             return [];
         }
 
@@ -379,7 +379,7 @@ class CalculcateFormat extends Calculate
 
     protected function funcSetFormSectionsFormat($params)
     {
-        if (get_class(Controller::getActiveController()) !== FormsController::class) {
+        if ($this->Table->getTotum()->getSpecialInterface()!=='form') {
             return [];
         }
 

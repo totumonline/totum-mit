@@ -792,7 +792,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
 
         $table_id = (int)$this->post['table_id'];
-        $cycle_id = (int)($this->post['cycle_id'] ?? 0);
+        $cycle_id = ($this->post['cycle_id'] ?? $this->post['tableData']['sess_hash'] ?? 0);
 
         $Table = $this->Totum->getTable($table_id, $cycle_id, true);
         $i = 0;

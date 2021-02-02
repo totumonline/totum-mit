@@ -81,7 +81,7 @@ class globcalcsTable extends JsonTables
     public function getLastUpdated($force = false)
     {
         if ($force) {
-            return $this->Totum->getNamedModel(Table::class)->getField('updated', ['id' => $this->tableRow['id']]);
+            return $this->model->getById($this->tableRow['name'], 'updated')['updated'];
         }
         return $this->updated;
     }

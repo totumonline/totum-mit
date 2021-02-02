@@ -402,4 +402,9 @@ class Totum
         $this->tablesInstances = [];
         $this->fieldsCache = [];
     }
+
+    public function getSpecialInterface()
+    {
+        return null;
+    }
 }

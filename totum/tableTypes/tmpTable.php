@@ -213,7 +213,7 @@ class tmpTable extends JsonTables
     function getLastUpdated($force = false)
     {
         if ($force) {
-            $this->model->getField('updated', $this->key);
+            return $this->model->getField('updated', $this->key);
         }
         return $this->updated;
     }

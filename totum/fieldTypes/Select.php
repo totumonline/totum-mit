@@ -168,7 +168,7 @@ class Select extends Field
                 $val = $row[$name];
 
                 if ($name === 'id') {
-                    $field = ['title' => 'id'];
+                    $field = ['title' => 'id', 'type'=>'number'];
                 }
 
                 switch ($field['type']) {

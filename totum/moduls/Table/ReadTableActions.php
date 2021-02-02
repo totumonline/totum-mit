@@ -3,11 +3,8 @@
 
 namespace totum\moduls\Table;
 
-use Composer\DependencyResolver\Pool;
-use Psr\Http\Message\ServerRequestInterface;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
-use totum\common\calculates\CalculateSelect;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\criticalErrorException;
 use totum\common\Crypt;
@@ -875,7 +872,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $result['withCsvEditButtons'] = $this->Table->isUserCanAction('csv_edit');
         $result['tableRow'] = $this->tableRowForClient($this->Table->getTableRow());
         $result['fields'] = $this->fieldsForClient($visibleFields);
-
         if ($this->Table->getTableRow()['type'] === 'calcs') {
             $result['tableRow']['fields_sets'] = $this->Table->changeFieldsSets();
             $result['tableRow']['cycle_id'] = $this->Table->getCycle()->getId();

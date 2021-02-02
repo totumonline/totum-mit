@@ -64,7 +64,7 @@ class CalculateSelectPreview extends CalculateSelect
 
         $rows['previewdata'] = [];
         foreach ($params['preview'] ?? [] as $fName) {
-            $rows['__fields'][$fName] = $Table->getFields()[$fName];
+            $rows['__fields'][$fName] = $Table->getFields()[$fName] ?? $fName;
         }
         $rows['previewscode'] = $params['previewscode'] ?? null;
 

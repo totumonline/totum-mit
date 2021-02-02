@@ -220,7 +220,7 @@ class ReadTableActions extends Actions
 
     public function loadPage()
     {
-        $lastId = (int)$this->post['lastId'] ?? 0;
+        $lastId = $this->post['lastId'] ?? 0;
         $prevLastId = (int)($this->post['prevLastId'] ?? 0);
         $onPage = $this->post['pageCount'] ?? 0;
         $this->Table->reCalculateFilters(

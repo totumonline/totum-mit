@@ -2064,7 +2064,7 @@ abstract class aTable
 
                     $rows = $getRows($filteredIds);
 
-                    $slice = function (&$rows, $pageCount) use ($lastId, $prevLastId) {
+                    $slice = function (&$rows, $pageCount) use ($onPage, $allCount, $lastId, $prevLastId) {
                         if ((int)$pageCount === 0) {
                             return 0;
                         }
@@ -2091,7 +2091,9 @@ abstract class aTable
                                         break;
                                     }
                                 }
-                            } else {
+                            } elseif ($lastId==='last') {
+                                $offset = $allCount - ($allCount % $onPage);
+                            }else {
                                 foreach ($rows as $i => $row) {
                                     if ($row['id'] === $lastId) {
                                         $offset = $i + 1;
@@ -2132,7 +2134,11 @@ abstract class aTable
                             if ($offset < 0) {
                                 $offset = 0;
                             }
-                        } elseif (is_array($lastId) || $lastId > 0) {
+                        }
+                        elseif ($lastId==='last') {
+                            $offset = $allCount - ($allCount % $onPage);
+                        }
+                        elseif (is_array($lastId) || $lastId > 0) {
                             $offset = $this->countByParams(
                                 $params,
                                 $this->orderParamsForLoadRows(true),

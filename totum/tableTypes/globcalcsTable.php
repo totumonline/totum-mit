@@ -10,10 +10,8 @@ namespace totum\tableTypes;
 
 use totum\common\Controller;
 use totum\common\errorException;
-use totum\common\Model;
 use totum\models\NonProjectCalcs;
-use totum\models\TablesCalcsConnects;
-use totum\models\TablesFields;
+use totum\models\Table;
 
 class globcalcsTable extends JsonTables
 {
@@ -50,7 +48,6 @@ class globcalcsTable extends JsonTables
         $this->savedTbl = $this->tbl;
         $this->savedUpdated = $this->updated;
         $this->setIsTableDataChanged(false);
-        $this->markTableChanged();
 
         $this->onSaveTable($this->tbl, $saved);
 
@@ -79,5 +76,13 @@ class globcalcsTable extends JsonTables
     protected function loadModel()
     {
         $this->model = $this->Totum->getNamedModel(NonProjectCalcs::class);
+    }
+
+    public function getLastUpdated($force = false)
+    {
+        if ($force) {
+            return $this->Totum->getNamedModel(Table::class)->getField('updated', ['id' => $this->tableRow['id']]);
+        }
+        return $this->updated;
     }
 }

@@ -11,6 +11,7 @@ namespace totum\tableTypes;
 use totum\common\errorException;
 use totum\common\Cycle;
 use totum\common\Totum;
+use totum\models\Table;
 use totum\models\TablesCalcsConnects;
 
 class calcsTable extends JsonTables
@@ -65,7 +66,6 @@ class calcsTable extends JsonTables
         $this->savedUpdated = $this->updated;
         $this->setIsTableDataChanged(false);
         $this->savedTbl = $this->getTblForSave();
-        $this->markTableChanged();
         $this->onSaveTable($this->tbl, $saved);
         $this->saveSourceTables();
 
@@ -181,5 +181,13 @@ class calcsTable extends JsonTables
             }
             $this->calcLog($Log, 'result', 'done');
         }
+    }
+
+    public function getLastUpdated($force = false)
+    {
+        if ($force) {
+            return $this->model->getField('updated', ['id' => $this->Cycle->getId()]);
+        }
+        return $this->updated;
     }
 }

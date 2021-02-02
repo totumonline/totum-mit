@@ -989,17 +989,6 @@ CONF;
                             $tableId,
                             ['updated' => $updated = aTable::formUpdatedJson($this->Totum->getUser())]
                         );
-
-                        $isChanged = new IsTableChanged($tableId, 0, $this->Config);
-                        $updated = json_decode($updated, true);
-                        $isChanged->setChanged(
-                            $updated['code'],
-                            date_create_from_format(
-                                'Y-m-d H:i:s',
-                                $updated['dt'] . ':00'
-                            )->format('U')
-                        );
-                        unset($isChanged);
                 }
                 $TablesTable->calcLog($Log, 'result', 'done');
             }

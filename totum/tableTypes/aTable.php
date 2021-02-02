@@ -15,7 +15,6 @@ use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FieldModifyItem;
-use totum\common\IsTableChanged;
 use totum\common\Cycle;
 use totum\common\logs\CalculateLog;
 use totum\common\Model;
@@ -881,30 +880,9 @@ abstract class aTable
 
     abstract public function saveTable();
 
-    public function markTableChanged()
-    {
-        if ($this->tableRow['actual'] !== 'none') {
-            $isChanged = new IsTableChanged(
-                $this->tableRow['id'],
-                (is_a($this, calcsTable::class) ? $this->Cycle->getId() : 0),
-                $this->Totum->getConfig()
-            );
-            $updated = json_decode($this->updated, true);
-            $isChanged->setChanged(
-                $updated['code'],
-                date_create_from_format('Y-m-d H:i:s', $updated['dt'] . ':00')->format('U')
-            );
-        }
-    }
-
     public function getChangedString($code)
     {
-        if (is_a($this, JsonTables::class)) {
-            $this->loadDataRow(false, true);
-        } else {
-            $this->tableRow = $this->Totum->getConfig()->getTableRow($this->tableRow['id'], true);
-        }
-        $updated = json_decode($this->getUpdated(), true);
+        $updated = json_decode($this->getLastUpdated(true), true);
 
         if ((string)$updated['code'] !== $code) {
             return ['username' => $this->Totum->getNamedModel(UserV::class)->getById($updated['user'])['fio'], 'dt' => $updated['dt'], 'code' => $updated['code']];
@@ -2232,11 +2210,7 @@ abstract class aTable
         }
     }
 
-    public function getLastUpdated()
-    {
-        return $this->updated;
-    }
-
+    abstract function getLastUpdated($force = false);
 
     protected function getRemoveForActionDeleteDuplicate($where, $limit)
     {

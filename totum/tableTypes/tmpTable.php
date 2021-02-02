@@ -105,7 +105,7 @@ class tmpTable extends JsonTables
                     if (Calculate::compare('!==', $oldRow, $row)) {
                         foreach ($row as $k => $v) {
                             /*key_exists for $oldRow[$k] не использовать!*/
-                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k]??null), $v)) {
+                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v)) {
                                 $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                 $this->changeIds['changed'][$id][$k] = null;
                             }
@@ -114,9 +114,9 @@ class tmpTable extends JsonTables
                 }
             }
             $this->changeIds['deleted'] = $this->changeIds['deleted'] + array_flip(array_keys(array_diff_key(
-                $savedTbl['rows'] ?? [],
-                $this->tbl['rows'] ?? []
-            )));
+                    $savedTbl['rows'] ?? [],
+                    $this->tbl['rows'] ?? []
+                )));
             $this->changeIds['added'] = array_flip(array_keys(array_diff_key(
                 $this->tbl['rows'],
                 $savedTbl['rows']
@@ -208,5 +208,13 @@ class tmpTable extends JsonTables
 
     protected function _copyTableData(&$table, $settings)
     {
+    }
+
+    function getLastUpdated($force = false)
+    {
+        if ($force) {
+            $this->model->getField('updated', $this->key);
+        }
+        return $this->updated;
     }
 }

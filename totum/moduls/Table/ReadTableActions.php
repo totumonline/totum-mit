@@ -11,7 +11,6 @@ use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FormatParamsForSelectFromTable;
-use totum\common\IsTableChanged;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Select;
@@ -140,7 +139,7 @@ class ReadTableActions extends Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
             if (key_exists('index', $this->post) && $data['buttons'][$this->post['index']] ?? null) {
-                if ($this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]??false ) {
+                if ($this->Table->getFields()[$data['buttons'][$this->post['index']]['code']] ?? false) {
                     $data['buttons'][$this->post['index']]['code'] = $this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]['codeAction'] ?? '';
                 }
                 $CA = new CalculateAction($data['buttons'][$this->post['index']]['code']);
@@ -154,7 +153,7 @@ class ReadTableActions extends Actions
                     'exec',
                     $data['buttons'][$this->post['index']]['vars'] ?? []
                 );
-                return ["ok"=>1];
+                return ["ok" => 1];
             } else {
                 throw new errorException('Ошибка интерфейса - выбрана несуществующая кнопка');
             }
@@ -347,7 +346,7 @@ class ReadTableActions extends Actions
     protected function getPanelsCookieName()
     {
         if ($this->Table->getTableRow()['type'] === 'calcs') {
-            $cookieName = 'panelSwitcher'.$this->Table->getTableRow()['id'];
+            $cookieName = 'panelSwitcher' . $this->Table->getTableRow()['id'];
             $path = preg_replace('/\d+\/\d+\?.*$/', '', $_SERVER['REQUEST_URI']);
         } else {
             $path = preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']);
@@ -686,10 +685,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         if (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null))
         ) {
-            $checkCookies=function () use ($panelViewSettings) {
-                $name=$this->getPanelsCookieName()[0];
+            $checkCookies = function () use ($panelViewSettings) {
+                $name = $this->getPanelsCookieName()[0];
                 if (key_exists($name, $_COOKIE)) {
-                    return $_COOKIE[$name]==='1';
+                    return $_COOKIE[$name] === '1';
                 }
                 return $panelViewSettings['panels_view_first'];
             };
@@ -792,11 +791,18 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             die('test');
         }
 
-        $table_id = $this->post['table_id'];
-        $cycle_id = $this->post['cycle_id'] ?? 0;
+        $table_id = (int)$this->post['table_id'];
+        $cycle_id = (int)($this->post['cycle_id'] ?? 0);
 
-        $isChanged = new IsTableChanged($table_id, $cycle_id, $this->Totum->getConfig());
-        return $isChanged->isChanged($this->post['code'], $this->Totum);
+        $Table = $this->Totum->getTable($table_id, $cycle_id, true);
+        $i = 0;
+        do {
+            if ($i > 0) {
+                sleep(3);
+            }
+            $isChanged = $Table->getChangedString($this->post['code']);
+        } while (!empty($isChanged['no']) && $i++ < 20);
+        return $isChanged;
     }
 
     /**
@@ -1417,7 +1423,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $return = [];
 
         if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh'])) {
-
             $this->Table->reCalculateFilters(
                 'web',
                 false,

@@ -541,7 +541,7 @@ abstract class RealTables extends aTable
     protected function onSaveTable($tbl, $loadedTbl)
     {
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
-        if ($fieldsWithActionOnChange || !empty($this->changeIds['rowOperations'])) {
+        if ($fieldsWithActionOnChange || !empty($this->changeIds['rowOperations']) || !empty($this->changeIds['rowOperationsPre'])) {
             $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
 
             while ($func = array_shift($this->changeIds['rowOperationsPre'])) {

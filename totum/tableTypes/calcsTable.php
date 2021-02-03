@@ -186,7 +186,7 @@ class calcsTable extends JsonTables
     public function getLastUpdated($force = false)
     {
         if ($force) {
-            return $this->model->getField('updated', ['id' => $this->Cycle->getId()]);
+            return $this->model->getField('updated', ['cycle_id' => $this->Cycle->getId()]);
         }
         return $this->updated;
     }

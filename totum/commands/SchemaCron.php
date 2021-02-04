@@ -42,12 +42,14 @@ class SchemaCron extends Command
         if ($cronId = $input->getArgument('cronId')) {
             if ($cronRow = $Conf->getModel('crons')->get(['id' => (int)$cronId, 'status' => 'true'])) {
                 $cronRow = Model::getClearValuesWithExtract($cronRow);
+            }else{
+                throw new \Exception('Row cron not found or not active');
             }
-        }
-
-        if (empty($cronRow)) {
+        }else{
             throw new \Exception('Id of cron not found or empty');
         }
+
+
 
 
         $User = Auth::loadAuthUserByLogin($Conf, 'cron', false);

@@ -273,16 +273,36 @@ class ReadTableActions extends Actions
 
     public function refresh()
     {
+        $result = [];
+        if ($this->post['recalculate'] ?? false) {
+            try {
+                $inVars = ['calculate' => aTable::CALC_INTERVAL_TYPES['changed'], 'channel' => 'web',
+                    'modify' => ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]];
+                $this->Totum->transactionStart();
+                $this->Table->reCalculateFromOvers($inVars);
+                $this->Totum->transactionCommit();
+            } catch (errorException $e) {
+                $error = $e->getMessage();
+                if ($this->Totum->getUser()->isCreator()) {
+                    $error .= ' <br/> ' . $e->getPathMess();
+                    $result['error'] = $error;
+                }
+                $this->Totum->transactionRollback();
+                throw new criticalErrorException($e->getMessage());
+            }
+        } else {
+            $this->Table->reCalculateFilters(
+                'web',
+                false,
+                false,
+                ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+            );
+        }
+
+
         switch ($pageViewType = $this->getPageViewType()) {
             case 'tree':
-                $this->Table->reCalculateFilters(
-                    'web',
-                    false,
-                    false,
-                    ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
-                );
-
-                $result = ['chdata' => $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']])];
+                $result += ['chdata' => $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']])];
                 $treeIndex = json_decode($this->post['tree'], true);
                 $result['chdata'] = array_merge(
                     $result['chdata'],
@@ -301,9 +321,10 @@ class ReadTableActions extends Actions
                 );
                 break;
             default:
-                $result = ['chdata' => $this->getTableClientData(
+                $result += ['chdata' => $this->getTableClientData(
                     json_decode($this->post['ids'], true),
-                    $this->post['onPage'] ?? null
+                    $this->post['onPage'] ?? null,
+                    false
                 )];
 
                 if ($pageViewType === 'panels' && $this->Table->getTableRow()['with_order_field']) {

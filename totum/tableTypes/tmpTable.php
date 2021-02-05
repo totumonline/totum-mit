@@ -161,7 +161,7 @@ class tmpTable extends JsonTables
         $this->CalculateLog = $this->CalculateLog->getChildInstance(['addData' => true]);
 
         $this->reCalculate([
-            'add' => $tbl['tbl'],
+            'add' => $tbl['tbl'] ?? [],
             'modify' => ['params' => $tbl['params'] ?? []],
             'channel' => 'inner',
             'isTableAdding' => true

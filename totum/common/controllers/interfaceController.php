@@ -50,7 +50,7 @@ abstract class interfaceController extends Controller
         static::$pageTemplate = $this->Config->getTemplatesDir() . '/' . static::$pageTemplate;
     }
 
-    protected function output($action)
+    protected function output($action = null)
     {
         if ($this->isAjax) {
             $this->outputJson();

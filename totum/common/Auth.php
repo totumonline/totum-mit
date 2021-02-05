@@ -101,7 +101,7 @@ class Auth
     public static function serviceUserStart(Conf $Config)
     {
         if ($userRow = static::getUserWhere($Config, ['login' => 'service'])) {
-            return new User($Config, $userRow);
+            return new User($userRow, $Config);
         } else {
             die('Пользователь service не настроен. Обратитесь к администратору системы');
         }

@@ -141,7 +141,7 @@ class Select extends Field
             if ($row['previewscode'] ?? null) {
                 $CalcPreview = new Calculate($row['previewscode']);
                 $data = $CalcPreview->exec(
-                    [],
+                    ['name'=>"CALC PREVIEW"],
                     [],
                     [],
                     $this->table->getTbl()['params'],

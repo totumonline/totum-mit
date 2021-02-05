@@ -37,9 +37,9 @@ class ReadTableActions extends Actions
         if ($this->post['status']) {
             $status = json_decode($this->post['status'], true);
             if (key_exists(
-                $this->Table->getTableRow()['id'],
-                $this->User->getTreeTables()
-            ) && in_array(
+                    $this->Table->getTableRow()['id'],
+                    $this->User->getTreeTables()
+                ) && in_array(
                     $this->Table->getTableRow()['id'],
                     $this->User->getFavoriteTables()
                 ) !== $status) {
@@ -431,9 +431,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $width = $settings['fields'][$field['name']];
                         if ($table) {
                             $tableAll[] = $table[0] . $width . $table[1] . implode(
-                                '',
-                                $table['head']
-                            ) . $table[2] . implode(
+                                    '',
+                                    $table['head']
+                                ) . $table[2] . implode(
                                     '',
                                     $table['body']
                                 ) . $table[3];
@@ -449,9 +449,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
             if ($table) {
                 $tableAll[] = $table[0] . $width . $table[1] . implode(
-                    '',
-                    $table['head']
-                ) . $table[2] . implode(
+                        '',
+                        $table['head']
+                    ) . $table[2] . implode(
                         '',
                         $table['body']
                     ) . $table[3];
@@ -493,9 +493,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $fields,
                 function ($field) use ($fields) {
                     if ($field['category'] === 'footer' && $field['column'] && array_key_exists(
-                        $field['column'],
-                        $fields
-                    )) {
+                            $field['column'],
+                            $fields
+                        )) {
                         return true;
                     }
                 }
@@ -538,9 +538,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
 
             $tableAll[] = $table[0] . $width . $table[1] . implode(
-                '',
-                $table['head']
-            ) . $table[2] . implode(
+                    '',
+                    $table['head']
+                ) . $table[2] . implode(
                     '',
                     $table['body']
                 ) . $table[3];
@@ -556,9 +556,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
                     if ($table) {
                         $tableAll[] = $table[0] . $width . $table[1] . implode(
-                            '',
-                            $table['head']
-                        ) . $table[2] . implode(
+                                '',
+                                $table['head']
+                            ) . $table[2] . implode(
                                 '',
                                 $table['body']
                             ) . $table[3];
@@ -576,9 +576,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         if ($table) {
             $tableAll[] = $table[0] . $width . $table[1] . implode(
-                '',
-                $table['head']
-            ) . $table[2] . implode(
+                    '',
+                    $table['head']
+                ) . $table[2] . implode(
                     '',
                     $table['body']
                 ) . $table[3];
@@ -789,6 +789,85 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $result;
     }
 
+    private
+    function getValuesForClient($data, &$formats, $isFirstLoad = false)
+    {
+        /*foreach (($data['rows'] ?? []) as $i => $row) {
+
+            $newRow = ['id' => ($row['id'] ?? null)];
+            if (!empty($row['InsDel'])) {
+                $newRow['InsDel'] = true;
+            }
+            foreach ($row as $fName => $value) {
+                if (key_exists($fName, $this->Table->getFields())) {
+                    Field::init($this->Table->getFields()[$fName], $this->Table)->addViewValues('edit',
+                        $value,
+                        $row,
+                        $this->Table->getTbl());
+                    $newRow[$fName] = $value;
+                }
+            }
+            $data['rows'][$i] = $newRow;
+        }*/
+        if (!empty($data['params'])) {
+            foreach ($data['params'] as $fName => &$value) {
+                $field = $this->Table->getFields()[$fName];
+
+                switch ($field['type']) {
+                    case 'file':
+                        Field::init($field, $this->Table)->addViewValues('edit',
+                            $value,
+                            $this->Table->getTbl()['params'],
+                            $this->Table->getTbl());
+
+                        $value['v_'] = [];
+                        foreach ($value['v'] as $val) {
+                            $value['v_'][] = static::_getHttpFilePath() . $val['file'];
+                        }
+                        unset($val);
+                        break;
+                    case 'select':
+                        switch (strval($formats['p'][$fName]['viewtype'])) {
+                            case 'viewimage':
+                                $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
+                                $fileData = $Field->getPreviewHtml($data['params'][$fName]['v'],
+                                    $this->Table->getTbl()['params'],
+                                    $this->Table->getTbl(),
+                                    true);
+                                $data['params'][$fName]['v_'] = static::_getHttpFilePath() . ($fileData[$formats['p'][$fName]['viewdata']['picture_name'] ?? ''][1][0]['file'] ?? '');
+                                break 2;
+                            case "":
+                                Field::init($field, $this->Table)->addViewValues('edit',
+                                    $value,
+                                    $this->Table->getTbl()['params'],
+                                    $this->Table->getTbl());
+                                break;
+                            default:
+                                if ($isFirstLoad || $field['codeSelectIndividual']) {
+                                    $formats['p'][$fName]['selects'] = $this->getEditSelect(['field' => $fName, 'item' => array_map(function ($val) {
+                                        return $val['v'];
+                                    },
+                                        $this->Table->getTbl()['params'])],
+                                        '',
+                                        null,
+                                        $formats['p'][$fName]['viewtype']);
+
+                                }
+                        }
+
+                    default:
+                        Field::init($field, $this->Table)->addViewValues('edit',
+                            $value,
+                            $this->Table->getTbl()['params'],
+                            $this->Table->getTbl());
+                }
+            }
+            unset($value);
+        }
+
+        return $data;
+    }
+
     protected function getFiltersString()
     {
         $_filters = [];
@@ -987,11 +1066,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return ['ok' => true];
     }
 
-    public function getEditSelect()
+    public function getEditSelect($data = null, $q = null, $parentId = null)
     {
-        $data = json_decode($this->post['data'], true) ?? [];
-        $q = $this->post['q'] ?? '';
-        $parentId = $this->post['parentId'] ?? null;
+        $data = $data ?? json_decode($this->post['data'] ?? '[]', true) ?? [];
+        $q = $q ?? $this->post['q'] ?? '';
+        $parentId = $parentId ?? $this->post['parentId'] ?? null;
         $fields = $this->Table->getFields();
 
         if (!($field = $fields[$data['field']] ?? null)) {
@@ -1046,7 +1125,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     public function edit()
     {
-        $data = json_decode($this->post['data'], true);
+        $data = is_string($this->post['data']) ? json_decode($this->post['data'], true) : $this->post['data'];
 
         $filterFields = $this->Table->getVisibleFields('web', true)['filter'] ?? [];
         $filters = array_intersect_key($data["params"] ?? [], $filterFields);
@@ -1094,13 +1173,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         foreach ($fromString as $k => $v) {
             if (!key_exists($k, $vars) && !in_array(
-                $k,
-                $defs
-            )) {
+                    $k,
+                    $defs
+                )) {
                 if (key_exists('h', $this->Table->getTbl()['params'][$k]) || !key_exists(
-                    'code',
-                    $this->Table->getFields()[$k]
-                ) || ($this->Table->getFields()[$k]['codeOnlyInAdd'] ?? false)
+                        'code',
+                        $this->Table->getFields()[$k]
+                    ) || ($this->Table->getFields()[$k]['codeOnlyInAdd'] ?? false)
                 ) {
                     $vars[$k] = $v;
                 }
@@ -1142,9 +1221,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             throw new errorException('Поле [[' . $field . ']] в этой таблице не найдено');
         }
         if (empty($fields[$field]['showInWeb']) || (!empty($fields[$field]['logRoles']) && !array_intersect(
-            $fields[$field]['logRoles'],
-            $this->User->getRoles()
-        ))) {
+                    $fields[$field]['logRoles'],
+                    $this->User->getRoles()
+                ))) {
             throw new errorException('Доступ к логам запрещен');
         }
 
@@ -1245,9 +1324,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if ($field['type'] === 'button' || $field['category'] === 'filter') {
                     $field['logButton'] = false;
                 } elseif (!empty($field['logRoles']) && !array_intersect(
-                    $this->User->getRoles(),
-                    $field['logRoles']
-                )) {
+                        $this->User->getRoles(),
+                        $field['logRoles']
+                    )) {
                     $field['logButton'] = false;
                 }
             }
@@ -1273,10 +1352,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     = $fields['data_src']['jsonFields']['fieldSettings']['xmlRoles']['values']
                     = $fields['data_src']['jsonFields']['fieldSettings']['xmlEditRoles']['values']
                     = $this->Totum->getModel('roles')->getFieldIndexedById(
-                        'title',
-                        ['is_del' => false],
-                        'title->>\'v\''
-                    );
+                    'title',
+                    ['is_del' => false],
+                    'title->>\'v\''
+                );
                 $fields['data_src']['jsonFields']['fieldSettings']['selectTable']['values'] = $this->Totum->getModel('tables')->getFieldIndexedByField(
                     ['is_del' => false],
                     'name',
@@ -1340,9 +1419,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
 
         if ($field && key_exists(
-            $field,
-            $this->Table->getFields()
-        ) && (($fieldParams = $this->Table->getFields()[$field])['CodeActionOnClick'] ?? false)) {
+                $field,
+                $this->Table->getFields()
+            ) && (($fieldParams = $this->Table->getFields()[$field])['CodeActionOnClick'] ?? false)) {
             if (!is_a($this, WriteTableActions::class) && empty($fieldParams['clickableOnOnlyRead'])) {
                 throw new errorException('Действие недоступно при просмотре');
             }
@@ -1492,9 +1571,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         continue;
                     }
                     $return['chdata']['rows'][$id] = ($return['chdata']['rows'][$id] ?? []) + array_intersect_key(
-                        $tbl['rows'][$id],
-                        $changes
-                    ) + array_intersect_key($tbl['rows'][$id], $selectOrFormatColumns);
+                            $tbl['rows'][$id],
+                            $changes
+                        ) + array_intersect_key($tbl['rows'][$id], $selectOrFormatColumns);
                     foreach ($changes as $k => $null) {
                         if (is_array($return['chdata']['rows'][$id][$k])) {
                             $return['chdata']['rows'][$id][$k]['changed'] = true;
@@ -1521,9 +1600,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     foreach ($pageIds as $id) {
                         if (!empty($rows[$id])) {
                             $return['chdata']['rows'][$id] = ($return['chdata']['rows'][$id] ?? []) + array_intersect_key(
-                                $rows[$id],
-                                $selectOrFormatColumns
-                            );
+                                    $rows[$id],
+                                    $selectOrFormatColumns
+                                );
                         }
                     }
                 }
@@ -1574,9 +1653,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $deCryptFilters = $this->deCryptFilters($filtersString);
         foreach ($deCryptFilters as $fName => $val) {
             if (key_exists(
-                $fName,
-                $this->Table->getFields()
-            ) && $this->Table->getFields()[$fName]['category'] === 'filter') {
+                    $fName,
+                    $this->Table->getFields()
+                ) && $this->Table->getFields()[$fName]['category'] === 'filter') {
                 if ($this->Table->isField('editable', 'web', $this->Table->getFields()[$fName])) {
                     $permittedFilters[$fName] = $val;
                 }

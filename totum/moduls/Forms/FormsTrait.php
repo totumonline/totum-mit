@@ -557,8 +557,6 @@ trait FormsTrait
     {
         $host = $this->Totum->getConfig()->getFullHostName();
         $protocol = (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://');
-        $host = 'calc-totum.totum.online';
-        $protocol = 'https://';
         return $this->path ?? ($this->path = ($protocol . $host . '/fls/'));
 
     }

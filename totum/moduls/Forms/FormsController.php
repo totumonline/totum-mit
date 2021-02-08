@@ -12,7 +12,9 @@ use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\controllers\interfaceController;
+use totum\common\tableSaveException;
 use totum\common\Totum;
+use totum\common\WithPathMessTrait;
 use totum\config\Conf;
 use totum\config\totum\moduls\Forms\ReadTableActionsForms;
 use totum\config\totum\moduls\Forms\WriteTableActionsForms;
@@ -59,6 +61,7 @@ class FormsController extends interfaceController
      * @var array|object|null
      */
     private $INPUT;
+    private $totumTries=0;
 
     public function __construct(Conf $Config, $totumPrefix = '')
     {
@@ -78,17 +81,39 @@ class FormsController extends interfaceController
             $this->__addAnswerVar('path', $requestTable);
         } else {
             $this->isAjax = true;
+
+            $this->FormsTableData = $this->checkTableByStr($requestTable);
+            $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);
+
             try {
-                $this->FormsTableData = $this->checkTableByStr($requestTable);
-                $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);
                 if (!$User) {
                     throw new errorException('Ошибка авторизации пользователя форм');
                 }
-                $this->Totum = new Totum($this->Config, $User);
 
-                $this->answerVars=$this->actions($request);
-            } catch (errorException $e) {
-                $this->answerVars=['error' => $e->getMessage()];
+                try {
+                    $this->Totum = new Totum($this->Config, $User);
+                    $this->answerVars=$this->actions($request);
+                } catch (tableSaveException $exception) {
+                    if (++$this->totumTries < 5) {
+                        $this->Config = $this->Config->getClearConf();
+                        $this->Totum = new Totum($this->Config, $User);
+                        $this->answerVars=$this->actions($request);
+                    } else {
+                        throw new \Exception('Ошибка одновременного доступа к таблице');
+                    }
+                }
+            } catch (\Exception $e) {
+                if (!$this->isAjax) {
+                    static::$contentTemplate = $this->Config->getTemplatesDir() . '/__error.php';
+                }
+                $message = $e->getMessage();
+                if ($this->User && $this->User->isCreator() && key_exists(
+                    WithPathMessTrait::class,
+                    class_uses(get_class($e))
+                )) {
+                    $message .= "<br/>" . $e->getPathMess();
+                }
+                $this->__addAnswerVar('error', $message);
             }
             $action = "json";
         }

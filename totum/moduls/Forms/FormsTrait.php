@@ -65,7 +65,7 @@ trait FormsTrait
                     }*/
                 case 'param':
 
-                    if ($field["tableBreakBefore"] && $field["sectionTitle"] ?? false) {
+                    if ($field["tableBreakBefore"] && ($field["sectionTitle"] ?? false)) {
                         $name = null;
                         if (preg_match('/\*\*.*?name\s*:\s*([a-z_\-0-9]+)/i', $field['sectionTitle'], $matches)) {
                             $name = $matches[1];
@@ -146,6 +146,7 @@ trait FormsTrait
 
         $formats = $this->getTableFormats(false, $this->Table->getTbl()['rows']);
         $data['params'] = array_intersect_key($this->Table->getTbl()['params'], $formats['p']);
+
         $data['rows'] = [];
         foreach ($this->Table->getTbl()['rows'] as $row) {
             if (!empty($row['is_del'])) continue;
@@ -214,7 +215,7 @@ trait FormsTrait
                         unset($val);
                         break;
                     case 'select':
-                        switch (strval($formats['p'][$fName]['viewtype'])) {
+                        switch (strval($formats['p'][$fName]['viewtype'] ?? null)) {
                             case 'viewimage':
                                 $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
                                 $fileData = $Field->getPreviewHtml($data['params'][$fName]['v'],
@@ -514,7 +515,7 @@ trait FormsTrait
                                     continue;
                                 }
 
-                                if ($sectionStatus) {
+                                if ($sectionStatus && ($this->Table->getFields()[$fieldName]['format'] ?? null)) {
                                     $FieldFormat = $this->CalcFieldFormat[$fieldName]
                                         ?? ($this->CalcFieldFormat[$fieldName]
                                             = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
@@ -534,6 +535,7 @@ trait FormsTrait
                                 }
                             }
                         }
+
                         break;
                 }
             }

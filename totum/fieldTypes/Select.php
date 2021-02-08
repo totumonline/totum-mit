@@ -165,7 +165,7 @@ class Select extends Field
             foreach ($row['__fields'] ?? [] as $name => $field) {
                 $format = 'string';
                 $elseData = [];
-                $val = $row[$name];
+                $val = $row[$name] ?? '';
 
                 if ($name === 'id') {
                     $field = ['title' => 'id', 'type'=>'number'];

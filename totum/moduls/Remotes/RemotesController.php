@@ -44,7 +44,7 @@ class RemotesController extends Controller
                             [
                                 'get' => $request->getQueryParams() ?? [],
                                 'post' => $request->getParsedBody() ?? [],
-                                'input' => $request->getBody()->getContents(),
+                                'input' => (string)$request->getBody(),
                                 'headers' => ($headers = $request->getHeaders()) ? $headers : []
                             ]
                         );

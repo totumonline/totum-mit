@@ -100,8 +100,7 @@ class FormsController extends interfaceController
     protected function actions(ServerRequestInterface $request)
     {
         $this->loadTable($this->FormsTableData, $request);
-        $parsedRequest = json_decode($request->getBody()->getContents(), true);
-
+        $parsedRequest = json_decode((string)$request->getBody(), true);
         try {
             if (!($method = $parsedRequest['method'] ?? '')) {
                 throw new errorException('Ошибка. Не указан метод');

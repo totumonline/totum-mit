@@ -33,7 +33,7 @@ trait FormsTrait
     public function __construct(ServerRequestInterface $Request, string $modulePath, aTable $Table = null, Totum $Totum = null)
     {
         parent::__construct($Request, $modulePath, $Table, $Totum);
-        $this->post = json_decode($Request->getBody()->getContents(), true);
+        $this->post = json_decode((string)$Request->getBody(), true);
 
         $visibleFields = $this->Table->getVisibleFields('web', false);
         $clientFields = $this->fieldsForClient($visibleFields);

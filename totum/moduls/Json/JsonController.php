@@ -109,7 +109,7 @@ class JsonController extends Controller
     {
         $this->modulePath = $this->totumPrefix . '/Json/';
         $this->inModuleUri = substr($request->getRequestTarget(), strlen($this->modulePath) - 1);
-        $jsonString = $request->getBody()->getContents();
+        $jsonString =(string)$request->getBody();
 
         try {
             $this->arrayIn = json_decode($jsonString, true) ?? json_decode(

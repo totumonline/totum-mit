@@ -187,7 +187,7 @@ class AnController extends interfaceController
                                 $add_tbl_data["params"]['h_post'] = $request->getParsedBody();
                             }
                             if (key_exists('h_input', $this->Table->getFields())) {
-                                $add_tbl_data["params"]['h_input'] = $request->getBody()->getContents();
+                                $add_tbl_data["params"]['h_input'] = (string)$request->getBody();
                             }
                             if (!empty($d = ($this->Request->getQueryParams()['d']??null)) && ($d = Crypt::getDeCrypted(
                                 $d,

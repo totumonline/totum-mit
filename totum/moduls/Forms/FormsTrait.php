@@ -6,8 +6,10 @@ namespace totum\config\totum\moduls\Forms;
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculcateFormat;
+use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Totum;
+use totum\fieldTypes\Select;
 use totum\moduls\Table\WriteTableActions;
 use totum\tableTypes\aTable;
 
@@ -118,7 +120,7 @@ trait FormsTrait
         if ($this->Table->getChangeIds()['deleted']) {
             $return['chdata']['deleted'] = array_keys($this->Table->getChangeIds()['deleted']);
         }
-        $modify = $data['modify'];
+        $modify = $data['modify'] ?? [];
         unset($modify['params']);
 
 
@@ -140,6 +142,7 @@ trait FormsTrait
 
         return $return;
     }
+
     public function getTableData($withRecalculate = true)
     {
         $result = parent::getFullTableData($withRecalculate);
@@ -259,6 +262,11 @@ trait FormsTrait
 
     function getEditSelect($data = null, $q = null, $parentId = null, $type = null)
     {
+        $data = $data ?? (is_string($this->post['data']) ? (json_decode($this->post['data'] ?? '[]',
+                    true) ?? []) : $this->post['data']);
+        $q = $q ?? $this->post['q'] ?? '';
+        $parentId = $parentId ?? $this->post['parentId'] ?? null;
+
         $fields = $this->Table->getFields();
 
         if (!($field = $fields[$data['field']] ?? null))
@@ -314,7 +322,7 @@ trait FormsTrait
                         foreach ($indexed[$val][array_key_last($indexed[$val])] as $name => &$vls) {
                             switch ($vls[2]) {
                                 case 'file':
-                                    foreach ($vls[1] as &$f) {
+                                    foreach ($vls[1]??[] as &$f) {
                                         $f = $this->getHttpFilePath() . $f['file'];
                                     }
                                     unset($f);

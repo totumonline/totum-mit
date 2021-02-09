@@ -50,7 +50,7 @@
                 styles.href = cssSrc;
                 document.head.append(styles);
             }
-        })("/js/forms.js?" + num, "/css/forms.css?" + num, "test-form", [], window.location.search, "input_text");
+        })("/js/forms.js?" + num, "/css/forms.css?" + num, "test-form", [], Object.fromEntries(new URLSearchParams(window.location.search)), "input_text");
     </script>
 </div>
 </body>

@@ -14,12 +14,10 @@ use totum\common\Field;
 use totum\common\controllers\interfaceController;
 use totum\common\tableSaveException;
 use totum\common\Totum;
-use totum\common\WithPathMessTrait;
 use totum\config\Conf;
 use totum\config\totum\moduls\Forms\ReadTableActionsForms;
 use totum\config\totum\moduls\Forms\WriteTableActionsForms;
 use totum\fieldTypes\Select;
-use totum\models\Table;
 use totum\moduls\Table\Actions;
 use totum\tableTypes\aTable;
 use totum\tableTypes\tmpTable;
@@ -61,13 +59,13 @@ class FormsController extends interfaceController
      * @var array|object|null
      */
     private $INPUT;
-    private $totumTries=0;
+    private $totumTries = 0;
 
     public function __construct(Conf $Config, $totumPrefix = '')
     {
         $this->applyAllOrigins();
         parent::__construct($Config, $totumPrefix);
-        static::$pageTemplate=__DIR__.'/__template.php';
+        static::$pageTemplate = __DIR__ . '/__template.php';
     }
 
     public function doIt(ServerRequestInterface $request, bool $output)
@@ -82,22 +80,22 @@ class FormsController extends interfaceController
         } else {
             $this->isAjax = true;
 
-            $this->FormsTableData = $this->checkTableByStr($requestTable);
-            $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);
-
             try {
+                $this->FormsTableData = $this->checkTableByStr($requestTable);
+                $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);
+
                 if (!$User) {
                     throw new errorException('Ошибка авторизации пользователя форм');
                 }
 
                 try {
                     $this->Totum = new Totum($this->Config, $User);
-                    $this->answerVars=$this->actions($request);
+                    $this->answerVars = $this->actions($request);
                 } catch (tableSaveException $exception) {
                     if (++$this->totumTries < 5) {
                         $this->Config = $this->Config->getClearConf();
                         $this->Totum = new Totum($this->Config, $User);
-                        $this->answerVars=$this->actions($request);
+                        $this->answerVars = $this->actions($request);
                     } else {
                         throw new \Exception('Ошибка одновременного доступа к таблице');
                     }
@@ -107,12 +105,6 @@ class FormsController extends interfaceController
                     static::$contentTemplate = $this->Config->getTemplatesDir() . '/__error.php';
                 }
                 $message = $e->getMessage();
-                if ($this->User && $this->User->isCreator() && key_exists(
-                    WithPathMessTrait::class,
-                    class_uses(get_class($e))
-                )) {
-                    $message .= "<br/>" . $e->getPathMess();
-                }
                 $this->__addAnswerVar('error', $message);
             }
             $action = "json";
@@ -125,6 +117,7 @@ class FormsController extends interfaceController
     protected function actions(ServerRequestInterface $request)
     {
         $this->loadTable($this->FormsTableData, $request);
+
         $parsedRequest = json_decode((string)$request->getBody(), true);
         try {
             if (!($method = $parsedRequest['method'] ?? '')) {
@@ -252,8 +245,8 @@ class FormsController extends interfaceController
     private static function _getHttpFilePath()
     {
         return static::$path ?? (static::$path = (
-            (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://') . \totum\config\Conf::getFullHostName() . '/fls/'
-        ));
+                (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://') . \totum\config\Conf::getFullHostName() . '/fls/'
+            ));
     }
 
     public function actionMain()
@@ -272,8 +265,9 @@ class FormsController extends interfaceController
                     'field' => ['table_name', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code']],
                 'row'
             );
+
             if (!$tableData) {
-                $this->__addAnswerVar('error', 'Доступ к таблице запрещен');
+                throw new errorException('Доступ к таблице запрещен');
             } else {
                 return $tableData;
             }
@@ -288,9 +282,9 @@ class FormsController extends interfaceController
         $this->CalcRowFormat = new CalculcateFormat($this->Table->getTableRow()['row_format']);
 
         if ($this->FormsTableData['section_statuses_code'] && !preg_match(
-            '/^\s*=\s*:\s*$/',
-            $this->FormsTableData['section_statuses_code']
-        )) {
+                '/^\s*=\s*:\s*$/',
+                $this->FormsTableData['section_statuses_code']
+            )) {
             $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
         }
     }
@@ -303,10 +297,10 @@ class FormsController extends interfaceController
         }
 
         $extradata = null;
-
-        $extradata = $request->getParsedBody()['sess_hash'] ?? $request->getAttribute('sess_hash');
+        $post = json_decode((string)$request->getBody(), true) ?? [];
+        $extradata = $extradata['sess_hash'] ?? null;
         if ($tableRow['type'] === 'tmp' && $extradata) {
-            if (!tmpTable::checkTableExists($tableRow['name'], $extradata)) {
+            if (!tmpTable::checkTableExists($tableRow['name'], $extradata, $this->Totum)) {
                 $extradata = null;
             }
         }
@@ -319,18 +313,18 @@ class FormsController extends interfaceController
             $add_tbl_data = [];
             $add_tbl_data["params"] = [];
             if (key_exists('h_get', $this->Table->getFields())) {
-                $add_tbl_data["params"]['h_get'] = $_POST['get'] ?? [];
+                $add_tbl_data["params"]['h_get'] = $post['data']['get'] ?? [];
             }
             if (key_exists('h_post', $this->Table->getFields())) {
-                $add_tbl_data["params"]['h_post'] = $_POST['post'] ?? [];
+                $add_tbl_data["params"]['h_post'] = $post['data']['post'] ?? [];
             }
             if (key_exists('h_input', $this->Table->getFields())) {
-                $add_tbl_data["params"]['h_input'] = $_POST['input'] ?? '';
+                $add_tbl_data["params"]['h_input'] = $post['data']['input'] ?? '';
             }
             if (!empty($_GET['d']) && ($d = Crypt::getDeCrypted(
-                $_GET['d'],
-                false
-            )) && ($d = json_decode($d, true))) {
+                    $_GET['d'],
+                    false
+                )) && ($d = json_decode($d, true))) {
                 if (!empty($d['d'])) {
                     $add_tbl_data["tbl"] = $d['d'];
                 }
@@ -355,27 +349,27 @@ class FormsController extends interfaceController
         $tableRow = $this->Table->getTableRow();
 
         if ($add && !Table::isUserCanAction(
-            'insert',
-            $tableRow
-        )) {
+                'insert',
+                $tableRow
+            )) {
             throw new errorException('Добавление в эту таблицу вам запрещено');
         }
         if ($remove && !Table::isUserCanAction(
-            'delete',
-            $tableRow
-        )) {
+                'delete',
+                $tableRow
+            )) {
             throw new errorException('Удаление из этой таблицы вам запрещено');
         }
         if ($duplicate && !Table::isUserCanAction(
-            'duplicate',
-            $tableRow
-        )) {
+                'duplicate',
+                $tableRow
+            )) {
             throw new errorException('Дублирование в этой таблице вам запрещено');
         }
         if ($reorder && !Table::isUserCanAction(
-            'reorder',
-            $tableRow
-        )) {
+                'reorder',
+                $tableRow
+            )) {
             throw new errorException('Сортировка в этой таблице вам запрещена');
         }
 
@@ -420,9 +414,9 @@ class FormsController extends interfaceController
         }
 
         if (!empty($data['addAfter']) && in_array(
-            $data['addAfter'],
-            $duplicate['ids']
-        ) && !(empty($inVars['duplicate']))) {
+                $data['addAfter'],
+                $duplicate['ids']
+            ) && !(empty($inVars['duplicate']))) {
             $inVars['addAfter'] = $data['addAfter'];
         }
 
@@ -469,9 +463,9 @@ class FormsController extends interfaceController
             $clickFieldName = array_key_first($click[$clickItem]);
             if ($clickItem === 'params') {
                 if (!key_exists(
-                    $clickFieldName,
-                    $fieldFormatEditable
-                ) && !($this->clientFields[$clickFieldName]['pressableOnOnlyRead'] ?? false)) {
+                        $clickFieldName,
+                        $fieldFormatEditable
+                    ) && !($this->clientFields[$clickFieldName]['pressableOnOnlyRead'] ?? false)) {
                     throw new errorException('Таблица была изменена. Обновите таблицу для проведения изменений');
                 }
                 $row = $this->Table->getTbl()['params'];
@@ -578,9 +572,9 @@ class FormsController extends interfaceController
         /*2-edit; 1- view; 0 - hidden*/
         $getSectionEditType = function ($sectionName) use ($tableFormats) {
             if (!$sectionName || !key_exists(
-                $sectionName,
-                $tableFormats['sections']
-            )) {
+                    $sectionName,
+                    $tableFormats['sections']
+                )) {
                 return 2;
             }
             switch ($tableFormats['sections'][$sectionName]['status'] ?? null) {
@@ -897,21 +891,21 @@ class FormsController extends interfaceController
     {
         $result = [];
         $result['deleting'] = !$this->onlyRead && Table::isUserCanAction(
-            'delete',
-            $this->Table->getTableRow()
-        );
+                'delete',
+                $this->Table->getTableRow()
+            );
         $result['adding'] = !$this->onlyRead && Table::isUserCanAction(
-            'insert',
-            $this->Table->getTableRow()
-        );
+                'insert',
+                $this->Table->getTableRow()
+            );
         $result['duplicating'] = !$this->onlyRead && Table::isUserCanAction(
-            'duplicate',
-            $this->Table->getTableRow()
-        );
+                'duplicate',
+                $this->Table->getTableRow()
+            );
         $result['sorting'] = !$this->onlyRead && Table::isUserCanAction(
-            'reorder',
-            $this->Table->getTableRow()
-        );
+                'reorder',
+                $this->Table->getTableRow()
+            );
         $result['editing'] = !$this->onlyRead;
         return $result;
     }
@@ -940,7 +934,6 @@ class FormsController extends interfaceController
     /**
      * @param ServerRequestInterface $request
      * @param string $method
-     * @return AdminTableActions|ReadTableActions|WriteTableActions
      * @throws errorException
      */
     protected function getTableActions(ServerRequestInterface $request, string $method)

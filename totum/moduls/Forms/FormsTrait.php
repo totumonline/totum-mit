@@ -15,7 +15,6 @@ use totum\tableTypes\aTable;
 
 trait FormsTrait
 {
-
     private $path;
     private $sections;
     /**
@@ -93,17 +92,15 @@ trait FormsTrait
 
         $this->CalcTableFormat = new CalculcateFormat($this->Table->getTableRow()['table_format']);
         $this->CalcRowFormat = new CalculcateFormat($this->Table->getTableRow()['row_format']);
-
-
     }
 
     public function addFormsTableData($FormsTableData)
     {
         $this->FormsTableData = $FormsTableData;
         if ($this->FormsTableData['section_statuses_code'] && !preg_match(
-                '/^\s*=\s*:\s*$/',
-                $this->FormsTableData['section_statuses_code']
-            )) {
+            '/^\s*=\s*:\s*$/',
+            $this->FormsTableData['section_statuses_code']
+        )) {
             $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
         }
     }
@@ -113,8 +110,10 @@ trait FormsTrait
         $return['chdata']['rows'] = [];
 
         if ($this->Table->getChangeIds()['added']) {
-            $return['chdata']['rows'] = array_intersect_key($this->Table->getTbl()['rows'],
-                $this->Table->getChangeIds()['added']);
+            $return['chdata']['rows'] = array_intersect_key(
+                $this->Table->getTbl()['rows'],
+                $this->Table->getChangeIds()['added']
+            );
         }
 
         if ($this->Table->getChangeIds()['deleted']) {
@@ -128,7 +127,9 @@ trait FormsTrait
 
         if (($modify += $this->Table->getChangeIds()['changed']) && $fieldFormatS['r']) {
             foreach ($modify as $id => $changes) {
-                if (empty($this->Table->getTbl()['rows'][$id]) || !empty($fieldFormatS['r'][$id]['hidden'])) continue;
+                if (empty($this->Table->getTbl()['rows'][$id]) || !empty($fieldFormatS['r'][$id]['hidden'])) {
+                    continue;
+                }
                 $return['chdata']['rows'][$id] = $this->Table->getTbl()['rows'][$id];
                 $return['chdata']['rows'][$id]['id'] = $id;
             }
@@ -137,6 +138,8 @@ trait FormsTrait
         $return['chdata']['params'] = array_intersect_key($this->Table->getTbl()['params'], $fieldFormatS['p']);
         $return['chdata'] = $this->getValuesForClient($return['chdata'], $fieldFormatS);
         $return['chdata']['f'] = $fieldFormatS;
+
+        $return['chdata']['sess_hash'] = $this->Table->getTableRow()['sess_hash'];
 
         $return['updated'] = $this->Table->getSavedUpdated();
 
@@ -152,7 +155,9 @@ trait FormsTrait
 
         $data['rows'] = [];
         foreach ($this->Table->getTbl()['rows'] as $row) {
-            if (!empty($row['is_del'])) continue;
+            if (!empty($row['is_del'])) {
+                continue;
+            }
             if (key_exists($row['id'], $formats['r'])) {
                 $newRow = ['id' => $row['id']];
                 foreach ($row as $k => $v) {
@@ -180,8 +185,7 @@ trait FormsTrait
         return $result;
     }
 
-    protected
-    function getValuesForClient($data, &$formats, $isFirstLoad = false)
+    protected function getValuesForClient($data, &$formats, $isFirstLoad = false)
     {
         /*foreach (($data['rows'] ?? []) as $i => $row) {
 
@@ -206,10 +210,12 @@ trait FormsTrait
 
                 switch ($field['type']) {
                     case 'file':
-                        Field::init($field, $this->Table)->addViewValues('edit',
+                        Field::init($field, $this->Table)->addViewValues(
+                            'edit',
                             $value,
                             $this->Table->getTbl()['params'],
-                            $this->Table->getTbl());
+                            $this->Table->getTbl()
+                        );
 
                         $value['v_'] = [];
                         foreach ($value['v'] as $val) {
@@ -221,36 +227,46 @@ trait FormsTrait
                         switch (strval($formats['p'][$fName]['viewtype'] ?? null)) {
                             case 'viewimage':
                                 $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
-                                $fileData = $Field->getPreviewHtml($data['params'][$fName]['v'],
+                                $fileData = $Field->getPreviewHtml(
+                                    $data['params'][$fName]['v'],
                                     $this->Table->getTbl()['params'],
                                     $this->Table->getTbl(),
-                                    true);
+                                    true
+                                );
                                 $data['params'][$fName]['v_'] = $this->getHttpFilePath() . ($fileData[$formats['p'][$fName]['viewdata']['picture_name'] ?? ''][1][0]['file'] ?? '');
                                 break 2;
                             case "":
-                                Field::init($field, $this->Table)->addViewValues('edit',
+                                Field::init($field, $this->Table)->addViewValues(
+                                    'edit',
                                     $value,
                                     $this->Table->getTbl()['params'],
-                                    $this->Table->getTbl());
+                                    $this->Table->getTbl()
+                                );
                                 break;
                             default:
                                 if ($isFirstLoad || $field['codeSelectIndividual']) {
-                                    $formats['p'][$fName]['selects'] = $this->getEditSelect(['field' => $fName, 'item' => array_map(function ($val) {
+                                    $formats['p'][$fName]['selects'] = $this->getEditSelect(
+                                        ['field' => $fName, 'item' => array_map(
+                                        function ($val) {
                                         return $val['v'];
                                     },
-                                        $this->Table->getTbl()['params'])],
+                                        $this->Table->getTbl()['params']
+                                    )],
                                         '',
                                         null,
-                                        $formats['p'][$fName]['viewtype']);
-
+                                        $formats['p'][$fName]['viewtype']
+                                    );
                                 }
                         }
 
+                        // no break
                     default:
-                        Field::init($field, $this->Table)->addViewValues('edit',
+                        Field::init($field, $this->Table)->addViewValues(
+                            'edit',
                             $value,
                             $this->Table->getTbl()['params'],
-                            $this->Table->getTbl());
+                            $this->Table->getTbl()
+                        );
                 }
             }
             unset($value);
@@ -260,19 +276,26 @@ trait FormsTrait
         return $data;
     }
 
-    function getEditSelect($data = null, $q = null, $parentId = null, $type = null)
+    public function getEditSelect($data = null, $q = null, $parentId = null, $type = null)
     {
-        $data = $data ?? (is_string($this->post['data']) ? (json_decode($this->post['data'] ?? '[]',
-                    true) ?? []) : $this->post['data']);
+        $data = $data ?? (is_string($this->post['data']) ? (json_decode(
+            $this->post['data'] ?? '[]',
+            true
+        ) ?? []) : $this->post['data']);
         $q = $q ?? $this->post['q'] ?? '';
         $parentId = $parentId ?? $this->post['parentId'] ?? null;
 
         $fields = $this->Table->getFields();
 
-        if (!($field = $fields[$data['field']] ?? null))
+        if (!($field = $fields[$data['field']] ?? null)) {
             throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
-        if (!in_array($field['type'],
-            ['select', 'tree'])) throw new errorException('Ошибка - поле не типа select/tree');
+        }
+        if (!in_array(
+            $field['type'],
+            ['select', 'tree']
+        )) {
+            throw new errorException('Ошибка - поле не типа select/tree');
+        }
 
         $this->Table->loadDataRow();
 
@@ -293,9 +316,11 @@ trait FormsTrait
         if ($type) {
             $list = [];
             $indexed = [];
-            foreach ($Field->calculateSelectListWithPreviews($row[$field['name']],
+            foreach ($Field->calculateSelectListWithPreviews(
+                $row[$field['name']],
                 $row,
-                $this->Table->getTbl()) as $val => $data) {
+                $this->Table->getTbl()
+            ) as $val => $data) {
                 if (!empty($data['2'])) {
                     $data['2'] = $data['2']();
                 }
@@ -304,34 +329,38 @@ trait FormsTrait
 
                 $list[] = $val;
                 $indexed[$val] = $data;
-                switch ($type) {
-                    case 'checkboxpicture':
-                        foreach ($indexed[$val][array_key_last($indexed[$val])] as $kPreview => $vls) {
-                            switch ($vls[2]) {
-                                case 'file':
-                                    $pVal = $this->getHttpFilePath() . $vls[1][0]['file'];
-                                    break;
-                                default:
-                                    $pVal = $vls[1];
-                            }
-                            $indexed[$val][array_key_last($indexed[$val])][$kPreview] = $pVal;
-                        }
 
-                        break;
-                    default:
-                        foreach ($indexed[$val][array_key_last($indexed[$val])] as $name => &$vls) {
-                            switch ($vls[2]) {
-                                case 'file':
-                                    foreach ($vls[1]??[] as &$f) {
-                                        $f = $this->getHttpFilePath() . $f['file'];
-                                    }
-                                    unset($f);
-                                    break;
+                $previewIndex = array_key_last($indexed[$val]);
+                if ($previewIndex === 4) {
+                    switch ($type) {
+                        case 'checkboxpicture':
+                            foreach ($indexed[$val][$previewIndex] as $kPreview => $vls) {
+                                switch ($vls[2]) {
+                                    case 'file':
+                                        $pVal = $this->getHttpFilePath() . $vls[1][0]['file'];
+                                        break;
+                                    default:
+                                        $pVal = $vls[1];
+                                }
+                                $indexed[$val][$previewIndex][$kPreview] = $pVal;
                             }
-                            array_unshift($vls, $name);
-                        }
-                        $indexed[$val][array_key_last($indexed[$val])] = array_values($indexed[$val][array_key_last($indexed[$val])]);
-                        unset($vls);
+
+                            break;
+                        default:
+                            foreach ($indexed[$val][$previewIndex] as $name => &$vls) {
+                                switch ($vls[2]) {
+                                    case 'file':
+                                        foreach ($vls[1] ?? [] as &$f) {
+                                            $f = $this->getHttpFilePath() . $f['file'];
+                                        }
+                                        unset($f);
+                                        break;
+                                }
+                                array_unshift($vls, $name);
+                            }
+                            $indexed[$val][$previewIndex] = array_values($indexed[$val][$previewIndex] ?? []);
+                            unset($vls);
+                    }
                 }
             }
 
@@ -382,9 +411,9 @@ trait FormsTrait
         /*2-edit; 1- view; 0 - hidden*/
         $getSectionEditType = function ($sectionName) use ($tableFormats) {
             if (!$sectionName || !key_exists(
-                    $sectionName,
-                    $tableFormats['sections']
-                )) {
+                $sectionName,
+                $tableFormats['sections']
+            )) {
                 return 2;
             }
             switch ($tableFormats['sections'][$sectionName]['status'] ?? null) {
@@ -558,7 +587,6 @@ trait FormsTrait
         $host = $this->Totum->getConfig()->getFullHostName();
         $protocol = (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://');
         return $this->path ?? ($this->path = ($protocol . $host . '/fls/'));
-
     }
 
     protected function getTableControls()

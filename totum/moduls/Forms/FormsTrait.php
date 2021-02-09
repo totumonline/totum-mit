@@ -98,9 +98,9 @@ trait FormsTrait
     {
         $this->FormsTableData = $FormsTableData;
         if ($this->FormsTableData['section_statuses_code'] && !preg_match(
-            '/^\s*=\s*:\s*$/',
-            $this->FormsTableData['section_statuses_code']
-        )) {
+                '/^\s*=\s*:\s*$/',
+                $this->FormsTableData['section_statuses_code']
+            )) {
             $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
         }
     }
@@ -247,11 +247,11 @@ trait FormsTrait
                                 if ($isFirstLoad || $field['codeSelectIndividual']) {
                                     $formats['p'][$fName]['selects'] = $this->getEditSelect(
                                         ['field' => $fName, 'item' => array_map(
-                                        function ($val) {
-                                        return $val['v'];
-                                    },
-                                        $this->Table->getTbl()['params']
-                                    )],
+                                            function ($val) {
+                                                return $val['v'];
+                                            },
+                                            $this->Table->getTbl()['params']
+                                        )],
                                         '',
                                         null,
                                         $formats['p'][$fName]['viewtype']
@@ -259,7 +259,7 @@ trait FormsTrait
                                 }
                         }
 
-                        // no break
+                    // no break
                     default:
                         Field::init($field, $this->Table)->addViewValues(
                             'edit',
@@ -279,11 +279,12 @@ trait FormsTrait
     public function getEditSelect($data = null, $q = null, $parentId = null, $type = null)
     {
         $data = $data ?? (is_string($this->post['data']) ? (json_decode(
-            $this->post['data'] ?? '[]',
-            true
-        ) ?? []) : $this->post['data']);
-        $q = $q ?? $this->post['q'] ?? '';
-        $parentId = $parentId ?? $this->post['parentId'] ?? null;
+                    $this->post['data'] ?? '[]',
+                    true
+                ) ?? []) : $this->post['data']);
+        $q = $q ?? $data['q'] ?? '';
+        $parentId = $parentId ?? $data['parentId'] ?? null;
+        $type = $type ?? $data['viewtype'] ?? null;
 
         $fields = $this->Table->getFields();
 
@@ -350,10 +351,12 @@ trait FormsTrait
                             foreach ($indexed[$val][$previewIndex] as $name => &$vls) {
                                 switch ($vls[2]) {
                                     case 'file':
-                                        foreach ($vls[1] ?? [] as &$f) {
-                                            $f = $this->getHttpFilePath() . $f['file'];
+                                        if ($vls[1] ?? false) {
+                                            foreach ($vls[1] as &$f) {
+                                                $f = $this->getHttpFilePath() . $f['file'];
+                                            }
+                                            unset($f);
                                         }
-                                        unset($f);
                                         break;
                                 }
                                 array_unshift($vls, $name);
@@ -411,9 +414,9 @@ trait FormsTrait
         /*2-edit; 1- view; 0 - hidden*/
         $getSectionEditType = function ($sectionName) use ($tableFormats) {
             if (!$sectionName || !key_exists(
-                $sectionName,
-                $tableFormats['sections']
-            )) {
+                    $sectionName,
+                    $tableFormats['sections']
+                )) {
                 return 2;
             }
             switch ($tableFormats['sections'][$sectionName]['status'] ?? null) {

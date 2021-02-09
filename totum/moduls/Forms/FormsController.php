@@ -145,6 +145,7 @@ class FormsController extends interfaceController
             if ($links = $this->Totum->getInterfaceDatas()) {
                 $result['interfaceDatas'] = $links;
             }
+
             $this->Totum->transactionCommit();
         } catch (errorException $exception) {
             $result = ['error' => $exception->getMessage() . ($this->Totum->getUser()->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
@@ -298,7 +299,7 @@ class FormsController extends interfaceController
 
         $extradata = null;
         $post = json_decode((string)$request->getBody(), true) ?? [];
-        $extradata = $extradata['sess_hash'] ?? null;
+        $extradata = $post['sess_hash'] ?? null;
         if ($tableRow['type'] === 'tmp' && $extradata) {
             if (!tmpTable::checkTableExists($tableRow['name'], $extradata, $this->Totum)) {
                 $extradata = null;

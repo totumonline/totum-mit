@@ -246,8 +246,8 @@ class FormsController extends interfaceController
     private static function _getHttpFilePath()
     {
         return static::$path ?? (static::$path = (
-                (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://') . \totum\config\Conf::getFullHostName() . '/fls/'
-            ));
+            (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://') . \totum\config\Conf::getFullHostName() . '/fls/'
+        ));
     }
 
     public function actionMain()
@@ -283,9 +283,9 @@ class FormsController extends interfaceController
         $this->CalcRowFormat = new CalculcateFormat($this->Table->getTableRow()['row_format']);
 
         if ($this->FormsTableData['section_statuses_code'] && !preg_match(
-                '/^\s*=\s*:\s*$/',
-                $this->FormsTableData['section_statuses_code']
-            )) {
+            '/^\s*=\s*:\s*$/',
+            $this->FormsTableData['section_statuses_code']
+        )) {
             $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
         }
     }
@@ -322,10 +322,11 @@ class FormsController extends interfaceController
             if (key_exists('h_input', $this->Table->getFields())) {
                 $add_tbl_data["params"]['h_input'] = $post['data']['input'] ?? '';
             }
-            if (!empty($_GET['d']) && ($d = Crypt::getDeCrypted(
-                    $_GET['d'],
-                    false
-                )) && ($d = json_decode($d, true))) {
+            
+            if (!empty($post['data']['get']['d']) && ($d = Crypt::getDeCrypted(
+                $post['data']['get']['d'],
+                $this->Config->getCryptSolt()
+            )) && ($d = json_decode($d, true))) {
                 if (!empty($d['d'])) {
                     $add_tbl_data["tbl"] = $d['d'];
                 }

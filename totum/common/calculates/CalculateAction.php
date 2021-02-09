@@ -27,7 +27,7 @@ class CalculateAction extends Calculate
     protected function formStartSections()
     {
         foreach ($this->code as $k => $v) {
-            if (preg_match('/^([a-z]*)([\d]*)=$/', $k, $matches) && (!$matches[1] || $matches[2]!=="")) {
+            if (preg_match('/^([a-z]*)([\d]*)=$/', $k, $matches) && (!$matches[1] || $matches[2] !== "")) {
                 $this->allStartSections[$matches[1]][$k] = $v;
                 unset($this->code[$k]);
             }
@@ -217,7 +217,11 @@ class CalculateAction extends Calculate
             default:
                 throw new errorException('Системная ошибка. Не указан тип действия');
         }
-        $this->startSections = array_merge($this->allStartSections[''] ?? [], $this->allStartSections['a'] ?? [], $this->allStartSections[$s] ?? []);
+        $this->startSections = array_merge(
+            $this->allStartSections[''] ?? [],
+            $this->allStartSections['a'] ?? [],
+            $this->allStartSections[$s] ?? []
+        );
         return parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
     }
 
@@ -718,6 +722,24 @@ class CalculateAction extends Calculate
             ));
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
+    }
+
+    protected function funcEncriptedFormParams($params)
+    {
+        $params = $this->getParamsArray($params);
+        $d = [];
+        if (!empty($params['data'])) {
+            $d['d'] = $params['data'];
+        }
+        if (!empty($params['params'])) {
+            $d['p'] = $params['params'];
+        }
+        if ($d) {
+            return 'd=' . urlencode(Crypt::getCrypted(
+                json_encode($d, JSON_UNESCAPED_UNICODE),
+                $this->Table->getTotum()->getConfig()->getCryptSolt()
+            ));
+        }
     }
 
     protected function funcLinkToDataText($params)

@@ -156,100 +156,6 @@ class FormsController extends interfaceController
         return $result;
     }
 
-    public function getEditSelect($data, $q, $parentId, $viewtype = null)
-    {
-        $type = $viewtype;
-
-        $fields = $this->Table->getFields();
-
-        if (!($field = $fields[$data['field']] ?? null)) {
-            throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
-        }
-        if (!in_array(
-            $field['type'],
-            ['select', 'tree']
-        )) {
-            throw new errorException('Ошибка - поле не типа select/tree');
-        }
-
-        $this->Table->loadDataRow();
-
-
-        $row = $data['item'];
-        foreach ($row as $k => &$v) {
-            if ($k !== 'id') {
-                $v = ['v' => $v];
-            }
-        }
-
-        $row = $row + $this->Table->getTbl()['params'];
-
-
-        /** @var Select $Field */
-        $Field = Field::init($field, $this->Table);
-
-        if ($type) {
-            $list = [];
-            $indexed = [];
-            foreach ($Field->calculateSelectListWithPreviews(
-                $row[$field['name']],
-                $row,
-                $this->Table->getTbl()
-            ) as $val => $data) {
-                if (!empty($data['2'])) {
-                    $data['2'] = $data['2']();
-                }
-
-                $val = strval($val);
-
-                $list[] = $val;
-                $indexed[$val] = $data;
-                switch ($type) {
-                    case 'checkboxpicture':
-                        foreach ($indexed[$val][array_key_last($indexed[$val])] as $kPreview => $vls) {
-                            switch ($vls[2]) {
-                                case 'file':
-                                    $pVal = $this->_getHttpFilePath() . $vls[1][0]['file'];
-                                    break;
-                                default:
-                                    $pVal = $vls[1];
-                            }
-                            $indexed[$val][array_key_last($indexed[$val])][$kPreview] = $pVal;
-                        }
-
-                        break;
-                    default:
-                        foreach ($indexed[$val][array_key_last($indexed[$val])] as $name => &$vls) {
-                            switch ($vls[2]) {
-                                case 'file':
-                                    foreach ($vls[1] as &$f) {
-                                        $f = $this->_getHttpFilePath() . $f['file'];
-                                    }
-                                    unset($f);
-                                    break;
-                            }
-                            array_unshift($vls, $name);
-                        }
-                        $indexed[$val][array_key_last($indexed[$val])] = array_values($indexed[$val][array_key_last($indexed[$val])]);
-                        unset($vls);
-                }
-            }
-
-
-            return ['indexed' => $indexed, 'list' => $list, 'sliced' => false];
-        }
-        $list = $Field->calculateSelectList($row[$field['name']], $row, $this->Table->getTbl());
-
-        return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
-    }
-
-    private static function _getHttpFilePath()
-    {
-        return static::$path ?? (static::$path = (
-            (!empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? 'https://' : 'http://') . \totum\config\Conf::getFullHostName() . '/fls/'
-        ));
-    }
-
     public function actionMain()
     {
         $this->__addAnswerVar('css', $this->FormsTableData['css']);
@@ -263,7 +169,7 @@ class FormsController extends interfaceController
                 ['where' => [
                     ['field' => 'path_code', 'operator' => '=', 'value' => $form],
                     ['field' => 'on_off', 'operator' => '=', 'value' => true]],
-                    'field' => ['table_name', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code']],
+                    'field' => ['table_name', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code', 'field_code_formats']],
                 'row'
             );
 
@@ -274,19 +180,6 @@ class FormsController extends interfaceController
             }
         } else {
             throw new errorException('Неверный путь к таблице');
-        }
-    }
-
-    protected function stch()
-    {
-        $this->CalcTableFormat = new CalculcateFormat($this->Table->getTableRow()['table_format']);
-        $this->CalcRowFormat = new CalculcateFormat($this->Table->getTableRow()['row_format']);
-
-        if ($this->FormsTableData['section_statuses_code'] && !preg_match(
-            '/^\s*=\s*:\s*$/',
-            $this->FormsTableData['section_statuses_code']
-        )) {
-            $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
         }
     }
 

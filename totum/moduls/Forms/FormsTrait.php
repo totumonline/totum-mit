@@ -26,6 +26,8 @@ trait FormsTrait
      */
     private $CalcRowFormat;
     private $CalcFieldFormat;
+    protected $clientFields;
+    protected $FormsTableData;
     /**
      * @var Calculate
      */
@@ -36,11 +38,32 @@ trait FormsTrait
         parent::__construct($Request, $modulePath, $Table, $Totum);
         $this->post = json_decode((string)$Request->getBody(), true);
 
+        $this->CalcTableFormat = new CalculcateFormat($this->Table->getTableRow()['table_format']);
+        $this->CalcRowFormat = new CalculcateFormat($this->Table->getTableRow()['row_format']);
+    }
+
+    public function addFormsTableData($FormsTableData)
+    {
+        $this->FormsTableData = $FormsTableData;
+
+        if ($this->FormsTableData['section_statuses_code'] && preg_match(
+                '/^\s*=\s*:\s*[^\s]+$/',
+                $this->FormsTableData['section_statuses_code']
+            )) {
+            $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
+        }
+        $this->addTtmFormsData();
+    }
+
+    public function addTtmFormsData()
+    {
         $visibleFields = $this->Table->getVisibleFields('web', false);
         $clientFields = $this->fieldsForClient($visibleFields);
 
         foreach ($clientFields as &$field) {
             $field = array_replace($field, $this->FormsTableData['fields_else_params'][$field['name']] ?? []);
+
+            $field['width'] = (int)$field['width'];
 
             if ($field['showInWebOtherPlacement'] ?? null) {
                 $field['category'] = $field['showInWebOtherPlacement'];
@@ -88,21 +111,6 @@ trait FormsTrait
             }
         }
         $this->sections = $sections;
-
-
-        $this->CalcTableFormat = new CalculcateFormat($this->Table->getTableRow()['table_format']);
-        $this->CalcRowFormat = new CalculcateFormat($this->Table->getTableRow()['row_format']);
-    }
-
-    public function addFormsTableData($FormsTableData)
-    {
-        $this->FormsTableData = $FormsTableData;
-        if ($this->FormsTableData['section_statuses_code'] && !preg_match(
-                '/^\s*=\s*:\s*$/',
-                $this->FormsTableData['section_statuses_code']
-            )) {
-            $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);
-        }
     }
 
     protected function getTableClientChangedData($data, $force = false)
@@ -123,7 +131,7 @@ trait FormsTrait
         unset($modify['params']);
 
 
-        $fieldFormatS = $this->getTableFormats(false, $this->Table->getTbl()['rows']);
+        $fieldFormatS = $this->getTableFormats($this->Table->getTbl()['rows']);
 
         if (($modify += $this->Table->getChangeIds()['changed']) && $fieldFormatS['r']) {
             foreach ($modify as $id => $changes) {
@@ -150,7 +158,7 @@ trait FormsTrait
     {
         $result = parent::getFullTableData($withRecalculate);
 
-        $formats = $this->getTableFormats(false, $this->Table->getTbl()['rows']);
+        $formats = $this->getTableFormats($this->Table->getTbl()['rows']);
         $data['params'] = array_intersect_key($this->Table->getTbl()['params'], $formats['p']);
 
         $data['rows'] = [];
@@ -375,7 +383,7 @@ trait FormsTrait
         return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
     }
 
-    protected function getTableFormats(bool $onlyEditable, $rows)
+    protected function getTableFormats($rows)
     {
         $tableFormats = $this->CalcTableFormat->getFormat('TABLE', [], $this->Table->getTbl(), $this->Table);
         $tableJsonFromRow = $this->FormsTableData['format_static'];
@@ -399,18 +407,6 @@ trait FormsTrait
             }
         }
 
-
-        if (!empty($tableFormats['rowstitle'])) {
-            if (preg_match('/^([a-z0-9_]{1,})\s*\:\s*(.*)/', $tableFormats['rowstitle'], $matches)) {
-                $tableFormats['rowsTitle'] = $matches[2];
-                $tableFormats['rowsName'] = $matches[1];
-            } else {
-                $tableFormats['rowsName'] = "";
-                $tableFormats['rowsTitle'] = $tableFormats['rowstitle'];
-            }
-        }
-        unset($tableFormats['rowstitle']);
-
         /*2-edit; 1- view; 0 - hidden*/
         $getSectionEditType = function ($sectionName) use ($tableFormats) {
             if (!$sectionName || !key_exists(
@@ -422,166 +418,87 @@ trait FormsTrait
             switch ($tableFormats['sections'][$sectionName]['status'] ?? null) {
                 case 'edit':
                     return 2;
-                case 'view':
-                    return 1;
                 default:
                     return 0;
             }
         };
 
 
-        if ($onlyEditable) {
-            $result = [];
-            if (!$this->onlyRead) {
-                foreach ($this->sections as $category => $sec) {
-                    switch ($category) {
-                        case 'rows':
-                            $section = $sec;
-                            if ($st = $getSectionEditType($section['name'])) {
+        $result = ['t' => $tableFormats, 'r' => [], 'p' => []];
 
-                                /*Если секция редактируемая*/
-                                if ($st == 2) {
-                                    foreach ($rows as $row) {
-                                        $rowFormat = $this->CalcRowFormat->getFormat(
-                                            'ROW',
-                                            $row,
-                                            $this->Table->getTbl(),
-                                            $this->Table
-                                        );
-                                        if (empty($rowFormat['block'])) {
-                                            foreach ($section['fields'] as $fieldName) {
-                                                if (!key_exists($fieldName, $this->clientFields)) {
-                                                    continue;
-                                                }
+        foreach ($this->sections as $category => $sec) {
+            switch ($category) {
+                case 'rows':
+                    /* $section = $sec;
+                     $sectionStatus = $getSectionEditType($section['name']);
+                     foreach ($rows as $row) {
+                         $rowFormat = $this->CalcRowFormat->getFormat('ROW',
+                             $row,
+                             $this->Table->getTbl(),
+                             $this->Table);
 
-                                                $FieldFormat = $this->CalcFieldFormat[$fieldName]
-                                                    ?? ($this->CalcFieldFormat[$fieldName]
-                                                        = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
-                                                $format = $FieldFormat->getFormat(
-                                                    $fieldName,
-                                                    $row,
-                                                    $this->Table->getTbl(),
-                                                    $this->Table
-                                                );
+                         $result['r'][$row['id']]['f'] = $rowFormat;
 
-                                                if (empty($format['block']) && empty($format['hidden'])) {
-                                                    $result[$row['id']][$fieldName] = true;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                         foreach ($section['fields'] as $fieldName) {
+
+                             if (!key_exists($fieldName, $this->clientFields)) continue;
+                             if (!$sectionStatus) {
+                                 $result['r'][$row['id']][$fieldName] = [];
+                             } else {
+
+                                 $FieldFormat = $this->CalcFieldFormat[$fieldName]
+                                     ?? ($this->CalcFieldFormat[$fieldName]
+                                         = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
+                                 $format = $FieldFormat->getFormat($fieldName,
+                                     $row,
+                                     $this->Table->getTbl(),
+                                     $this->Table);
+
+                                 if (empty($format['hidden'])) {
+                                     $result['r'][$row['id']][$fieldName] = $format;
+                                 } else {
+                                     $result['r'][$row['id']][$fieldName] = ['hidden' => true];
+                                 }
+                             }
+                         }
+                     }*/
+                    break;
+                default:
+                    foreach ($sec as $section) {
+                        foreach ($section['fields'] as $fieldName) {
+                            if (!key_exists($fieldName, $this->clientFields)) {
+                                continue;
                             }
-                            break;
-                        default:
-                            foreach ($sec as $section) {
-                                if ($st = $getSectionEditType($section['name'])) {
-                                    /*Если секция редактируемая*/
-                                    if ($st == 2) {
-                                        foreach ($section['fields'] as $fieldName) {
-                                            if (!key_exists($fieldName, $this->clientFields)) {
-                                                continue;
-                                            }
 
-                                            $FieldFormat = $this->CalcFieldFormat[$fieldName]
-                                                ?? ($this->CalcFieldFormat[$fieldName]
-                                                    = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
-                                            $format = $FieldFormat->getFormat(
-                                                $fieldName,
-                                                $this->Table->getTbl()['params'],
-                                                $this->Table->getTbl(),
-                                                $this->Table
-                                            );
+                            if ($getSectionEditType($section['name']) && ($code = $this->FormsTableData['field_code_formats'][$fieldName] ?? $this->Table->getFields()[$fieldName]['format'] ?? null)) {
+                                $FieldFormat = $this->CalcFieldFormat[$fieldName]
+                                    ?? ($this->CalcFieldFormat[$fieldName]
+                                        = new CalculcateFormat($code));
+                                $format = $FieldFormat->getFormat(
+                                    $fieldName,
+                                    $this->Table->getTbl()['params'],
+                                    $this->Table->getTbl(),
+                                    $this->Table
+                                );
 
-                                            if (empty($format['block']) && empty($format['hidden'])) {
-                                                $result[$fieldName] = true;
-                                            }
-                                        }
-                                    }
+                                if (empty($format['hidden'])) {
+                                    $result['p'][$fieldName] = $format;
+                                } else {
+                                    $result['p'][$fieldName] = ['hidden' => true];
                                 }
+                            } else {
+                                $result['p'][$fieldName] = [];
                             }
-                            break;
+                        }
                     }
-                }
+
+                    break;
             }
-
-
-            $result = ['t' => $tableFormats] + $result;
-        } else {
-            $result = ['t' => $tableFormats, 'r' => [], 'p' => []];
-
-            foreach ($this->sections as $category => $sec) {
-                switch ($category) {
-                    /*case 'rows':
-                        $section = $sec;
-                        $sectionStatus = $getSectionEditType($section['name']);
-                        foreach ($rows as $row) {
-                            $rowFormat = $this->CalcRowFormat->getFormat('ROW',
-                                $row,
-                                $this->Table->getTbl(),
-                                $this->Table);
-
-                            $result['r'][$row['id']]['f'] = $rowFormat;
-
-                            foreach ($section['fields'] as $fieldName) {
-
-                                if (!key_exists($fieldName, $this->clientFields)) continue;
-                                if (!$sectionStatus) {
-                                    $result['r'][$row['id']][$fieldName] = [];
-                                } else {
-
-                                    $FieldFormat = $this->CalcFieldFormat[$fieldName]
-                                        ?? ($this->CalcFieldFormat[$fieldName]
-                                            = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
-                                    $format = $FieldFormat->getFormat($fieldName,
-                                        $row,
-                                        $this->Table->getTbl(),
-                                        $this->Table);
-
-                                    if (empty($format['hidden'])) {
-                                        $result['r'][$row['id']][$fieldName] = $format;
-                                    } else {
-                                        $result['r'][$row['id']][$fieldName] = ['hidden' => true];
-                                    }
-                                }
-                            }
-                        }
-                        break;*/
-                    default:
-                        foreach ($sec as $section) {
-                            $sectionStatus = $getSectionEditType($section['name']);
-                            foreach ($section['fields'] as $fieldName) {
-                                if (!key_exists($fieldName, $this->clientFields)) {
-                                    continue;
-                                }
-
-                                if ($sectionStatus && ($this->Table->getFields()[$fieldName]['format'] ?? null)) {
-                                    $FieldFormat = $this->CalcFieldFormat[$fieldName]
-                                        ?? ($this->CalcFieldFormat[$fieldName]
-                                            = new CalculcateFormat($this->Table->getFields()[$fieldName]['format']));
-                                    $format = $FieldFormat->getFormat(
-                                        $fieldName,
-                                        $this->Table->getTbl()['params'],
-                                        $this->Table->getTbl(),
-                                        $this->Table
-                                    );
-                                    if (empty($format['hidden'])) {
-                                        $result['p'][$fieldName] = $format;
-                                    } else {
-                                        $result['p'][$fieldName] = ['hidden' => true];
-                                    }
-                                } else {
-                                    $result['p'][$fieldName] = [];
-                                }
-                            }
-                        }
-
-                        break;
-                }
-            }
-            $result['t']['s'] = $result['t']['sections'] ?? [];
-            unset($result['t']['sections']);
         }
+        $result['t']['s'] = $result['t']['sections'] ?? [];
+        unset($result['t']['sections']);
+
+
         return array_replace_recursive($tableJsonFromRow, $result);
     }
 

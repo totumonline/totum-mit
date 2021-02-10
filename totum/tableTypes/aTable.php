@@ -1374,7 +1374,7 @@ abstract class aTable
                 }
                 foreach ($tbl['rows'] as &$row) {
                     foreach ($row as $k => &$v) {
-                        if ($fields[$k]['type'] === 'file') {
+                        if (($fields[$k]['type'] ?? null) === 'file') {
                             $replaceFileDataWithContent($v);
                         }
                     }

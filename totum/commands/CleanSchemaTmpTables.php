@@ -38,7 +38,5 @@ class CleanSchemaTmpTables extends Command
         $minus10 = date_create();
         $minus10->modify('-10 minutes');
         $Conf->getSql()->exec('delete from _tmp_tables where table_name IN (\'_panelbuttons\', \'_linkToButtons\') AND touched<\'' . $minus10->format('Y-m-d H:i') . '\'');
-
-        $Conf->getSql()->exec('vacuum');
     }
 }

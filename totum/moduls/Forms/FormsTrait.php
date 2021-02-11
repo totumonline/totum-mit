@@ -47,7 +47,7 @@ trait FormsTrait
         $this->FormsTableData = $FormsTableData;
 
         if ($this->FormsTableData['section_statuses_code'] && preg_match(
-                '/^\s*=\s*:\s*[^\s]+$/',
+                '/^\s*f[\d]+=\s*:\s*[^\s]+/',
                 $this->FormsTableData['section_statuses_code']
             )) {
             $this->CalcSectionStatuses = new Calculate($this->FormsTableData['section_statuses_code']);

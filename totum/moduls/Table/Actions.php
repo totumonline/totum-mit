@@ -93,6 +93,7 @@ class Actions
         }
         return ['panelFormats' => $result];
     }
+
     /**
      * Клик по кнопке в панельке поля
      *
@@ -165,6 +166,7 @@ class Actions
         }
         return ['ok' => 1];
     }
+
     /**
      * Клик по linkToInout
      *
@@ -177,9 +179,14 @@ class Actions
         $key = ['table_name' => '_linkToInput', 'user_id' => $this->User->getId(), 'hash' => $this->post['hash'] ?? null];
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
-            $CA = new CalculateAction($data['code']);
-
             $Table = $this->Table ?? $this->Totum->getTable('settings');
+
+            if ($this->Table->getFields()[$data['code']] ?? false) {
+                $CA = new CalculateAction($this->Table->getFields()[$data['code']]['codeAction']);
+            } else {
+                $CA = new CalculateAction($data['code']);
+            }
+
             $CA->execAction(
                 'CODE',
                 [],
@@ -197,6 +204,7 @@ class Actions
         }
         return ['ok' => 1];
     }
+
     public function checkForNotifications()
     {
         /*TODO FOR MY TEST SERVER */

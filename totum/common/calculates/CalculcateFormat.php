@@ -17,7 +17,7 @@ use totum\tableTypes\aTable;
 class CalculcateFormat extends Calculate
 {
     const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide', 'placeholder', 'showhand', 'expand'];
-    const tableformats = ['buttons','blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablehtml', 'tablecomment'];
+    const tableformats = ['buttons', 'blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablehtml', 'tablecomment'];
     const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
     const floatFormat = ["fill", "glue", "maxheight", "maxwidth", "nextline", "blocknum", "height", "breakwidth"];
     protected $startSections = [];
@@ -88,31 +88,96 @@ class CalculcateFormat extends Calculate
         return $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, 'f');
     }
 
-    protected function funcPanelHtml($params)
+    protected function funcPanelHtml($paramsIn)
     {
-        $params = $this->getParamsArray($params);
-        return ['type' => 'html', 'value' => $params['html']];
-    }
+        if ($params = $this->getParamsArray($paramsIn, ['button'], ["html", "condition"])) {
+            $conditionTest = true;
+            if (!empty($params['condition'])) {
+                foreach ($params['condition'] as $i => $c) {
+                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
 
-    protected function funcPanelImg($params)
-    {
-        $params = $this->getParamsArray($params);
-        return ['type' => 'img', 'value' => $params['img']];
-    }
 
-    protected function funcPanelButtons($params)
-    {
-        $params = $this->getParamsArray($params, ['button']);
-        $values = array_merge($params['button'] ?? [], $params['buttons'] ?? []);
-
-        if (key_exists('refresh', $params)) {
-            foreach ($values as &$btn) {
-                $btn['refresh'] = $btn['refresh'] ?? $params['refresh'];
+                    if (!is_bool($condition)) {
+                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                    }
+                    if (!$condition) {
+                        $conditionTest = false;
+                        break;
+                    }
+                }
             }
-            unset($btn);
+
+            if (!$conditionTest) {
+                return;
+            }
+
+            $params = $this->getParamsArray($paramsIn, [], ["condition"]);
+            return ['type' => 'html', 'value' => $params['html']];
         }
-        $btns = ['type' => 'buttons', 'value' => $values];
-        return $btns;
+    }
+    protected function funcPanelImg($paramsIn)
+    {
+        if ($params = $this->getParamsArray($paramsIn, ['button'], ["img", "condition"])) {
+            $conditionTest = true;
+            if (!empty($params['condition'])) {
+                foreach ($params['condition'] as $i => $c) {
+                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+
+
+                    if (!is_bool($condition)) {
+                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                    }
+                    if (!$condition) {
+                        $conditionTest = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!$conditionTest) {
+                return;
+            }
+
+            $params = $this->getParamsArray($paramsIn, [], ["condition"]);
+            return ['type' => 'img', 'value' => $params['img']];
+        }
+    }
+
+    protected function funcPanelButtons($paramsIn)
+    {
+        if ($params = $this->getParamsArray($paramsIn, ['button'], ["buttons", "button", "refresh", "condition"])) {
+            $conditionTest = true;
+            if (!empty($params['condition'])) {
+                foreach ($params['condition'] as $i => $c) {
+                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+
+
+                    if (!is_bool($condition)) {
+                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                    }
+                    if (!$condition) {
+                        $conditionTest = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!$conditionTest) {
+                return;
+            }
+
+            $params = $this->getParamsArray($paramsIn, ['button'], ["condition"]);
+
+            $values = array_merge($params['button'] ?? [], $params['buttons'] ?? []);
+            if (key_exists('refresh', $params)) {
+                foreach ($values as &$btn) {
+                    $btn['refresh'] = $btn['refresh'] ?? $params['refresh'];
+                }
+                unset($btn);
+            }
+            $btns = ['type' => 'buttons', 'value' => $values];
+            return $btns;
+        }
     }
 
     public function getPanelFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
@@ -342,7 +407,7 @@ class CalculcateFormat extends Calculate
 
     protected function funcSetFormFieldFormat($params)
     {
-        if ($this->Table->getTotum()->getSpecialInterface()!=='form') {
+        if ($this->Table->getTotum()->getSpecialInterface() !== 'form') {
             return [];
         }
 
@@ -379,7 +444,7 @@ class CalculcateFormat extends Calculate
 
     protected function funcSetFormSectionsFormat($params)
     {
-        if ($this->Table->getTotum()->getSpecialInterface()!=='form') {
+        if ($this->Table->getTotum()->getSpecialInterface() !== 'form') {
             return [];
         }
 

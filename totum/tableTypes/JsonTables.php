@@ -1170,17 +1170,28 @@ abstract class JsonTables extends aTable
             }
             return null;
         } else {
+
             $offset = ($params['offset']) ?? 0;
             if (!(ctype_digit(strval($offset)))) {
                 throw new errorException('Параметр offset должен быть целым числом');
             }
+            $offset = (int)$offset;
+
             $limit = ($params['limit']) ?? "";
             if ($limit !== "") {
-                if(!(ctype_digit(strval($limit)))){
+                if (!(ctype_digit(strval($limit)))) {
                     throw new errorException('Параметр limit должен быть целым числом');
                 }
                 $limit = (int)$limit;
             }
+
+            if ($limit !== "" || $offset !== 0) {
+                if (isset($fOrdering)) {
+                    uasort($array, $fOrdering);
+                    $fOrdering = null;
+                }
+            }
+
 
             $list = [];
             foreach ($array as $row) {
@@ -1250,6 +1261,7 @@ abstract class JsonTables extends aTable
             if (isset($fOrdering)) {
                 uasort($list, $fOrdering);
             }
+
             $lst = [];
 
 

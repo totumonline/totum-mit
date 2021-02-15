@@ -665,7 +665,7 @@ abstract class JsonTables extends aTable
                     $channel,
                     $changedFlag,
                     $newVal,
-                    $this->savedTbl['params']??[],
+                    $this->savedTbl['params'] ?? [],
                     $this->tbl['params'],
                     $this->savedTbl,
                     $this->tbl,
@@ -1175,10 +1175,12 @@ abstract class JsonTables extends aTable
                 throw new errorException('Параметр offset должен быть целым числом');
             }
             $limit = ($params['limit']) ?? "";
-            if ($limit !== "" && !(ctype_digit(strval($limit)))) {
-                throw new errorException('Параметр limit должен быть целым числом');
+            if ($limit !== "") {
+                if(!(ctype_digit(strval($limit)))){
+                    throw new errorException('Параметр limit должен быть целым числом');
+                }
+                $limit = (int)$limit;
             }
-
 
             $list = [];
             foreach ($array as $row) {
@@ -1240,7 +1242,7 @@ abstract class JsonTables extends aTable
                     $list[$row['id']] = array_merge($row, ['_VAL' => $val]);
                 }
 
-                if ($limit !== "" && (string)count($list) === $limit) {
+                if ($limit !== "" && count($list) === $limit) {
                     break;
                 }
             }

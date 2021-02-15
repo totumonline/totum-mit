@@ -27,9 +27,9 @@ class WriteTableActions extends ReadTableActions
 
         $add = json_decode($this->post['data'], true) ?? [];
         if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists(
-                'afterField',
-                $this->post['tableData']
-            )) {
+            'afterField',
+            $this->post['tableData']
+        )) {
             $this->Totum->getModel('tables_fields')->setAfterField($this->post['tableData']['afterField']);
         }
 
@@ -49,9 +49,9 @@ class WriteTableActions extends ReadTableActions
         }
 
         if (!empty($this->post['ids']) && ($orderedIds = json_decode(
-                $this->post['orderedIds'],
-                true
-            ))) {
+            $this->post['orderedIds'],
+            true
+        ))) {
             return $this->modify(['reorder' => $orderedIds ?? []]);
         } else {
             throw new errorException('Таблица пуста');
@@ -164,10 +164,9 @@ class WriteTableActions extends ReadTableActions
         }
         $ids = !empty($this->post['duplicate_ids']) ? json_decode($this->post['duplicate_ids'], true) : [];
         if ($ids) {
-            $Calc = new CalculateAction($this->Table->getTableRow()['on_duplicate']);
-
-            if (!empty($this->Table->getTableRow()['on_duplicate'])) {
+            if (preg_match('/^\s*(a\d+)?=\s*:\s*[^\s]/', $this->Table->getTableRow()['on_duplicate'])) {
                 try {
+                    $Calc = new CalculateAction($this->Table->getTableRow()['on_duplicate']);
                     $Calc->execAction(
                         '__ON_ROW_DUPLICATE',
                         [],
@@ -184,9 +183,9 @@ class WriteTableActions extends ReadTableActions
                 }
             } else {
                 $this->modify(['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => json_decode(
-                        $this->post['data'],
-                        true
-                    ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
+                    $this->post['data'],
+                    true
+                ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
             }
 
             return $this->getTableClientChangedData([]);/*$this->getTableClientData($this->post['offset'] ?? null,

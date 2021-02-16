@@ -9,6 +9,7 @@
 namespace totum\tableTypes;
 
 use totum\common\calculates\Calculate;
+use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Model;
@@ -887,6 +888,14 @@ abstract class JsonTables extends aTable
             }
         } else {
             //При изменении таблицы
+
+
+            $codeAction = $this->tableRow['default_action'] ?? null;
+            if ($codeAction && !preg_match('/^\s*=\s*:\s*$/', $codeAction)) {
+                $Code = new CalculateAction($codeAction);
+                $Code->execAction('DEFAULT ACTION', [], [], $loadedTbl, $tbl, $this, 'exec');
+            }
+
 
             $checkAndChange = function ($field) use ($tbl, $loadedTbl) {
                 if (key_exists($field['name'], $loadedTbl['params'] ?? []) && Calculate::compare(

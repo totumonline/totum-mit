@@ -10,6 +10,7 @@ namespace totum\tableTypes;
 
 use PDO;
 use totum\common\calculates\Calculate;
+use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Model;
@@ -541,8 +542,19 @@ abstract class RealTables extends aTable
     protected function onSaveTable($tbl, $loadedTbl)
     {
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
-        if ($fieldsWithActionOnChange || !empty($this->changeIds['rowOperations']) || !empty($this->changeIds['rowOperationsPre'])) {
+
+        $codeAction = $this->tableRow['default_action'] ?? null;
+        if ($codeAction && preg_match('/^\s*=\s*:\s*$/', $codeAction)) {
+            $codeAction = null;
+        }
+
+        if ($fieldsWithActionOnChange || !empty($this->changeIds['rowOperations']) || !empty($this->changeIds['rowOperationsPre']) || $codeAction) {
             $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
+
+            if ($codeAction) {
+                $Code = new CalculateAction($codeAction);
+                $Code->execAction('DEFAULT ACTION', [], [], $loadedTbl, $tbl, $this, 'exec');
+            }
 
             while ($func = array_shift($this->changeIds['rowOperationsPre'])) {
                 $func();

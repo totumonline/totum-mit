@@ -8,21 +8,24 @@ use totum\common\Model;
 
 class CalcsTablesVersions extends Model
 {
-    protected $cacheDefVersions=[];
+    protected $cacheDefVersions = [];
 
-    public function getDefaultVersion($tableName)
+    public function getDefaultVersion($tableName, $withDefaultOrd = false)
     {
         if (!key_exists($tableName, $this->cacheDefVersions)) {
-            $this->cacheDefVersions[$tableName]=$this->executePrepared(
+            $this->cacheDefVersions[$tableName] = $this->executePrepared(
                 true,
                 ['table_name' => $tableName, 'is_default' => "true"],
-                'version'
-            )->fetch()['version'];
+                'version, default_ord'
+            )->fetch();
 
             if (!$this->cacheDefVersions[$tableName]) {
                 throw new errorException('Нет версии по-умолчанию для таблицы ' . $tableName);
             }
         }
-        return $this->cacheDefVersions[$tableName];
+        if ($withDefaultOrd) {
+            return $this->cacheDefVersions[$tableName];
+        }
+        return $this->cacheDefVersions[$tableName]['version'];
     }
 }

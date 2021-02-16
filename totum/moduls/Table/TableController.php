@@ -119,7 +119,6 @@ class TableController extends interfaceController
         $this->__addAnswerVar('ModulePath', $this->modulePath);
 
 
-
         $tree = [];
         $branchIds = [];
 
@@ -162,7 +161,7 @@ class TableController extends interfaceController
                     ]
                 ]
                 + (
-                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
+                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
                 );
             if ($t['type'] !== "link") {
                 $branchIds[] = $t['id'];
@@ -219,10 +218,10 @@ class TableController extends interfaceController
                 $tree[] = &$cycleRow;
             }
 
-
-            foreach ($this->Cycle->getListTables() as $i => $tId) {
-                if (array_key_exists($tId, $this->User->getTreeTables())) {
-                    if ($tableRow = $this->Totum->getTableRow($tId)) {
+            foreach ($this->Cycle->getViewListTables() as $i => $tName) {
+                if ($tableRow = $this->Totum->getTableRow($tName)) {
+                    $tId = $tableRow['id'];
+                    if (array_key_exists($tId, $this->User->getTreeTables())) {
                         $tree[] = [
                             'id' => 'table' . $tId
                             , 'href' => $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId
@@ -348,9 +347,9 @@ class TableController extends interfaceController
             }
             $branch['href'] = $href;
             if (is_a(
-                $this,
-                TableController::class
-            ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
+                    $this,
+                    TableController::class
+                ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
                 $branch['active'] = true;
             }
         }
@@ -405,9 +404,9 @@ class TableController extends interfaceController
             }
             $message = $e->getMessage();
             if ($this->User && $this->User->isCreator() && key_exists(
-                WithPathMessTrait::class,
-                class_uses(get_class($e))
-            )) {
+                    WithPathMessTrait::class,
+                    class_uses(get_class($e))
+                )) {
                 $message .= "<br/>" . $e->getPathMess();
             }
             $this->__addAnswerVar('error', $message);
@@ -557,9 +556,9 @@ class TableController extends interfaceController
 
 
         if (!empty($request->getParsedBody()['method']) && in_array(
-            $request->getParsedBody()['method'],
-            ['getValue']
-        )) {
+                $request->getParsedBody()['method'],
+                ['getValue']
+            )) {
             if (!empty($request->getParsedBody()['table_id'])) {
                 $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;
@@ -568,10 +567,10 @@ class TableController extends interfaceController
 
 
         if ($tableUri && (preg_match(
-            '/^(\d+)\/(\d+)\/(\d+)/',
-            $tableUri,
-            $tableMatches
-        ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
+                    '/^(\d+)\/(\d+)\/(\d+)/',
+                    $tableUri,
+                    $tableMatches
+                ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
             if (empty($tableMatches[3])) {
                 $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
@@ -614,14 +613,14 @@ class TableController extends interfaceController
                 //Проверка доступа к циклу
 
                 if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
-                    $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                    [1, 2, 3]
-                )) {
+                        $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                        [1, 2, 3]
+                    )) {
                     //Если не связанный пользователь
                     if (count(array_intersect(
-                        $this->Cycle->getRow()['creator_id']['v'],
-                        $this->User->getConnectedUsers()
-                    )) === 0) {
+                            $this->Cycle->getRow()['creator_id']['v'],
+                            $this->User->getConnectedUsers()
+                        )) === 0) {
                         if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {

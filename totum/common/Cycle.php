@@ -75,14 +75,14 @@ class Cycle
     public function addVersionForCycle($tableName)
     {
         $cycleId = $this->getId();
-        $default_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($tableName);
+        $defaults = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($tableName, true);
         $this->Totum->getTable('calcstable_cycle_version')->reCalculateFromOvers(
             ['add' => [
-                ['table_name' => $tableName, 'cycle' => $cycleId, 'version' => $default_version]
+                ['table_name' => $tableName, 'cycle' => $cycleId, 'version' => $defaults['version'], 'ord' => $defaults['default_ord']]
             ]]
         );
 
-        return $this->cacheVersions[$tableName] = [$default_version, 'true'];
+        return $this->cacheVersions[$tableName] = [$defaults['version'], 'true'];
     }
 
     public static function duplicate($cyclesTableID, $oldId, $newId, Totum $Totum)
@@ -121,7 +121,7 @@ class Cycle
 
     public function delete()
     {
-        foreach ($this->getListTables() as $tableId) {
+        foreach ($this->getTableIds() as $tableId) {
             $tableRow = $this->Totum->getTableRow($tableId);
             if ($tableRow) {
                 $this->Totum->getModel($tableRow['name'])->deletePrepared(['cycle_id' => $this->getId()]);
@@ -260,9 +260,22 @@ class Cycle
         return $this->tables[$tableRow['name']];
     }
 
-    public function getListTables()
+    public function getViewListTables()
     {
-        return $this->getTableIds();
+        $names = CalcsTableCycleVersion::init($this->Totum->getConfig())->getColumn(
+            'table_name',
+            ['cycles_table' => $this->getCyclesTableId(), 'cycle' => $this->getId()],
+            '(ord->>\'v\')::int, (sort->>\'v\')::int'
+        );
+        if (count($this->getTableIds()) != $names) {
+            foreach ($this->getTableIds() as $id) {
+                $row = $this->Totum->getTableRow($id);
+                if (!in_array($row['name'], $names)) {
+                    $names[] = $row['name'];
+                }
+            }
+        }
+        return $names;
     }
 
     public function saveTables($forceReCalculateCyclesTableRow = false, $forceSaveTables = false)

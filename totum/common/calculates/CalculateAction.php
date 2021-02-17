@@ -829,9 +829,9 @@ class CalculateAction extends Calculate
             $link .= ($tableRow ['top'] ? $tableRow ['top'] : 0) . '/' . $tableRow['id'];
         }
 
-        $iParams = false;
-
         $fields = $linkedTable->getFields();
+
+        $q_params = [];
         if (!empty($params['filter'])) {
             $filters = [];
             foreach ($params['filter'] as $i => $f) {
@@ -841,9 +841,7 @@ class CalculateAction extends Calculate
             }
             if ($filters) {
                 $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));
-                ;
-                $link .= '?f=' . urlencode($cripted);
-                $iParams = true;
+                $q_params['f'] = urlencode($cripted);
             }
         }
 
@@ -852,11 +850,20 @@ class CalculateAction extends Calculate
 
             foreach ($field as $k => $v) {
                 if (array_key_exists($k, $fields)) {
-                    $link .= ($iParams === false ? '?' : '&');
-                    $link .= 'a[' . $k . ']=' . $v;
-                    $iParams = true;
+                    $q_params['a'][$k] = $v;
                 }
             }
+        }
+
+
+        $params['target'] = $params['target'] ?? 'self';
+
+        if ($params['target']==='iframe' || $params['target'] === 'top-iframe') {
+            $q_params['iframe']=true;
+        }
+
+        if ($q_params) {
+            $link .= '?' . http_build_query($q_params);
         }
 
 

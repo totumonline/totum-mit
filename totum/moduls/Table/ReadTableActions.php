@@ -1301,7 +1301,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function tableRowForClient($tableRow)
     {
         $fields = ['title', 'updated', 'type', 'id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field',
-            'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination', 'panels_view', 'new_row_in_sort'];
+            'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination', 'panels_view', 'new_row_in_sort', 'rotated_view'];
         if ($this->User->isCreator()) {
             $fields = array_merge(
                 $fields,

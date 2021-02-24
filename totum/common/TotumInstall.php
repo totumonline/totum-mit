@@ -453,7 +453,7 @@ CONF;
             $this->calcLog($Log, 'result', 'done');
         } catch (\Exception $exception) {
             $this->calcLog($Log, 'error', $exception->getMessage());
-            throw new $exception;
+            throw $exception;
         }
         $schemaRow['tableId'] = $tableId;
     }

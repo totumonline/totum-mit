@@ -410,8 +410,11 @@ class Tree extends Field
 
         $list = $this->calculateSelectList($valArray, $row, $tbl);
 
-        $getParentsTitle = function ($parents) use (&$getParentsTitle) {
-            return (!empty($parents['path']) ? $getParentsTitle($parents['path']) . ' > ' : '') . $parents[0];
+        $getParentsTitle = function ($parents, $level=0) use (&$getParentsTitle) {
+            if($level>100){
+                return 'Зацикленное дерево';
+            }
+            return (!empty($parents['path']) ? $getParentsTitle($parents['path'], $level+1) . ' > ' : '') . $parents[0];
         };
 
         $getTreeItem = function ($v) use ($list, $getParentsTitle, &$valArray) {

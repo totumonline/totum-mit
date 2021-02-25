@@ -1618,16 +1618,16 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $Tree = Field::init($this->Table->getFields()['tree'], $this->Table);
         $val = ["v" => null];
         $list = $Tree->calculateSelectList($val, [], $this->Table->getTbl());
-        $ids = [];
+        $bids = [];
         $tree = [];
         $thisNodes = [];
         if (!is_array($loadingIds)) {
             if ($Tree->getData('treeViewType') !== 'self' && !is_null($t = $Tree->getData('withEmptyVal'))) {
                 $tree[] = ['v' => null, 't' => $t];
             }
-            $ids[] = "";
+            $bids[] = "";
         } else {
-            $ids = $loadingIds;
+            $bids = $loadingIds;
             $thisNodes = array_intersect_key($list, array_flip($loadingIds));
         }
         foreach ($list as $k => $v) {
@@ -1637,17 +1637,17 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     case 'this':
                     case 'parent':
                         $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => true, 'p' => $v[3]];
-                        $ids[] = (string)$k;
+                        $bids[] = (string)$k;
                         break;
                     case 'closed':
-                        $ids[] = (string)$k;
+                        $bids[] = (string)$k;
                         $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => false, 'p' => $v[3]];
                         break;
                     case 'child':
                         $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
                         break;
                     case 'loaded':
-                        $ids[] = (string)$k;
+                        $bids[] = (string)$k;
                         $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
                         break;
                 }
@@ -1655,10 +1655,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         $result['rows'] = [];
 
-        if ($ids) {
+        if ($bids) {
             $treeIds = $this->Table->getByParams(
                 (new FormatParamsForSelectFromTable)
-                    ->where('tree', $ids)
+                    ->where('tree', $bids)
                     ->field('id')
                     ->params(),
                 'list'
@@ -1669,7 +1669,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $treeIds,
                     $this->Table->getByParams(
                         (new FormatParamsForSelectFromTable)
-                            ->where('tree_category', $ids)
+                            ->where('tree_category', $bids)
                             ->where('tree_category', "", "!=")
                             ->field('id')
                             ->params(),

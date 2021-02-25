@@ -85,6 +85,29 @@ class SchemaDuplicate extends Command
                 }
                 fputs($handleTmp, $buffer);
             }
+
+
+            if (!$is_schema_replaced) {
+                rewind($handle);
+                fclose($handleTmp);
+                file_put_contents($tmpFileName, '');
+
+                $handleTmp = @fopen($tmpFileName, "a");
+
+                while (($buffer = fgets($handle)) !== false) {
+
+                    if (!$is_schema_replaced && preg_match('/^CREATE/', $buffer)) {
+                        $tmpold = $baseName . '_tmpold';
+                        $buffer = 'ALTER SCHEMA "' . $baseName . '" RENAME TO "' . $tmpold . '"; 
+                        CREATE SCHEMA "' . $baseName . '"; 
+                        ' . $buffer;
+                        $is_schema_replaced = true;
+                    }
+                    fputs($handleTmp, $buffer);
+                }
+            }
+
+
             $buffer = 'update "' . $baseName . '".crons set status=jsonb_build_object(\'v\', false);';
             $buffer .= 'ALTER SCHEMA "' . $baseName . '" RENAME TO "' . $desName . '";';
             $buffer .= 'ALTER SCHEMA "' . $tmpold . '" RENAME TO "' . $baseName . '";';

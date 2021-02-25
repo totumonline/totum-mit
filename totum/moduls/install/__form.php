@@ -38,7 +38,7 @@
         </div>
         <div class="form-group">
             <label>Схема</label><input type="text" name="db_schema" class="form-control"
-                                       value="<?= $post['db_schema'] ?? "public" ?>" required>
+                                       value="<?= $post['db_schema'] ?? "totum" ?>" required>
             <br>
             <select name="schema_exists" class="form-control">
                 <option value="0" <?= ($post['schema_exists'] ?? '1') === '0' ? 'selected' : '' ?>>Разворачивать только

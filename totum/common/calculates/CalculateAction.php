@@ -841,7 +841,7 @@ class CalculateAction extends Calculate
             }
             if ($filters) {
                 $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));
-                $q_params['f'] = urlencode($cripted);
+                $q_params['f'] = $cripted;
             }
         }
 
@@ -863,7 +863,7 @@ class CalculateAction extends Calculate
         }
 
         if ($q_params) {
-            $link .= '?' . http_build_query($q_params);
+            $link .= '?' . http_build_query($q_params, "", "&", PHP_QUERY_RFC1738);
         }
 
 

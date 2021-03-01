@@ -665,7 +665,7 @@ class TableController extends interfaceController
                     $this->anchorId = $this->branchId;
                     $this->branchId = $branchData['top'];
                     $this->Table = $this->Totum->getTable($branchData['default_table']);
-                    $this->Table->setAnchorFilters(json_decode($branchData['filters'], true));
+                    $this->Table->setAnchorFilters(json_decode($branchData['filters'] ?? '[]', true));
                     break;
             }
         }

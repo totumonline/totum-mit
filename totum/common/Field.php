@@ -115,7 +115,7 @@ class Field
             $this->data['codeOnlyInAdd'] = false;
         }
 
-        if (!empty($this->data['code'])) {
+        if (array_key_exists('code', $this->data)) {
             $this->CalculateCode = new Calculate($this->data['code']);
         }
 

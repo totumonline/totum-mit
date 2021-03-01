@@ -78,9 +78,7 @@ class Calculate
 
     protected function formStartSections()
     {
-        if (!key_exists('=', $this->code)) {
-            throw new errorException('Ошибка кода - нет секции [[=]]');
-        } else {
+        if (key_exists('=', $this->code)) {
             $this->startSections = ['=' => $this->code['=']];
             unset($this->code['=']);
         }

@@ -389,7 +389,7 @@ abstract class aTable
                         if ($this->Totum->getConfig()->getTableRow($tableId)['type'] === 'calcs') {
                             $_version = $this->Totum->getCycle(
                                 $cycleId,
-                                $linkTableRow['tree_note_id']
+                                $linkTableRow['tree_node_id']
                             )->getVersionForTable($f['linkTableName'])[0];
                         } else {
                             $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
@@ -803,6 +803,7 @@ abstract class aTable
                             } else {
                                 $newVal = $modify['params'][$column['name']] ?? null;
                                 $oldVal = $oldTbl['params'][$column['name']] ?? null;
+
 
                                 /** @var Field $Field */
                                 $Field = Field::init($column, $this);

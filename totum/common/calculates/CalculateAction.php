@@ -257,6 +257,7 @@ class CalculateAction extends Calculate
         }
 
         $params['refresh'] = $params['refresh'] ?? false;
+        $params['env'] = $this->getEnvironment();
 
         $requiredByttonParams = ['text', 'code'];
         $buttons = [];
@@ -316,6 +317,7 @@ class CalculateAction extends Calculate
             $vars[$_['field']] = $_['value'];
         }
         $params['vars'] = $vars;
+        $params['env'] = $this->getEnvironment();
 
         $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
 
@@ -1550,4 +1552,5 @@ class CalculateAction extends Calculate
         curl_close($ch);
         return $result;
     }
+
 }

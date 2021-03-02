@@ -139,17 +139,35 @@ class ReadTableActions extends Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
             if (key_exists('index', $this->post) && $data['buttons'][$this->post['index']] ?? null) {
-                if ($this->Table->getFields()[$data['buttons'][$this->post['index']]['code']] ?? false) {
-                    $data['buttons'][$this->post['index']]['code'] = $this->Table->getFields()[$data['buttons'][$this->post['index']]['code']]['codeAction'] ?? '';
+
+                if (key_exists('cycle_id', $data['env'])) {
+                    $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
+                } elseif (key_exists('hash', $data['env'])) {
+                    $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
+                } else {
+                    $Table = $this->Totum->getTable($data['env']['table']);
+                }
+
+                $row = [];
+                if (key_exists('id', $data['env'])) {
+                    if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
+                        $row = $Table->getTbl()['rows'][$data['env']['id']];
+                    }
+                }
+
+
+
+                if ($Table->getFields()[$data['buttons'][$this->post['index']]['code']] ?? false) {
+                    $data['buttons'][$this->post['index']]['code'] = $Table->getFields()[$data['buttons'][$this->post['index']]['code']]['codeAction'] ?? '';
                 }
                 $CA = new CalculateAction($data['buttons'][$this->post['index']]['code']);
                 $CA->execAction(
                     'CODE FROM BUTTONS LINK',
                     [],
-                    [],
-                    $this->Table->getTbl(),
-                    $this->Table->getTbl(),
-                    $this->Table,
+                    $row,
+                    $Table->getTbl(),
+                    $Table->getTbl(),
+                    $Table,
                     'exec',
                     $data['buttons'][$this->post['index']]['vars'] ?? []
                 );

@@ -25,10 +25,10 @@ class Sql
     protected $preparedCount;
 
 
-    public function __construct(array $settings, LoggerInterface $Log)
+    public function __construct(array $settings, LoggerInterface $Log, $withSchema = true)
     {
         $this->Log = $Log;
-        $this->PDO = static::getNewConnection($settings);
+        $this->PDO = static::getNewConnection($settings, $withSchema);
     }
 
     /**
@@ -65,9 +65,9 @@ class Sql
         foreach ($vars as $k => $v) {
             $vars2['"' . $k . '"'] =
                 (
-                    is_null($v) || $v === '[[NULL]]' ? 'null' :
+                is_null($v) || $v === '[[NULL]]' ? 'null' :
                     (
-                        is_bool($v) ?
+                    is_bool($v) ?
                         ($v === false ? 'false' : 'true')
                         :
                         $this->quote($v)
@@ -76,9 +76,9 @@ class Sql
         }
         if ($vars2) {
             $query_string = 'insert into ' . $table . ' (' . implode(
-                ',',
-                array_keys($vars2)
-            ) . ') VALUES (' . implode(
+                    ',',
+                    array_keys($vars2)
+                ) . ') VALUES (' . implode(
                     ',',
                     array_values($vars2)
                 ) . ') '
@@ -365,21 +365,23 @@ class Sql
         return $rowCount;
     }
 
-    protected function getNewConnection($conf)
+    protected function getNewConnection($conf, $withSchema = true)
     {
         try {
             $PDO = new PDO($conf['dsn'], $conf['username'], $conf['password'], [PDO::ATTR_EMULATE_PREPARES => false]);
             if ($PDO->errorInfo()[0] !== '00000') {
                 throw new SqlException($PDO->errorInfo()[2]);
             }
-            if (empty($conf['schema'])) {
-                throw new SqlException('Не определена схема');
-            }
-            $this->Log->debug('SET search_path TO "' . $conf['schema'] . '"');
-            $PDO->exec('SET search_path TO "' . $conf['schema'] . '"');
+            if ($withSchema) {
+                if (empty($conf['schema'])) {
+                    throw new SqlException('Не определена схема');
+                }
+                $this->Log->debug('SET search_path TO "' . $conf['schema'] . '"');
+                $PDO->exec('SET search_path TO "' . $conf['schema'] . '"');
 
-            if ($PDO->errorInfo()[0] !== '00000') {
-                throw new Exception($PDO->errorInfo()[2]);
+                if ($PDO->errorInfo()[0] !== '00000') {
+                    throw new Exception($PDO->errorInfo()[2]);
+                }
             }
         } catch (Exception $e) {
             throw new SqlException('Ошибка подключения к базе данных . Попробуйте позже:' . $e->getMessage(), 0, $e);

@@ -165,9 +165,9 @@ abstract class ConfParent
         return $this->tmpTableChangesDirPath;
     }
 
-    public function getSchema()
+    public function getSchema($force = true)
     {
-        if (empty($this->schemaName)) {
+        if ($force && empty($this->schemaName)) {
             errorException::criticalException('Схема не подключена', $this);
         }
         return $this->schemaName;
@@ -369,7 +369,7 @@ abstract class ConfParent
             mkdir($dir);
         }
         $this->Loggers[$type] = new Log(
-            $fileName ?? $dir . $type . '_' . $this->getSchema() . '.log',
+            $fileName ?? $dir . $type . '_' . $this->getSchema(false) . '.log',
             $levels,
             $templateCallback
         );
@@ -451,7 +451,7 @@ abstract class ConfParent
     public function getSql($mainInstance = true, $withSchema = true, $Logger = null)
     {
         $getSql = function () use ($withSchema, $Logger) {
-            return new Sql($this->getDb($withSchema), $Logger ?? $this->getLogger('sql'));
+            return new Sql($this->getDb($withSchema), $Logger ?? $this->getLogger('sql'), $withSchema);
         };
         if ($mainInstance) {
             return $this->Sql ?? $this->Sql = $getSql();

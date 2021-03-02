@@ -33,7 +33,7 @@ class Vacuum extends Command
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
         }
-        $Conf = new Conf(Conf::ENV_LEVELS["development"]);
+        $Conf = new Conf();
 
         if ($table=$input->getOption('table')) {
             if (is_callable([$Conf, 'setHostSchema'])) {

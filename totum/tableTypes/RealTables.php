@@ -91,22 +91,6 @@ abstract class RealTables extends aTable
     {
         if ($fieldRow['category'] === 'column') {
             $this->Totum->getModel($this->tableRow['name'])->dropColumn($fieldRow['name']);
-        } elseif ($fieldRow['category'] === 'filter') {
-            $data = json_decode($fieldRow['data'], true);
-            if (!empty($data['v']['column'])) {
-                $countWithColumn = 0;
-                $fields = $this->loadFields($this->getTableRow()['id']);
-                foreach ($fields as $k => $v) {
-                    if ($v['category'] === 'filter' && ($v['column'] ?? '') === $data['v']['column']) {
-                        $countWithColumn++;
-                    }
-                }
-                if ($countWithColumn < 2) {
-                    $this->Totum->getTable(self::TABLES_IDS['tables'])->reCalculateFromOvers(
-                        ['modify' => [$this->getTableRow()['id'] => ['indexes' => '-' . $data['v']['column']]]]
-                    );
-                }
-            }
         }
     }
 

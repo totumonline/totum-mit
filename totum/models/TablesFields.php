@@ -47,15 +47,6 @@ class TablesFields extends Model
 
     public function update($params, $where, $oldRow = null): int
     {
-        if (array_key_exists('data_src', $params)) {
-            $this->checkParams(
-                $params,
-                $oldRow['table_id']['v'],
-                $oldRow['data_src']['v'],
-                $oldRow['category']['v']
-            );
-        }
-
         if (key_exists('name', $params)) {
             $name = json_decode($params['name'], true)['v'];
             if ($this->getPrepared(['table_name' => $oldRow['table_name']['v'], 'name' => $name])) {
@@ -216,50 +207,6 @@ class TablesFields extends Model
 
         $tableRow = $this->Totum->getTableRow($tableRowId);
 
-
-        if ($category === 'filter') {
-            if (!in_array($tableRow['type'], ['calcs', 'globcalcs'])) {
-
-                //Для реальных таблиц проставить индексы через изменение таблицы "Список таблиц"
-
-                $oldColumnName = $oldDataSrc['column']["Val"] ?? '';
-                $newColumnName = $newData['column']["Val"] ?? '';
-
-                if ($newColumnName !== $oldColumnName) {
-                    $fields = $this->Totum->getTable($tableRowId)->getFields();
-                    $newIndexes = $tableRow['indexes'];
-                    if (!empty($newColumnName)) {
-                        if (!empty($fields[$newColumnName]) && $fields[$newColumnName]['category'] === 'column') {
-                            if (!in_array($newColumnName, $newIndexes)) {
-                                $newIndexes[] = $newColumnName;
-                            }
-                        }
-                    }
-
-                    if (!empty($fields[$oldColumnName])) {
-                        $countWithColumn = 0;
-                        foreach ($fields as $k => $v) {
-                            if ($v['category'] === 'filter' && ($v['column'] ?? '') === $oldColumnName) {
-                                $countWithColumn++;
-                            }
-                        }
-                        if ($countWithColumn < 2) {
-                            foreach ($newIndexes as $k => $index) {
-                                if ($index === $oldColumnName) {
-                                    unset($newIndexes[$k]);
-                                }
-                            }
-                            $newIndexes = array_values($newIndexes);
-                        }
-                    }
-                    if ($newIndexes !== $tableRow['indexes']) {
-                        $this->Totum->getTable('tables')->reCalculateFromOvers(
-                            ['modify' => [$tableRow['id'] => ['indexes' => $newIndexes]]]
-                        );
-                    }
-                }
-            }
-        }
         if ($newData['type']['Val'] === 'text') {
             $newData['viewTextMaxLength']['Val'] = (int)$newData['viewTextMaxLength']['Val'];
         }

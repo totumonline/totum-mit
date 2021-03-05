@@ -93,60 +93,13 @@ class FieldParams extends Field
         /*$val = json_decode('{"type": {"Val": "fieldParamsResult", "isOn": true}, "width": {"Val": 250, "isOn": true}, "showInWeb": {"Val": false, "isOn": true}}',
             true);*/
 
-        if (!($val["Field"] ?? null)) {
-            if (empty($val['type']['Val'])) {
-                throw new errorException('Необходимо заполнить [[тип]] поля');
-            }
-
-            $category = $row['category']['v'];
-            $tableRow = $this->table->getTotum()->getTableRow($row['table_id']['v']);
-
-
-            if ($category === 'filter' && !$isCheck) {
-                if (Totum::isRealTable($tableRow)) {
-
-                    //Для реальных таблиц проставить индексы через изменение таблицы "Список таблиц"
-
-
-                    $oldColumnName = $row['id'] ?
-                        json_decode(
-                            $this->table->getTotum()->getNamedModel(TablesFields::class)->executePrepared(
-                            true,
-                            ['id' => $row['id']],
-                            'data_src'
-                        )->fetchColumn() ?? '',
-                            true
-                        )['column']['Val'] ?? '' : '';
-
-                    $newColumnName = $val['column']["Val"] ?? '';
-                    if ($newColumnName !== $oldColumnName) {
-                        $fields = $this->table->getTotum()->getTable($row['table_id']['v'], null, false)->getFields();
-
-
-                        if (!empty($newColumnName)) {
-                            if (empty($fields[$newColumnName]) || $fields[$newColumnName]['category'] !== 'column') ; elseif (!in_array($newColumnName, $this->table->getTableRow()['indexes'] ?? [])) {
-                                $this->table->getTotum()->getTable('tables')->reCalculateFromOvers(
-                                    ['modify' => [$tableRow['id'] => ['indexes' => '+' . $newColumnName]]]
-                                );
-                            }
-                        }
-                        if ($oldColumnName) {
-                            $countWithColumn = 0;
-                            foreach ($fields as $k => $v) {
-                                if ($v['category'] === 'filter' && ($v['column'] ?? '') === $oldColumnName) {
-                                    $countWithColumn++;
-                                }
-                            }
-                            if ($countWithColumn < 2) {
-                                $this->table->getTotum()->getTable('tables')->reCalculateFromOvers(
-                                    ['modify' => [$tableRow['id'] => ['indexes' => '-' . $oldColumnName]]]
-                                );
-                            }
-                        }
-                    }
-                }
-            }
+        if (empty($val['type']['Val'])) {
+            throw new errorException('Необходимо заполнить [[тип]] поля');
         }
+
+        $category = $row['category']['v'];
+        $tableRow = $this->table->getTotum()->getTableRow($row['table_id']['v']);
+
         if ($val['type']['Val'] === 'text') {
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
         }

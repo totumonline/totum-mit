@@ -2132,6 +2132,9 @@ abstract class aTable
                         if ($prevLastId) {
                             if ($prevLastId === -1) {
                                 $offset = $allCount;
+                                if((explode('/', $this->tableRow['pagination'])[2] ?? '')  == 'last'){
+                                    $offset = $allCount - ($allCount % $onPage ? $allCount % $onPage : $onPage) + $onPage;
+                                }
                             } else {
                                 $offset = $this->countByParams(
                                         $params,
@@ -2148,7 +2151,7 @@ abstract class aTable
                             } else {
                                 $offset -= $onPage;
                             }
-                            $offset -= $onPage;
+                            /*$offset -= $onPage;*/
                             if ($offset < 0) {
                                 $offset = 0;
                             }

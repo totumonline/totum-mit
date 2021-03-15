@@ -609,7 +609,10 @@ class Calculate
         } else {
             $params['field'] = $this->varName;
         }
-        $Log = $table->calcLog($params);
+
+        if (!key_exists('cType', $table->getCalculateLog()->getParams())) {
+            $Log = $table->calcLog($params);
+        }
 
         try {
             if (empty($this->startSections)) {
@@ -619,13 +622,17 @@ class Calculate
             foreach ($this->startSections as $sectionName => $section) {
                 $r = $this->execSubCode($section, $sectionName);
             }
-            $table->calcLog($Log, 'result', $r);
+            if (!empty($Log)) {
+                $table->calcLog($Log, 'result', $r);
+            }
         } catch (errorException $e) {
             $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
             $this->newLog['children'][] = ['type' => 'error', 'text' => $e->getMessage()];
             $this->error = $e->getMessage();
 
-            $table->calcLog($Log, 'error', $this->error);
+            if (!empty($Log)) {
+                $table->calcLog($Log, 'error', $this->error);
+            }
             if (get_called_class() !== Calculate::class) {
                 throw $e;
             }
@@ -640,7 +647,9 @@ class Calculate
                     ['type' => 'error', 'text' => 'Критическая ошибка при обработке кода [[' . $e->getMessage() . ']]'];
                 $this->error = 'Критическая ошибка при обработке кода [[' . $e->getMessage() . ']]';
             }
-            $table->calcLog($Log, 'error', $this->error);
+            if (!empty($Log)) {
+                $table->calcLog($Log, 'error', $this->error);
+            }
 
             throw $e;
         }
@@ -3805,16 +3814,20 @@ SQL;
 
     protected function getEnvironment()
     {
-        $env= [
-          'table'=> $this->Table->getTableRow()['name']
+        $env = [
+            'table' => $this->Table->getTableRow()['name']
         ];
         switch ($this->Table->getTableRow()['type']) {
-            case 'calcs': $env['cycle_id']=$this->Table->getCycle()->getId(); break;
-            case 'tmp': $env['cycle_id']=$this->Table->getTableRow()['sess_hash']; break;
+            case 'calcs':
+                $env['cycle_id'] = $this->Table->getCycle()->getId();
+                break;
+            case 'tmp':
+                $env['cycle_id'] = $this->Table->getTableRow()['sess_hash'];
+                break;
         }
 
         if (!empty($this->row['id'])) {
-            $env['id']=$this->row['id'];
+            $env['id'] = $this->row['id'];
         }
 
         return $env;

@@ -675,7 +675,7 @@ class Field
                 $newVal['v'] = $newVal['c'];
             }
         } elseif (array_key_exists('code', $this->data)) {
-            $Log = $this->table->calcLog(['field' => $this->data['name'], 'cType' => 'code', 'action' => $calcInit, 'itemId' => $newRow['id'] ?? $oldRow['id'] ?? null]);
+            $Log = $this->table->calcLog(['field' => $this->data['name'], 'cType' => 'code', 'action' => $calcInit, 'itemId' => $row['id'] ?? $oldRow['id'] ?? null]);
 
             try {
                 $newVal['c'] = $this->CalculateCode->exec(

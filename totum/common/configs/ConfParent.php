@@ -90,7 +90,7 @@ abstract class ConfParent
 
     public function getDefaultSender()
     {
-        return "no-reply@".$this->getFullHostName();
+        return "no-reply@" . $this->getFullHostName();
     }
 
     public function setSessionCookieParams()
@@ -380,17 +380,29 @@ abstract class ConfParent
 
     public function getCalculateExtensionFunction($funcName)
     {
+        $this->getObjectWithExtFunctions();
+        if (!property_exists($this->CalculateExtensions,
+                $funcName) || !is_callable($this->CalculateExtensions->$funcName)) {
+            throw new errorException('Функция [[' . $funcName . ']] не найдена');
+        }
+        return $this->CalculateExtensions->$funcName;
+    }
+
+    public function getExtFunctionsTemplates()
+    {
+        $this->getObjectWithExtFunctions();
+        return $this->CalculateExtensions->jsTemplates ?? '[]';
+    }
+
+    public function getObjectWithExtFunctions()
+    {
         if (!$this->CalculateExtensions) {
-            if (file_exists($fName = dirname((new \ReflectionClass($this))->getFileName()).'/CalculateExtensions.php')) {
+            if (file_exists($fName = dirname((new \ReflectionClass($this))->getFileName()) . '/CalculateExtensions.php')) {
                 include($fName);
             }
             $this->CalculateExtensions = $CalculateExtensions ?? new \stdClass();
         }
-
-        if (!property_exists($this->CalculateExtensions, $funcName) || !is_callable($this->CalculateExtensions->$funcName)) {
-            throw new errorException('Функция [[' . $funcName . ']] не найдена');
-        }
-        return $this->CalculateExtensions->$funcName;
+        return $this->CalculateExtensions;
     }
 
     public function getLang()

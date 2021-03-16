@@ -381,13 +381,13 @@ abstract class ConfParent
     public function getCalculateExtensionFunction($funcName)
     {
         if (!$this->CalculateExtensions) {
-            if (file_exists($fName = 'CalculateExtensions.php')) {
+            if (file_exists($fName = dirname((new \ReflectionClass($this))->getFileName()).'/CalculateExtensions.php')) {
                 include($fName);
-                $this->CalculateExtensions = $CalculateExtentions ?? new \stdClass();
             }
+            $this->CalculateExtensions = $CalculateExtensions ?? new \stdClass();
         }
 
-        if (!is_callable($this->CalculateExtensions->$funcName)) {
+        if (!property_exists($this->CalculateExtensions, $funcName) || !is_callable($this->CalculateExtensions->$funcName)) {
             throw new errorException('Функция [[' . $funcName . ']] не найдена');
         }
         return $this->CalculateExtensions->$funcName;

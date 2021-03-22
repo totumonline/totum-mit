@@ -1,2 +1,4 @@
-http/js/lib/* linguist-vendored
-http/js/libs.js linguist-vendored
+http/js/lib/* linguist-vendored=true
+http/js/libs.js linguist-vendored=true
+http/js/functions.js linguist-vendored=true
+http/js/forms.js linguist-vendored=true

@@ -473,7 +473,7 @@ class Field
         }
 
         if (array_key_exists('c', $newVal)) {
-            if (empty($newVal['h']) || $newVal['c'] === $newVal['v']) {
+            if (empty($newVal['h']) || $newVal['c'] === $newVal['v'] || (is_float($newVal['c']) && is_int($newVal['v']) && $newVal['c'] == $newVal['v'])) {
                 unset($newVal['c']);
             }
         }
@@ -546,10 +546,11 @@ class Field
             unset($newVal['h']);
         }
 
-        if (empty($newVal['h']) || $newVal['c'] === $newVal['v']) {
+        if (empty($newVal['h'])
+            || $newVal['c'] === $newVal['v']
+            || (is_float($newVal['c']) && is_int($newVal['v']) && $newVal['c'] == $newVal['v'])) {
             unset($newVal['c']);
         }
-
 
         return $newVal;
     }

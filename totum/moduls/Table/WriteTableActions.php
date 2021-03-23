@@ -144,7 +144,9 @@ class WriteTableActions extends ReadTableActions
                 $this->post['type']
             );
 
-            $this->Totum->addToInterfaceLink($this->Request->getServerParams()['REQUEST_URI'], 'self', 'reload');
+            if(is_array($r) && ($r['ok']??false)){
+                $this->Totum->addToInterfaceLink($this->Request->getServerParams()['REQUEST_URI'], 'self', 'reload');
+            }
             return $r;
         } else {
             throw new errorException('У вас нет доступа для csv-изменений');

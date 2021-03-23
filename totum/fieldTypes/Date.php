@@ -57,27 +57,30 @@ class Date extends Field
             } else {
                 $val = $date->format('d.m.y H:i');
             }
-            $valArray['v']=$val;
+            $valArray['v'] = $val;
         }
     }
 
     public function getValueFromCsv($val)
     {
-        $val = Calculate::getDateObject($val);
-        if (!empty($this->data['dateTime'])) {
-            $val = $val->format('Y-m-d H:i');
-        } else {
-            $val = $val->format('Y-m-d');
+
+        $valObj = Calculate::getDateObject($val);
+        if ($valObj) {
+            if (!empty($this->data['dateTime'])) {
+                return $valObj->format('Y-m-d H:i');
+            } else {
+                return $valObj->format('Y-m-d');
+            }
         }
 
-        return $val;
+        return null;
     }
 
     protected function getDefaultValue()
     {
         if (!empty($this->data['default'])) {
             if ($defDate = Calculate::getDateObject($this->data['default'])) {
-                return $defDate->format('Y-m-d'.($this->data['dateTime']?' H:i':''));
+                return $defDate->format('Y-m-d' . ($this->data['dateTime'] ? ' H:i' : ''));
             }
         }
     }

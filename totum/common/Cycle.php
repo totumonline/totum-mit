@@ -85,6 +85,25 @@ class Cycle
         return $this->cacheVersions[$tableName] = [$defaults['version'], 'true'];
     }
 
+    protected function removeVersionsForCycle()
+    {
+        $cycleId = $this->getId();
+        $this->Totum->getTable('calcstable_cycle_version')->reCalculateFromOvers(
+            ['remove' => $this->Totum->getTable('calcstable_cycle_version')->getByParams(
+                [
+                    'field' => 'id',
+                    'where' => [
+                        ['field' => 'cycles_table', 'operator' => '=', 'value' => $this->getCyclesTableId()],
+                        ['field' => 'cycle', 'operator' => '=', 'value' => $cycleId],
+                    ]
+                ],
+                'list'
+            )
+
+            ]
+        );
+    }
+
     public static function duplicate($cyclesTableID, $oldId, $newId, Totum $Totum)
     {
         $Cycle = $Totum->getCycle($newId, $cyclesTableID);
@@ -128,6 +147,7 @@ class Cycle
             }
         }
         TablesCalcsConnects::init($this->Totum->getConfig())->removeConnectsForCycle($this);
+        $this->removeVersionsForCycle();
     }
 
     public function getTableIds()

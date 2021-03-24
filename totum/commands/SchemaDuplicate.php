@@ -4,16 +4,12 @@
 namespace totum\commands;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
-use totum\common\configs\MultiTrait;
 use totum\common\errorException;
-use totum\common\TotumInstall;
-use totum\common\User;
 use totum\config\Conf;
-use totum\config\Conf2;
 
 class SchemaDuplicate extends Command
 {
@@ -21,9 +17,11 @@ class SchemaDuplicate extends Command
     {
         $this->setName('schema-duplicate')
             ->setDescription('Duplicate schema. You need install with psql and pg_dump in it. Change Conf.php if you installed totum without its.')
-            ->addArgument('base', InputOption::VALUE_REQUIRED, 'Enter base schema name')
-            ->addArgument('name', InputOption::VALUE_REQUIRED, 'Enter new schema name')
-            ->addArgument('host', InputOption::VALUE_REQUIRED, 'Enter new schema host');
+            ->addArgument('base', InputArgument::REQUIRED, 'Enter base schema name')
+            ->addArgument('name', InputArgument::REQUIRED, 'Enter new schema name')
+            ->addArgument('host', InputArgument::REQUIRED, 'Enter new schema host')
+            ->addOption('no-logs', '', InputOption::VALUE_NONE, 'For not duplicating logs')
+            ->addOption('no-content', '', InputOption::VALUE_OPTIONAL, 'Enter table names separated by commas for not duplicating it\'s content');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -31,6 +29,7 @@ class SchemaDuplicate extends Command
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
         }
+
         $Conf = new Conf();
 
 
@@ -60,9 +59,15 @@ class SchemaDuplicate extends Command
 
         $exclude = "--exclude-table-data='_tmp_tables'";
         $exclude .= " --exclude-table-data='_bfl'";
-        if ($withLog ?? false) {
+        if ($input->getOption('no-logs')) {
             $exclude .= " --exclude-table-data='_log'";
         }
+        if ($input->getOption('no-content')) {
+            foreach (explode(',', $input->getOption('no-content')) as $tName) {
+                $exclude .= " --exclude-table-data='$tName'";
+            }
+        }
+
         `$pgDump -O --schema '{$baseName}' --no-tablespaces {$exclude} | grep -v '^--' > "{$tmpFilenameOld}"`;
         if (filesize($tmpFilenameOld) < 20) {
             $output->writeln(file_get_contents($tmpFilenameOld));
@@ -95,7 +100,6 @@ class SchemaDuplicate extends Command
                 $handleTmp = @fopen($tmpFileName, "a");
 
                 while (($buffer = fgets($handle)) !== false) {
-
                     if (!$is_schema_replaced && preg_match('/^CREATE/', $buffer)) {
                         $tmpold = $baseName . '_tmpold';
                         $buffer = 'ALTER SCHEMA "' . $baseName . '" RENAME TO "' . $tmpold . '"; 

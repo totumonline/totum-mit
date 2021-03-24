@@ -289,6 +289,7 @@ class CalculateLog
                 }
             }
         }
+
         if ($ids) {
             if (count($ids) > 1 || !key_exists('', $ids)) {
                 foreach ($ids as $id => $row) {
@@ -468,13 +469,12 @@ class CalculateLog
                     $this->params['result'],
                     JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
                 )];
-
                 $tree['text'] .= ': list/row of ' . count($this->params['result']) . ' values';
-            } elseif (in_array($this->params['result'], ['done'])) {
+            } elseif (in_array($this->params['result'], ['done'], true)) {
                 if ($this->params['times'] > 0.001) {
                     $tree['text'] .= ': ' . round($this->params['times'], 3) . ' c.';
                 }
-            } elseif (in_array($this->params['result'], ['changed', 'no changed'])) {
+            } elseif (in_array($this->params['result'], ['changed', 'no changed'], true)) {
                 $tree['text'] .= ': ' . $this->params['result'];
                 if ($this->params['times'] > 0.001) {
                     $tree['text'] .= ': ' . round($this->params['times'], 3) . ' c.';
@@ -498,7 +498,7 @@ class CalculateLog
         }
 
         foreach ($this->params as $name => $val) {
-            if (preg_match('/^$|#|json|math/', $name)) {
+            if (preg_match('/^$|#|json|math|str|cond/', $name)) {
                 $tree['children'][] = ['text' => $name . " = " . json_encode(
                     $val,
                     JSON_UNESCAPED_UNICODE

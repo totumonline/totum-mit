@@ -149,7 +149,7 @@ class Calculate
                 };
                 $replace_strings = function ($line) use (&$strings, &$replace_line_params, &$replace_strings) {
                     return preg_replace_callback(
-                        '/(?|(math|json|str)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
+                        '/(?|(math|json|str|cond)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
                         function ($matches) use (&$strings, &$replace_line_params, &$replace_strings) {
                             if ($matches[1] === "") {
                                 return '""';
@@ -161,10 +161,8 @@ class Calculate
                                     }
                                     break;
                                 case 'math':
-                                    $matches[2] = $replace_strings($matches[2]);
-                                    $matches[2] = $replace_line_params($matches[2]);
-                                    break;
                                 case 'str':
+                                case 'cond':
                                     $matches[2] = $replace_strings($matches[2]);
                                     $matches[2] = $replace_line_params($matches[2]);
                                     break;
@@ -951,6 +949,9 @@ class Calculate
                                 case 'json':
                                     $rTmp = $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4));
                                     break;
+                                case 'cond':
+                                    $rTmp = $this->parseTotumCond(substr($this->CodeStrings[$r['string']], 4));
+                                    break;
                                 default:
                                     switch (substr($this->CodeStrings[$r['string']], 0, 3)) {
                                         case 'str':
@@ -1582,9 +1583,9 @@ SQL;
                             $nameVar,
                             $this->oldRow ?? []
                         ) && !key_exists(
-                                $nameVar,
-                                $this->row ?? []
-                            )) {
+                            $nameVar,
+                            $this->row ?? []
+                        )) {
                             $rowVar = ['v' => null];
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {
                             $rowVar = ['v' => null];
@@ -3380,11 +3381,15 @@ SQL;
                 switch ($spec) {
                     case 'math':
                         return $this->getMathFromString(substr($this->CodeStrings[$paramArray['string']], 4));
-                        break;
                     case 'json':
                         return $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4));
-                        break;
+                    case 'cond':
+                        return $this->parseTotumCond($str = substr($this->CodeStrings[$paramArray['string']], 4));
                     default:
+                        switch (substr($spec, 0, 3)) {
+                            case 'str':
+                                return $this->parseTotumStr(substr($this->CodeStrings[$paramArray['string']], 3));
+                        }
                         return substr($this->CodeStrings[$paramArray['string']], 1);
                 }
             // no break
@@ -3500,9 +3505,9 @@ SQL;
             'styles, html, name',
             'name'
         )) || (!array_key_exists(
-                $params['template'],
-                $templates
-            ))) {
+            $params['template'],
+            $templates
+        ))) {
             throw new errorException('Шаблон не найден');
         }
 
@@ -3647,6 +3652,165 @@ SQL;
             throw new errorException('Hash можно запросить только у Временной таблицы');
         }
         return $this->Table->getTableRow()['sess_hash'];
+    }
+
+    protected function parseTotumCond($string)
+    {
+        $string = preg_replace('/\s+/', '', $string);
+
+        $actions = preg_split(
+            '`(
+                        \(|\)|
+                        [&]{2}|
+                        [|]{2}|
+                        ==|
+                        !=|
+                        >=|
+                        <=|
+                        [><=]
+                        )`x',
+            $string,
+            null,
+            PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
+        );
+
+        $pack_Sc = function ($actions) use (&$pack_Sc, &$calcIt) {
+            $sc = 0;
+            $interval_start = null;
+            $i = 0;
+            while ($i < count($actions)) {
+                if ($actions[$i] === "") {
+                    array_splice($actions, $i, 1);
+                    continue;
+                }
+                switch ((string)$actions[$i]) {
+                    case '(':
+                        if ($sc++ == 0) {
+                            $interval_start = $i;
+                        }
+                        break;
+                    case ')':
+                        if ($sc < 1) {
+                            throw new errorException('Непарная закрывающая скобка');
+                        }
+                        if (--$sc == 0) {
+                            array_splice(
+                                $actions,
+                                $interval_start,
+                                $i + 1 - $interval_start,
+                                $calcIt($pack_Sc(array_slice(
+                                    $actions,
+                                    $interval_start + 1,
+                                    $i - $interval_start - 1
+                                )))
+                            );
+                            $i = $interval_start - 1;
+                        }
+                        break;
+                }
+                $i++;
+            }
+            return $actions;
+        };
+
+        $checkValue = function ($varIn, $onlyBool = true) {
+            if ($varIn === 'false' || $varIn === false) {
+                return false;
+            }
+            if ($varIn === 'true' || $varIn === true) {
+                return true;
+            }
+
+            $var = $this->execSubCode($varIn, 'CondCode '.$varIn);
+
+            if ($onlyBool) {
+                if ($var === 'false' || $var === false) {
+                    return false;
+                }
+                if ($var === 'true' || $var === true) {
+                    return true;
+                }
+                throw new errorException('Ошибка вычисления cond:' . $varIn . ' вернул не bool');
+            }
+            return $var;
+        };
+
+        $getValue = function ($var) use ($checkValue) {
+            if ($var && !is_numeric($var)) {
+                $var = $checkValue($var, false);
+            }
+            return $var;
+        };
+
+        $calcIt = function ($action) use ($checkValue, $getValue, $string) {
+            $i = 0;
+            while ($i < count($action)) {
+                switch ((string)$action[$i]) {
+                    case '<':
+                    case '>':
+                    case '=':
+                    case '==':
+                    case '!=':
+                    case '<=':
+                    case '>=':
+
+                        $left = $getValue($action[$i - 1]);
+                        $right = $getValue($action[$i + 1]);
+
+                        $val = static::compare($action[$i], $left, $right);
+                        array_splice($action, $i - 1, 3, $val);
+                        $i--;
+                }
+                $i++;
+            }
+
+
+            $i = 0;
+
+            while ($i < count($action)) {
+                switch ((string)$action[$i]) {
+                    case '&&':
+                        $left = $i === 0 ? true : $checkValue($action[$i - 1]);
+
+                        if (!$left) {
+                            $val = false;
+                        } else {
+                            $val = $checkValue($action[$i + 1]);
+                        }
+
+                        if ($i === 0) {
+                            array_splice($action, 0, 2, $val);
+                        } else {
+                            array_splice($action, $i - 1, 3, $val);
+                        }
+
+                        $i--;
+                        break;
+                    case '||':
+                        $left = $i === 0 ? false : $checkValue($action[$i - 1]);
+
+                        if ($left) {
+                            $val = true;
+                        } else {
+                            $val = $checkValue($action[$i + 1]);
+                        }
+
+                        if ($i === 0) {
+                            array_splice($action, 0, 2, $val);
+                        } else {
+                            array_splice($action, $i - 1, 3, $val);
+                        }
+
+                        $i--;
+                }
+                $i++;
+            }
+            if (count($action) !== 1) {
+                throw new errorException('Ошибка вычисления cond:' . $string);
+            }
+            return $checkValue($action[0]);
+        };
+        return $calcIt($pack_Sc($actions));
     }
 
     protected function getMathFromString($string)
@@ -3849,13 +4013,13 @@ SQL;
     protected function parseTotumStr($string)
     {
         $string = preg_replace('/\s+/', '', $string);
-        $result="";
+        $result = "";
 
-        foreach (explode('+', $string) as $i=>$part) {
-            if ($part==='') {
-                $result.=" ";
+        foreach (explode('+', $string) as $i => $part) {
+            if ($part === '') {
+                $result .= " ";
             } else {
-                $result.=$this->execSubCode($part, 'part'.$i);
+                $result .= $this->execSubCode($part, 'part' . $i);
             }
         }
         return $result;

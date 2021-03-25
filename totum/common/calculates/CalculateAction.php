@@ -11,14 +11,11 @@ namespace totum\common\calculates;
 use SoapClient;
 use totum\common\Crypt;
 use totum\common\errorException;
-use totum\common\FieldModifyItem;
 use totum\common\Formats;
-use totum\common\sql\SqlException;
 use totum\common\TotumInstall;
 use totum\tableTypes\aTable;
 use totum\tableTypes\RealTables;
 use \Exception;
-use function Sodium\add;
 
 class CalculateAction extends Calculate
 {
@@ -909,133 +906,6 @@ class CalculateAction extends Calculate
         );
     }
 
-    protected function funcGetFromScript($params)
-    {
-        $params = $this->getParamsArray($params, ['post'], ['post']);
-
-        if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
-            throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
-        }
-
-        $link = $params['uri'];
-        if (!empty($params['post'])) {
-            $post = $this->__getActionFields($params['post'], 'GetFromScript');
-        } elseif (!empty($params['posts'])) {
-            $post = $params['posts'];
-        } else {
-            $post = null;
-        }
-
-
-        if (!empty($params['gets'])) {
-            $link .= strpos($link, '?') === false ? '?' : '&';
-            $link .= http_build_query($params['gets']);
-        }
-
-        $toBfl = $params['bfl'] ?? in_array(
-                'script',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
-
-        try {
-            $r = $this->cURL(
-                $link,
-                'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
-                $params['header'] ?? 0,
-                $params['cookie'] ?? '',
-                $post,
-                ($params['timeout'] ?? null),
-                ($params['headers'] ?? ""),
-                ($params['method'] ?? ""),
-            );
-            if ($toBfl) {
-                $this->Table->getTotum()->getOutersLogger()->error(
-                    "getFromScript",
-                    [
-                        'link' => $link,
-                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
-                        'header' => $params['header'] ?? 0,
-                        'headers' => $params['headers'] ?? 0,
-                        'cookie' => $params['cookie'] ?? '',
-                        'post' => $post,
-                        'timeout' => ($params['timeout'] ?? null),
-                        'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
-                    ]
-                );
-            }
-            return $r;
-        } catch (Exception $e) {
-            if ($toBfl) {
-                $this->Table->getTotum()->getOutersLogger()->error(
-                    "getFromScript:",
-                    ['error' => $e->getMessage()] + [
-                        'link' => $link,
-                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
-                        'header' => $params['header'] ?? 0,
-                        'headers' => $params['headers'] ?? 0,
-                        'cookie' => $params['cookie'] ?? '',
-                        'post' => $post,
-                        'timeout' => ($params['timeout'] ?? null),
-                        'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
-                    ]
-                );
-            }
-            throw new errorException($e->getMessage());
-        }
-    }
-
-    protected function __getActionFields($fieldParams, $funcName)
-    {
-        $fields = [];
-
-        if (empty($fieldParams)) {
-            return false;
-        }
-        foreach ($fieldParams as $f) {
-            $fc = $this->getCodes($f);
-
-            try {
-                if (count($fc) < 2) {
-                    throw new Exception();
-                }
-
-
-                $fieldName = $this->__getValue($fc[0]);
-                if (empty($fieldName)) {
-                    throw new Exception();
-                }
-
-
-                $fieldValue = $this->__getValue($fc[2] ?? $fc[1]);
-
-                if (in_array(strtolower($funcName), ['set', 'setlist', 'setlistextended'])) {
-                    if ($fc[1]['type'] === 'operator') {
-                        $percent = $fc[2]['percent'] ?? false;
-                        $fieldValue = new FieldModifyItem($fc[1]['operator'], $fieldValue, $percent);
-                    } elseif (empty($fc['comparison'])) {
-                        $fieldValue = new FieldModifyItem('+', $fieldValue, $fc[1]['percent'] ?? false);
-                    }
-                }
-
-                //if (is_null($fieldValue)) throw new Exception();
-            } catch (errorException $e) {
-                $e->addPath('[[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
-                throw $e;
-            } catch (SqlException $e) {
-                throw $e;
-
-                throw new errorException($e->getMessage() . ' [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
-            } catch (Exception $e) {
-                throw new errorException('Неправильное оформление кода в [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
-            }
-            $fields[$fieldName] = $fieldValue;
-        }
-        return $fields;
-    }
-
     protected function funcInsert($params)
     {
         if ($params = $this->getParamsArray($params, ['field', 'cycle'], ['field'])) {
@@ -1514,50 +1384,6 @@ class CalculateAction extends Calculate
         );
     }
 
-    public static function cURL($url, $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null, $method = null)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-        curl_setopt($ch, CURLOPT_REFERER, $ref);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HEADER, $header);
 
-        if ($timeout) {
-            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        }
-
-        if (!empty($method)) {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        }
-
-        if (!is_null($post)) {
-            if (empty($method)) {
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_setopt($ch, CURLOPT_POST, 1);
-            }
-            curl_setopt($ch, CURLOPT_POSTFIELDS, is_array($post) ? http_build_query($post) : $post);
-        }
-
-        if ($headers) {
-            $headers = (array)$headers;
-        }
-        if ($cookie) {
-            $headers[] = "Cookie: " . $cookie;
-        }
-        if ($headers) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, (array)$headers);
-        }
-
-        $result = curl_exec($ch);
-        if ($error = curl_error($ch)) {
-            curl_close($ch);
-            throw new errorException($error);
-        }
-        curl_close($ch);
-        return $result;
-    }
 
 }

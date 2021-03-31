@@ -209,7 +209,9 @@ abstract class ConfParent
             } else {
                 $attachments[$k] = $v;
             }
+            $attachments[$k] = File::getFilePath($v, $this);
         }
+
         $body = preg_replace_callback(
             '~src\s*=\s*([\'"]?)(?:http(?:s?)://' . $this->getFullHostName() . ')?/fls/(.*?)\1~',
             function ($matches) use (&$attachments) {

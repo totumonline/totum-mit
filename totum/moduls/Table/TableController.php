@@ -509,6 +509,8 @@ class TableController extends interfaceController
                     JSON_UNESCAPED_UNICODE
                 ));
             }
+            ini_set('xdebug.var_display_max_depth', '20');
+
             if (($types = $this->Totum->getCalculateLog()->getTypes())) {
                 if (in_array('flds', $types)) {
                     $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => 'Расчет таблицы']];

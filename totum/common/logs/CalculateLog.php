@@ -236,9 +236,15 @@ class CalculateLog
         $tree = [];
 
         $tree['icon'] = 'fa fa-folder';
+
         if ($this->fieldName) {
             $tree['icon'] = 'fa fa-magic';
         }
+
+        if (($this->params['type'] ?? false) == 'fixed') {
+            $tree['icon'] = 'fa fa-hand-grab-o';
+        }
+
         $tree['text'] = '';
         $tree['children'] = [];
 
@@ -274,6 +280,7 @@ class CalculateLog
 
         $tree = $this->formatLogItem($tree, $this->topParent->getTypes() === ['flds']);
 
+
         $ids = [];
         /** @var CalculateLog $child */
         foreach ($this->children as $child) {
@@ -289,6 +296,7 @@ class CalculateLog
                 }
             }
         }
+
 
         if ($ids) {
             if (count($ids) > 1 || !key_exists('', $ids)) {
@@ -439,7 +447,9 @@ class CalculateLog
                                 $tree['text'] = 'S ' . $tree['text'];
                                 break;
                         }
+
                         $tree['icon'] = 'fa fa-folder';
+
                         break;
 
                 }
@@ -482,6 +492,10 @@ class CalculateLog
             } else {
                 $tree['text'] .= ': ' . json_encode($this->params['result'], JSON_UNESCAPED_UNICODE);
             }
+
+            if (($this->params['type'] ?? false) === 'fixed') {
+                $tree['icon'] = 'fa fa-hand-grab-o';
+            }
         }
 
         if ($this->params['error'] ?? null) {
@@ -500,9 +514,9 @@ class CalculateLog
         foreach ($this->params as $name => $val) {
             if (preg_match('/^$|#|json|math|str|cond/', $name)) {
                 $tree['children'][] = ['text' => $name . " = " . json_encode(
-                    $val,
-                    JSON_UNESCAPED_UNICODE
-                ), 'icon' => 'fa fa-hash'];
+                        $val,
+                        JSON_UNESCAPED_UNICODE
+                    ), 'icon' => 'fa fa-hash'];
             }
         }
 

@@ -1507,6 +1507,9 @@ SQL;
                                 false,
                                 $inVars
                             );
+                        } else {
+                            $Log = $this->Table->calcLog(['name' => $codeName, 'type'=>"fixed"]);
+                            $this->Table->calcLog($Log, 'result', $this->fixedCodeVars[$cacheCodeName]);
                         }
                         $r = $this->fixedCodeVars[$cacheCodeName];
                     } else {

@@ -141,7 +141,7 @@ class Select extends Field
             if ($row['previewscode'] ?? null) {
                 $CalcPreview = new Calculate($row['previewscode']);
                 $data = $CalcPreview->exec(
-                    ['name'=>"CALC PREVIEW"],
+                    ['name' => "CALC PREVIEW"],
                     [],
                     [],
                     $this->table->getTbl()['params'],
@@ -168,7 +168,7 @@ class Select extends Field
                 $val = $row[$name] ?? [];
 
                 if ($name === 'id') {
-                    $field = ['title' => 'id', 'type'=>'number'];
+                    $field = ['title' => 'id', 'type' => 'number'];
                 }
 
                 switch ($field['type']) {
@@ -677,7 +677,7 @@ class Select extends Field
                 }
             }
         }
-        if ($this->data['multiple']) {
+        if ($this->data['multiple'] ?? false) {
             foreach ($val as &$v) {
                 if (is_int($v)) {
                     $v = strval($v);

@@ -117,6 +117,52 @@ class Tree extends Field
         return $return;
     }
 
+    public function getLevelValue($val, $row, $tbl = [])
+    {
+        if (empty($val)) {
+            if (empty($this->data['multiple'])) {
+                return null;
+            } else {
+                return [];
+            }
+        }
+
+        $list = $this->calculateSelectList($val, $row, $tbl);
+
+        $calcLevel = function ($v, $level = 0) use (&$calcLevel) {
+            return key_exists('path', $v) ? $calcLevel($v['path'], $level + 1) : $level;
+        };
+
+        if (!is_null($list)) {
+            if (is_array($list)) {
+                if (!empty($this->data['multiple'])) {
+                    $return = [];
+                    if ($val !== $this->data['errorText']) {
+                        foreach ($val ?? [] as $v) {
+                            if (empty($list[$v])) {
+                                $return[] = 0;
+                            } else {
+                                $return [] = $calcLevel($list[$v]);
+                            }
+                        }
+                    } else {
+                        $return = [];
+                    }
+                } else {
+                    if (empty($list[$val])) {
+                        $return[] = 0;
+                    } else {
+                        $return [] = $calcLevel($list[$val]);
+                    }
+                }
+            } else {
+                $return = null;
+            }
+        }
+
+        return $return;
+    }
+
     public function getLogValue($val, $row, $tbl = [])
     {
         return $this->getSelectValue($val, $row, $tbl);
@@ -173,14 +219,14 @@ class Tree extends Field
 
         if (empty($val['__isForChildTree'])) {
             $remove_children = function ($id) use (&$list, &$remove_children) {
-                foreach ($list as $k=>$v) {
-                    if (($v[3]??null)==$id) {
+                foreach ($list as $k => $v) {
+                    if (($v[3] ?? null) == $id) {
                         $remove_children($k);
                         unset($list[$k]);
                     }
                 }
             };
-            foreach ($list as $k=>&$l) {
+            foreach ($list as $k => &$l) {
                 if ($l[3] ?? null) {
                     if (key_exists($l[3], $list)) {
                         $l['path'] =& $list[$l[3]];
@@ -410,11 +456,14 @@ class Tree extends Field
 
         $list = $this->calculateSelectList($valArray, $row, $tbl);
 
-        $getParentsTitle = function ($parents, $level=0) use (&$getParentsTitle) {
-            if($level>100){
+        $getParentsTitle = function ($parents, $level = 0) use (&$getParentsTitle) {
+            if ($level > 100) {
                 return 'Зацикленное дерево';
             }
-            return (!empty($parents['path']) ? $getParentsTitle($parents['path'], $level+1) . ' > ' : '') . $parents[0];
+            return (!empty($parents['path']) ? $getParentsTitle(
+                        $parents['path'],
+                        $level + 1
+                    ) . ' > ' : '') . $parents[0];
         };
 
         $getTreeItem = function ($v) use ($list, $getParentsTitle, &$valArray) {
@@ -495,12 +544,12 @@ class Tree extends Field
                         $v[1][0] .= ' ' . $this->data['unitType'];
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
-                        array_slice(
+                            array_slice(
                                 $arrayVals,
                                 1
                             ),
-                        array_slice($arrayTitles, 1)
-                    );
+                            array_slice($arrayTitles, 1)
+                        );
                 };
 
                 if ($this->data['multiple'] && ($this->data['printTextfull'] ?? false)) {

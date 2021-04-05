@@ -17,6 +17,7 @@ use totum\common\Model;
 use totum\common\sql\SqlException;
 use totum\common\Json\TotumJson;
 use totum\fieldTypes\File;
+use totum\fieldTypes\Tree;
 use totum\models\TablesFields;
 use totum\tableTypes\aTable;
 use totum\tableTypes\calcsTable;
@@ -459,7 +460,7 @@ class Calculate
                     '|(?<string>"[^"]*")' .            //string
                     '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
                     '|(?<bool>false|true)' .   //10
-                    '|(?<param>(?<param_name>(?:\$\$|\$\#?|\#(?i:(?:old|s|h|c)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
+                    '|(?<param>(?<param_name>(?:\$\$|\$\#?|\#(?i:(?:old|s|h|c|l)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
                     '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',
                     //dog,dog_table, dog_field,dog_items
 
@@ -1543,18 +1544,31 @@ SQL;
                         } else {
                             $rowVar = "";
                         }
-                    } elseif (substr($nameVar, 0, 2) === 's.') {
+                    } elseif (($substr=substr($nameVar, 0, 2)) === 's.' || $substr ==='l.') {
+
                         $paramArray['param'] = substr($nameVar, 2);
+
                         if ($fName = $this->getParam($paramArray['param'], $paramArray)) {
                             if ($selectField = ($this->Table->getFields()[$fName] ?? null)) {
                                 $paramArray['param'] = '#' . $fName;
 
                                 $Field = Field::init($selectField, $this->Table);
-                                $r = $Field->getSelectValue(
-                                    $this->getParam($paramArray['param'], $paramArray),
-                                    $this->row,
-                                    $this->tbl
-                                );
+                                switch ($substr) {
+                                            case 's.':
+                                                $r = $Field->getSelectValue(
+                                                    $this->getParam($paramArray['param'], $paramArray),
+                                                    $this->row,
+                                                    $this->tbl
+                                                );
+                                                break;
+                                            case 'l.':
+                                                $r = $Field->getLevelValue(
+                                                    $this->getParam($paramArray['param'], $paramArray),
+                                                    $this->row,
+                                                    $this->tbl
+                                                );
+                                                break;
+                                    }
                             }
                         }
                     } elseif (preg_match('/^prv\./i', $nameVar)) {

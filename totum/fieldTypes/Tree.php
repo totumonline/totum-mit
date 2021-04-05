@@ -34,6 +34,12 @@ class Tree extends Field
         }
     }
 
+    public function clearCachedLists()
+    {
+        $this->commonSelectList = null;
+        $this->commonSelectValueList = null;
+    }
+
     public function calculateSelectValueList($val, $row, $tbl = [])
     {
         if (empty($this->data['codeSelectIndividual'])) {

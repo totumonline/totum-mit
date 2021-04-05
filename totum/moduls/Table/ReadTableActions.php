@@ -1560,6 +1560,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     [""],
                     true
                 )['tree'];
+
             }
 
 
@@ -1647,7 +1648,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $Tree = Field::init($this->Table->getFields()['tree'], $this->Table);
         $val = ["v" => null];
+
+        $Tree->clearCachedLists();
         $list = $Tree->calculateSelectList($val, [], $this->Table->getTbl());
+
         $bids = [];
         $tree = [];
         $thisNodes = [];

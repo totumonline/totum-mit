@@ -150,9 +150,9 @@ class Tree extends Field
                     }
                 } else {
                     if (empty($list[$val])) {
-                        $return[] = 0;
+                        $return = 0;
                     } else {
-                        $return [] = $calcLevel($list[$val]);
+                        $return = $calcLevel($list[$val]);
                     }
                 }
             } else {

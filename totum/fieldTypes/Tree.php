@@ -196,6 +196,7 @@ class Tree extends Field
                     $tbl,
                     $this->table
                 );
+
                 if ($error = $this->CalculateCodeSelect->getError()) {
                     $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
                     $list = [];

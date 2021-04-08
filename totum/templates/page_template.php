@@ -18,7 +18,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=2decef9"></script>
+    <script src="/js/main.js?v=9906268"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

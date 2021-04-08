@@ -78,7 +78,7 @@ class Cycle
         $defaults = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($tableName, true);
         $this->Totum->getTable('calcstable_cycle_version')->reCalculateFromOvers(
             ['add' => [
-                ['table_name' => $tableName, 'cycle' => $cycleId, 'version' => $defaults['version'], 'ord' => $defaults['default_ord']]
+                ['table_name' => $tableName, 'cycle' => $cycleId, 'version' => $defaults['version'], 'ord' => $defaults['default_ord'], 'auto_recalc' => $defaults['default_auto_recalc'] === 'false' ? false : true]
             ]]
         );
 

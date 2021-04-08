@@ -16,7 +16,7 @@ class CalcsTablesVersions extends Model
             $this->cacheDefVersions[$tableName] = $this->executePrepared(
                 true,
                 ['table_name' => $tableName, 'is_default' => "true"],
-                'version, default_ord'
+                'version, default_ord, default_auto_recalc'
             )->fetch();
 
             if (!$this->cacheDefVersions[$tableName]) {

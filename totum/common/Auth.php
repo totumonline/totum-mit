@@ -8,7 +8,7 @@ class Auth
 {
     public static $shadowRoles = [1, -2];
     public static $userManageRoles = [-1];
-    public static $userManageTables=['users', 'auth_log', 'log_po_polzovatelyu', 'ttm__users_online'];
+    public static $userManageTables=['users', 'auth_log', 'ttm__user_log', 'ttm__users_online'];
 
     public static function checkUserPass($string, $hash)
     {

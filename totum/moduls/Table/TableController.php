@@ -58,7 +58,6 @@ class TableController extends interfaceController
 
     public function actionMain(ServerRequestInterface $request)
     {
-
         $this->__addAnswerVar(
             'html',
             preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page'))
@@ -161,7 +160,7 @@ class TableController extends interfaceController
                     ]
                 ]
                 + (
-                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
+                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
                 );
             if ($t['type'] !== "link") {
                 $branchIds[] = $t['id'];
@@ -170,7 +169,7 @@ class TableController extends interfaceController
         if ($branchIds) {
             foreach (Table::init($this->Config)->getAll(
                 ['tree_node_id' => ($branchIds), 'id' => array_keys($this->User->getTreeTables())],
-                'id, title, type, tree_node_id, sort',
+                'id, title, type, tree_node_id, sort, icon',
                 '(sort->>\'v\')::numeric'
             ) as $t) {
                 $tree[] = [
@@ -178,6 +177,7 @@ class TableController extends interfaceController
                     , 'href' => $t['id']
                     , 'text' => $t['title']
                     , 'type' => 'table_' . $t['type']
+                    , 'icon' => ($t['icon'] ?? null)
                     , 'parent' => 'tree' . $t['tree_node_id']
                     , 'ord' => (int)$t['sort']
                     , 'state' => [
@@ -226,6 +226,7 @@ class TableController extends interfaceController
                             'id' => 'table' . $tId
                             , 'href' => $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId
                             , 'text' => $tableRow['title']
+                            , 'icon' => ($tableRow['icon'] ?? null)
                             , 'type' => 'table_calcs'
                             , 'parent' => $idHref
                             , 'isCycleTable' => true
@@ -263,7 +264,7 @@ class TableController extends interfaceController
         if (empty($tree)) {
             foreach (Table::init($this->Config)->getAll(
                 ['id' => $this->User->getFavoriteTables()],
-                'id, top, title, type',
+                'id, top, title, type, icon',
                 'sort'
             ) as $t) {
                 $tree[] = [
@@ -271,6 +272,7 @@ class TableController extends interfaceController
                     , 'href' => $this->modulePath . $t['top'] . '/' . $t['id']
                     , 'text' => $t['title']
                     , 'type' => 'table_' . $t['type']
+                    , 'icon' => ($t['icon'] ?? null)
                     , 'parent' => '#'
                 ];
             }
@@ -347,9 +349,9 @@ class TableController extends interfaceController
             }
             $branch['href'] = $href;
             if (is_a(
-                    $this,
-                    TableController::class
-                ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
+                $this,
+                TableController::class
+            ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
                 $branch['active'] = true;
             }
         }
@@ -404,9 +406,9 @@ class TableController extends interfaceController
             }
             $message = $e->getMessage();
             if ($this->User && $this->User->isCreator() && key_exists(
-                    WithPathMessTrait::class,
-                    class_uses(get_class($e))
-                )) {
+                WithPathMessTrait::class,
+                class_uses(get_class($e))
+            )) {
                 $message .= "<br/>" . $e->getPathMess();
             }
             $this->__addAnswerVar('error', $message);
@@ -558,9 +560,9 @@ class TableController extends interfaceController
 
 
         if (!empty($request->getParsedBody()['method']) && in_array(
-                $request->getParsedBody()['method'],
-                ['getValue']
-            )) {
+            $request->getParsedBody()['method'],
+            ['getValue']
+        )) {
             if (!empty($request->getParsedBody()['table_id'])) {
                 $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;
@@ -569,10 +571,10 @@ class TableController extends interfaceController
 
 
         if ($tableUri && (preg_match(
-                    '/^(\d+)\/(\d+)\/(\d+)/',
-                    $tableUri,
-                    $tableMatches
-                ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
+            '/^(\d+)\/(\d+)\/(\d+)/',
+            $tableUri,
+            $tableMatches
+        ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
             if (empty($tableMatches[3])) {
                 $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
@@ -615,14 +617,14 @@ class TableController extends interfaceController
                 //Проверка доступа к циклу
 
                 if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
-                        $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                        [1, 2, 3]
-                    )) {
+                    $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                    [1, 2, 3]
+                )) {
                     //Если не связанный пользователь
                     if (count(array_intersect(
-                            $this->Cycle->getRow()['creator_id']['v'],
-                            $this->User->getConnectedUsers()
-                        )) === 0) {
+                        $this->Cycle->getRow()['creator_id']['v'],
+                        $this->User->getConnectedUsers()
+                    )) === 0) {
                         if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {

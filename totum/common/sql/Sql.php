@@ -315,7 +315,7 @@ class Sql
 
     public function getPrepared($query_string, $driver_options = []): PDOStatement
     {
-        $this->lastQuery = ['str' => $query_string, 'error' => null, 'num' => ($this->lastQuery['num'] + 1)];
+        $this->lastQuery = ['str' => $query_string, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options'=>$driver_options];
         $microTime = microtime(1);
         $stmt = $this->getPDO()->prepare($query_string, $driver_options);
 
@@ -338,7 +338,7 @@ class Sql
 
     public function executePrepared(PDOStatement $statement, array $listOfParams)
     {
-        $this->lastQuery = ['str' => $statement->queryString, 'error' => null, 'num' => ($this->lastQuery['num'] + 1)];
+        $this->lastQuery = ['str' => $statement->queryString, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options'=>$listOfParams];
 
         $microTime = microtime(true);
         foreach ($listOfParams as &$param) {

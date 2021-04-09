@@ -274,15 +274,15 @@ class Actions
             if ($actived) {
                 $result['deactivated'] = [];
                 if ($ids = ($model->getColumn(
-                        'id',
-                        ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'false']
-                    ) ?? [])) {
+                    'id',
+                    ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'false']
+                ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
                 if ($ids = ($model->getColumn(
-                        'id',
-                        ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'true', '>active_dt_from' => date('Y-m-d H:i')]
-                    ) ?? [])) {
+                    'id',
+                    ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'true', '>active_dt_from' => date('Y-m-d H:i')]
+                ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
                 if (empty($result['deactivated'])) {
@@ -314,12 +314,12 @@ class Actions
             $result = $getNotification();
         }
         echo json_encode($result + ['notifications' => array_map(
-                function ($n) {
+            function ($n) {
                     $n[0] = 'notification';
                     return $n;
                 },
-                $this->Totum->getInterfaceDatas()
-            )]);
+            $this->Totum->getInterfaceDatas()
+        )]);
         die;
     }
 }

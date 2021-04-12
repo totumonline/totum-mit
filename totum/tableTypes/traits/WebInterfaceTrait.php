@@ -105,6 +105,7 @@ trait WebInterfaceTrait
 
         $modify = $data['modify'] ?? [];
         $remove = $data['remove'] ?? [];
+        $restore = $data['restore'] ?? [];
 
         $duplicate = $data['duplicate'] ?? [];
         $reorder = $data['reorder'] ?? [];
@@ -125,6 +126,7 @@ trait WebInterfaceTrait
             $inVars['modify'] = $modify;
         }
         $inVars['remove'] = $remove;
+        $inVars['restore'] = $restore;
         $inVars['duplicate'] = $duplicate;
         $inVars['reorder'] = $reorder;
 

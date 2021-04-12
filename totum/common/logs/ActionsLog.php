@@ -141,6 +141,20 @@ class ActionsLog
             false
         );
     }
+    public function restore($tableid, $cycleid, $rowid)
+    {
+        $model = static::getModel();
+        $model->insertPrepared(
+            [
+            'tableid' => $tableid,
+            'cycleid' => $cycleid ?? 0,
+            'rowid' => $rowid ?? 0,
+            'action' => 7,
+            'userid' => $this->Totum->getUser()->getId()
+        ],
+            false
+        );
+    }
 
     public function getLogs($tableid, $cycleid, $rowid, $field)
     {

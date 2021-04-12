@@ -152,12 +152,11 @@ abstract class RealTables extends aTable
             }
         }
 
-        if ($isInnerChannel) {
-            $this->model->delete(['id' => $remove]);
+        if ($this->tableRow['deleting']==='none' && !$isInnerChannel) {
+            throw new errorException('В таблице [[' . $this->tableRow['title'] . ']] запрещено удаление');
         } else {
             switch ($this->tableRow['deleting']) {
                 case 'none':
-                    throw new errorException('В таблице [[' . $this->tableRow['title'] . ']] запрещено удаление');
                 case 'delete':
                     if ($this->tableRow['type'] === 'cycles') {
                         foreach ($remove as $id) {
@@ -180,6 +179,39 @@ abstract class RealTables extends aTable
             /******aLog*****/
         }
 
+        return $orderMinN;
+    }
+
+    public function restoreRows($restore, $channel)
+    {
+        $this->setIsTableDataChanged(true);
+
+        foreach ($restore as $id) {
+            $this->rowsOperations('Restore', ['id' => $id]);
+        }
+
+        $this->model->update(['is_del' => false], ['id' => $restore]);
+
+
+        /******aLog restore*****/
+        if (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog) {
+            foreach ((array)$restore as $id) {
+                $this->Totum->totumActionsLogger()->restore($this->tableRow['id'], null, $id);
+            }
+        }
+        /******aLog*****/
+
+        $orderMinN = null;
+        if (!empty($this->tableRow['with_order_field']) && !empty($this->tableRow['recalc_in_reorder'])) {
+            $this->loadRowsByIds($restore);
+            foreach ($restore as $id) {
+                if ($row = ($this->tbl['rows'][$id] ?? null)) {
+                    if (is_null($orderMinN) || $orderMinN > $row['n']) {
+                        $orderMinN = $row['n'];
+                    }
+                }
+            }
+        }
         return $orderMinN;
     }
 
@@ -242,9 +274,9 @@ abstract class RealTables extends aTable
                 $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
                 if ((!array_key_exists($field, $fields) && !in_array(
-                    $field,
-                    Model::serviceFields
-                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
+                            $field,
+                            Model::serviceFields
+                        )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
                     throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
                 }
                 if (in_array($field, Model::serviceFields)) {
@@ -433,6 +465,10 @@ abstract class RealTables extends aTable
 
     public function countByParams($params, $orders = null, $untilId = 0)
     {
+        if ($this->restoreView) {
+            $params[] = ['field' => 'is_del', 'operator' => '=', 'value' => true];
+        }
+
         list($whereStr, $paramsWhere) = $this->getWhereFromParams($params);
         if ($untilId) {
             if (is_array($untilId)) {
@@ -443,13 +479,13 @@ abstract class RealTables extends aTable
             }
             array_push($paramsWhere, ... $untilId);
             return $this->model->executePreparedSimple(
-                true,
-                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                    true,
+                    "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
                         ',',
                         array_fill(0, count($untilId), '?')
                     ) . ")",
-                $paramsWhere
-            )->fetchColumn(1) + $isRefresh;
+                    $paramsWhere
+                )->fetchColumn(1) + $isRefresh;
         }
 
         return $this->model->executePrepared(
@@ -546,10 +582,10 @@ abstract class RealTables extends aTable
             if ($fieldsWithActionOnChange) {
                 foreach ($fieldsWithActionOnChange as $field) {
                     if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
-                        '!==',
-                        $loadedTbl['params'][$field['name']]['v'],
-                        $tbl['params'][$field['name']]['v']
-                    )) {
+                            '!==',
+                            $loadedTbl['params'][$field['name']]['v'],
+                            $tbl['params'][$field['name']]['v']
+                        )) {
                         Field::init($field, $this)->action(
                             $loadedTbl['params'],
                             $tbl['params'],
@@ -641,12 +677,18 @@ abstract class RealTables extends aTable
         }
     }
 
-    protected function reCalculateRows($calculate, $channel, $isCheck, $modifyCalculated, $isTableAdding, $remove, $add, $modify, $setValuesToDefaults, $setValuesToPinned, $duplicate, $reorder, $addAfter, $addWithId)
+    protected function reCalculateRows($calculate, $channel, $isCheck, $modifyCalculated, $isTableAdding, $remove, $restore, $add, $modify, $setValuesToDefaults, $setValuesToPinned, $duplicate, $reorder, $addAfter, $addWithId)
     {
         $orderMinN = null;
 
+        if ($restore) {
+            $orderMinN = $this->restoreRows($restore, $channel);
+        }
         if ($remove) {
-            $orderMinN = $this->removeRows($remove, $channel);
+            $orderMinN2 = $this->removeRows($remove, $channel);
+            if ($orderMinN > $orderMinN2) {
+                $orderMinN = $orderMinN2;
+            }
         }
 
         /***reorder***/
@@ -703,7 +745,8 @@ abstract class RealTables extends aTable
         $modifiedIds = array_flip(array_merge(
             array_keys($modify),
             array_keys($setValuesToDefaults),
-            array_keys($setValuesToPinned)
+            array_keys($setValuesToPinned),
+            $restore
         ));
         unset($modifiedIds['params']);
         $modifiedIds = array_flip($modifiedIds);
@@ -769,9 +812,9 @@ abstract class RealTables extends aTable
             foreach ($add as $rAdd) {
                 if ($this->tableRow['with_order_field'] ?? false) {
                     if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN(
-                        $fIds,
-                        $afterN
-                    )) {
+                            $fIds,
+                            $afterN
+                        )) {
                         $afterN = $rAdd['n'] = $n;
                     }
                 }
@@ -883,6 +926,9 @@ abstract class RealTables extends aTable
                 }
                 unset($this->tbl['rows'][$row['id']]);
 
+                break;
+            case 'Restore':
+                $this->changeIds['restored'][$row['id']] = null;
                 break;
             case 'Load':
                 foreach ($rowsIndexedByIdOrChanges as $id => &$row) {
@@ -1113,10 +1159,10 @@ abstract class RealTables extends aTable
                 $len = 4;
 
                 while (bccomp(
-                    $diff,
-                    ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
-                    $scaleDiff > $len ? $scaleDiff : $len
-                ) !== 1) {
+                        $diff,
+                        ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
+                        $scaleDiff > $len ? $scaleDiff : $len
+                    ) !== 1) {
                     $len += 4;
                 }
 
@@ -1274,7 +1320,9 @@ abstract class RealTables extends aTable
             }
 
             /*Проверка на число - чтобы ошибок в базе не случалось*/
-            if ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
+            if ($fieldName === 'is_del') {
+                $withoutDeleted = false;
+            } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
                 foreach ((array)$value as $v) {
                     if ($v !== "" && !is_null($v) && !is_numeric((string)$v)) {
                         throw new errorException('Для выборки по числовому полю [[' . $fieldName . ']] должно быть передано число');
@@ -1484,9 +1532,9 @@ abstract class RealTables extends aTable
                                     $q .= " OR ";
                                 }
                                 $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
-                                    ',?',
-                                    count($value) - 1
-                                ) . ')';
+                                        ',?',
+                                        count($value) - 1
+                                    ) . ')';
                                 array_push($params, ...$value);
                             }
                             $where[] = "($q)";

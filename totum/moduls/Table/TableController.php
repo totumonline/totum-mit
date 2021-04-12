@@ -58,6 +58,37 @@ class TableController extends interfaceController
 
     public function actionMain(ServerRequestInterface $request)
     {
+        $tmpTables = $this->Totum->getTable('roles')->getByParams(
+            [
+            'field' => 'tmp_for_favorites', 'where' => [
+                ['field' => 'id', 'operator' => '=', 'value' => $this->Totum->getUser()->getRoles()],
+                ['field' => 'tmp_for_favorites', 'operator' => '!=', 'value' => []]
+            ]
+        ],
+            'list'
+        );
+        $tmp = [];
+        foreach ($tmpTables as $tList) {
+            array_push($tmp, ...$tList);
+        }
+
+        if ($tmp) {
+            $tmp_tables=$this->Totum->getTable('tables')->getByParams(
+                [
+                'field'=>['id', 'title'],
+                'where'=>[
+                    ['field'=>'id', 'operator'=>'=', 'value'=>$tmp]
+                ]
+            ],
+                'rows'
+            );
+
+            $this->__addAnswerVar(
+                'tmp_tables',
+                $tmp_tables
+            );
+        }
+
         $this->__addAnswerVar(
             'html',
             preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page'))

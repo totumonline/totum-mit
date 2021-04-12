@@ -50,6 +50,10 @@ class Actions
         $this->Request = $Request;
         $this->post = $Request->getParsedBody();
 
+        if(!empty($this->post['restoreView'])){
+            $this->Table->setRestoreView(true);
+        }
+
         $this->modulePath = $modulePath;
     }
 

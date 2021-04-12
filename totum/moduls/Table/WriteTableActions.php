@@ -203,6 +203,15 @@ class WriteTableActions extends ReadTableActions
         $ids = (array)(!empty($this->post['delete_ids']) ? json_decode($this->post['delete_ids'], true) : []);
         return $this->modify(['remove' => $ids]);
     }
+    public function restore()
+    {
+        if (!$this->Table->isUserCanAction('restore')) {
+            throw new errorException('Восстановление в этой таблице вам запрещено');
+        }
+        $ids = (array)(!empty($this->post['restore_ids']) ? json_decode($this->post['restore_ids'], true) : []);
+
+        return $this->modify(['restore' => $ids]);
+    }
 
     public function selectSourceTableAction()
     {

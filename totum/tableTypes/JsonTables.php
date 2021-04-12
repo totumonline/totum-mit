@@ -260,7 +260,7 @@ abstract class JsonTables extends aTable
         }
     }
 
-    protected function reCalculateRows($calculate, $channel, $isCheck, $modifyCalculated, $isTableAdding, $remove, $add, $modify, $setValuesToDefaults, $setValuesToPinned, $duplicate, $reorder, $addAfter, $addWithId)
+    protected function reCalculateRows($calculate, $channel, $isCheck, $modifyCalculated, $isTableAdding, $remove, $restore, $add, $modify, $setValuesToDefaults, $setValuesToPinned, $duplicate, $reorder, $addAfter, $addWithId)
     {
         $Log = $this->calcLog(["recalculate" => 'column']);
 
@@ -324,9 +324,9 @@ abstract class JsonTables extends aTable
                     $type = SORT_REGULAR;
                 }
                 if (count(array_unique(
-                        $insertList,
-                        $type
-                    )) !== count($insertList)) {
+                    $insertList,
+                    $type
+                )) !== count($insertList)) {
                     throw new errorException('Поле [[insert]] должно возвращать list с уникальными значениями - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
                 }
             } else {
@@ -378,45 +378,57 @@ abstract class JsonTables extends aTable
             if (!empty($row['is_del']) || $isDeletedRow = ($remove && in_array($row['id'], $remove))) {
                 if ($isDeletedRow ?? null) {
                     $this->setIsTableDataChanged(true);
-                }
+                    $aLogDelete = function ($id) use ($channel) {
+                        if ($this->tableRow['type'] !== 'tmp'
+                            && (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog)
+                        ) {
+                            $this->Totum->totumActionsLogger()->delete(
+                                $this->tableRow['id'],
+                                $this->getCycle() ? $this->getCycle()->getId() : null,
+                                $id
+                            );
+                        }
+                    };
+                    switch ($this->tableRow['deleting']) {
+                        case 'none':
+                            if ($channel !== 'inner') {
+                                throw new errorException('В таблице запрещено удаление');
+                            }
+                        // no break
+                        case 'delete':
+                            $this->changeIds['changed'][$row['id']] = null;
 
-                $aLogDelete = function ($id) use ($channel) {
+                            foreach ($this->sortedFields['column'] as $field) {
+                                if ($field['type'] === 'file') {
+                                    $this->deleteFilesOnCommit($row[$field['name']]['v']);
+                                }
+                            }
+
+                            $aLogDelete($row['id']);
+                            continue 2;
+                        case 'hide':
+                            $newRow['is_del'] = true;
+                            if ($isDeletedRow) {
+                                $aLogDelete($row['id']);
+                            }
+                            break;
+                    }
+                } elseif (in_array($row['id'], $restore)) {
+                    $this->setIsTableDataChanged(true);
+                    $this->changeIds['restored'][$row['id']] = null;
                     if ($this->tableRow['type'] !== 'tmp'
                         && (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog)
                     ) {
-                        $this->Totum->totumActionsLogger()->delete(
+                        $this->Totum->totumActionsLogger()->restore(
                             $this->tableRow['id'],
                             $this->getCycle() ? $this->getCycle()->getId() : null,
-                            $id
+                            $row['id']
                         );
                     }
-                };
-
-
-                switch ($this->tableRow['deleting']) {
-                    case 'none':
-                        if ($channel !== 'inner') {
-                            throw new errorException('В таблице запрещено удаление');
-                        }
-                    // no break
-                    case 'delete':
-                        $this->changeIds['changed'][$row['id']] = null;
-
-                        foreach ($this->sortedFields['column'] as $field) {
-                            if ($field['type'] === 'file') {
-                                $this->deleteFilesOnCommit($row[$field['name']]['v']);
-                            }
-                        }
-
-                        $aLogDelete($row['id']);
-                        continue 2;
-                    case 'hide':
-                        $newRow['is_del'] = true;
-                        $aLogDelete($row['id']);
-                        break;
+                } else {
+                    $newRow['is_del'] = true;
                 }
             }
-
             $this->tbl['rows'][$row['id']] = $newRow;
         }
 
@@ -502,9 +514,9 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($after && !key_exists(
-                        $after,
-                        $SavedRows
-                    )) {
+                    $after,
+                    $SavedRows
+                )) {
                     throw new errorException('Строки с id ' . $after . ' не существует. Возможно, она была удалена');
                 }
 
@@ -899,10 +911,10 @@ abstract class JsonTables extends aTable
 
             $checkAndChange = function ($field) use ($tbl, $loadedTbl) {
                 if (key_exists($field['name'], $loadedTbl['params'] ?? []) && Calculate::compare(
-                        '!==',
-                        $loadedTbl['params'][$field['name']]['v'],
-                        $tbl['params'][$field['name']]['v']
-                    )) {
+                    '!==',
+                    $loadedTbl['params'][$field['name']]['v'],
+                    $tbl['params'][$field['name']]['v']
+                )) {
                     Field::init($field, $this)->action(
                         $loadedTbl['params'],
                         $tbl['params'],
@@ -961,9 +973,9 @@ abstract class JsonTables extends aTable
                             $actionIt = 'add';
                         }
                     } elseif (!empty($field['CodeActionOnChange']) && key_exists(
-                            $field['name'],
-                            $loadedTbl['rows'][$row['id']]
-                        )) {
+                        $field['name'],
+                        $loadedTbl['rows'][$row['id']]
+                    )) {
                         if (Calculate::compare(
                             '!==',
                             $loadedTbl['rows'][$row['id']][$field['name']]['v'],
@@ -1083,11 +1095,13 @@ abstract class JsonTables extends aTable
             };
         }
         $where = [];
+        $isDelInFields = false;
         if (isset($params['where'])) {
             foreach ($params['where'] as $wI) {
                 $field = $wI['field'];
                 $operator = $wI['operator'];
                 $value = $wI['value'];
+
 
                 if ($value === '*ALL*') {
                     continue;
@@ -1101,6 +1115,7 @@ abstract class JsonTables extends aTable
                             }
                             unset($val);
                             $array = array_intersect_key($array, array_flip(array_unique($value)));
+
                             continue 2;
                         case '!=':
                             $value = (array)$value;
@@ -1112,6 +1127,8 @@ abstract class JsonTables extends aTable
                             $array = array_diff_key($array, array_flip(array_unique($value)));
                             continue 2;
                     }
+                } elseif ($field === 'is_del') {
+                    $isDelInFields = true;
                 }
 
 
@@ -1127,13 +1144,8 @@ abstract class JsonTables extends aTable
                 $where[] = ['field' => $field, 'isArray' => $_array, 'operator' => $operator, 'val' => $value];
             }
         }
-//        if ($returnType === 'where') return $where;
 
-
-        $isDelInFields = in_array(
-                'is_del',
-                $params['field']
-            ) || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
+        $isDelInFields = $isDelInFields || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
 
         if ($returnType === 'field' || $returnType === 'row') {
             if (isset($fOrdering)) {
@@ -1179,7 +1191,6 @@ abstract class JsonTables extends aTable
             }
             return null;
         } else {
-
             $offset = ($params['offset']) ?? 0;
             if (!(ctype_digit(strval($offset)))) {
                 throw new errorException('Параметр offset должен быть целым числом');

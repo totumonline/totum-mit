@@ -57,6 +57,8 @@ HTML;
                 </script>
 
                 <?php
+            } elseif (!empty($html)) {
+                echo '<div id="main-page">' . $html . '</div>';
             }
         } elseif (!empty($html)) {
             echo '<div id="main-page">' . $html . '</div>';

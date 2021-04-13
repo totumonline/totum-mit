@@ -408,9 +408,7 @@ abstract class JsonTables extends aTable
                             continue 2;
                         case 'hide':
                             $newRow['is_del'] = true;
-                            if ($isDeletedRow) {
-                                $aLogDelete($row['id']);
-                            }
+                            $aLogDelete($row['id']);
                             break;
                     }
                 } elseif (in_array($row['id'], $restore)) {

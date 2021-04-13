@@ -1145,6 +1145,20 @@ class CalculateAction extends Calculate
             }
         );
     }
+    protected function funcRestore($params)
+    {
+        $this->__doAction(
+            $params,
+            function ($params) {
+                $table = $this->getSourceTable($params);
+                $where = $params['where'] ?? [];
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
+                $table->actionRestore($where, 1);
+            }
+        );
+    }
 
     protected function funcDuplicate($params)
     {
@@ -1199,6 +1213,20 @@ class CalculateAction extends Calculate
                     $table->setWithALogTrue();
                 }
                 $table->actionDelete($where, null);
+            }
+        );
+    }
+    protected function funcRestoreList($params)
+    {
+        $this->__doAction(
+            $params,
+            function ($params) {
+                $table = $this->getSourceTable($params);
+                $where = $params['where'] ?? [];
+                if (!empty($params['log'])) {
+                    $table->setWithALogTrue();
+                }
+                $table->actionRestore($where, null);
             }
         );
     }

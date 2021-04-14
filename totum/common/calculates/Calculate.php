@@ -2159,7 +2159,7 @@ SQL;
 
     protected function funcJsonCreate($params)
     {
-        if ($params = $this->getParamsArray($params, ['field'], ['field'])) {
+        if ($params = $this->getParamsArray($params, ['field', 'flag'], ['field'])) {
             $data = $params['data'] ?? [];
             foreach ($params['field'] ?? [] as $f) {
                 $f = $this->getExecParamVal($f);
@@ -2169,7 +2169,27 @@ SQL;
                     $data = array_merge($data, $f);
                 }
             }
-            return json_encode($data, JSON_UNESCAPED_UNICODE);
+            $flags = 0;
+            if (key_exists('flag', $params)) {
+                $escaped = false;
+                foreach ($params['flag'] as $flag) {
+                    switch ($flag) {
+                        case 'ESCAPED_UNICODE':
+                            $escaped = true;
+                            break;
+                        case 'PRETTY':
+                            $flags = $flags | JSON_PRETTY_PRINT;
+                            break;
+                    }
+                }
+                if (!$escaped) {
+                    $flags = $flags | JSON_UNESCAPED_UNICODE;
+                }
+            } else {
+                $flags = JSON_UNESCAPED_UNICODE;
+            }
+
+            return json_encode($data, $flags);
         }
     }
 

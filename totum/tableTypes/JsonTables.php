@@ -1054,6 +1054,7 @@ abstract class JsonTables extends aTable
     {
         $array = $this->tbl['rows'] ?? [];
 
+
         $isNumericField = function ($field) {
             return (in_array(
                 $field,
@@ -1093,7 +1094,8 @@ abstract class JsonTables extends aTable
             };
         }
         $where = [];
-        $isDelInFields = false;
+        $isDelInFields = (key_exists('where', $params) && count($params['where']) === 1 && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
+
         if (isset($params['where'])) {
             foreach ($params['where'] as $wI) {
                 $field = $wI['field'];
@@ -1143,8 +1145,6 @@ abstract class JsonTables extends aTable
             }
         }
 
-        $isDelInFields = $isDelInFields || (count($where) === 1 && $where[0]['field'] === 'id' && $where[0]['operator'] === '=');
-
         if ($returnType === 'field' || $returnType === 'row') {
             if (isset($fOrdering)) {
                 usort($array, $fOrdering);
@@ -1152,16 +1152,13 @@ abstract class JsonTables extends aTable
 
             $keyFields = array_flip($params['field']);
 
-
             foreach ($array as $row) {
                 if (!empty($row['is_del'])) {
                     if (!$isDelInFields) {
                         continue;
                     }
                 } else {
-                    if ($isDelInFields) {
-                        $row['is_del'] = $row['is_del'] ?? false;
-                    }
+                    $row['is_del'] = $row['is_del'] ?? false;
                 }
                 if (!array_intersect_key($keyFields, $row)) {
                     continue;
@@ -1221,9 +1218,7 @@ abstract class JsonTables extends aTable
                         continue;
                     }
                 } else {
-                    if ($isDelInFields) {
-                        $row['is_del'] = $row['is_del'] ?? false;
-                    }
+                    $row['is_del'] = $row['is_del'] ?? false;
                 }
                 foreach ($where as $w) {
                     $a = $row[$w['field']] ?? null;
@@ -1275,6 +1270,7 @@ abstract class JsonTables extends aTable
                     break;
                 }
             }
+
 
             if (isset($fOrdering)) {
                 uasort($list, $fOrdering);

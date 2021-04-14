@@ -34,7 +34,7 @@ if (class_exists(Conf::class)) {
 
     $app->add(new CleanTmps());
     $app->add(new CleanSchemaTmpTables());
-    $app->add(new CleanTmpTablesFiles());
+
     $app->add(new SchemaUpdate());
     $app->add(new SchemaPasswd());
     $app->add(new Vacuum());

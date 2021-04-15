@@ -1635,9 +1635,9 @@ abstract class aTable
                     '*ALL*',
                     $fVal_V
                 )) || (!in_array(
-                            $this->fields[$fName]['type'],
-                            ['select', 'tree']
-                        ) && $fVal_V === '')) {
+                    $this->fields[$fName]['type'],
+                    ['select', 'tree']
+                ) && $fVal_V === '')) {
                     continue;
                 } else {
                     $param = [];
@@ -2066,6 +2066,12 @@ abstract class aTable
     {
         $this->reCalculateFilters($channel);
 
+        if (is_array($lastId) && key_exists('offset', $lastId)) {
+            $offset = $lastId['offset'];
+            $lastId = 0;
+        } else {
+            $offset = null;
+        }
 
         $result = [
             'rows' => [],
@@ -2073,7 +2079,6 @@ abstract class aTable
             'allCount' => 0
         ];
 
-        $offset = 0;
         $params = $this->filtersParamsForLoadRows($channel);
 
         if ($params === false) {
@@ -2107,11 +2112,10 @@ abstract class aTable
 
                     $rows = $getRows($filteredIds);
 
-                    $slice = function (&$rows, $pageCount) use ($onPage, $allCount, $lastId, $prevLastId) {
+                    $slice = function (&$rows, $pageCount) use ($onPage, $allCount, $lastId, $prevLastId, $offset) {
                         if ((int)$pageCount === 0) {
                             return 0;
                         }
-                        $offset = 0;
                         if ($prevLastId) {
                             if ($prevLastId === -1) {
                                 $offset = count($rows);
@@ -2131,7 +2135,7 @@ abstract class aTable
                             } else {
                                 $offset -= $pageCount;
                             }
-                        } elseif ($lastId !== 0) {
+                        } elseif ($lastId !== 0 && is_null($offset)) {
                             if (is_array($lastId)) {
                                 foreach ($rows as $i => $row) {
                                     if (in_array($row['id'], $lastId)) {
@@ -2145,6 +2149,7 @@ abstract class aTable
                                 $offset = $allCount - $onPage;
                             } else {
                                 $lastId = (int)$lastId;
+                                $offset=0;
                                 foreach ($rows as $i => $row) {
                                     if ($row['id'] === $lastId) {
                                         $offset = $i + 1;
@@ -2167,18 +2172,19 @@ abstract class aTable
                         $offset = $slice($rows, $onPage);
                         $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
                     }
+
                 } else {
                     $allCount = $this->countByParams($params);
 
                     if ($allCount > $onPage) {
                         if ($prevLastId) {
                             if ($prevLastId === -1) {
-                                $offset = $allCount;
+                                $offset = $offset ?? $allCount;
                                 if ((explode('/', $this->tableRow['pagination'])[2] ?? '') == 'last') {
-                                    $offset = $allCount - ($allCount % $onPage ? $allCount % $onPage : $onPage) + $onPage;
+                                    $offset = $offset ?? $allCount - ($allCount % $onPage ? $allCount % $onPage : $onPage) + $onPage;
                                 }
                             } else {
-                                $offset = $this->countByParams(
+                                $offset = $offset ?? $this->countByParams(
                                     $params,
                                     $this->orderParamsForLoadRows(true),
                                     $prevLastId
@@ -2198,16 +2204,17 @@ abstract class aTable
                                 $offset = 0;
                             }
                         } elseif ($lastId === 'last') {
-                            $offset = $allCount - ($allCount % $onPage ? $allCount % $onPage : $onPage);
+                            $offset = $offset ?? $allCount - ($allCount % $onPage ? $allCount % $onPage : $onPage);
                         } elseif ($lastId === 'desc') {
-                            $offset = $allCount - $onPage;
+                            $offset = $offset ?? $allCount - $onPage;
                         } elseif (is_array($lastId) || $lastId > 0) {
-                            $offset = $this->countByParams(
+                            $offset = $offset ?? $this->countByParams(
                                 $params,
                                 $this->orderParamsForLoadRows(true),
                                 $lastId
                             );
                         }
+
                         $filteredIds = $this->loadRowsByParams(
                             $params,
                             $this->orderParamsForLoadRows(),
@@ -2221,7 +2228,9 @@ abstract class aTable
                     }
                     $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
                 }
-                $result = ['rows' => $rows, 'offset' => $offset, 'allCount' => $allCount];
+
+                $result = ['rows' => $rows, 'offset' => (int)$offset, 'allCount' => $allCount];
+
             } else {
                 if (!is_null($onlyFields)) {
                     $cropFieldsInRows = function ($rows) use ($onlyFields) {
@@ -2247,6 +2256,7 @@ abstract class aTable
                 $result = ['rows' => $rows, 'offset' => 0, 'allCount' => count($filteredIds)];
             }
             $this->calcLog($Log, 'result', 'done');
+
             return $result;
         }
     }

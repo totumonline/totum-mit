@@ -11,14 +11,14 @@
 
     <?php
     if ($isCreatorView ?? null) { ?>
-        <script src="/js/functions.js?v=932d6e6"></script>
+        <script src="/js/functions.js?v=0b0d061"></script>
         <?php
            echo '<script>App.functions=App.functions.concat(' . $this->Config->getExtFunctionsTemplates() . ')</script>';
         ?>
         <?php
     } ?>
 
-    <script src="/js/main.js?v=766226b"></script>
+    <script src="/js/main.js?v=eb922b2"></script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

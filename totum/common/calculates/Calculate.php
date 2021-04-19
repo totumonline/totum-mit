@@ -1105,7 +1105,7 @@ SQL;
                 $where,
                 $fieldsStr,
                 'dt desc',
-                key_exists('limit', $params) ? (int)$params['limit'] : null
+                key_exists('limit', $params) ? '0,'.((int)$params['limit']) : null
             )->fetchAll(\PDO::FETCH_ASSOC);
 
             if (in_array('dt', $params['params'])) {

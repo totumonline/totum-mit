@@ -51,6 +51,11 @@ class CalculateAction extends Calculate
             $code = $params['code'] ?? $params['kod'];
 
             if (!empty($code)) {
+
+                if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
+                    $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
+                }
+
                 $CA = new static($code);
                 try {
                     $Vars = [];
@@ -756,6 +761,23 @@ class CalculateAction extends Calculate
         );
     }
 
+    protected function funcLinkToDataJson($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        $title = $params['title'] ?? 'Здесь должен быть title';
+
+        $width = $params['width'] ?? 600;
+
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'json',
+            ['title' => $title,
+                'width' => $width,
+                'json' => $params['data'],
+                $params['refresh'] ?? false]
+        );
+    }
+
     protected function funcLinkToDataHtml($params)
     {
         $params = $this->getParamsArray($params);
@@ -1145,6 +1167,7 @@ class CalculateAction extends Calculate
             }
         );
     }
+
     protected function funcRestore($params)
     {
         $this->__doAction(
@@ -1216,6 +1239,7 @@ class CalculateAction extends Calculate
             }
         );
     }
+
     protected function funcRestoreList($params)
     {
         $this->__doAction(
@@ -1411,7 +1435,6 @@ class CalculateAction extends Calculate
             true
         );
     }
-
 
 
 }

@@ -712,9 +712,13 @@ class Calculate
     protected function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $kod = $params['code'] ?? $params['kod'] ?? '';
-            $CA = new Calculate($kod);
-            if (!empty($kod)) {
+            $code = $params['code'] ?? $params['kod'] ?? '';
+            if (!empty($code)) {
+                if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
+                    $code = $this->Table->getFields()[$code]['code'] ?? '';
+                }
+
+                $CA = new Calculate($code);
                 try {
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {
@@ -1061,6 +1065,59 @@ SQL;
         }
 
         return $list;
+    }
+
+    protected function funcLogRowList($params)
+    {
+        $params = $this->getParamsArray($params);
+        $where = [];
+
+        if (!ctype_digit((string)$params['table'])) {
+            $where['tableid'] = $this->__checkTableIdOrName($params['table'] ?? null, 'table', 'logRowList')['id'];
+        } else {
+            $where['tableid'] = $params['table'];
+        }
+        if (!empty($params['cycle'])) {
+            $where['cycleid'] = (int)$params['cycle'];
+        }
+        if (!empty($params['id'])) {
+            $where['rowid'] = (int)$params['id'];
+        }
+        $where['field'] = (string)($params['field'] ?? '');
+
+        $fields = ['comment' => 'modify_text', 'dt' => 'dt', 'user' => 'userid', 'action' => 'action', 'value' => 'v'];
+        if (empty($params['params']) || !is_array($params['params'])) {
+            $params['params'] = array_keys($fields);
+        }
+
+        $fieldsStr = '';
+        foreach ($params['params'] as $param) {
+            if (key_exists($param, $fields)) {
+                if ($fieldsStr) {
+                    $fieldsStr .= ',';
+                }
+                $fieldsStr .= $fields[$param] . ' as ' . $param;
+            }
+        }
+        if ($fieldsStr) {
+            $data = $this->Table->getTotum()->getModel('_log', true)->executePrepared(
+                true,
+                $where,
+                $fieldsStr,
+                'dt desc',
+                key_exists('limit', $params) ? '0,'.((int)$params['limit']) : null
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (in_array('dt', $params['params'])) {
+                foreach ($data as &$_row) {
+                    $_row['dt'] = substr($_row['dt'], 0, 19);
+                }
+                unset($_row);
+            }
+            return $data;
+        } else {
+            throw new errorException('Задайте корректный params');
+        }
     }
 
     protected function funcTableLogSelect($params)
@@ -1545,7 +1602,6 @@ SQL;
                             $rowVar = "";
                         }
                     } elseif (($substr = substr($nameVar, 0, 2)) === 's.' || $substr === 'l.') {
-
                         $paramArray['param'] = substr($nameVar, 2);
 
                         if ($fName = $this->getParam($paramArray['param'], $paramArray)) {

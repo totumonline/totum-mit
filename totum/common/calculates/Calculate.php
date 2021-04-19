@@ -712,9 +712,13 @@ class Calculate
     protected function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $kod = $params['code'] ?? $params['kod'] ?? '';
-            $CA = new Calculate($kod);
-            if (!empty($kod)) {
+            $code = $params['code'] ?? $params['kod'] ?? '';
+            if (!empty($code)) {
+                if(preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())){
+                    $code=$this->Table->getFields()[$code]['code'] ?? '';
+                }
+
+                $CA = new Calculate($code);
                 try {
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {

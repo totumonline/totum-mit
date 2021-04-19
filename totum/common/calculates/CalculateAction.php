@@ -51,6 +51,11 @@ class CalculateAction extends Calculate
             $code = $params['code'] ?? $params['kod'];
 
             if (!empty($code)) {
+
+                if(preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())){
+                    $code=$this->Table->getFields()[$code]['codeAction'] ?? '';
+                }
+
                 $CA = new static($code);
                 try {
                     $Vars = [];

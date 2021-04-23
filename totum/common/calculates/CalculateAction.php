@@ -937,7 +937,7 @@ class CalculateAction extends Calculate
             $addedIds = [];
             $funcSet = function ($params) use (&$addedIds) {
                 $table = $this->getSourceTable($params);
-                if ($params['field']) {
+                if (key_exists('field', $params)) {
                     $fields = $this->__getActionFields($params['field'], 'Insert');
                 } else {
                     $fields = [];

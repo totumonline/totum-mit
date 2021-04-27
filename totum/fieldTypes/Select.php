@@ -524,8 +524,8 @@ class Select extends Field
 
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
-        if ($valArray['v']===null) {
-            $valArray['v']='';
+        if ($valArray['v'] === '') {
+            $valArray['v'] = null;
         }
 
         parent::addViewValues($viewType, $valArray, $row, $tbl);
@@ -552,8 +552,8 @@ class Select extends Field
                         if (!is_array($v)) {
                             if ($v_ = $list[$v] ?? null) {
                                 $v_ = $v_;
-                            } elseif (is_null($v) && ($this->data['withEmptyVal'] ?? false)) {
-                                $v_ = [$this->data['withEmptyVal'], 0];
+                            } elseif (is_null($v)) {
+                                $v_ = [$this->data['withEmptyVal'] ?? '', 0];
                             } else {
                                 $v_ = [$v, 1];
                             }
@@ -597,12 +597,12 @@ class Select extends Field
                         $v[1][0] .= ' ' . $this->data['unitType'];
                     }
                     return '<div><span' . ($v[1][1] ? ' class="deleted"' : '') . '>' . htmlspecialchars($v[1][0]) . '</span></div>' . $func(
-                        array_slice(
+                            array_slice(
                                 $arrayVals,
                                 1
                             ),
-                        array_slice($arrayTitles, 1)
-                    );
+                            array_slice($arrayTitles, 1)
+                        );
                 };
 
                 if ($this->data['multiple'] && ($this->data['printTextfull'] ?? false)) {

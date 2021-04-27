@@ -497,13 +497,14 @@ class CalculateAction extends Calculate
             if (empty($file['name'])) {
                 throw new errorException('Пустой name не допустим');
             }
-            if (empty($file['string'])) {
+            if (empty($file['filestring'])) {
                 throw new errorException('Пустой string не допустим');
             }
             if (empty($file['type'])) {
                 throw new errorException('Пустой type не допустим');
             }
-            $file['string'] = base64_encode($file['string']);
+            $file['string'] = base64_encode($file['filestring']);
+            unset($file['filestring']);
         }
         unset($file);
         $this->Table->getTotum()->addToInterfaceDatas('files', ['files' => $files]);

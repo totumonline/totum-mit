@@ -81,6 +81,7 @@ class CalculateAction extends Calculate
                 }
             }
         }
+        return null;
     }
 
     /*TODO сломано*/
@@ -507,6 +508,7 @@ class CalculateAction extends Calculate
         unset($file);
         $this->Table->getTotum()->addToInterfaceDatas('files', ['files' => $files]);
     }
+
     protected function funcLinkToFileUpload($params)
     {
         $params = $this->getParamsArray($params, ['var'], [], ['var']);
@@ -522,7 +524,7 @@ class CalculateAction extends Calculate
             $vars[$_['field']] = $_['value'];
         }
 
-        $saveData=[];
+        $saveData = [];
         $saveData['vars'] = $vars;
         $saveData['env'] = $this->getEnvironment();
         $saveData['code'] = $params['code'];
@@ -548,7 +550,9 @@ class CalculateAction extends Calculate
             false
         );
         $params['hash'] = $hash;
-        $this->Table->getTotum()->addToInterfaceDatas('fileUpload', ['hash' => $hash, 'type'=>$params['type']??'*', 'limit'=>$params['limit']??1, 'title'=>$params['title']??'']);
+        $this->Table->getTotum()->addToInterfaceDatas('fileUpload',
+            ['hash' => $hash, 'type' => $params['type'] ?? '*', 'limit' => $params['limit'] ?? 1, 'title' => $params['title'] ?? ''],
+            $params['refresh'] ?? false);
     }
 
     protected function funcLinkToPanel($params)
@@ -585,7 +589,7 @@ class CalculateAction extends Calculate
             }
         } elseif (!empty($params['field'])) {
             $field = $this->__getActionFields($params['field'], 'LinkToPanel');
-            foreach ($field as $f => &$v) {
+            foreach ($field as &$v) {
                 $v = ['v' => $v];
             }
             $this->Table->getTotum()->addLinkPanel(

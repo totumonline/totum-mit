@@ -26,7 +26,7 @@ use totum\tableTypes\tmpTable;
  */
 class Totum
 {
-    public const VERSION = '1.1.28';
+    public const VERSION = '1.1.29';
 
 
     public const TABLE_CODE_PARAMS = ['row_format', 'table_format'];

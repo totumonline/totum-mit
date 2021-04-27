@@ -51,7 +51,6 @@ class CalculateAction extends Calculate
             $code = $params['code'] ?? $params['kod'];
 
             if (!empty($code)) {
-
                 if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
                     $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
                 }
@@ -82,6 +81,7 @@ class CalculateAction extends Calculate
                 }
             }
         }
+        return null;
     }
 
     /*TODO сломано*/
@@ -489,6 +489,73 @@ class CalculateAction extends Calculate
         }
     }
 
+    protected function funcLinkToFileDownload($params)
+    {
+        $params = $this->getParamsArray($params, ['file']);
+        $files = array_merge($params['files'] ?? [], $params['file'] ?? []);
+        foreach ($files as &$file) {
+            if (empty($file['name'])) {
+                throw new errorException('Пустой name не допустим');
+            }
+            if (empty($file['filestring'])) {
+                throw new errorException('Пустой string не допустим');
+            }
+            if (empty($file['type'])) {
+                throw new errorException('Пустой type не допустим');
+            }
+            $file['string'] = base64_encode($file['filestring']);
+            unset($file['filestring']);
+        }
+        unset($file);
+        $this->Table->getTotum()->addToInterfaceDatas('files', ['files' => $files]);
+    }
+
+    protected function funcLinkToFileUpload($params)
+    {
+        $params = $this->getParamsArray($params, ['var'], [], ['var']);
+        if (empty($params['title'])) {
+            throw new errorException('Заполните параметр [[title]]');
+        }
+        if (empty($params['code'])) {
+            throw new errorException('Заполните параметр [[code]]');
+        }
+
+        $vars = [];
+        foreach ($params['var'] ?? [] as $_) {
+            $vars[$_['field']] = $_['value'];
+        }
+
+        $saveData = [];
+        $saveData['vars'] = $vars;
+        $saveData['env'] = $this->getEnvironment();
+        $saveData['code'] = $params['code'];
+
+        $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
+
+        do {
+            $hash = md5(microtime(true) . '__linktofileupload_' . mt_srand());
+            $key = ['table_name' => '_linkToFileUpload', 'user_id' => $this->Table->getUser()->getId(), 'hash' => $hash];
+        } while ($model->getField('user_id', $key));
+
+
+        $vars = array_merge(
+            ['tbl' => json_encode(
+                $saveData,
+                JSON_UNESCAPED_UNICODE
+            ),
+                'touched' => date('Y-m-d H:i')],
+            $key
+        );
+        $model->insertPrepared(
+            $vars,
+            false
+        );
+        $params['hash'] = $hash;
+        $this->Table->getTotum()->addToInterfaceDatas('fileUpload',
+            ['hash' => $hash, 'type' => $params['type'] ?? '*', 'limit' => $params['limit'] ?? 1, 'title' => $params['title'] ?? ''],
+            $params['refresh'] ?? false);
+    }
+
     protected function funcLinkToPanel($params)
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
@@ -523,7 +590,7 @@ class CalculateAction extends Calculate
             }
         } elseif (!empty($params['field'])) {
             $field = $this->__getActionFields($params['field'], 'LinkToPanel');
-            foreach ($field as $f => &$v) {
+            foreach ($field as &$v) {
                 $v = ['v' => $v];
             }
             $this->Table->getTotum()->addLinkPanel(
@@ -937,7 +1004,7 @@ class CalculateAction extends Calculate
             $addedIds = [];
             $funcSet = function ($params) use (&$addedIds) {
                 $table = $this->getSourceTable($params);
-                if ($params['field']) {
+                if (key_exists('field', $params)) {
                     $fields = $this->__getActionFields($params['field'], 'Insert');
                 } else {
                     $fields = [];
@@ -1435,6 +1502,4 @@ class CalculateAction extends Calculate
             true
         );
     }
-
-
 }

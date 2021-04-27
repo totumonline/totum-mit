@@ -8,6 +8,7 @@ use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\controllers\Controller;
 use totum\common\Model;
+use totum\common\tableSaveException;
 use totum\common\Totum;
 use totum\tableTypes\RealTables;
 
@@ -16,7 +17,7 @@ class RemotesController extends Controller
     public function doIt(ServerRequestInterface $request, bool $output)
     {
         $requestUri = preg_replace('/\?.*/', '', $request->getUri()->getPath());
-        $requestPath = substr($requestUri, strlen($this->totumPrefix.'Remotes/'));
+        $requestPath = substr($requestUri, strlen($this->totumPrefix . 'Remotes/'));
 
         $remoteSelect = $this->Config->getModel('ttm__remotes')->get(
             ['on_off' => 'true', 'name' => $requestPath],
@@ -29,28 +30,25 @@ class RemotesController extends Controller
             $remote_row = RealTables::decodeRow($remoteSelect);
             if ($remote['remotes_user']) {
                 if ($User = Auth::simpleAuth($this->Config, $remote['remotes_user'])) {
-                    $this->Totum = new Totum($this->Config, $User);
-                    $table = $this->Totum->getTable('ttm__remotes');
-                    try {
-                        $calc = new CalculateAction($remote['code']);
-                        $data = $calc->execAction(
-                            'CODE',
-                            $remote_row,
-                            $remote_row,
-                            $table->getTbl(),
-                            $table->getTbl(),
-                            $table,
-                            'exec',
-                            [
-                                'get' => $request->getQueryParams() ?? [],
-                                'post' => $request->getParsedBody() ?? [],
-                                'input' => (string)$request->getBody(),
-                                'headers' => ($headers = $request->getHeaders()) ? $headers : []
-                            ]
-                        );
-                    } catch (\Exception $e) {
-                        $error = $e->getMessage();
-                    }
+
+                    $tries = 0;
+                    do {
+                        $onceMore = false;
+                        try {
+                            $data = $this->action($User, $remote, $remote_row, $request);
+                        } catch (tableSaveException $exception) {
+                            $this->Config = $this->Config->getClearConf();
+                            if (++$tries < 5) {
+                                $onceMore = true;
+                            } else {
+                                $error = 'Ошибка одновременного доступа к таблице';
+                            }
+                        } catch (\Exception $e) {
+                            $error = $e->getMessage();
+
+                        }
+                    } while ($onceMore);
+
                 } else {
                     $error = 'Ошибка авторизации пользователя';
                 }
@@ -85,5 +83,32 @@ class RemotesController extends Controller
             echo $error = 'Remote не активен или не существует';
             die;
         }
+    }
+
+    protected function action($User, $remote, $remote_row, $request)
+    {
+        $Totum = new Totum($this->Config, $User);
+        $Totum->transactionStart();
+        $table = $Totum->getTable('ttm__remotes');
+
+        $calc = new CalculateAction($remote['code']);
+        $data = $calc->execAction(
+            'CODE',
+            $remote_row,
+            $remote_row,
+            $table->getTbl(),
+            $table->getTbl(),
+            $table,
+            'exec',
+            [
+                'get' => $request->getQueryParams() ?? [],
+                'post' => $request->getParsedBody() ?? [],
+                'input' => (string)$request->getBody(),
+                'headers' => ($headers = $request->getHeaders()) ? $headers : []
+            ]
+        );
+
+        $Totum->transactionCommit();
+        return $data;
     }
 }

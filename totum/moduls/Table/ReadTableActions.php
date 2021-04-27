@@ -234,6 +234,53 @@ class ReadTableActions extends Actions
         return ['ok' => 1];
     }
 
+    public function filesUpload()
+    {
+        $model = $this->Totum->getModel('_tmp_tables', true);
+        $key = ['table_name' => '_linkToFileUpload', 'user_id' => $this->User->getId(), 'hash' => $this->post['hash'] ?? null];
+        if ($data = $model->getField('tbl', $key)) {
+            $data = json_decode($data, true);
+            $files = json_decode($this->post['files'] ?? '[]', true);
+            foreach ($files as &$file) {
+                $file['filestring'] = base64_decode($file['base64']);
+                unset($file['base64']);
+            }
+            if (key_exists('cycle_id', $data['env'])) {
+                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
+            } elseif (key_exists('hash', $data['env'])) {
+                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
+            } else {
+                $Table = $this->Totum->getTable($data['env']['table']);
+            }
+
+            $row = [];
+            if (key_exists('id', $data['env'])) {
+                if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
+                    $row = $Table->getTbl()['rows'][$data['env']['id']];
+                }
+            }
+
+            $vars = $data['vars'] ?? [];
+            $vars['input'] = $files;
+
+            $CA = new CalculateAction($data['code']);
+            $CA->execAction(
+                'CODE UPLOAD FILES',
+                [],
+                $row,
+                $Table->getTbl(),
+                $Table->getTbl(),
+                $Table,
+                'exec',
+                $vars
+            );
+            $model->delete($key);
+        } else {
+            throw new errorException('Код обработки устарел.');
+        }
+        return ['ok' => 1];
+    }
+
     public function loadPage()
     {
         if (key_exists('offset', $this->post) && !is_null($this->post['offset']) && $this->post['offset'] !== "") {

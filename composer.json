@@ -54,11 +54,7 @@
     ]
   },
   "scripts": {
-    "update-front": [
-      "cp -R vendor/totumonline/totum-front/http/css http",
-      "cp -R vendor/totumonline/totum-front/http/js http",
-      "cp -R vendor/totumonline/totum-front/http/fonts http"
-    ],
-    "dev-run": "php -S localhost:8080 -t http/"
+    "dev-run": "php -S localhost:8080 -t http/",
+    "dev-front-run": "php -S localhost:8080 -t vendor/totumonline/totum-front/http/"
   }
 }

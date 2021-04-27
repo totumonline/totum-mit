@@ -48,6 +48,9 @@ class Date extends Field
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         if ($viewType === 'print') {
+            if (!$valArray['v']) {
+                return '';
+            }
             $date = date_create($valArray['v']);
 
             if (!empty($this->data['dateFormat'])) {
@@ -63,7 +66,6 @@ class Date extends Field
 
     public function getValueFromCsv($val)
     {
-
         $valObj = Calculate::getDateObject($val);
         if ($valObj) {
             if (!empty($this->data['dateTime'])) {

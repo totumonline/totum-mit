@@ -31,11 +31,11 @@ class File extends Field
                     }
                     $v = $array[0];
                     return '<div><span>' . htmlspecialchars($v['name']) . '</span><span>' . number_format(
-                            $v['size'] / 1024,
-                            0,
-                            ',',
-                            ' '
-                        ) . 'Kb</span></div>' . $func(array_slice($array, 1));
+                        $v['size'] / 1024,
+                        0,
+                        ',',
+                        ' '
+                    ) . 'Kb</span></div>' . $func(array_slice($array, 1));
                 };
                 $valArray['v'] = $func($valArray['v']);
                 break;
@@ -49,25 +49,33 @@ class File extends Field
         //return $val = json_decode(base64_decode($val), true);
     }
 
-    public static function deleteFile($fileName, Conf $Config)
+
+    public static function deleteFilesOnCommit($deleteFiles, Conf $Config)
     {
-        $file = File::getDir($Config) . $fileName;
-        if (is_file($file)) {
-            unlink($file);
+        if ($deleteFiles) {
+            $Config->getSql()->addOnCommit(function () use ($deleteFiles, $Config) {
+                foreach ($deleteFiles as $file) {
+                    if ($file = ($file['file'] ?? null)) {
+                        static::deleteFile(static::getFilePath($file, $Config));
+                    }
+                }
+            });
         }
-        if (is_file($preview = $file . '_thumb.jpg')) {
+    }
+
+    protected static function deleteFile($fullFileName)
+    {
+        if (is_file($fullFileName)) {
+            unlink($fullFileName);
+        }
+        if (is_file($preview = $fullFileName . '_thumb.jpg')) {
             unlink($preview);
         }
     }
 
-    public static function getDir(Conf $Config)
+    public static function getFilePath($file_name, Conf $Config): string
     {
-        return $Config->getFilesDir();
-    }
-
-    public static function getFilePath($file_name, Conf $Config)
-    {
-        return static::getDir($Config) . $file_name;
+        return $Config->getFilesDir() . $file_name;
     }
 
     public function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
@@ -162,7 +170,7 @@ class File extends Field
         return $files;
     }
 
-    protected function _getFprefix($rowId = null)
+    protected function _getFprefix($rowId = null): string
     {
         return $this->table->getTableRow()['id'] . '_' //Таблица
             . ($this->table->getTableRow()['type'] === 'calcs' ? $this->table->getCycle()->getId() . '_' : '') //цикл
@@ -186,17 +194,14 @@ class File extends Field
                         }
                     }
                     if (strpos($fOld['file'], $this->_getFprefix($row['id'] ?? null)) === 0) {
-                        $deletedFiles[] = $fOld['file'];
+                        $deletedFiles[] = $fOld;
                     }
                 }
             }
 
+
             if ($deletedFiles) {
-                $this->table->getTotum()->getConfig()->getSql()->addOnCommit(function () use ($deletedFiles) {
-                    foreach ($deletedFiles as $file) {
-                        static::deleteFile($file, $this->table->getTotum()->getConfig());
-                    }
-                });
+                static::deleteFilesOnCommit($deletedFiles, $this->table->getTotum()->getConfig());
             }
         }
         return $modifyVal;
@@ -266,11 +271,14 @@ class File extends Field
                 do {
                     $unlinked = false;
 
-                    $fname = static::getDir($this->table->getTotum()->getConfig())
-                        . $fPrefix
+                    $fname = static::getFilePath(
+                        $fPrefix
                         . ($fnum ? '_' . $fnum : '') //Номер
                         . (!empty($this->data['nameWithHash']) ? '_' . md5(microtime(1) . $this->data['name']) : '') //хэш
-                        . '.' . $ext;
+                        . '.' . $ext,
+                        $this->table->getTotum()->getConfig()
+                    );
+
                     if (!$this->data['multiple'] && $this->table->getTableRow()['type'] !== 'tmp') {
                         break;
                     }
@@ -351,7 +359,7 @@ class File extends Field
                     $fl['ext'] = $file['ext'];
                     $fl['file'] = preg_replace('/^.*\/([^\/]+)$/', '$1', $fname);
                 } elseif (!empty($file['file'])) {
-                    $filepath = static::getDir($this->table->getTotum()->getConfig()) . $file['file'];
+                    $filepath = static::getFilePath($file['file'], $this->table->getTotum()->getConfig());
                     $fl['file'] = $file['file'];
 
                     if (key_exists($filepath, static::$transactionCommits)) ; elseif (!is_file($filepath)) {
@@ -364,7 +372,7 @@ class File extends Field
                         if (strpos($file['file'], $fPrefix) !== 0 && !empty($this->data['fileDuplicateOnCopy'])) {
                             $fname = $funcGetFname($file['ext']);
 
-                            $otherfname = static::getDir($this->table->getTotum()->getConfig()) . $file['file'];
+                            $otherfname = static::getFilePath($file['file'], $this->table->getTotum()->getConfig());
 
                             static::$transactionCommits[$fname] = $otherfname;
 

@@ -397,13 +397,6 @@ abstract class JsonTables extends aTable
                         // no break
                         case 'delete':
                             $this->changeIds['changed'][$row['id']] = null;
-
-                            foreach ($this->sortedFields['column'] as $field) {
-                                if ($field['type'] === 'file') {
-                                    $this->deleteFilesOnCommit($row[$field['name']]['v']);
-                                }
-                            }
-
                             $aLogDelete($row['id']);
                             continue 2;
                         case 'hide':
@@ -1003,14 +996,8 @@ abstract class JsonTables extends aTable
                             'delete'
                         );
                     }
-                    if ($field['type'] === 'file') {
-                        if ($deleteFiles = $Oldrow[$field['name']]['v']) {
-                            foreach ($deleteFiles as $file) {
-                                if ($file = ($file['file'] ?? null)) {
-                                    File::deleteFile($file, $this->Totum->getConfig());
-                                }
-                            }
-                        }
+                    if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
+                        File::deleteFilesOnCommit($Oldrow[$field['name']]['v'], $this->getTotum()->getConfig());
                     }
                 }
 
@@ -1094,7 +1081,10 @@ abstract class JsonTables extends aTable
             };
         }
         $where = [];
-        $isDelInFields = (key_exists('where', $params) && count($params['where']) === 1 && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
+        $isDelInFields = (key_exists(
+            'where',
+            $params
+        ) && count($params['where']) === 1 && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
 
         if (isset($params['where'])) {
             foreach ($params['where'] as $wI) {

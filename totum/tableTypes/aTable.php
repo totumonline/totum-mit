@@ -2172,7 +2172,6 @@ abstract class aTable
                         $offset = $slice($rows, $onPage);
                         $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
                     }
-
                 } else {
                     $allCount = $this->countByParams($params);
 
@@ -2230,7 +2229,6 @@ abstract class aTable
                 }
 
                 $result = ['rows' => $rows, 'offset' => (int)$offset, 'allCount' => $allCount];
-
             } else {
                 if (!is_null($onlyFields)) {
                     $cropFieldsInRows = function ($rows) use ($onlyFields) {
@@ -2554,19 +2552,6 @@ abstract class aTable
     public function getOrderFieldName(): string
     {
         return $this->orderFieldName;
-    }
-
-    protected function deleteFilesOnCommit($deleteFiles)
-    {
-        if ($deleteFiles) {
-            $this->getTotum()->getConfig()->getSql()->addOnCommit(function () use ($deleteFiles) {
-                foreach ($deleteFiles as $file) {
-                    if ($file = ($file['file'] ?? null)) {
-                        File::deleteFile($file, $this->Totum->getConfig());
-                    }
-                }
-            });
-        }
     }
 
     abstract protected function reCalculateRows(

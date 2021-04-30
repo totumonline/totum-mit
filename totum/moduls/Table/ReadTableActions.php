@@ -783,7 +783,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 return 'panels';
             } elseif (empty($this->post)) {
                 $allCount = $this->Table->countByParams($this->Table->filtersParamsForLoadRows('web'));
-                if ($allCount <= $panelViewSettings["panels_max_count"]) {
+                if ($allCount <= ($panelViewSettings["panels_max_count"] ?? 100)) {
                     $checkCookies = function () use ($panelViewSettings) {
                         $name = $this->getPanelsCookieName()[0];
                         if (key_exists($name, $_COOKIE)) {

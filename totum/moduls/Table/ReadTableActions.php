@@ -711,6 +711,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             case 'panels':
                 $result['viewType'] = 'panels';
                 $panelViewSettings = $this->Table->getTableRow()['panels_view'];
+
+
                 $fields = array_column($panelViewSettings['fields'], 'field');
 
                 if ($panelViewSettings['kanban'] && $kanban = $this->Table->getFields()[$panelViewSettings['kanban']]) {
@@ -761,6 +763,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             case 'paging':
                 $result = array_merge($result, $this->getTableClientData(0, 0, false));
                 break;
+            case 'commonByCount':
+                /*For off button on table head*/
+                $result['panels'] = "off";
+            // no break
             default:
                 $result = array_merge($result, $this->getTableClientData(0, null, false));
 
@@ -773,20 +779,29 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         if ($this->Request->getQueryParams()['iframe'] ?? false) ; elseif (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null))
         ) {
-            $checkCookies = function () use ($panelViewSettings) {
-                $name = $this->getPanelsCookieName()[0];
-                if (key_exists($name, $_COOKIE)) {
-                    return $_COOKIE[$name] === '1';
-                }
-                return $panelViewSettings['panels_view_first'];
-            };
-
-            if ($panelViewSettings['state'] === 'panel'
-                || (
-                    $panelViewSettings['state'] === 'both'
-                    && $checkCookies()
-                )) {
+            if (($this->post['panelsView'] ?? false) === 'true') {
                 return 'panels';
+            } elseif (empty($this->post)) {
+                $allCount = $this->Table->countByParams($this->Table->filtersParamsForLoadRows('web'));
+                if ($allCount <= $panelViewSettings["panels_max_count"]) {
+                    $checkCookies = function () use ($panelViewSettings) {
+                        $name = $this->getPanelsCookieName()[0];
+                        if (key_exists($name, $_COOKIE)) {
+                            return $_COOKIE[$name] === '1';
+                        }
+                        return $panelViewSettings['panels_view_first'];
+                    };
+
+                    if ($panelViewSettings['state'] === 'panel'
+                        || (
+                            $panelViewSettings['state'] === 'both'
+                            && $checkCookies()
+                        )) {
+                        return 'panels';
+                    }
+                } else {
+                    return 'commonByCount';
+                }
             }
         }
         if (($tree = $this->Table->getFields()['tree'] ?? null)

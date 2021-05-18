@@ -153,7 +153,7 @@ abstract class RealTables extends aTable
             }
         }
 
-        if ($this->tableRow['deleting']==='none' && !$isInnerChannel) {
+        if ($this->tableRow['deleting'] === 'none' && !$isInnerChannel) {
             throw new errorException('В таблице [[' . $this->tableRow['title'] . ']] запрещено удаление');
         } else {
             switch ($this->tableRow['deleting']) {
@@ -275,9 +275,9 @@ abstract class RealTables extends aTable
                 $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
                 if ((!array_key_exists($field, $fields) && !in_array(
-                            $field,
-                            Model::serviceFields
-                        )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
+                    $field,
+                    Model::serviceFields
+                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
                     throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
                 }
                 if (in_array($field, Model::serviceFields)) {
@@ -396,15 +396,6 @@ abstract class RealTables extends aTable
         return $r;
     }
 
-    public function checkInsertRow($tableData, $data)
-    {
-        if ($tableData) {
-            $this->checkTableUpdated($tableData);
-        }
-        $this->reCalculate(['channel' => 'web', 'add' => [$data], 'isCheck' => true]);
-        return $this->tbl['rowInserted'];
-    }
-
 
     public function rowChanged($oldRow, $row, $action)
     {
@@ -480,13 +471,13 @@ abstract class RealTables extends aTable
             }
             array_push($paramsWhere, ... $untilId);
             return $this->model->executePreparedSimple(
-                    true,
-                    "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
-                        ',',
-                        array_fill(0, count($untilId), '?')
-                    ) . ")",
-                    $paramsWhere
-                )->fetchColumn(1) + $isRefresh;
+                true,
+                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                    ',',
+                    array_fill(0, count($untilId), '?')
+                ) . ")",
+                $paramsWhere
+            )->fetchColumn(1) + $isRefresh;
         }
 
         return $this->model->executePrepared(
@@ -583,10 +574,10 @@ abstract class RealTables extends aTable
             if ($fieldsWithActionOnChange) {
                 foreach ($fieldsWithActionOnChange as $field) {
                     if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
-                            '!==',
-                            $loadedTbl['params'][$field['name']]['v'],
-                            $tbl['params'][$field['name']]['v']
-                        )) {
+                        '!==',
+                        $loadedTbl['params'][$field['name']]['v'],
+                        $tbl['params'][$field['name']]['v']
+                    )) {
                         Field::init($field, $this)->action(
                             $loadedTbl['params'],
                             $tbl['params'],
@@ -813,9 +804,9 @@ abstract class RealTables extends aTable
             foreach ($add as $rAdd) {
                 if ($this->tableRow['with_order_field'] ?? false) {
                     if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN(
-                            $fIds,
-                            $afterN
-                        )) {
+                        $fIds,
+                        $afterN
+                    )) {
                         $afterN = $rAdd['n'] = $n;
                     }
                 }
@@ -920,9 +911,12 @@ abstract class RealTables extends aTable
 
                 $this->changeIds['deleted'][$row['id']] = null;
                 foreach ($this->sortedFields['column'] as $field) {
-                    if ($field['type'] === 'file' && $this->tableRow['deleting']!=='hide') {
+                    if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
                         $this->loadRowsByIds([$row['id']]);
-                        File::deleteFilesOnCommit($this->tbl['rows'][$row['id']][$field['name']]['v'], $this->getTotum()->getConfig());
+                        File::deleteFilesOnCommit(
+                            $this->tbl['rows'][$row['id']][$field['name']]['v'],
+                            $this->getTotum()->getConfig()
+                        );
                     }
                 }
                 unset($this->tbl['rows'][$row['id']]);
@@ -1160,10 +1154,10 @@ abstract class RealTables extends aTable
                 $len = 4;
 
                 while (bccomp(
-                        $diff,
-                        ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
-                        $scaleDiff > $len ? $scaleDiff : $len
-                    ) !== 1) {
+                    $diff,
+                    ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
+                    $scaleDiff > $len ? $scaleDiff : $len
+                ) !== 1) {
                     $len += 4;
                 }
 
@@ -1228,9 +1222,24 @@ abstract class RealTables extends aTable
 
         foreach ($this->sortedFields['column'] as $v) {
             $field = Field::init($v, $this);
+            $newVal = $addData[$v['name']] ?? null;
+            $_channel = $channel;
+
+            if (!key_exists(
+                $v['name'],
+                $addData
+            ) && $this->insertRowSetData && key_exists(
+                $v['name'],
+                $this->insertRowSetData
+            )) {
+                $_channel = 'inner';
+                $newVal = $this->insertRowSetData[$v['name']];
+                unset($this->insertRowSetData[$v['name']]);
+            }
+
             $changedData[$v['name']] = $field->add(
-                $channel,
-                $addData[$v['name']] ?? null,
+                $_channel,
+                $newVal,
                 $changedData,
                 $this->savedTbl,
                 $this->tbl,
@@ -1533,9 +1542,9 @@ abstract class RealTables extends aTable
                                     $q .= " OR ";
                                 }
                                 $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
-                                        ',?',
-                                        count($value) - 1
-                                    ) . ')';
+                                    ',?',
+                                    count($value) - 1
+                                ) . ')';
                                 array_push($params, ...$value);
                             }
                             $where[] = "($q)";

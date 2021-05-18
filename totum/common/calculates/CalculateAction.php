@@ -13,6 +13,7 @@ use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Formats;
 use totum\common\TotumInstall;
+use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 use totum\tableTypes\RealTables;
 use \Exception;
@@ -366,9 +367,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-                'email',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'email',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -417,17 +418,17 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, [], []);
         if (array_key_exists(
-                'options',
-                $params
-            ) && !is_array($params['options'])) {
+            'options',
+            $params
+        ) && !is_array($params['options'])) {
             throw new errorException('options должно быть типа row');
         }
 
 
         $toBfl = $params['bfl'] ?? in_array(
-                'soap',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'soap',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,
@@ -551,9 +552,11 @@ class CalculateAction extends Calculate
             false
         );
         $params['hash'] = $hash;
-        $this->Table->getTotum()->addToInterfaceDatas('fileUpload',
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'fileUpload',
             ['hash' => $hash, 'type' => $params['type'] ?? '*', 'limit' => $params['limit'] ?? 1, 'title' => $params['title'] ?? ''],
-            $params['refresh'] ?? false);
+            $params['refresh'] ?? false
+        );
     }
 
     protected function funcLinkToPanel($params)
@@ -614,10 +617,10 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-                [],
-                'styles, html, name',
-                'name'
-            )) || (!array_key_exists(
+            [],
+            'styles, html, name',
+            'name'
+        )) || (!array_key_exists(
                 $params['template'],
                 $templates
             ))) {
@@ -688,11 +691,11 @@ class CalculateAction extends Calculate
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     if (is_numeric($value)) {
                                                         $value = number_format(
-                                                                $value,
-                                                                $numberVals[0],
-                                                                $numberVals[1] ?? '.',
-                                                                $numberVals[2] ?? ''
-                                                            )
+                                                            $value,
+                                                            $numberVals[0],
+                                                            $numberVals[1] ?? '.',
+                                                            $numberVals[2] ?? ''
+                                                        )
                                                             . ($numberVals[3] ?? '');
                                                     }
                                                 }
@@ -788,9 +791,9 @@ class CalculateAction extends Calculate
         $t = $tableRow['id'];
         if ($d) {
             $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
-                    json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->getCryptSolt()
-                ));
+                json_encode($d, JSON_UNESCAPED_UNICODE),
+                $this->Table->getTotum()->getConfig()->getCryptSolt()
+            ));
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
     }
@@ -807,9 +810,9 @@ class CalculateAction extends Calculate
         }
         if ($d) {
             return 'd=' . urlencode(Crypt::getCrypted(
-                    json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->getCryptSolt()
-                ));
+                json_encode($d, JSON_UNESCAPED_UNICODE),
+                $this->Table->getTotum()->getConfig()->getCryptSolt()
+            ));
         }
     }
 
@@ -865,9 +868,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!key_exists(
-                'num',
-                $params
-            ) || !is_numeric(strval($params['num']))) {
+            'num',
+            $params
+        ) || !is_numeric(strval($params['num']))) {
             throw new errorException('Параметр num обязателен и должен быть числом');
         }
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
@@ -972,9 +975,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
+            '`https?://`',
+            $params['uri']
+        )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -1209,13 +1212,30 @@ class CalculateAction extends Calculate
         $this->__doAction(
             $params,
             function ($params) {
-                $table = $this->getSourceTable($params);
-                if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                if (!empty($params['hash']) && strpos($params['hash'], 'i-') === 0) {
+                    $hashData = TmpTables::init($this->Table->getTotum()->getConfig())->getByHash(
+                        TmpTables::serviceTables['insert_row'],
+                        $this->Table->getUser(),
+                        $params['hash']
+                    );
+                    $hashData['_ihash']=$params['hash'];
+                    if (key_exists('_hash', $hashData)) {
+                        $params['hash']=$hashData['_hash'];
+                        unset($hashData['_hash']);
+                    }
+
+                    $table = $this->getSourceTable($params);
+                    $fields = $this->__getActionFields($params['field'], 'Set');
+                    $table->checkInsertRow(null, [], $hashData, $fields);
+                } else {
+                    $table = $this->getSourceTable($params);
+                    if (!empty($params['log'])) {
+                        $table->setWithALogTrue();
+                    }
+                    $fields = $this->__getActionFields($params['field'], 'Set');
+                    $where = $params['where'] ?? [];
+                    $table->actionSet($fields, $where, 1);
                 }
-                $fields = $this->__getActionFields($params['field'], 'Set');
-                $where = $params['where'] ?? [];
-                $table->actionSet($fields, $where, 1);
             }
         );
     }

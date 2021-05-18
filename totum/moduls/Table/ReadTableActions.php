@@ -14,6 +14,7 @@ use totum\common\FormatParamsForSelectFromTable;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Select;
+use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 
 class ReadTableActions extends Actions
@@ -1016,6 +1017,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         ) ?? []) : $this->post['data']) {
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
+            } elseif ($click['item'][0] === 'i') {
+                $row=TmpTables::init($this->Totum->getConfig())->getByHash('_insert_row', $this->User, $click['item']);
+                if (is_null($row)) {
+                    throw new errorException('Строка добавления устрарела');
+                }
+                $this->Table->setInsertRowHash($click['item']);
             } else {
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $ids = $this->Table->loadFilteredRows('web', [$click['item']]);
@@ -1109,7 +1116,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $this->Table->loadFilteredRows('web', [$row['id']]);
                 $row = $row + $this->Table->getTbl()['rows'][$row['id']] ?? [];
             } else {
-                $row = $row + $this->Table->checkInsertRow([], $data['item']);
+                $row = $row + $this->Table->checkInsertRow([], $data['item'], null, []);
             }
         } else {
             $row = $row + $this->Table->getTbl()['params'];

@@ -6,6 +6,7 @@ namespace totum\tableTypes\traits;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 use totum\tableTypes\JsonTables;
 
@@ -116,7 +117,16 @@ trait WebInterfaceTrait
 
 
         $inVars['modify'] = [];
-        $inVars['add'] = $data['add'] ?? [];
+        $inVars['add'] = [];
+        if ($insertRowHash = $data['add'] ?? null) {
+            $this->insertRowSetData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
+                TmpTables::serviceTables['insert_row'],
+                $this->getUser(),
+                $data['add']
+            );
+            $inVars['add'] = [[]];
+        }
+
         $inVars['channel'] = $data['channel'] ?? 'web';
 
         if (!empty($modify['setValuesToDefaults'])) {
@@ -165,6 +175,14 @@ trait WebInterfaceTrait
 
         $Log = $this->calcLog(["name" => 'RECALC', 'table' => $this, 'inVars' => $inVars]);
         $this->reCalculate($inVars);
+
+        if (!empty($insertRowHash)) {
+            TmpTables::init($this->getTotum()->getConfig())->deleteByHash(
+                TmpTables::serviceTables['insert_row'],
+                $this->User,
+                $insertRowHash
+            );
+        }
         $this->calcLog($Log, 'result', $this->isTblUpdated(0) ? 'changed' : 'not changed');
     }
 

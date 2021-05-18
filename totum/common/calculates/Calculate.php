@@ -1515,6 +1515,9 @@ SQL;
                         case 'duplicatedId':
                             $r = $this->vars[$nameVar] ?? 0;
                             break;
+                        case 'ih':
+                            $r = $this->Table->getInsertRowHash();
+                            break;
                         default:
                             if (array_key_exists($nameVar, $this->whileIterators)) {
                                 $r = $this->whileIterators[$nameVar];

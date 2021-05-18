@@ -951,6 +951,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 if ($table['insertable'] === true) {
                                     $fields[$f['name']]['changeSelectTable'] = 2;
                                 }
+                            } elseif (key_exists($table['id'], $this->User->getTables())) {
+                                $fields[$f['name']]['viewSelectTable'] = 1;
                             }
                         }
 
@@ -994,6 +996,25 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $result;
     }
 
+    public function viewRow()
+    {
+        $id = (int)($this->post['id'] ?? null);
+        if (!$id) {
+            throw new errorException('Ид пуст');
+        }
+        $this->Table->loadDataRow();
+        if ($this->Table->loadFilteredRows('web', [$id])) {
+            $res['row'] = $this->Table->getValuesAndFormatsForClient(
+                ['rows' => [$this->Table->getTbl()['rows'][$id]]],
+                'edit'
+            )['rows'][0];
+            $res['f'] = $this->getTableFormat();
+            return $res;
+        } else {
+            throw new errorException('Строка недоступна для просмотра');
+        }
+    }
+
     public function getTableData()
     {
         $this->Table->reCalculateFilters('web');
@@ -1018,7 +1039,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
             } elseif ($click['item'][0] === 'i') {
-                $row=TmpTables::init($this->Totum->getConfig())->getByHash('_insert_row', $this->User, $click['item']);
+                $row = TmpTables::init($this->Totum->getConfig())->getByHash(
+                    '_insert_row',
+                    $this->User,
+                    $click['item']
+                );
                 if (is_null($row)) {
                     throw new errorException('Строка добавления устрарела');
                 }

@@ -565,7 +565,7 @@ class Calculate
     protected function funcXmlExtract($params)
     {
         if ($params = $this->getParamsArray($params)) {
-            if ($xml = simplexml_load_string($params['xml'])) {
+            if ($xml = @simplexml_load_string($params['xml'])) {
                 $getData = function (\SimpleXMLElement $xml) use (&$getData, $params) {
                     $children = [];
                     foreach ($xml->attributes() as $k => $attr) {

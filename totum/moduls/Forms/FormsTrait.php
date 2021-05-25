@@ -147,7 +147,7 @@ trait FormsTrait
         $return['chdata'] = $this->getValuesForClient($return['chdata'], $fieldFormatS);
         $return['chdata']['f'] = $fieldFormatS;
 
-        $return['chdata']['sess_hash'] = $this->Table->getTableRow()['sess_hash'];
+        $return['chdata']['sess_hash'] = $this->Table->getTableRow()['sess_hash'] ?? null;
 
         $return['updated'] = $this->Table->getSavedUpdated();
 

@@ -4166,7 +4166,7 @@ SQL;
                 $params['header'] ?? 0,
                 $params['cookie'] ?? '',
                 $post,
-                ($params['timeout'] ?? null),
+                (($params['ssh'] ?? false) ? 'parallel' : $params['timeout'] ?? null),
                 ($params['headers'] ?? ""),
                 ($params['method'] ?? ""),
             );
@@ -4255,8 +4255,58 @@ SQL;
         return $fields;
     }
 
+    /**
+     * @param $url
+     * @param string $ref
+     * @param int $header
+     * @param string $cookie
+     * @param null $post
+     * @param int|"parallel"|null $timeout
+     * @param null $headers
+     * @param null $method
+     * @return bool|string
+     * @throws errorException
+     */
     public static function cURL($url, $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null, $method = null)
     {
+        if ($headers) {
+            $headers = (array)$headers;
+        } else {
+            $headers = [];
+        }
+        if ($cookie) {
+            $headers[] = "Cookie: " . $cookie;
+        }
+
+        if ($timeout === "parallel") {
+            $data = "";
+            if (empty($method)) {
+                $method = null;
+            }
+
+            if (!is_null($post)) {
+                $method = $method ?? "POST";
+                $post = is_array($post) ? http_build_query($post) : $post;
+                $data = '--data ' . escapeshellarg($post);
+            } else {
+                $method = $method ?? "GET";
+            }
+
+            if ($ref) {
+                $ref = '--referer ' . escapeshellarg($ref);
+            }
+
+            $hhs = [];
+            foreach ($headers ?? [] as $h) {
+                $hhs[] = '-H ' . escapeshellarg($h);
+            }
+
+            $hhs = implode(' ', $hhs);
+            `curl --request $method $ref $hhs $url $data  > /dev/null 2>&1 &`;
+            return;
+        }
+
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -4282,12 +4332,7 @@ SQL;
             curl_setopt($ch, CURLOPT_POSTFIELDS, is_array($post) ? http_build_query($post) : $post);
         }
 
-        if ($headers) {
-            $headers = (array)$headers;
-        }
-        if ($cookie) {
-            $headers[] = "Cookie: " . $cookie;
-        }
+
         if ($headers) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, (array)$headers);
         }

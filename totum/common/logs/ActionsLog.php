@@ -35,15 +35,15 @@ class ActionsLog
         foreach ($fields as $k => $v) {
             $model->insertPrepared(
                 [
-                'tableid' => $tableid,
-                'cycleid' => $cycleid ?? 0,
-                'rowid' => $rowid ?? 0,
-                'field' => $k,
-                'v' => static::getVar($v[0]),
-                'modify_text' => static::getVar($v[1]),
-                'action' => 1,
-                'userid' => $this->Totum->getUser()->getId()
-            ],
+                    'tableid' => $tableid,
+                    'cycleid' => $cycleid ?? 0,
+                    'rowid' => $rowid ?? 0,
+                    'field' => $k,
+                    'v' => static::getVar($v[0]),
+                    'modify_text' => static::getVar($v[1]),
+                    'action' => 1,
+                    'userid' => $this->Totum->getUser()->getId()
+                ],
                 false
             );
         }
@@ -54,15 +54,15 @@ class ActionsLog
         $model = static::getModel();
         $model->insertPrepared(
             [
-            'tableid' => $tableid,
-            'cycleid' => $cycleid ?? 0,
-            'rowid' => $rowid ?? 0,
-            'field' => $fieldName,
-            'v' => static::getVar($fieldValue),
-            'modify_text' => $fieldComment,
-            'action' => 6,
-            'userid' => $this->Totum->getUser()->getId()
-        ],
+                'tableid' => $tableid,
+                'cycleid' => $cycleid ?? 0,
+                'rowid' => $rowid ?? 0,
+                'field' => $fieldName,
+                'v' => static::getVar($fieldValue),
+                'modify_text' => $fieldComment,
+                'action' => 6,
+                'userid' => $this->Totum->getUser()->getId()
+            ],
             false
         );
     }
@@ -73,15 +73,15 @@ class ActionsLog
         foreach ($fields as $k => $v) {
             $model->insertPrepared(
                 [
-                'tableid' => $tableid,
-                'cycleid' => $cycleid ?? 0,
-                'rowid' => $rowid ?? 0,
-                'field' => $k,
-                'v' => static::getVar($v[0]),
-                'modify_text' => static::getVar($v[1]),
-                'action' => 2,
-                'userid' => $this->Totum->getUser()->getId()
-            ],
+                    'tableid' => $tableid,
+                    'cycleid' => $cycleid ?? 0,
+                    'rowid' => $rowid ?? 0,
+                    'field' => $k,
+                    'v' => static::getVar($v[0]),
+                    'modify_text' => static::getVar($v[1]),
+                    'action' => 2,
+                    'userid' => $this->Totum->getUser()->getId()
+                ],
                 false
             );
         }
@@ -93,15 +93,15 @@ class ActionsLog
         foreach ($fields as $k => $v) {
             $model->insertPrepared(
                 [
-                'tableid' => $tableid,
-                'cycleid' => $cycleid ?? 0,
-                'rowid' => $rowid ?? 0,
-                'field' => $k,
-                'v' => static::getVar($v[0]),
-                'modify_text' => static::getVar($v[1]),
-                'action' => 3,
-                'userid' => $this->Totum->getUser()->getId()
-            ],
+                    'tableid' => $tableid,
+                    'cycleid' => $cycleid ?? 0,
+                    'rowid' => $rowid ?? 0,
+                    'field' => $k,
+                    'v' => static::getVar($v[0]),
+                    'modify_text' => static::getVar($v[1]),
+                    'action' => 3,
+                    'userid' => $this->Totum->getUser()->getId()
+                ],
                 false
             );
         }
@@ -113,45 +113,47 @@ class ActionsLog
         foreach ($fields as $k => $v) {
             $model->insertPrepared(
                 [
-                'tableid' => $tableid,
-                'cycleid' => $cycleid ?? 0,
-                'rowid' => $rowid ?? 0,
-                'field' => $k,
-                'v' => static::getVar($v[0]),
-                'modify_text' => static::getVar($v[1]),
-                'action' => 5,
-                'userid' => $this->Totum->getUser()->getId()
-            ],
+                    'tableid' => $tableid,
+                    'cycleid' => $cycleid ?? 0,
+                    'rowid' => $rowid ?? 0,
+                    'field' => $k,
+                    'v' => static::getVar($v[0]),
+                    'modify_text' => static::getVar($v[1]),
+                    'action' => 5,
+                    'userid' => $this->Totum->getUser()->getId()
+                ],
                 false
             );
         }
     }
 
-    public function delete($tableid, $cycleid, $rowid)
+    public function delete($tableid, $cycleid, $rowid, $logText = null)
     {
         $model = static::getModel();
         $model->insertPrepared(
             [
-            'tableid' => $tableid,
-            'cycleid' => $cycleid ?? 0,
-            'rowid' => $rowid ?? 0,
-            'action' => 4,
-            'userid' => $this->Totum->getUser()->getId()
-        ],
+                'tableid' => $tableid,
+                'cycleid' => $cycleid ?? 0,
+                'rowid' => $rowid ?? 0,
+                'action' => 4,
+                'userid' => $this->Totum->getUser()->getId(),
+                'modify_text' => $logText
+            ],
             false
         );
     }
+
     public function restore($tableid, $cycleid, $rowid)
     {
         $model = static::getModel();
         $model->insertPrepared(
             [
-            'tableid' => $tableid,
-            'cycleid' => $cycleid ?? 0,
-            'rowid' => $rowid ?? 0,
-            'action' => 7,
-            'userid' => $this->Totum->getUser()->getId()
-        ],
+                'tableid' => $tableid,
+                'cycleid' => $cycleid ?? 0,
+                'rowid' => $rowid ?? 0,
+                'action' => 7,
+                'userid' => $this->Totum->getUser()->getId()
+            ],
             false
         );
     }
@@ -164,11 +166,11 @@ class ActionsLog
 
         return $this->getModel()->getAll(
             [
-            'tableid' => $tableid,
-            'cycleid' => $cycleid ?? 0,
-            'rowid' => $rowid ?? 0,
-            'field' => $field
-        ],
+                'tableid' => $tableid,
+                'cycleid' => $cycleid ?? 0,
+                'rowid' => $rowid ?? 0,
+                'field' => $field
+            ],
             'v as value, modify_text, action, userid as user_modify, to_char(dt, \'DD.MM.YY HH24:MI\') as dt_modify',
             'dt'
         );

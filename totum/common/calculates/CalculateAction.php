@@ -1014,7 +1014,7 @@ class CalculateAction extends Calculate
                 }
 
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
 
                 $addedIds += $table->actionInsert($fields, null, $params['after'] ?? null);
@@ -1161,7 +1161,7 @@ class CalculateAction extends Calculate
                 $table = $this->getSourceTable($params);
 
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $addedIds = array_merge($addedIds, $table->actionInsert(null, $rowList, $params['after'] ?? null));
             };
@@ -1230,7 +1230,7 @@ class CalculateAction extends Calculate
                 } else {
                     $table = $this->getSourceTable($params);
                     if (!empty($params['log'])) {
-                        $table->setWithALogTrue();
+                        $table->setWithALogTrue($params['log']);
                     }
                     $fields = $this->__getActionFields($params['field'], 'Set');
                     $where = $params['where'] ?? [];
@@ -1248,7 +1248,7 @@ class CalculateAction extends Calculate
                 $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $table->actionDelete($where, 1);
             }
@@ -1263,7 +1263,7 @@ class CalculateAction extends Calculate
                 $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $table->actionRestore($where, 1);
             }
@@ -1279,7 +1279,7 @@ class CalculateAction extends Calculate
                 $fields = $this->__getActionFields($params['field'], 'Duplicate');
 
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
 
                 $where = $params['where'] ?? [];
@@ -1300,7 +1300,7 @@ class CalculateAction extends Calculate
                 $fields = $this->__getActionFields($params['field'], 'DuplicateList');
 
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
 
                 $where = $params['where'] ?? [];
@@ -1320,7 +1320,7 @@ class CalculateAction extends Calculate
                 $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $table->actionDelete($where, null);
             }
@@ -1335,7 +1335,7 @@ class CalculateAction extends Calculate
                 $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $table->actionRestore($where, null);
             }
@@ -1352,7 +1352,7 @@ class CalculateAction extends Calculate
                 $where = $params['where'] ?? [];
 
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
 
                 $table->actionClear($params['field'], $where, 1);
@@ -1368,7 +1368,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->getSourceTable($params);
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $where = $params['where'] ?? [];
                 $table->actionPin($params['field'], $where, 1);
@@ -1384,7 +1384,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->getSourceTable($params);
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $where = $params['where'] ?? [];
                 $table->actionPin($params['field'], $where, null);
@@ -1401,7 +1401,7 @@ class CalculateAction extends Calculate
                 $table = $this->getSourceTable($params);
                 $fields = $this->__getActionFields($params['field'], 'SetList');
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $where = $params['where'] ?? [];
                 $table->actionSet($fields, $where, null);
@@ -1493,7 +1493,7 @@ class CalculateAction extends Calculate
 
                 if ($modify) {
                     if (!empty($params['log'])) {
-                        $table->setWithALogTrue();
+                        $table->setWithALogTrue($params['log']);
                     }
 
                     $table->reCalculateFromOvers(
@@ -1515,7 +1515,7 @@ class CalculateAction extends Calculate
                 $table = $this->getSourceTable($params);
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
-                    $table->setWithALogTrue();
+                    $table->setWithALogTrue($params['log']);
                 }
                 $table->actionClear($params['field'], $where, null);
             },

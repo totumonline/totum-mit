@@ -376,7 +376,9 @@ abstract class JsonTables extends aTable
                             $this->Totum->totumActionsLogger()->delete(
                                 $this->tableRow['id'],
                                 $this->getCycle() ? $this->getCycle()->getId() : null,
-                                $id
+                                $id,
+                                $this->recalculateWithALog ?
+                                    (is_bool($this->recalculateWithALog) ? 'скрипт' : $this->recalculateWithALog) : null
                             );
                         }
                     };
@@ -616,9 +618,13 @@ abstract class JsonTables extends aTable
 
             $newVal = $modify[$thisRow['id']][$column['name']] ?? null;
 
-            if (!key_exists($column['name'],
-                    $modify[$thisRow['id']]) && $this->insertRowSetData && key_exists($column['name'],
-                    $this->insertRowSetData)) {
+            if (!key_exists(
+                    $column['name'],
+                    $modify[$thisRow['id']] ?? []
+                ) && $this->insertRowSetData && key_exists(
+                    $column['name'],
+                    $this->insertRowSetData
+                )) {
                 $channel = 'inner';
                 $newVal = $this->insertRowSetData[$column['name']];
                 unset($this->insertRowSetData[$column['name']]);
@@ -763,7 +769,6 @@ abstract class JsonTables extends aTable
         if (key_exists('insertedId', $this->tbl)) {
             $this->tbl['rowInserted'] = $this->tbl['rows'][$this->tbl['insertedId']];
         }
-
     }
 
     protected function loadRowsByIds(array $ids)

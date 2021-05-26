@@ -174,7 +174,12 @@ abstract class RealTables extends aTable
             /******aLog delete*****/
             if (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog) {
                 foreach ((array)$remove as $id) {
-                    $this->Totum->totumActionsLogger()->delete($this->tableRow['id'], null, $id);
+                    $this->Totum->totumActionsLogger()->delete(
+                        $this->tableRow['id'],
+                        null,
+                        $id,
+                        $this->recalculateWithALog ? (is_bool($this->recalculateWithALog)?'скрипт':$this->recalculateWithALog) : null
+                    );
                 }
             }
             /******aLog*****/

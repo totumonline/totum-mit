@@ -68,9 +68,9 @@ class AuthController extends interfaceController
             $getNewPass = function () {
                 $letters = 'abdfjhijklmnqrstuvwxz';
                 return $letters{mt_rand(0, strlen($letters) - 1)} . $letters{mt_rand(
-                        0,
-                        strlen($letters) - 1
-                    )} . str_pad(mt_rand(1, 9999), 4, 0);
+                    0,
+                    strlen($letters) - 1
+                )} . str_pad(mt_rand(1, 9999), 4, 0);
             };
 
             if (empty($post['login'])) {
@@ -114,9 +114,9 @@ class AuthController extends interfaceController
                             return ['error' => 'В связи с превышением количества попыток на ввод пароля ваш IP заблокирован'];
                         } else {
                             if (($userRow = $getUserRow()) && json_decode(
-                                    $userRow['pass'],
-                                    true
-                                )['v'] === md5($post['pass'])) {
+                                $userRow['pass'],
+                                true
+                            )['v'] === md5($post['pass'])) {
                                 $status = 0;
                             } else {
                                 $count = $this->Config->getModel('auth_log')->getField(
@@ -130,18 +130,19 @@ class AuthController extends interfaceController
                                     $status = 1;
                                 }
                             }
-                            $this->Config->getSql()->insert(
-                                'auth_log',
-                                [
-                                    'datetime' => json_encode(['v' => $now_date->format('Y-m-d H:i')])
-                                    , 'user_ip' => json_encode(['v' => $ip])
-                                    , 'login' => json_encode(['v' => $post['login']])
-                                    , 'status' => json_encode(['v' => strval($status)])
-                                ],
-                                false
-                            );
+
                         }
                     }
+                    $this->Config->getSql()->insert(
+                        'auth_log',
+                        [
+                            'datetime' => json_encode(['v' => $now_date->format('Y-m-d H:i')])
+                            , 'user_ip' => json_encode(['v' => $ip])
+                            , 'login' => json_encode(['v' => $post['login']])
+                            , 'status' => json_encode(['v' => strval($status)])
+                        ],
+                        false
+                    );
                 }
             }
 

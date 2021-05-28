@@ -56,16 +56,11 @@ use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\controllers\Controller;
 use totum\common\criticalErrorException;
-use totum\common\Cycle;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Totum;
 use totum\common\User;
-use totum\config\Conf;
-use totum\models\Table;
 use totum\tableTypes\aTable;
-
-use SimpleXMLElement;
 
 class JsonController extends Controller
 {
@@ -75,6 +70,7 @@ class JsonController extends Controller
         3 => 'Атрибут login секции auth не найден',
         4 => 'Атрибут password секции auth не найден',
         5 => 'Пользователь с такими данными не найден. Возможно, ему не включен доступ к xml/json-интерфейсу',
+
         6 => 'Путь к таблице не верный',
         7 => 'Доступ к таблице запрещен',
         8 => 'Доступ к таблице на запись запрещен',
@@ -86,6 +82,7 @@ class JsonController extends Controller
         14 => 'Без указания таблицы в пути работает только секция remotes',
         15 => 'Remote {var} не существует или не доступен для вас',
         16 => 'Не задан  name для remote',
+        17 => 'В связи с превышением количества неудачных попыток авторизации ip заблокирован',
     ];
     private static $translates = ['header' => 'param', 'footer' => 'footer', 'rows' => 'column'];
 
@@ -113,9 +110,9 @@ class JsonController extends Controller
 
         try {
             $this->arrayIn = json_decode($jsonString, true) ?? json_decode(
-                    $request->getParsedBody()['data'] ?? "",
-                    true
-                );
+                $request->getParsedBody()['data'] ?? "",
+                true
+            );
             if (!is_array($this->arrayIn)) {
                 $this->throwError(1);
             }
@@ -180,9 +177,9 @@ class JsonController extends Controller
             $params = [];
             foreach ($this->arrayIn['recalculate'] as $where) {
                 if (!is_array($where) || count(array_intersect_key(
-                        $where,
-                        ['field' => 1, 'operator' => '', 'value' => '']
-                    )) !== 3) {
+                    $where,
+                    ['field' => 1, 'operator' => '', 'value' => '']
+                )) !== 3) {
                     $this->throwError(9);
                 }
                 $params[] = $where;
@@ -331,9 +328,9 @@ class JsonController extends Controller
                 $where = [];
                 foreach ($set['where'] as $_where) {
                     if (count(array_intersect_key(
-                            $_where,
-                            array_flip(['field', 'operator', 'value'])
-                        )) !== 3) {
+                        $_where,
+                        array_flip(['field', 'operator', 'value'])
+                    )) !== 3) {
                         static::throwError(13);
                     }
                     $where[] = $_where;
@@ -415,12 +412,13 @@ class JsonController extends Controller
         $import['channel'] = 'xml';
 
         if ($import['add'] && !$this->Table->isUserCanAction(
-                'insert')) {
+            'insert'
+        )) {
             throw new errorException('Добавление в эту таблицу вам запрещено');
         }
         if ($import['remove'] && !$this->Table->isUserCanAction(
-                'delete'
-            )) {
+            'delete'
+        )) {
             throw new errorException('Удаление из этой таблицы вам запрещено');
         }
 
@@ -488,17 +486,21 @@ class JsonController extends Controller
         //header
         foreach ($sortedXmlFields['param'] ?? [] as $fName => $field) {
             if (in_array($fName, $this->arrayIn['export']['fields'])) {
-                $addToXmlOut($this->arrayOut[$tr[$field['category']]],
+                $addToXmlOut(
+                    $this->arrayOut[$tr[$field['category']]],
                     $field,
-                    $this->Table->getTbl()['params'][$fName]);
+                    $this->Table->getTbl()['params'][$fName]
+                );
             }
         }
         //filter
         foreach ($sortedXmlFields['filter'] ?? [] as $fName => $field) {
             if (in_array($fName, $this->arrayIn['export']['fields'])) {
-                $addToXmlOut($this->arrayOut[$tr[$field['category']]],
+                $addToXmlOut(
+                    $this->arrayOut[$tr[$field['category']]],
                     $field,
-                    $this->Table->getTbl()['params'][$fName]);
+                    $this->Table->getTbl()['params'][$fName]
+                );
             }
         }
         //rows
@@ -519,9 +521,11 @@ class JsonController extends Controller
         //footer
         foreach ($sortedXmlFields['footer'] ?? [] as $fName => $field) {
             if (in_array($fName, $this->arrayIn['export']['fields'])) {
-                $addToXmlOut($this->arrayOut[$tr[$field['category']]],
+                $addToXmlOut(
+                    $this->arrayOut[$tr[$field['category']]],
                     $field,
-                    $this->Table->getTbl()['params'][$fName]);
+                    $this->Table->getTbl()['params'][$fName]
+                );
             }
         }
         foreach ($this->arrayOut['export'] as $k => $v) {
@@ -585,15 +589,22 @@ class JsonController extends Controller
 
         $Auth = $this->arrayIn['auth'];
 
-        if (!isset($Auth['login'])) {
+        if (empty($Auth['login'])) {
             $this->throwError(3);
         }
-        if (!isset($Auth['password'])) {
+        if (empty($Auth['password'])) {
             $this->throwError(4);
         }
 
-        if (!($this->aUser = Auth::authUserWithPass($this->Config, $Auth['login'], $Auth['password'], 'xmljson'))) {
-            $this->throwError(5);
+        switch (Auth::passwordCheckingAndProtection($Auth['login'], $Auth['password'], $userRow, $this->Config, 'xmljson')) {
+            case Auth::$AuthStatuses['OK']:
+                $this->aUser=new User($userRow, $this->Config);
+                break;
+            case Auth::$AuthStatuses['WRONG_PASSWORD']:
+                $this->throwError(5);
+                break;
+            case Auth::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION']:
+                $this->throwError(17);
         }
     }
 

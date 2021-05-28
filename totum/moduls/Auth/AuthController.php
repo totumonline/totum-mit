@@ -56,8 +56,6 @@ class AuthController extends interfaceController
                     $email,
                     'Учетные данные в ' . $_SERVER['HTTP_HOST'],
                     '<style>' . $template["styles"] . '</style>' . $template["body"] . '',
-                    null,
-                    []
                 );
             };
 

@@ -1626,8 +1626,7 @@ CODE;;
     public function loadFilteredRows($channel, $idsFilter = [], $removed = false): array
     {
         $filteredIds = [];
-        $this->reCalculateFilters('web');
-
+        $this->reCalculateFilters($channel);
         $params = $this->filtersParamsForLoadRows($channel, $idsFilter, [], true);
 
         if ($params !== false) {
@@ -2708,6 +2707,14 @@ CODE;;
                         return $visible && $field['apiEditable'] && $isUserCreatorOrInRoles($field['xmlEditRoles'] ?? []);
                     default:
                         throw new errorException('In channel ' . $channel . ' not supported action ' . $property);
+                }
+                break;
+            case 'inner':
+                switch ($property) {
+                    case 'filterable':
+                        return false;
+                    default:
+                        true;
                 }
                 break;
             default:

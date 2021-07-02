@@ -690,10 +690,11 @@ class Field
                     $vars
                 );
 
+
                 if ($error = $this->CalculateCode->getError()) {
                     $newVal['c'] = $this->data['errorText'];
                     $newVal['e'] = $error;
-                } else {
+                } elseif (!($newVal['h'] ?? null)) {
                     try {
                         $this->checkValByType($newVal['c'], $row);
                     } catch (errorException $e) {

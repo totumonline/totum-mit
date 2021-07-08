@@ -1660,9 +1660,9 @@ SQL;
                             $nameVar,
                             $this->oldRow ?? []
                         ) && !key_exists(
-                                $nameVar,
-                                $this->row ?? []
-                            )) {
+                            $nameVar,
+                            $this->row ?? []
+                        )) {
                             if (in_array($nameVar, Model::serviceFields)) {
                                 $rowVar = null;
                             } else {
@@ -2171,7 +2171,6 @@ SQL;
         }
         $string = $params['ssh'];
         if ($params['vars'] ?? null) {
-
             $localeOld = setlocale(LC_CTYPE, 0);
             setlocale(LC_CTYPE, "en_US.UTF-8");
 
@@ -3605,27 +3604,33 @@ SQL;
     {
         $params = $this->getParamsArray($params);
 
-        /*TODO убрать загрузку всех шаблонов, сделать подгрузку только требуемых*/
+        $getTemplate = function ($name) {
+            return $this->Table->getTotum()->getModel('print_templates')->getPrepared(['name'=>$name], 'styles, html, name');
+        };
 
-        if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-            [],
-            'styles, html, name',
-            'name'
-        )) || (!array_key_exists(
-                $params['template'],
-                $templates
-            ))) {
-            throw new errorException('Шаблон не найден');
+        if ($params['template'] ?? null) {
+            if ($main=$getTemplate($params['template'])) {
+                $mainTemplate = $main['html'];
+                $style = $main['styles'];
+            } else {
+                throw new errorException('Шаблон не найден');
+            }
+        } else {
+            if ($params['text'] ?? null) {
+                $mainTemplate = $params['text'];
+                $style = null;
+            } else {
+                throw new errorException('Шаблон не найден');
+            }
         }
 
-        $style = $templates[$params['template']]['styles'];
 
         $usedStyles = [];
 
-        $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $templates, &$style, &$usedStyles) {
+        $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $getTemplate, &$style, &$usedStyles) {
             return preg_replace_callback(
                 '/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
-                function ($matches) use ($data, $templates, &$funcReplaceTemplates, &$style, &$usedStyles) {
+                function ($matches) use ($data, $getTemplate, &$funcReplaceTemplates, &$style, &$usedStyles) {
                     if (array_key_exists($matches[2], $data)) {
                         if (is_array($data[$matches[2]])) {
                             if (!empty($matches[3])) {
@@ -3638,21 +3643,24 @@ SQL;
                                 }
                                 $value = $data[$matches[2]][$matches[3]];
                             } else {
-                                if (empty($data[$matches[2]]['template'])) {
+                                if (!empty($data[$matches[2]]['template'])) {
+                                    $template=$getTemplate($data[$matches[2]]['template']);
+                                    if (!$template) {
+                                        throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
+                                    }
+
+                                    if (!in_array($template['name'], $usedStyles)) {
+                                        $style .= $template['styles'];
+                                        $usedStyles[] = $template['name'];
+                                    }
+                                } elseif (key_exists("text", $data[$matches[2]])) {
+                                    $template=['html'=>$data[$matches[2]]["text"]];
+                                } else {
                                     throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
                                 }
-                                if (!array_key_exists(
-                                    $data[$matches[2]]['template'],
-                                    $templates
-                                )) {
-                                    throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
-                                }
-                                $template = $templates[$data[$matches[2]]['template']];
+
                                 $html = '';
-                                if (!in_array($template['name'], $usedStyles)) {
-                                    $style .= $template['styles'];
-                                    $usedStyles[] = $template['name'];
-                                }
+
 
                                 if (array_key_exists(0, $data[$matches[2]]['data'])) {
                                     foreach ($data[$matches[2]]['data'] ?? [] as $_data) {
@@ -3743,13 +3751,14 @@ SQL;
             );
         };
 
+
         if ($style) {
             return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
-                $templates[$params['template']]['html'],
+                $mainTemplate,
                 $params['data'] ?? []
             ) . '</body>';
         } else {
-            return $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []);
+            return $funcReplaceTemplates($mainTemplate, $params['data'] ?? []);
         }
     }
 

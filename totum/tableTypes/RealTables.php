@@ -26,6 +26,10 @@ abstract class RealTables extends aTable
     protected $cachedUpdate;
     protected $caches = [];
     protected $nTailLength;
+    /**
+     * @var array|bool|int[]|mixed|string|string[]
+     */
+    protected $withoutNotLoaded = false;
 
 
     public function getLastUpdated($force = false)
@@ -178,7 +182,7 @@ abstract class RealTables extends aTable
                         $this->tableRow['id'],
                         null,
                         $id,
-                        $this->recalculateWithALog ? (is_bool($this->recalculateWithALog)?'скрипт':$this->recalculateWithALog) : null
+                        $this->recalculateWithALog ? (is_bool($this->recalculateWithALog) ? 'скрипт' : $this->recalculateWithALog) : null
                     );
                 }
             }
@@ -334,10 +338,19 @@ abstract class RealTables extends aTable
 
             //техническая выборка - не трогать
             if ($params['field'] === ['__all__']) {
+                $notLoaded='';
+                if ($this->withoutNotLoaded) {
+                    foreach ($this->sortedFields['column'] as $field) {
+                        if ($field['notLoaded']??null) {
+                            $notLoaded.=', \'{"v": "**NOT LOADED**"}\' as '.$field['name'];
+                        }
+                    }
+                }
+
                 return $this->model->executePrepared(
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
-                    '*',
+                    '*'.$notLoaded,
                     $order,
                     $limit
                 );
@@ -478,9 +491,9 @@ abstract class RealTables extends aTable
             return $this->model->executePreparedSimple(
                 true,
                 "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
-                    ',',
-                    array_fill(0, count($untilId), '?')
-                ) . ")",
+                        ',',
+                        array_fill(0, count($untilId), '?')
+                    ) . ")",
                 $paramsWhere
             )->fetchColumn(1) + $isRefresh;
         }
@@ -490,6 +503,11 @@ abstract class RealTables extends aTable
             (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
             'count(*) as count'
         )->fetchColumn(0);
+    }
+
+    public function withoutNotLoaded()
+    {
+        $this->withoutNotLoaded = true;
     }
 
     protected function loadRowsByParams($params, $order = null, $offset = 0, $limit = null)
@@ -1234,9 +1252,9 @@ abstract class RealTables extends aTable
                 $v['name'],
                 $addData
             ) && $this->insertRowSetData && key_exists(
-                $v['name'],
-                $this->insertRowSetData
-            )) {
+                    $v['name'],
+                    $this->insertRowSetData
+                )) {
                 $_channel = 'inner';
                 $newVal = $this->insertRowSetData[$v['name']];
                 unset($this->insertRowSetData[$v['name']]);

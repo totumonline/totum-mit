@@ -23,6 +23,9 @@ class ListRow extends Field
             case 'web':
                 if ($this->data['category'] !== "filter") {
                     $string = json_encode($valArray['v'], JSON_UNESCAPED_UNICODE);
+                    /*if($this->data['name']==='not_loaded'){
+                        var_dump($string); die;
+                    }*/
                     if ($this->table->getTableRow()['type'] !== 'tmp' && !empty($this->data['viewTextMaxLength']) && $isBig = mb_strlen($string) > $this->data['viewTextMaxLength']) {
                         $valArray['v'] = mb_substr($string, 0, $this->data['viewTextMaxLength']) . '...';
                     }

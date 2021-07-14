@@ -41,9 +41,9 @@ class ReadTableActions extends Actions
                 $this->Table->getTableRow()['id'],
                 $this->User->getTreeTables()
             ) && in_array(
-                    $this->Table->getTableRow()['id'],
-                    $this->User->getFavoriteTables()
-                ) !== $status) {
+                $this->Table->getTableRow()['id'],
+                $this->User->getFavoriteTables()
+            ) !== $status) {
                 $Users = $this->Table->getTotum()->getTable('users');
                 if ($status) {
                     $favorite = array_merge(
@@ -297,6 +297,10 @@ class ReadTableActions extends Actions
             false,
             ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
+        if (method_exists($this->Table, 'withoutNotLoaded')) {
+            $this->Table->withoutNotLoaded();
+        }
+
         return $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
     }
 
@@ -502,9 +506,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 '',
                                 $table['head']
                             ) . $table[2] . implode(
-                                    '',
-                                    $table['body']
-                                ) . $table[3];
+                                '',
+                                $table['body']
+                            ) . $table[3];
                         }
                         $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
                     } else {
@@ -520,9 +524,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['head']
                 ) . $table[2] . implode(
-                        '',
-                        $table['body']
-                    ) . $table[3];
+                    '',
+                    $table['body']
+                ) . $table[3];
             }
         }
 
@@ -609,9 +613,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
 
@@ -627,9 +631,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             '',
                             $table['head']
                         ) . $table[2] . implode(
-                                '',
-                                $table['body']
-                            ) . $table[3];
+                            '',
+                            $table['body']
+                        ) . $table[3];
                     }
 
                     $width = $settings['fields'][$field['name']];
@@ -647,9 +651,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 '',
                 $table['head']
             ) . $table[2] . implode(
-                    '',
-                    $table['body']
-                ) . $table[3];
+                '',
+                $table['body']
+            ) . $table[3];
         }
 
         $style = $template['styles'];
@@ -842,6 +846,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         $data = [];
         $data['rows'] = [];
+
+        if (method_exists($this->Table, 'withoutNotLoaded')) {
+            $this->Table->withoutNotLoaded();
+        }
 
         if (is_null($onPage)) {
             $data['rows'] = $this->Table->getSortedFilteredRows(

@@ -1162,7 +1162,10 @@ CODE;;
         $ids = array_unique(array_merge($this->webIdInterval, array_column($data['rows'], "id")));
 
         foreach ($data['rows'] as $i => $row) {
+
             $newRow = ['id' => ($row['id'] ?? null)];
+            $rowIn = $this->tbl['rows'][$row['id'] ?? ''] ?? $row;
+
             if (array_key_exists('n', $row)) {
                 $newRow['n'] = $row['n'];
                 if (!empty($this->getTableRow()['new_row_in_sort']) && key_exists(
@@ -1200,19 +1203,25 @@ CODE;;
                     continue;
                 }
 
+
+
+                if (!empty($f['notLoaded']) && $viewType === 'web') {
+                    $rowIn[$f['name']]['v'] = '**NOT_LOADED**';
+                }
+
                 $newRow[$f['name']] = $row[$f['name']];
 
                 Field::init($f, $this)->addViewValues(
                     $viewType,
                     $newRow[$f['name']],
-                    $this->tbl['rows'][$row['id'] ?? ''] ?? $row,
+                    $rowIn,
                     $this->tbl
                 );
 
                 if ($isWithFormat) {
                     Field::init($f, $this)->addFormat(
                         $newRow[$f['name']],
-                        $this->tbl['rows'][$row['id'] ?? ''] ?? $row,
+                        $rowIn,
                         $this->tbl
                     );
                 }
@@ -1223,7 +1232,7 @@ CODE;;
 
                 $newRow['f'] = $RowFormatCalculate->getFormat(
                     'ROW',
-                    $this->tbl['rows'][$row['id'] ?? ''] ?? $row,
+                    $rowIn,
                     $this->tbl,
                     $this
                 );
@@ -1995,7 +2004,7 @@ CODE;;
                             $thisRow[$Field->getName()]['v'],
                             $thisRow,
                             $newTbl
-                        ), $channel === 'inner' ? (is_bool($logIt)?'скрипт':$logIt) : null]]
+                        ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null]]
                     );
                 }
             }
@@ -2029,7 +2038,7 @@ CODE;;
                             $thisRow[$Field->getName()]['v'],
                             $thisRow,
                             $newTbl
-                        ), $channel === 'inner' ? (is_bool($logIt)?'скрипт':$logIt) : null]]
+                        ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null]]
                     );
                 } elseif (key_exists($Field->getName(), $setValuesToPinned)) {
                     $this->Totum->totumActionsLogger()->pin(
@@ -2040,7 +2049,7 @@ CODE;;
                             $thisRow[$Field->getName()]['v'],
                             $thisRow,
                             $newTbl
-                        ), $channel === 'inner' ? (is_bool($logIt)?'скрипт':$logIt) : null]]
+                        ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null]]
                     );
                 } elseif (key_exists(
                         $Field->getName(),
@@ -2063,7 +2072,7 @@ CODE;;
                                 $newTbl
                             )
                             ,
-                            $channel === 'inner' ? (is_bool($logIt)?'скрипт':$logIt) : $Field->getModifiedLogValue($modified[$Field->getName()])]]
+                            $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : $Field->getModifiedLogValue($modified[$Field->getName()])]]
                     );
                 } elseif (key_exists(
                     $Field->getName(),
@@ -2079,7 +2088,7 @@ CODE;;
                                     $thisRow[$Field->getName()]['v'],
                                     $thisRow,
                                     $newTbl
-                                ), $channel === 'inner' ? (is_bool($logIt)?'скрипт':$logIt) : null
+                                ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null
                             ]
                         ]
                     );

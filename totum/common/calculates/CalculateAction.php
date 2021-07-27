@@ -30,6 +30,8 @@ class CalculateAction extends Calculate
                 unset($this->code[$k]);
             }
         }
+
+
         foreach ($this->allStartSections as &$v) {
             uksort(
                 $v,
@@ -40,6 +42,8 @@ class CalculateAction extends Calculate
                     if ($b === '=') {
                         return 1;
                     }
+                    $a = str_replace('=', '', $a);
+                    $b = str_replace('=', '', $b);
                     return $a <=> $b;
                 }
             );

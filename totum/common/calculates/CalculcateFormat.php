@@ -50,7 +50,14 @@ class CalculcateFormat extends Calculate
             }
         }
         foreach ($this->startSections as &$v) {
-            ksort($v);
+            uksort(
+                $v,
+                function ($a, $b) {
+                    $a = str_replace('=', '', $a);
+                    $b = str_replace('=', '', $b);
+                    return $a <=> $b;
+                }
+            );
         }
     }
 

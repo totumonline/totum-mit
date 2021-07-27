@@ -4240,8 +4240,8 @@ SQL;
         } elseif (key_exists('default', $params)) {
             $_params['default'] = $params['default'];
         }
-        if ($params['dt'] ?? false) {
-            $_params['dt'] = true;
+        if ($params['date'] ?? false) {
+            $_params['date'] = true;
         }
         return $this->Table->getTotum()->getConfig()->globVar($params['name'], $_params);
     }

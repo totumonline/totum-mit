@@ -587,8 +587,8 @@ ON CONFLICT (name) DO UPDATE
             }
 
             if ($data = $prepareSelectDefault->fetch()) {
-                if ($params['dt'] ?? false) {
-                    return ['dt' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                if ($params['date'] ?? false) {
+                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
                 } else {
                     return json_decode($data["value"], true)["v"];
                 }
@@ -603,8 +603,8 @@ ON CONFLICT (name) DO UPDATE
             }
 
             if ($data = $prepareSelect->fetch()) {
-                if ($params['dt'] ?? false) {
-                    return ['dt' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                if ($params['date'] ?? false) {
+                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
                 } else {
                     return json_decode($data["value"], true)["v"];
                 }

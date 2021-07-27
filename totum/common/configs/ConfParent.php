@@ -13,6 +13,7 @@ use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\logs\Log;
 use totum\common\sql\Sql;
+use totum\common\sql\SqlException;
 use totum\common\Totum;
 use totum\fieldTypes\File;
 
@@ -383,8 +384,10 @@ abstract class ConfParent
     public function getCalculateExtensionFunction($funcName)
     {
         $this->getObjectWithExtFunctions();
-        if (!property_exists($this->CalculateExtensions,
-                $funcName) || !is_callable($this->CalculateExtensions->$funcName)) {
+        if (!property_exists(
+                $this->CalculateExtensions,
+                $funcName
+            ) || !is_callable($this->CalculateExtensions->$funcName)) {
             throw new errorException('Функция [[' . $funcName . ']] не найдена');
         }
         return $this->CalculateExtensions->$funcName;
@@ -508,6 +511,108 @@ abstract class ConfParent
         return $this->settingsCache;
     }
 
+    public function globVar($name, $params = [])
+    {
+        static $sql = null;
+        static $prepareInsertOrUpdate = null;
+        static $prepareSelect = null;
+        static $prepareSelectDefault = null;
+
+        if (empty($sql)) {
+            $sql = $this->getSql(false);
+        }
+
+        $checkError = function ($prep) use ($params, $name, $sql) {
+            if ($prep->errorCode() === '42P01') {
+                $sql->exec(
+                    <<<SQL
+create table "_globvars"
+(
+    name     text                                                      not null,
+    value     jsonb,
+    dt          timestamp default ('now'::text)::timestamp without time zone not null
+)
+SQL
+                );
+                $sql->exec('create UNIQUE INDEX _globvars_name_index on _globvars (name)');
+                return $this->globVar($name, $params);
+            } else {
+                throw new SqlException($prep->errorInfo()[1]);
+            }
+        };
+        $getPrepareSelect = function () use (&$prepareSelect, $sql) {
+            if (!$prepareSelect) {
+                $prepareSelect = $sql->getPrepared('select value, dt from _globvars where name = ?');
+            }
+            return $prepareSelect;
+        };
+        $getPrepareSelectDefault = function () use (&$prepareSelectDefault, $sql) {
+            if (!$prepareSelectDefault) {
+                $prepareSelectDefault = $sql->getPrepared('INSERT INTO _globvars (name, value) 
+VALUES (?,?)
+ON CONFLICT (name) DO UPDATE 
+  SET name = excluded.name RETURNING value, dt');
+            }
+            return $prepareSelectDefault;
+        };
+        $getPrepareInsertOrUpdate = function () use ($sql, &$prepareInsertOrUpdate) {
+            if (!$prepareInsertOrUpdate) {
+                $prepareInsertOrUpdate = $sql->getPrepared('INSERT INTO _globvars (name, value) 
+VALUES (?,?)
+ON CONFLICT (name) DO UPDATE 
+  SET value = excluded.value, 
+      dt = (\'now\'::text)::timestamp without time zone');
+            }
+            return $prepareInsertOrUpdate;
+        };
+
+        if (key_exists('value', $params)) {
+            $getPrepareInsertOrUpdate()->execute([$name, json_encode(
+                ['v' => $params['value']],
+                JSON_UNESCAPED_UNICODE
+            )]);
+
+            if ($prepareInsertOrUpdate->errorCode() !== '00000') {
+                return $checkError($prepareInsertOrUpdate);
+            }
+            return $params['value'];
+        } elseif (key_exists('default', $params)) {
+            $getPrepareSelectDefault()->execute([$name, json_encode(
+                ['v' => $params['default']],
+                JSON_UNESCAPED_UNICODE
+            )]);
+
+            if ($prepareSelectDefault->errorCode() !== '00000') {
+                return $checkError($prepareSelectDefault);
+            }
+
+            if ($data = $prepareSelectDefault->fetch()) {
+                if ($params['dt'] ?? false) {
+                    return ['dt' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                } else {
+                    return json_decode($data["value"], true)["v"];
+                }
+            } else {
+                return null;
+            }
+        } else {
+            $getPrepareSelect()->execute([$name]);
+
+            if ($prepareSelect->errorCode() !== '00000') {
+                return $checkError($prepareSelect);
+            }
+
+            if ($data = $prepareSelect->fetch()) {
+                if ($params['dt'] ?? false) {
+                    return ['dt' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                } else {
+                    return json_decode($data["value"], true)["v"];
+                }
+            } else {
+                return null;
+            }
+        }
+    }
 
     public function getTotumFooter()
     {

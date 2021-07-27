@@ -625,9 +625,9 @@ class CalculateAction extends Calculate
             'styles, html, name',
             'name'
         )) || (!array_key_exists(
-                $params['template'],
-                $templates
-            ))) {
+            $params['template'],
+            $templates
+        ))) {
             throw new errorException('Шаблон не найден');
         }
 
@@ -830,7 +830,9 @@ class CalculateAction extends Calculate
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => htmlspecialchars($params['text'] ?? '')],
+            ['title' => $title, 'width' => $width, 'text' => htmlspecialchars(is_array($params['text']) ?
+                "OBJECT: ".json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
+                $params['text'] ?? '')],
             $params['refresh'] ?? false
         );
     }
@@ -1222,9 +1224,9 @@ class CalculateAction extends Calculate
                         $this->Table->getUser(),
                         $params['hash']
                     );
-                    $hashData['_ihash']=$params['hash'];
+                    $hashData['_ihash'] = $params['hash'];
                     if (key_exists('_hash', $hashData)) {
-                        $params['hash']=$hashData['_hash'];
+                        $params['hash'] = $hashData['_hash'];
                         unset($hashData['_hash']);
                     }
 

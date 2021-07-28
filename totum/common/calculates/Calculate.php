@@ -459,7 +459,7 @@ class Calculate
                     '|(?<string>"[^"]*")' .            //string
                     '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
                     '|(?<bool>false|true)' .   //10
-                    '|(?<param>(?<param_name>(?:@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
+                    '|(?<param>(?<param_name>(?:\$@|@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
                     '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',
                     //dog,dog_table, dog_field,dog_items
 
@@ -1468,7 +1468,11 @@ SQL;
                 $isHashtag = true;
                 break;
             case '$':
-                if ($param[1] === '#') {
+                if ($param[1] === '@') {
+                    $paramName = substr($param, 2);
+                    $r = $this->Table->getTotum()->getConfig()->procVar($paramName);
+                }
+                elseif ($param[1] === '#') {
                     $nameVar = substr($param, 2);
                     switch ($nameVar) {
                         case 'nh':
@@ -4244,6 +4248,21 @@ SQL;
             $_params['date'] = true;
         }
         return $this->Table->getTotum()->getConfig()->globVar($params['name'], $_params);
+    }
+    protected function funcProcVar($params)
+    {
+        $params = $this->getParamsArray($params, [], []);
+        if (empty($params['name'])) {
+            throw new errorException('Параметр  name должен быть заполнен');
+        }
+        $_params = [];
+        if (key_exists('value', $params)) {
+            $_params['value'] = $params['value'];
+        } elseif (key_exists('default', $params)) {
+            $_params['default'] = $params['default'];
+        }
+
+        return $this->Table->getTotum()->getConfig()->procVar($params['name'], $_params);
     }
 
     protected function __getActionFields($fieldParams, $funcName)

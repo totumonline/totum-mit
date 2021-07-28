@@ -622,6 +622,21 @@ ON CONFLICT (name) DO UPDATE
         }
     }
 
+    public function procVar($name, $params = [])
+    {
+        static $vars = [];
+
+        if (key_exists('value', $params)) {
+            $vars[$name] = $params['value'];
+        } elseif (key_exists('default', $params)) {
+            if (!key_exists($name, $vars)) {
+                $vars[$name] = $params['default'];
+            }
+        }
+
+        return $vars[$name] ?? null;
+    }
+
     public function getTotumFooter()
     {
         $genTime = round(microtime(true) - $this->mktimeStart, 4);

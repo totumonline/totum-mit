@@ -72,6 +72,7 @@ abstract class ConfParent
      * @var string
      */
     protected $baseDir;
+    protected $procVars;
 
 
     public function __construct($env = self::ENV_LEVELS["production"])
@@ -624,17 +625,15 @@ ON CONFLICT (name) DO UPDATE
 
     public function procVar($name, $params = [])
     {
-        static $vars = [];
-
         if (key_exists('value', $params)) {
-            $vars[$name] = $params['value'];
+            $this->procVars[$name] = $params['value'];
         } elseif (key_exists('default', $params)) {
-            if (!key_exists($name, $vars)) {
-                $vars[$name] = $params['default'];
+            if (!key_exists($name, $this->procVars)) {
+                $this->procVars[$name] = $params['default'];
             }
         }
 
-        return $vars[$name] ?? null;
+        return $this->procVars[$name] ?? null;
     }
 
     public function getTotumFooter()

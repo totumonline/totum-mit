@@ -561,7 +561,7 @@ ON CONFLICT (name) DO UPDATE
 VALUES (?,?)
 ON CONFLICT (name) DO UPDATE 
   SET value = excluded.value, 
-      dt = (\'now\'::text)::timestamp without time zone');
+      dt = (\'now\'::text)::timestamp without time zone RETURNING value, dt');
             }
             return $prepareInsertOrUpdate;
         };
@@ -575,7 +575,15 @@ ON CONFLICT (name) DO UPDATE
             if ($prepareInsertOrUpdate->errorCode() !== '00000') {
                 return $checkError($prepareInsertOrUpdate);
             }
-            return $params['value'];
+            if ($data = $prepareInsertOrUpdate->fetch()) {
+                if ($params['date'] ?? false) {
+                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                } else {
+                    return json_decode($data["value"], true)["v"];
+                }
+            } else {
+                return null;
+            }
         } elseif (key_exists('default', $params)) {
             $getPrepareSelectDefault()->execute([$name, json_encode(
                 ['v' => $params['default']],

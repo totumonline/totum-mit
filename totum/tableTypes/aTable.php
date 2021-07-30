@@ -1696,12 +1696,12 @@ CODE;;
      * @return array|false
      * @throws errorException
      */
-    public function filtersParamsForLoadRows($channel, $idsFilter = [], $elseFilters = [], $onlyBlockedFilters = false)
+    public function filtersParamsForLoadRows($channel, $idsFilter = null, $elseFilters = [], $onlyBlockedFilters = false)
     {
         $params = [];
         $issetBlockedFilters = false;
 
-        if (!empty($idsFilter)) {
+        if (!is_null($idsFilter)) {
             $params[] = ['field' => 'id', 'operator' => '=', 'value' => $idsFilter];
         }
         if (!empty($elseFilters)) {

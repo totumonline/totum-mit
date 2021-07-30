@@ -72,7 +72,7 @@ abstract class ConfParent
      * @var string
      */
     protected $baseDir;
-    protected $procVars;
+    protected $procVars = [];
 
 
     public function __construct($env = self::ENV_LEVELS["production"])
@@ -386,9 +386,9 @@ abstract class ConfParent
     {
         $this->getObjectWithExtFunctions();
         if (!property_exists(
-                $this->CalculateExtensions,
-                $funcName
-            ) || !is_callable($this->CalculateExtensions->$funcName)) {
+            $this->CalculateExtensions,
+            $funcName
+        ) || !is_callable($this->CalculateExtensions->$funcName)) {
             throw new errorException('Функция [[' . $funcName . ']] не найдена');
         }
         return $this->CalculateExtensions->$funcName;
@@ -623,8 +623,12 @@ ON CONFLICT (name) DO UPDATE
         }
     }
 
-    public function procVar($name, $params = [])
+    public function procVar($name = null, $params = [])
     {
+        if (empty($name)) {
+            return array_keys($this->procVars ?? []);
+        }
+
         if (key_exists('value', $params)) {
             $this->procVars[$name] = $params['value'];
         } elseif (key_exists('default', $params)) {

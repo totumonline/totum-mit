@@ -1575,7 +1575,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function getTableClientChangedData($data, $force = false)
     {
         $return = [];
-        if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh'])) {
+        if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh']) || $this->Totum->getConfig()->procVar()) {
             $this->Table->reCalculateFilters(
                 'web',
                 false,

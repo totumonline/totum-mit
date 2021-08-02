@@ -1081,6 +1081,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     throw new errorException('Строка добавления устрарела');
                 }
                 $this->Table->setInsertRowHash($click['item']);
+                foreach ($row as &$v) {
+                    $v = ['v' => $v];
+                }
             } else {
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $ids = $this->Table->loadFilteredRows('web', [$click['item']]);

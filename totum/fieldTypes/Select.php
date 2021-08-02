@@ -465,14 +465,14 @@ class Select extends Field
         if (!empty($this->data['multiple'])) {
             $vals = preg_split('/\]\s*\[/', $val);
             foreach ($vals as &$v) {
-                $v = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $v);
+                $v = preg_replace('/^\s*\[?([^:]*\s*).*$/', '$1', $v);
                 if ($v === '') {
                     $v = null;
                 }
             }
             $val = $vals;
         } else {
-            $val = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $val);
+            $val = preg_replace('/^\s*\[?([^:]*\s*).*$/', '$1', $val);
             if ($val === '') {
                 $val = null;
             }

@@ -107,7 +107,7 @@ class Calculate
                 continue;
             }
             /*Разбираем код построчно*/
-            if (preg_match('/^([a-z0-9]*=\s*|~?[a-zA-Z0-9_]+)\s*(?<catch>[a-zA-Z0-9_]*):(.*)$/', $row, $matches)) {
+            if (preg_match('/^([a-z0-9]*=\s*|~?[a-zA-Z0-9_]+)\s*(?<catch>[a-zA-Z0-9_]*)\s*:(.*)$/', $row, $matches)) {
                 $lineName = trim($matches['1']);
                 if (substr($lineName, 0, 1) === '~') {
                     $lineName = substr($lineName, 1);

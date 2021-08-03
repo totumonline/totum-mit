@@ -796,6 +796,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $rows_other[] = $row;
                 }
             }
+            ksort($rows);
             $rows = array_values($rows);
             $result['rows'] = array_merge($rows, $rows_other);
             unset($result['f']['order']);

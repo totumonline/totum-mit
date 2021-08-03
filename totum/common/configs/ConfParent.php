@@ -518,6 +518,7 @@ abstract class ConfParent
         static $prepareInsertOrUpdate = null;
         static $prepareSelect = null;
         static $prepareSelectDefault = null;
+        static $prepareSelectBlockFalse = null;
 
         if (empty($sql)) {
             $sql = $this->getSql(false);
@@ -531,7 +532,8 @@ create table "_globvars"
 (
     name     text                                                      not null,
     value     jsonb,
-    dt          timestamp default ('now'::text)::timestamp without time zone not null
+    blocked     timestamp,
+    dt        timestamp default ('now'::text)::timestamp without time zone not null
 )
 SQL
                 );
@@ -547,6 +549,18 @@ SQL
             }
             return $prepareSelect;
         };
+        $getPrepareSelectBlocked = function ($interval) use ($sql): \PDOStatement {
+            return $sql->getPrepared('WITH time AS(
+    select now() + interval \'' . $interval . '\' as times
+)
+UPDATE _globvars SET blocked=
+    CASE
+        WHEN (blocked is null OR blocked<=now()) THEN (SELECT times FROM time)
+        ELSE blocked
+        END
+WHERE name = :name
+RETURNING value, dt, blocked, blocked=(SELECT times FROM time) as was_blocked');
+        };
         $getPrepareSelectDefault = function () use (&$prepareSelectDefault, $sql) {
             if (!$prepareSelectDefault) {
                 $prepareSelectDefault = $sql->getPrepared('INSERT INTO _globvars (name, value) 
@@ -556,15 +570,41 @@ ON CONFLICT (name) DO UPDATE
             }
             return $prepareSelectDefault;
         };
+        $getPrepareSelectBlockedFalse = function () use (&$prepareSelectBlockFalse, $sql) {
+            if (!$prepareSelectBlockFalse) {
+                $prepareSelectBlockFalse = $sql->getPrepared('INSERT INTO _globvars (name) 
+VALUES (?)
+ON CONFLICT (name) DO UPDATE 
+  SET blocked = NULL RETURNING value, dt');
+            }
+            return $prepareSelectBlockFalse;
+        };
         $getPrepareInsertOrUpdate = function () use ($sql, &$prepareInsertOrUpdate) {
             if (!$prepareInsertOrUpdate) {
                 $prepareInsertOrUpdate = $sql->getPrepared('INSERT INTO _globvars (name, value) 
 VALUES (?,?)
 ON CONFLICT (name) DO UPDATE 
   SET value = excluded.value, 
+      blocked = null,
       dt = (\'now\'::text)::timestamp without time zone RETURNING value, dt');
             }
             return $prepareInsertOrUpdate;
+        };
+
+
+        $returnData = function ($prepare) use ($checkError) {
+            if ($prepare->errorCode() !== '00000') {
+                return $checkError($prepare);
+            }
+            if ($data = $prepare->fetch()) {
+                if ($params['date'] ?? false) {
+                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                } else {
+                    return json_decode($data["value"], true)["v"];
+                }
+            } else {
+                return null;
+            }
         };
 
         if (key_exists('value', $params)) {
@@ -572,54 +612,44 @@ ON CONFLICT (name) DO UPDATE
                 ['v' => $params['value']],
                 JSON_UNESCAPED_UNICODE
             )]);
-
-            if ($prepareInsertOrUpdate->errorCode() !== '00000') {
-                return $checkError($prepareInsertOrUpdate);
-            }
-            if ($data = $prepareInsertOrUpdate->fetch()) {
-                if ($params['date'] ?? false) {
-                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
-                } else {
-                    return json_decode($data["value"], true)["v"];
-                }
-            } else {
-                return null;
-            }
+            return $returnData($prepareInsertOrUpdate);
         } elseif (key_exists('default', $params)) {
             $getPrepareSelectDefault()->execute([$name, json_encode(
                 ['v' => $params['default']],
                 JSON_UNESCAPED_UNICODE
             )]);
+            return $returnData($prepareSelectDefault);
 
-            if ($prepareSelectDefault->errorCode() !== '00000') {
-                return $checkError($prepareSelectDefault);
-            }
-
-            if ($data = $prepareSelectDefault->fetch()) {
-                if ($params['date'] ?? false) {
-                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
-                } else {
-                    return json_decode($data["value"], true)["v"];
-                }
+        } elseif (key_exists('block', $params)) {
+            if (!$params['block']) {
+                $getPrepareSelectBlockedFalse()->execute([$name]);
+                return $returnData($prepareSelectBlockFalse);
             } else {
-                return null;
+                while (true) {
+                    $prepareSelectBlocked = $getPrepareSelectBlocked((float)$params['block'] . ' second');
+                    $prepareSelectBlocked->execute(['name' => $name]);
+
+                    if ($prepareSelectBlocked->errorCode() !== '00000') {
+                        return $checkError($prepareSelectBlocked);
+                    }
+
+                    if ($data = $prepareSelectBlocked->fetch()) {
+                        if ($data['was_blocked']) {
+                            if ($params['date'] ?? false) {
+                                return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                            } else {
+                                return json_decode($data["value"], true)["v"];
+                            }
+                        }
+                    } else {
+                        return null;
+                    }
+                }
             }
         } else {
             $getPrepareSelect()->execute([$name]);
 
-            if ($prepareSelect->errorCode() !== '00000') {
-                return $checkError($prepareSelect);
-            }
-
-            if ($data = $prepareSelect->fetch()) {
-                if ($params['date'] ?? false) {
-                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
-                } else {
-                    return json_decode($data["value"], true)["v"];
-                }
-            } else {
-                return null;
-            }
+            return $returnData($prepareSelect);
         }
     }
 

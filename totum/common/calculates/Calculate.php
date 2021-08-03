@@ -1471,8 +1471,7 @@ SQL;
                 if ($param[1] === '@') {
                     $paramName = substr($param, 2);
                     $r = $this->Table->getTotum()->getConfig()->procVar($paramName);
-                }
-                elseif ($param[1] === '#') {
+                } elseif ($param[1] === '#') {
                     $nameVar = substr($param, 2);
                     switch ($nameVar) {
                         case 'nh':
@@ -4243,12 +4242,16 @@ SQL;
             $_params['value'] = $params['value'];
         } elseif (key_exists('default', $params)) {
             $_params['default'] = $params['default'];
+        } elseif (key_exists('block', $params)) {
+            $_params['block'] = $params['block'];
         }
         if ($params['date'] ?? false) {
             $_params['date'] = true;
         }
+
         return $this->Table->getTotum()->getConfig()->globVar($params['name'], $_params);
     }
+
     protected function funcProcVar($params)
     {
         $params = $this->getParamsArray($params, [], []);

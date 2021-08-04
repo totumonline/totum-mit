@@ -346,7 +346,7 @@ class Sql
                 $param = $param ? 'true' : 'false';
             }
         }
-        unset($param);
+
         $r = $statement->execute($listOfParams);
         if (!$r || $statement->errorCode() !== "00000") {
             $info = $statement->errorInfo();

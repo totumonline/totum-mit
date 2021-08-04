@@ -118,13 +118,18 @@ trait WebInterfaceTrait
 
         $inVars['modify'] = [];
         $inVars['add'] = [];
-        if ($insertRowHash = $data['add'] ?? null) {
-            $this->insertRowSetData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
-                TmpTables::serviceTables['insert_row'],
-                $this->getUser(),
-                $data['add']
-            );
-            $inVars['add'] = [[]];
+        if (!empty($data['add'])) {
+            if ($data['add']==='new cycle') {
+                $inVars['add'] = [[]];
+            }
+            if ($insertRowHash = $data['add']) {
+                $this->insertRowSetData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
+                    TmpTables::serviceTables['insert_row'],
+                    $this->getUser(),
+                    $data['add']
+                );
+                $inVars['add'] = [[]];
+            }
         }
 
         $inVars['channel'] = $data['channel'] ?? 'web';

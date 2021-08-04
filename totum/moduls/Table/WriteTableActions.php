@@ -32,7 +32,7 @@ class WriteTableActions extends ReadTableActions
         )) {
             $this->Totum->getModel('tables_fields')->setAfterField($this->post['tableData']['afterField']);
         }
-        return $this->modify(['add' => $this->post['hash'], 'addAfter' => $this->post['insertAfter'] ?? null]);
+        return $this->modify(['add' => $this->post['hash'] ?? "new cycle", 'addAfter' => $this->post['insertAfter'] ?? null]);
     }
 
     public function tmpFileUpload()

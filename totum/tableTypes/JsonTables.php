@@ -32,6 +32,7 @@ abstract class JsonTables extends aTable
     protected static $recalcs = [];
 
     /* Подумать: было бы логично убрать отсюда Cycle и оставить его только для calcs*/
+
     public function __construct(Totum $Totum, $tableRow, $Cycle = null, $light = false)
     {
         parent::__construct($Totum, $tableRow, null, $light);
@@ -67,16 +68,6 @@ abstract class JsonTables extends aTable
     {
         throw new errorException('Для расчетных таблиц не предусмотрено построчное обновление. Они пересчитываются целиком');
     }
-
-    public function checkInsertRow($tableData, $data)
-    {
-        if ($tableData) {
-            $this->checkTableUpdated($tableData);
-        }
-        $this->reCalculate(['channel' => 'web', 'add' => [$data], 'isCheck' => true]);
-        return $this->tbl['rows'][$this->tbl['insertedId']];
-    }
-
 
     public function addField($field)
     {
@@ -324,9 +315,9 @@ abstract class JsonTables extends aTable
                     $type = SORT_REGULAR;
                 }
                 if (count(array_unique(
-                    $insertList,
-                    $type
-                )) !== count($insertList)) {
+                        $insertList,
+                        $type
+                    )) !== count($insertList)) {
                     throw new errorException('Поле [[insert]] должно возвращать list с уникальными значениями - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
                 }
             } else {
@@ -385,7 +376,9 @@ abstract class JsonTables extends aTable
                             $this->Totum->totumActionsLogger()->delete(
                                 $this->tableRow['id'],
                                 $this->getCycle() ? $this->getCycle()->getId() : null,
-                                $id
+                                $id,
+                                $this->recalculateWithALog ?
+                                    (is_bool($this->recalculateWithALog) ? 'скрипт' : $this->recalculateWithALog) : null
                             );
                         }
                     };
@@ -397,13 +390,6 @@ abstract class JsonTables extends aTable
                         // no break
                         case 'delete':
                             $this->changeIds['changed'][$row['id']] = null;
-
-                            foreach ($this->sortedFields['column'] as $field) {
-                                if ($field['type'] === 'file') {
-                                    $this->deleteFilesOnCommit($row[$field['name']]['v']);
-                                }
-                            }
-
                             $aLogDelete($row['id']);
                             continue 2;
                         case 'hide':
@@ -512,9 +498,9 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($after && !key_exists(
-                    $after,
-                    $SavedRows
-                )) {
+                        $after,
+                        $SavedRows
+                    )) {
                     throw new errorException('Строки с id ' . $after . ' не существует. Возможно, она была удалена');
                 }
 
@@ -630,9 +616,22 @@ abstract class JsonTables extends aTable
         $addRowField = function ($column, &$thisRow) use ($modify, $modifyCalculated, $channel, $isCheck, $duplicatedIds) {
             $Field = Field::init($column, $this);
 
+            $newVal = $modify[$thisRow['id']][$column['name']] ?? null;
+
+            if (!key_exists(
+                    $column['name'],
+                    $modify[$thisRow['id']] ?? []
+                ) && $this->insertRowSetData && key_exists(
+                    $column['name'],
+                    $this->insertRowSetData
+                )) {
+                $channel = 'inner';
+                $newVal = $this->insertRowSetData[$column['name']];
+                unset($this->insertRowSetData[$column['name']]);
+            }
             $thisRow[$column['name']] = $Field->add(
                 $channel,
-                $modify[$thisRow['id']][$column['name']] ?? null,
+                $newVal,
                 $thisRow,
                 $this->savedTbl,
                 $this->tbl,
@@ -766,6 +765,9 @@ abstract class JsonTables extends aTable
                 $calculateRowFooterField($footerField);
             }
             $this->calcLog($Log, 'result', 'done');
+        }
+        if (key_exists('insertedId', $this->tbl)) {
+            $this->tbl['rowInserted'] = $this->tbl['rows'][$this->tbl['insertedId']];
         }
     }
 
@@ -909,10 +911,10 @@ abstract class JsonTables extends aTable
 
             $checkAndChange = function ($field) use ($tbl, $loadedTbl) {
                 if (key_exists($field['name'], $loadedTbl['params'] ?? []) && Calculate::compare(
-                    '!==',
-                    $loadedTbl['params'][$field['name']]['v'],
-                    $tbl['params'][$field['name']]['v']
-                )) {
+                        '!==',
+                        $loadedTbl['params'][$field['name']]['v'],
+                        $tbl['params'][$field['name']]['v']
+                    )) {
                     Field::init($field, $this)->action(
                         $loadedTbl['params'],
                         $tbl['params'],
@@ -971,9 +973,9 @@ abstract class JsonTables extends aTable
                             $actionIt = 'add';
                         }
                     } elseif (!empty($field['CodeActionOnChange']) && key_exists(
-                        $field['name'],
-                        $loadedTbl['rows'][$row['id']]
-                    )) {
+                            $field['name'],
+                            $loadedTbl['rows'][$row['id']]
+                        )) {
                         if (Calculate::compare(
                             '!==',
                             $loadedTbl['rows'][$row['id']][$field['name']]['v'],
@@ -1003,14 +1005,8 @@ abstract class JsonTables extends aTable
                             'delete'
                         );
                     }
-                    if ($field['type'] === 'file') {
-                        if ($deleteFiles = $Oldrow[$field['name']]['v']) {
-                            foreach ($deleteFiles as $file) {
-                                if ($file = ($file['file'] ?? null)) {
-                                    File::deleteFile($file, $this->Totum->getConfig());
-                                }
-                            }
-                        }
+                    if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
+                        File::deleteFilesOnCommit($Oldrow[$field['name']]['v'], $this->getTotum()->getConfig());
                     }
                 }
 
@@ -1094,7 +1090,10 @@ abstract class JsonTables extends aTable
             };
         }
         $where = [];
-        $isDelInFields = (key_exists('where', $params) && count($params['where']) === 1 && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
+        $isDelInFields = (key_exists(
+                'where',
+                $params
+            ) && count($params['where']) === 1 && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
 
         if (isset($params['where'])) {
             foreach ($params['where'] as $wI) {

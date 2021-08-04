@@ -190,7 +190,7 @@ class Model
 
     protected function getPreprendSelectFields($fields)
     {
-        if (!$this->isServiceTable && $fields !== '*') {
+        if (!$this->isServiceTable && $fields[0] !== '*') {
             $fields = explode(',', $fields);
             foreach ($fields as &$f) {
                 if (!strpos($f, ' as ')) {

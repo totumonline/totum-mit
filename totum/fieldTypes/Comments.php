@@ -19,6 +19,7 @@ use totum\tableTypes\aTable;
 use DateTime;
 
 /*TODO проверить и переписать*/
+
 class Comments extends Field
 {
     const table_viewed = '_comments_viewed';
@@ -63,9 +64,9 @@ class Comments extends Field
                     }
                     $v = $this->prepareComment($array[0], false, $isCuted);
                     return '<div><span>' . $v[0] . '</span><span>' . $v[1] . '</span><span>' . htmlspecialchars($v[2]) . '</span></div>' . $func(array_slice(
-                        $array,
-                        1
-                    ));
+                            $array,
+                            1
+                        ));
                 };
 
                 if ($this->data['printTextfull'] ?? false) {
@@ -109,16 +110,20 @@ class Comments extends Field
 
                 break;
             case 'edit':
-                $n = count($valArray['v']);
-                if ($valArray['v']) {
-                    foreach ($valArray['v'] as &$comment) {
-                        $c = $comment;
-                        $comment = $this->prepareComment($comment, false, $n);
+                if ($this->data['category'] !== 'column' || !empty($row['id'])) {
+                    if (is_array($valArray['v'])) {
+                        $n = count($valArray['v']);
+                        if ($valArray['v']) {
+                            foreach ($valArray['v'] as &$comment) {
+                                $c = $comment;
+                                $comment = $this->prepareComment($comment, false, $n);
+                            }
+                            unset($comment);
+                        }
+                        if (!empty($c) && $c[1] !== $this->table->getUser()->getId()) {
+                            $valArray['notViewed'] = $n - $this->getViewed($row['id'] ?? null);
+                        }
                     }
-                    unset($comment);
-                }
-                if (!empty($c) && $c[1] !== $this->table->getUser()->getId()) {
-                    $valArray['notViewed'] = $n - $this->getViewed($row['id'] ?? null);
                 }
                 break;
             case 'csv':

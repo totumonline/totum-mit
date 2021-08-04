@@ -7,8 +7,13 @@ use totum\config\Conf;
 class Auth
 {
     public static $shadowRoles = [1, -2];
+    public static $AuthStatuses = [
+        "OK" => 0,
+        "WRONG_PASSWORD" => 1,
+        "BLOCKED_BY_CRACKING_PROTECTION" => 2,
+    ];
     public static $userManageRoles = [-1];
-    public static $userManageTables=['users', 'auth_log', 'ttm__user_log', 'ttm__users_online'];
+    public static $userManageTables = ['users', 'auth_log', 'ttm__user_log', 'ttm__users_online'];
 
     public static function checkUserPass($string, $hash)
     {
@@ -54,7 +59,10 @@ class Auth
 
     public static function isCanBeOnShadow(?User $User): bool
     {
-        return key_exists('ShadowRole', $_SESSION) || count(array_intersect(static::$shadowRoles, $User->getRoles())) > 0;
+        return key_exists('ShadowRole', $_SESSION) || count(array_intersect(
+            static::$shadowRoles,
+            $User->getRoles()
+        )) > 0;
     }
 
     public static function getShadowRole(?User $User): int
@@ -67,14 +75,16 @@ class Auth
 
     public static function getUsersForShadow(Conf $Config, User $User, $id = null): array
     {
-        $_id = $id ? "id = ".(int)$id : 'true';
+        $_id = $id ? "id = " . (int)$id : 'true';
         $_roles = 'true';
         if (Auth::getShadowRole($User) !== 1) {
             $_roles = "(roles->'v' @> '[\"1\"]'::jsonb) = FALSE";
         }
-        $r = $Config->getModel('users')->preparedSimple("select id, fio->>'v' as fio from users where interface->>'v'='web'" .
+        $r = $Config->getModel('users')->preparedSimple(
+            "select id, fio->>'v' as fio from users where interface->>'v'='web'" .
             " AND on_off->>'v'='true' AND login->>'v' NOT IN ('service', 'cron', 'anonim') " .
-            " AND $_id AND $_roles"
+            " AND $_id AND $_roles " .
+            " AND is_del = false"
         );
         $r->execute();
         $r = $r->fetchAll(\PDO::FETCH_ASSOC);
@@ -83,7 +93,7 @@ class Auth
 
     public static function getUserManageTables(Conf $Config)
     {
-        return $Config->getModel('tables')->getAll(['name'=>Auth::$userManageTables], 'name, title', 'sort');
+        return $Config->getModel('tables')->getAll(['name' => Auth::$userManageTables], 'name, title', 'sort');
     }
 
 
@@ -107,12 +117,83 @@ class Auth
         }
     }
 
-    public static function authUserWithPass(Conf $Config, $login, $pass, $interface = 'web')
+    public static function getUserRowWithServiceRestriction($login, Conf $Config, $interface = 'web')
     {
-        $where = ['on_off' => "true", 'login' => $login, 'pass' => md5($pass), 'interface' => $interface, 'is_del' => false];
-        if ($userRow = static::getUserWhere($Config, $where)) {
-            return new User($userRow, $Config);
+        /*блокируем возможность авторизоваться под сервисными логинами*/
+        if ($login === 'cron' || $login === 'service') {
+            return false;
+        } else {
+            $where = ['on_off' => true, 'is_del' => false, 'interface' => $interface];
+            if (strpos($login, '@') !== false) {
+                $where['email'] = strtolower($login);
+            } else {
+                $where = ['login' => $login];
+            }
+            if ($UserRow = static::getUserWhere($Config, $where, false)) {
+                return $UserRow;
+            }
+            return false;
         }
+    }
+
+    public static function passwordCheckingAndProtection($login, $pass, &$userRow, Conf $Config, $interface): int
+    {
+        $ip = ($_SERVER['REMOTE_ADDR'] ?? null);
+        $now_date = date_create();
+
+        if (($block_time = $Config->getSettings('h_time')) && ($error_count = (int)$Config->getSettings('error_count'))) {
+            $BlockDate = date_create()->modify('-' . $block_time . 'minutes');
+            $block_date = $BlockDate->format('Y-m-d H:i');
+        }
+
+        if ($block_time && $Config->getModel('auth_log')->get(['user_ip' => $ip, 'login'=>$login, 'datetime->>\'v\'>=\'' . $block_date . '\'', 'status' => 2])) {
+            return static::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION'];
+        } else {
+            if (($userRow = $userRow ?? Auth::getUserRowWithServiceRestriction(
+                $login,
+                $Config,
+                $interface
+            )) && static::checkUserPass(
+                $pass,
+                $userRow['pass']
+            )) {
+                $status = static::$AuthStatuses['OK'];
+            } elseif (!$block_time || !$error_count) {
+                $status = static::$AuthStatuses['WRONG_PASSWORD'];
+            } else {
+                $count = static::$AuthStatuses['WRONG_PASSWORD'];
+                $statuses = $Config->getModel('auth_log')->getAll(
+                    ['user_ip' => $ip, 'login'=>$login, 'datetime->>\'v\'>=\''.$block_date.'\''],
+                    'status',
+                    'id desc'
+                );
+                foreach ($statuses as $st) {
+                    if ($st["status"] != 1) {
+                        break;
+                    } else {
+                        $count++;
+                    }
+                }
+
+                if ($count >= $error_count) {
+                    $status = static::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION'];
+                } else {
+                    $status = static::$AuthStatuses['WRONG_PASSWORD'];
+                }
+            }
+        }
+
+        $Config->getSql()->insert(
+            'auth_log',
+            [
+                'datetime' => json_encode(['v' => $now_date->format('Y-m-d H:i')])
+                , 'user_ip' => json_encode(['v' => $ip])
+                , 'login' => json_encode(['v' => $login])
+                , 'status' => json_encode(['v' => strval($status)])
+            ],
+            false
+        );
+        return $status;
     }
 
     public static function getUserById(Conf $Config, $userId)
@@ -141,8 +222,8 @@ class Auth
 
     public static function webInterfaceRemoveAuth()
     {
-        session_start();
-        session_destroy();
+        @session_start();
+        @session_destroy();
     }
 
     public static function asUser($Config, $id, User $User)

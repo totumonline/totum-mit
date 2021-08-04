@@ -12,10 +12,7 @@ use Exception;
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\controllers\interfaceController;
 use totum\common\Auth;
-use totum\common\WithPathMessTrait;
 use totum\common\Totum;
-use totum\models\User;
-use totum\tableTypes\tableTypes;
 
 class AuthController extends interfaceController
 {
@@ -59,8 +56,6 @@ class AuthController extends interfaceController
                     $email,
                     'Учетные данные в ' . $_SERVER['HTTP_HOST'],
                     '<style>' . $template["styles"] . '</style>' . $template["body"] . '',
-                    null,
-                    []
                 );
             };
 
@@ -68,94 +63,36 @@ class AuthController extends interfaceController
             $getNewPass = function () {
                 $letters = 'abdfjhijklmnqrstuvwxz';
                 return $letters{mt_rand(0, strlen($letters) - 1)} . $letters{mt_rand(
-                        0,
-                        strlen($letters) - 1
-                    )} . str_pad(mt_rand(1, 9999), 4, 0);
+                    0,
+                    strlen($letters) - 1
+                )} . str_pad(mt_rand(1, 9999), 4, 0);
             };
 
             if (empty($post['login'])) {
                 return ['error' => 'Заполните поле Логин/Email'];
             }
 
-
-            $userRow = null;
-
-            $getUserRow = function () use (&$userRow, $post) {
-                if (!is_null($userRow)) {
-                    return $userRow;
+            if (empty($post['recover'])) {
+                if (empty($post['pass'])) {
+                    return ['error' => 'Заполните поле Пароль'];
                 }
-
-                /*блокируем возможность авторизоваться под сервисными логинами*/
-                if ($post['login'] === 'cron' || $post['login'] === 'service') {
-                    $userRow = false;
-                } elseif (strpos($post['login'], '@') !== false) {
-                    $userRow = User::init($this->Config)->get(['email' => strtolower($post['login']), 'is_del' => false, 'interface' => 'web']);
-                } else {
-                    $userRow = User::init($this->Config)->get(['login' => $post['login'], 'is_del' => false, 'interface' => 'web']);
-
-                    if (!$userRow) {
-                        $userRow = false;
-                    }
+                switch (Auth::passwordCheckingAndProtection($post['login'], $post['pass'], $userRow, $this->Config, 'web')) {
+                    case Auth::$AuthStatuses['OK']:
+                        Auth::webInterfaceSetAuth($userRow['id']);
+                        $this->location($_GET['from'] ?? null, !key_exists('from', $_GET));
+                        break;
+                    case Auth::$AuthStatuses['WRONG_PASSWORD']:
+                        return ['error' => 'Пароль не верен'];
+                    case Auth::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION']:
+                        return ['error' => 'В связи с превышением количества попыток на ввод пароля ваш IP заблокирован'];
                 }
-                return $userRow;
-            };
-
-
-            /*Защита от подбора пароля*/
-            if (empty($post['recover']) && $ip = ($_SERVER['REMOTE_ADDR'] ?? null)) {
-                if ($authLogTableRow = $this->Config->getTableRow('auth_log')) {
-                    $now_date = date_create();
-                    if (($vremya_blokirovki = $this->Config->getSettings('h_time')) && ($error_count = $this->Config->getSettings('error_count'))) {
-                        $BlockDate = date_create()->modify('-' . $vremya_blokirovki . 'minutes');
-                        $block_date = $BlockDate->format('Y-m-d H:i');
-
-
-                        if ($blocked = $this->Config->getModel('auth_log')->get(['user_ip' => $ip, 'datetime->>\'v\'>=\'' . $block_date . '\'', 'status' => 2])) {
-                            return ['error' => 'В связи с превышением количества попыток на ввод пароля ваш IP заблокирован'];
-                        } else {
-                            if (($userRow = $getUserRow()) && json_decode(
-                                    $userRow['pass'],
-                                    true
-                                )['v'] === md5($post['pass'])) {
-                                $status = 0;
-                            } else {
-                                $count = $this->Config->getModel('auth_log')->getField(
-                                    'count(*) as cnt',
-                                    ['user_ip' => $ip, 'status' => 1, '>=datetime' => $block_date]
-                                );
-                                $count++;
-                                if ($count >= $error_count) {
-                                    $status = 2;
-                                } else {
-                                    $status = 1;
-                                }
-                            }
-                            $this->Config->getSql()->insert(
-                                'auth_log',
-                                [
-                                    'datetime' => json_encode(['v' => $now_date->format('Y-m-d H:i')])
-                                    , 'user_ip' => json_encode(['v' => $ip])
-                                    , 'login' => json_encode(['v' => $post['login']])
-                                    , 'status' => json_encode(['v' => strval($status)])
-                                ],
-                                false
-                            );
-                        }
-                    }
-                }
-            }
-
-
-            $userRow = $getUserRow();
-
-
-            if (!empty($post['recover'])) {
+            } else {
                 if (!$Totum->getConfig()->getSettings('with_pass_recover')) {
                     return ['error' => 'Восстановление пароля через  email для данной базы отключено. Обратитесь к админинстратору решения.'];
                 }
 
-                if ($userRow) {
-                    $email = json_decode($userRow['email'], true)['v'];
+                if ($userRow = $userRow ?? Auth::getUserRowWithServiceRestriction($post['login'], $this->Config)) {
+                    $email = $userRow['email'];
                     if (empty($email)) {
                         return ['error' => 'Email для этого login не задан'];
                     }
@@ -170,8 +107,8 @@ class AuthController extends interfaceController
                         );
                         Auth::webInterfaceRemoveAuth();
 
-                        $login = json_decode($userRow['login'], true)['v'];
-                        $email = json_decode($userRow['email'], true)['v'];
+                        $login = $userRow['login'];
+                        $email = $userRow['email'];
                         $SendLetter($email, $login, $pass);
 
                         return ['error' => 'Письмо с новым паролем отправлено на ваш Email. Проверьте ваш ящик через пару минут.'];
@@ -183,19 +120,6 @@ class AuthController extends interfaceController
                 } else {
                     return ['error' => 'Пользователь с указанным Логин/Email не найден'];
                 }
-            }
-
-            if ($userRow) {
-                if (Auth::checkUserPass($post['pass'], json_decode($userRow['pass'], true)['v'])) {
-                    Auth::webInterfaceSetAuth($userRow['id']);
-
-                    $this->location($_GET['from'] ?? null, !key_exists('from', $_GET));
-                    die;
-                } else {
-                    return ['error' => 'Пароль не верен'];
-                }
-            } else {
-                return ['error' => 'Пользователь не найден'];
             }
         }
     }

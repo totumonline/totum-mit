@@ -14,6 +14,7 @@ use totum\common\FormatParamsForSelectFromTable;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Select;
+use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 
 class ReadTableActions extends Actions
@@ -296,7 +297,19 @@ class ReadTableActions extends Actions
             false,
             ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
-        return $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
+        if (method_exists($this->Table, 'withoutNotLoaded')) {
+            $this->Table->withoutNotLoaded();
+        }
+
+        $data = $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
+        $rows = [];
+        foreach ($data['rows'] as $row) {
+            $rows[] = $this->Table->getTbl()['rows'][$row['id']];
+        }
+        $data['f'] = $this->getTableFormat($rows);
+
+
+        return $data;
     }
 
 
@@ -711,6 +724,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             case 'panels':
                 $result['viewType'] = 'panels';
                 $panelViewSettings = $this->Table->getTableRow()['panels_view'];
+
+
                 $fields = array_column($panelViewSettings['fields'], 'field');
 
                 if ($panelViewSettings['kanban'] && $kanban = $this->Table->getFields()[$panelViewSettings['kanban']]) {
@@ -761,9 +776,30 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             case 'paging':
                 $result = array_merge($result, $this->getTableClientData(0, 0, false));
                 break;
+            case 'commonByCount':
+                /*For off button on table head*/
+                $result['panels'] = "off";
+            // no break
             default:
                 $result = array_merge($result, $this->getTableClientData(0, null, false));
 
+        }
+
+        if ($result['rows'] && ($result['f']['order'] ?? false)) {
+            $rows = [];
+            $rows_other = [];
+            foreach ($result['rows'] as $row) {
+                $k = array_search($row['id'], $result['f']['order']);
+                if ($k !== false) {
+                    $rows[$k] = $row;
+                } else {
+                    $rows_other[] = $row;
+                }
+            }
+            ksort($rows);
+            $rows = array_values($rows);
+            $result['rows'] = array_merge($rows, $rows_other);
+            unset($result['f']['order']);
         }
 
         return $result;
@@ -773,20 +809,29 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         if ($this->Request->getQueryParams()['iframe'] ?? false) ; elseif (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null))
         ) {
-            $checkCookies = function () use ($panelViewSettings) {
-                $name = $this->getPanelsCookieName()[0];
-                if (key_exists($name, $_COOKIE)) {
-                    return $_COOKIE[$name] === '1';
-                }
-                return $panelViewSettings['panels_view_first'];
-            };
-
-            if ($panelViewSettings['state'] === 'panel'
-                || (
-                    $panelViewSettings['state'] === 'both'
-                    && $checkCookies()
-                )) {
+            if (($this->post['panelsView'] ?? false) === 'true') {
                 return 'panels';
+            } elseif (empty($this->post)) {
+                $allCount = $this->Table->countByParams($this->Table->filtersParamsForLoadRows('web'));
+                if ($allCount <= ($panelViewSettings["panels_max_count"] ?? 100)) {
+                    $checkCookies = function () use ($panelViewSettings) {
+                        $name = $this->getPanelsCookieName()[0];
+                        if (key_exists($name, $_COOKIE)) {
+                            return $_COOKIE[$name] === '1';
+                        }
+                        return $panelViewSettings['panels_view_first'];
+                    };
+
+                    if ($panelViewSettings['state'] === 'panel'
+                        || (
+                            $panelViewSettings['state'] === 'both'
+                            && $checkCookies()
+                        )) {
+                        return 'panels';
+                    }
+                } else {
+                    return 'commonByCount';
+                }
             }
         }
         if (($tree = $this->Table->getFields()['tree'] ?? null)
@@ -806,8 +851,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
         {
+            $f = $this->getTableFormat($data['rows'] ?? []);
             $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
-            $data['f'] = $this->getTableFormat();
+            $data['f'] = $f;
         }
         $this->Table->calcLog($Log, 'result', 'done');
 
@@ -826,6 +872,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         $data = [];
         $data['rows'] = [];
+
+        if (method_exists($this->Table, 'withoutNotLoaded')) {
+            $this->Table->withoutNotLoaded();
+        }
 
         if (is_null($onPage)) {
             $data['rows'] = $this->Table->getSortedFilteredRows(
@@ -935,6 +985,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                                 if ($table['insertable'] === true) {
                                     $fields[$f['name']]['changeSelectTable'] = 2;
                                 }
+                            } elseif (key_exists($table['id'], $this->User->getTables())) {
+                                $fields[$f['name']]['viewSelectTable'] = 1;
                             }
                         }
 
@@ -978,6 +1030,25 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $result;
     }
 
+    public function viewRow()
+    {
+        $id = (int)($this->post['id'] ?? null);
+        if (!$id) {
+            throw new errorException('Ид пуст');
+        }
+        $this->Table->loadDataRow();
+        if ($this->Table->loadFilteredRows('web', [$id])) {
+            $res['row'] = $this->Table->getValuesAndFormatsForClient(
+                ['rows' => [$this->Table->getTbl()['rows'][$id]]],
+                'edit'
+            )['rows'][0];
+            $res['f'] = $this->getTableFormat([]);
+            return $res;
+        } else {
+            throw new errorException('Строка недоступна для просмотра');
+        }
+    }
+
     public function getTableData()
     {
         $this->Table->reCalculateFilters('web');
@@ -1001,6 +1072,19 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         ) ?? []) : $this->post['data']) {
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
+            } elseif ($click['item'][0] === 'i') {
+                $row = TmpTables::init($this->Totum->getConfig())->getByHash(
+                    '_insert_row',
+                    $this->User,
+                    $click['item']
+                );
+                if (is_null($row)) {
+                    throw new errorException('Строка добавления устрарела');
+                }
+                $this->Table->setInsertRowHash($click['item']);
+                foreach ($row as &$v) {
+                    $v = ['v' => $v];
+                }
             } else {
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $ids = $this->Table->loadFilteredRows('web', [$click['item']]);
@@ -1094,7 +1178,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $this->Table->loadFilteredRows('web', [$row['id']]);
                 $row = $row + $this->Table->getTbl()['rows'][$row['id']] ?? [];
             } else {
-                $row = $row + $this->Table->checkInsertRow([], $data['item']);
+                $row = $row + $this->Table->checkInsertRow([], $data['item'], null, []);
             }
         } else {
             $row = $row + $this->Table->getTbl()['params'];
@@ -1374,7 +1458,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function tableRowForClient($tableRow)
     {
         $fields = ['title', 'updated', 'type', 'id', 'tree_node_id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field',
-            'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination', 'panels_view', 'new_row_in_sort', 'rotated_view'];
+            'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination',
+            'panels_view', 'new_row_in_sort', 'rotated_view', 'deleting'];
         if ($this->User->isCreator()) {
             $fields = array_merge(
                 $fields,
@@ -1460,14 +1545,20 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $this->getTableClientChangedData([]);
     }
 
-    protected function getTableFormat()
+    protected function getTableFormat($rows)
     {
         $tFormat = [];
         if ($this->Table->getTableRow()['table_format'] && $this->Table->getTableRow()['table_format'] != 'f1=:') {
             $Log = $this->Table->calcLog(['name' => 'Table format']);
 
             $calc = new CalculcateFormat($this->Table->getTableRow()['table_format']);
-            $tFormat = $calc->getFormat('TABLE', [], $this->Table->getTbl(), $this->Table);
+            $tFormat = $calc->getFormat(
+                'TABLE',
+                [],
+                $this->Table->getTbl(),
+                $this->Table,
+                ['rows' => array_values($rows)]
+            );
             $this->Table->calcLog($Log, 'result', $tFormat);
         }
         return $tFormat;
@@ -1488,7 +1579,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function getTableClientChangedData($data, $force = false)
     {
         $return = [];
-        if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh'])) {
+        if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh']) || $this->Totum->getConfig()->procVar()) {
             $this->Table->reCalculateFilters(
                 'web',
                 false,
@@ -1562,11 +1653,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $selectOrFormatColumns[] = $k;
                     }
                 }
+
+                $pageIds = $this->Table->loadFilteredRows('web', $pageIds ?? []);
+
                 if ($selectOrFormatColumns && !empty($pageIds)) {
                     $selectOrFormatColumns[] = 'id';
                     $selectOrFormatColumns = array_flip($selectOrFormatColumns);
-
-                    $pageIds = $this->Table->loadFilteredRows('web', $pageIds);
 
                     $rows = $this->Table->getTbl()['rows'];
                     foreach ($pageIds as $id) {
@@ -1592,7 +1684,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
 
             $return['chdata']['params'] = $this->Table->getTbl()['params'];
-            $return['chdata']['f'] = $this->getTableFormat();
+            $return['chdata']['f'] = $this->getTableFormat(array_intersect_key(
+                $this->Table->getTbl()['rows'],
+                array_flip($pageIds)
+            ));
 
             if (!empty($return['chdata']['rows'])) {
                 foreach ($return['chdata']['rows'] as $id => &$row) {

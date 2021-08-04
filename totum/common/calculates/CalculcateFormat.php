@@ -50,7 +50,67 @@ class CalculcateFormat extends Calculate
             }
         }
         foreach ($this->startSections as &$v) {
-            ksort($v);
+            uksort(
+                $v,
+                function ($a, $b) {
+                    $a = str_replace('=', '', $a);
+                    $b = str_replace('=', '', $b);
+                    return $a <=> $b;
+                }
+            );
+        }
+    }
+
+    protected function funcSetRowsOrder($params)
+    {
+        if ($params = $this->getParamsArray($params, ['condition'], ['condition', 'ids'])) {
+            $conditionTest = true;
+            if (!empty($params['condition'])) {
+                foreach ($params['condition'] as $i => $c) {
+                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+
+
+                    if (!is_bool($condition)) {
+                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                    }
+                    if (!$condition) {
+                        $conditionTest = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($conditionTest) {
+                if (key_exists('ids', $params) && is_array($params['ids'] =  $this->execSubCode($params['ids'], 'ids'))) {
+                    $this->formatArray["order"] = $params['ids'];
+                }
+            }
+        }
+    }
+    protected function funcSetRowsHide($params)
+    {
+        if ($params = $this->getParamsArray($params, ['condition'], ['condition', 'ids'])) {
+            $conditionTest = true;
+            if (!empty($params['condition'])) {
+                foreach ($params['condition'] as $i => $c) {
+                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+
+
+                    if (!is_bool($condition)) {
+                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                    }
+                    if (!$condition) {
+                        $conditionTest = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($conditionTest) {
+                if (key_exists('ids', $params) && is_array($params['ids'] =  $this->execSubCode($params['ids'], 'ids'))) {
+                    $this->formatArray["hideRows"] = $params['ids'];
+                }
+            }
         }
     }
 
@@ -115,6 +175,7 @@ class CalculcateFormat extends Calculate
             return ['type' => 'html', 'value' => $params['html']];
         }
     }
+
     protected function funcPanelImg($paramsIn)
     {
         if ($params = $this->getParamsArray($paramsIn, ['button'], ["img", "condition"])) {
@@ -291,10 +352,10 @@ class CalculcateFormat extends Calculate
     protected function funcExec($params)
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            if (!empty($code=$params['code'] ?? $params['kod'])) {
+            if (!empty($code = $params['code'] ?? $params['kod'])) {
 
-                if(preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())){
-                    $code=$this->Table->getFields()[$code]['format'] ?? '';
+                if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
+                    $code = $this->Table->getFields()[$code]['format'] ?? '';
                 }
 
                 $CA = new static($code);

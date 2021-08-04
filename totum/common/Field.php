@@ -659,7 +659,7 @@ class Field
             );
         }
 
-        if (!in_array($this->data['type'], ['string', 'text']) && $val === '' && $this->data['category'] !== 'filter') {
+        if ($val === '' && $this->data['category'] !== 'filter') {
             $val = null;
         } else {
             $this->checkValByType($val, $row, $isCheck);
@@ -690,24 +690,14 @@ class Field
                     $vars
                 );
 
+
                 if ($error = $this->CalculateCode->getError()) {
                     $newVal['c'] = $this->data['errorText'];
                     $newVal['e'] = $error;
-                } else {
-                    try {
-                        $this->checkValByType($newVal['c'], $row);
-                    } catch (errorException $e) {
-                        $newVal['c'] = $this->data['errorText'];
-                        $error = $newVal['e'] = $e->getMessage();
-                    }
-                }
-
-                if (!empty($error)) {
                     if (in_array($this->data['type'], static::NO_ERROR_IN_VALUE)) {
                         $newVal['c'] = null;
                     }
                 }
-
 
                 if (!($newVal['h'] ?? null)) {
                     $newVal['v'] = $newVal['c'];

@@ -51,6 +51,7 @@ class Text extends Field
 
         switch ($viewType) {
             case 'web':
+
                 if ($this->table->getTableRow()['type'] !== 'tmp' && ($isBig = mb_strlen($valArray['v']) > $this->data['viewTextMaxLength'])) {
                     $valArray['v'] = mb_substr($valArray['v'], 0, $this->data['viewTextMaxLength']) . '...';
                 }

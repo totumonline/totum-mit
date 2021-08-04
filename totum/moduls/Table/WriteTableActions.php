@@ -6,6 +6,7 @@ namespace totum\moduls\Table;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\fieldTypes\File;
+use totum\models\TmpTables;
 use totum\tableTypes\tmpTable;
 
 class WriteTableActions extends ReadTableActions
@@ -25,16 +26,13 @@ class WriteTableActions extends ReadTableActions
         }
         $this->Table->setWebIdInterval(json_decode($this->post['ids'], true));
 
-        $add = json_decode($this->post['data'], true) ?? [];
         if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists(
             'afterField',
             $this->post['tableData']
         )) {
             $this->Totum->getModel('tables_fields')->setAfterField($this->post['tableData']['afterField']);
         }
-
-
-        return $this->modify(['add' => [$add], 'addAfter' => $this->post['insertAfter'] ?? null]);
+        return $this->modify(['add' => $this->post['hash'], 'addAfter' => $this->post['insertAfter'] ?? null]);
     }
 
     public function tmpFileUpload()
@@ -68,8 +66,21 @@ class WriteTableActions extends ReadTableActions
         );
 
         $visibleFields = $this->Table->getVisibleFields('web', true);
-        $editedFields = json_decode($this->post['editedFields'] ?? '[]', true);
-        $addData = json_decode($this->post['data'], true) ?? [];
+        if (empty($this->post['hash'])) {
+            $addData = json_decode($this->post['data'], true);
+            do {
+                $hash = 'i-' . md5(microtime(true) . rand());
+            } while (!TmpTables::init($this->Totum->getConfig())->saveByHash(
+                TmpTables::serviceTables['insert_row'],
+                $this->User,
+                $hash,
+                [],
+                true
+            ));
+        } else {
+            $addData = json_decode($this->post['data'], true);
+            $hash = $this->post['hash'];
+        }
 
         $columnFilter = [];
         foreach ($this->Table->getSortedFields()['filter'] as $k => $f) {
@@ -94,13 +105,17 @@ class WriteTableActions extends ReadTableActions
                     $addData[$v['name']] = $filtered;
                 }
             }
-            if (!in_array($v['name'], $editedFields) && !empty($v['code'])) {
-                unset($addData[$v['name']]);
-            }
         }
-        $data = ['rows' => [$this->Table->checkInsertRow($this->post['tableData'] ?? [], $addData)]];
+        $data = ['rows' => [$this->Table->checkInsertRow(
+            $this->post['tableData'] ?? [],
+            $addData,
+            $hash,
+            [],
+            $this->post['clearField'] ?? null
+        )]];
+
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit');
-        return ['row' => $data['rows'][0]];
+        return ['row' => $data['rows'][0], 'hash' => $hash];
     }
 
     public function checkEditRow()
@@ -123,7 +138,7 @@ class WriteTableActions extends ReadTableActions
 
         $row = $this->Table->checkEditRow($data, $dataSetToDefault, $this->post['tableData'] ?? []);
         $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit')['rows'][0];
-        $res['f'] = $this->getTableFormat();
+        $res['f'] = $this->getTableFormat([]);
         return $res;
     }
 
@@ -144,7 +159,7 @@ class WriteTableActions extends ReadTableActions
                 $this->post['type']
             );
 
-            if(is_array($r) && ($r['ok']??false)){
+            if (is_array($r) && ($r['ok'] ?? false)) {
                 $this->Totum->addToInterfaceLink($this->Request->getServerParams()['REQUEST_URI'], 'self', 'reload');
             }
             return $r;
@@ -203,6 +218,7 @@ class WriteTableActions extends ReadTableActions
         $ids = (array)(!empty($this->post['delete_ids']) ? json_decode($this->post['delete_ids'], true) : []);
         return $this->modify(['remove' => $ids]);
     }
+
     public function restore()
     {
         if (!$this->Table->isUserCanAction('restore')) {

@@ -13,6 +13,7 @@ use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\logs\Log;
 use totum\common\sql\Sql;
+use totum\common\sql\SqlException;
 use totum\common\Totum;
 use totum\fieldTypes\File;
 
@@ -71,6 +72,7 @@ abstract class ConfParent
      * @var string
      */
     protected $baseDir;
+    protected $procVars = [];
 
 
     public function __construct($env = self::ENV_LEVELS["production"])
@@ -383,8 +385,10 @@ abstract class ConfParent
     public function getCalculateExtensionFunction($funcName)
     {
         $this->getObjectWithExtFunctions();
-        if (!property_exists($this->CalculateExtensions,
-                $funcName) || !is_callable($this->CalculateExtensions->$funcName)) {
+        if (!property_exists(
+            $this->CalculateExtensions,
+            $funcName
+        ) || !is_callable($this->CalculateExtensions->$funcName)) {
             throw new errorException('Функция [[' . $funcName . ']] не найдена');
         }
         return $this->CalculateExtensions->$funcName;
@@ -508,6 +512,163 @@ abstract class ConfParent
         return $this->settingsCache;
     }
 
+    public function globVar($name, $params = [])
+    {
+        static $sql = null;
+        static $prepareInsertOrUpdate = null;
+        static $prepareSelect = null;
+        static $prepareSelectDefault = null;
+        static $prepareSelectBlockFalse = null;
+
+        if (empty($sql)) {
+            $sql = $this->getSql(false);
+        }
+
+        $checkError = function ($prep) use ($params, $name, $sql) {
+            if ($prep->errorCode() === '42P01') {
+                $sql->exec(
+                    <<<SQL
+create table "_globvars"
+(
+    name     text                                                      not null,
+    value     jsonb,
+    blocked     timestamp,
+    dt        timestamp default ('now'::text)::timestamp without time zone not null
+)
+SQL
+                );
+                $sql->exec('create UNIQUE INDEX _globvars_name_index on _globvars (name)');
+                return $this->globVar($name, $params);
+            } else {
+                throw new SqlException($prep->errorInfo()[1]);
+            }
+        };
+        $getPrepareSelect = function () use (&$prepareSelect, $sql) {
+            if (!$prepareSelect) {
+                $prepareSelect = $sql->getPrepared('select value, dt from _globvars where name = ?');
+            }
+            return $prepareSelect;
+        };
+        $getPrepareSelectBlocked = function ($interval) use ($sql): \PDOStatement {
+            return $sql->getPrepared('WITH time AS(
+    select now() + interval \'' . $interval . '\' as times
+)
+UPDATE _globvars SET blocked=
+    CASE
+        WHEN (blocked is null OR blocked<=now()) THEN (SELECT times FROM time)
+        ELSE blocked
+        END
+WHERE name = :name
+RETURNING value, dt, blocked, blocked=(SELECT times FROM time) as was_blocked');
+        };
+        $getPrepareSelectDefault = function () use (&$prepareSelectDefault, $sql) {
+            if (!$prepareSelectDefault) {
+                $prepareSelectDefault = $sql->getPrepared('INSERT INTO _globvars (name, value) 
+VALUES (?,?)
+ON CONFLICT (name) DO UPDATE 
+  SET name = excluded.name RETURNING value, dt');
+            }
+            return $prepareSelectDefault;
+        };
+        $getPrepareSelectBlockedFalse = function () use (&$prepareSelectBlockFalse, $sql) {
+            if (!$prepareSelectBlockFalse) {
+                $prepareSelectBlockFalse = $sql->getPrepared('INSERT INTO _globvars (name) 
+VALUES (?)
+ON CONFLICT (name) DO UPDATE 
+  SET blocked = NULL RETURNING value, dt');
+            }
+            return $prepareSelectBlockFalse;
+        };
+        $getPrepareInsertOrUpdate = function () use ($sql, &$prepareInsertOrUpdate) {
+            if (!$prepareInsertOrUpdate) {
+                $prepareInsertOrUpdate = $sql->getPrepared('INSERT INTO _globvars (name, value) 
+VALUES (?,?)
+ON CONFLICT (name) DO UPDATE 
+  SET value = excluded.value, 
+      blocked = null,
+      dt = (\'now\'::text)::timestamp without time zone RETURNING value, dt');
+            }
+            return $prepareInsertOrUpdate;
+        };
+
+
+        $returnData = function ($prepare) use ($checkError) {
+            if ($prepare->errorCode() !== '00000') {
+                return $checkError($prepare);
+            }
+            if ($data = $prepare->fetch()) {
+                if ($params['date'] ?? false) {
+                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                } else {
+                    return json_decode($data["value"], true)["v"];
+                }
+            } else {
+                return null;
+            }
+        };
+
+        if (key_exists('value', $params)) {
+            $getPrepareInsertOrUpdate()->execute([$name, json_encode(
+                ['v' => $params['value']],
+                JSON_UNESCAPED_UNICODE
+            )]);
+            return $returnData($prepareInsertOrUpdate);
+        } elseif (key_exists('default', $params)) {
+            $getPrepareSelectDefault()->execute([$name, json_encode(
+                ['v' => $params['default']],
+                JSON_UNESCAPED_UNICODE
+            )]);
+            return $returnData($prepareSelectDefault);
+
+        } elseif (key_exists('block', $params)) {
+            if (!$params['block']) {
+                $getPrepareSelectBlockedFalse()->execute([$name]);
+                return $returnData($prepareSelectBlockFalse);
+            } else {
+                while (true) {
+                    $prepareSelectBlocked = $getPrepareSelectBlocked((float)$params['block'] . ' second');
+                    $prepareSelectBlocked->execute(['name' => $name]);
+
+                    if ($prepareSelectBlocked->errorCode() !== '00000') {
+                        return $checkError($prepareSelectBlocked);
+                    }
+
+                    if ($data = $prepareSelectBlocked->fetch()) {
+                        if ($data['was_blocked']) {
+                            if ($params['date'] ?? false) {
+                                return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                            } else {
+                                return json_decode($data["value"], true)["v"];
+                            }
+                        }
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        } else {
+            $getPrepareSelect()->execute([$name]);
+
+            return $returnData($prepareSelect);
+        }
+    }
+
+    public function procVar($name = null, $params = [])
+    {
+        if (empty($name)) {
+            return array_keys($this->procVars ?? []);
+        }
+
+        if (key_exists('value', $params)) {
+            $this->procVars[$name] = $params['value'];
+        } elseif (key_exists('default', $params)) {
+            if (!key_exists($name, $this->procVars)) {
+                $this->procVars[$name] = $params['default'];
+            }
+        }
+
+        return $this->procVars[$name] ?? null;
+    }
 
     public function getTotumFooter()
     {

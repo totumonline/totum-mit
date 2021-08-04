@@ -11,6 +11,7 @@ use totum\models\NonProjectCalcs;
 use totum\models\Table;
 use totum\models\TablesCalcsConnects;
 use totum\models\TablesFields;
+use totum\models\TmpTables;
 use totum\models\Tree;
 use totum\models\TreeV;
 use totum\models\UserV;
@@ -28,6 +29,7 @@ trait TablesModelsTrait
         , 'tables_nonproject_calcs' => NonProjectCalcs::class
         , 'tables_calcs_connects' => TablesCalcsConnects::class
         , 'calcstable_versions' => CalcsTablesVersions::class
+        , '_tmp_tables' => TmpTables::class
     ];
     private $tableRowsById = [];
     private $tableRowsByName = [];

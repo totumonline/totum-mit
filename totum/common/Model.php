@@ -491,14 +491,6 @@ class Model
         return $field_val;
     }
 
-    /*function __get($name)
-    {
-        if ($name == 'table') return $this->table;
-        if ($name == 'idFieldName') return $this->idFieldName;
-
-        throw new \Exception('Model not contents property '.$name);
-    }*/
-
     public function getAllIndexedByField($where, $fields, $field, $order_by = null)
     {
         $datas = [];
@@ -572,15 +564,6 @@ class Model
             array_merge($this->trainValuesPrepared($params, true), $this->trainValuesPrepared($where))
         )->rowCount();
     }
-
-    /*
-     * DELETE
-     *
-     * function insert($vars, $returning = 'idFieldName', $ignore = false)
-    {
-        if ($returning == 'idFieldName') $returning = $this->idFieldName;
-        return $this->Sql->insert($this->table, $vars, $returning, $ignore);
-    }*/
 
     public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true)
     {

@@ -55,7 +55,7 @@ trait WebInterfaceTrait
         $table = ['ok' => 1];
 
         $this->reCalculate(
-            ['channel' => 'web', 'modifyCalculated' => ((int)($import['codedFields'] ?? null) == 2 ? 'all' : 'handled')
+            ['channel' => 'web', 'modifyCalculated' => ((int)($import['codedFields'] ?? null) === 2 ? 'all' : 'handled')
                 , 'add' => ($import['add'] ?? [])
                 , 'modify' => ($import['modify'] ?? [])
                 , 'remove' => ($import['remove'] ?? [])

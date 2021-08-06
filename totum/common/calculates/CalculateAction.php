@@ -571,7 +571,7 @@ class CalculateAction extends Calculate
 
         if ($tableRow['type'] === 'calcs') {
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
-                if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] == $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
+                if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
                 } else {
                     $this->__checkNumericParam($params['cycle'], 'cycle', 'LinkToPanel');

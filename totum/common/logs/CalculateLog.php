@@ -241,7 +241,7 @@ class CalculateLog
             $tree['icon'] = 'fa fa-magic';
         }
 
-        if (($this->params['type'] ?? false) == 'fixed') {
+        if (($this->params['type'] ?? false) === 'fixed') {
             $tree['icon'] = 'fa fa-hand-grab-o';
         }
 

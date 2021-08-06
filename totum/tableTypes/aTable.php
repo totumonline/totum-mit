@@ -2274,7 +2274,7 @@ CODE;;
                         if ($prevLastId) {
                             if ($prevLastId === -1) {
                                 $offset = $offset ?? $allCount;
-                                if ((explode('/', $this->tableRow['pagination'])[2] ?? '') == 'last') {
+                                if ((explode('/', $this->tableRow['pagination'])[2] ?? '') === 'last') {
                                     $offset = $offset ?? $allCount - ($allCount % $onPage ? $allCount % $onPage : $onPage) + $onPage;
                                 }
                             } else {

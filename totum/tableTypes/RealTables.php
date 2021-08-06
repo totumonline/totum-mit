@@ -1376,7 +1376,6 @@ abstract class RealTables extends aTable
                 $fields[$wI['field']]['multiple'] ?? false
             )) {
                 $trueFalse = "TRUE";
-                $sqlOperator = '=';
 
                 switch ($operator) {
                     case '!==':
@@ -1487,7 +1486,7 @@ abstract class RealTables extends aTable
                                 $value = $value ? "true" : "false";
                             }
                             $null = "";
-                            if ($operator == '!=') {
+                            if ($operator === '!=') {
                                 $null = " OR $fieldQuoted is NULL ";
                             }
 
@@ -1509,7 +1508,7 @@ abstract class RealTables extends aTable
                                 $params[] = "[$value]";
                             }
                             $null = "";
-                            if ($operator == '!=') {
+                            if ($operator === '!=') {
                                 $null = " OR $fieldQuoted is NULL ";
                             }
                             $where[] = "(($q) = $trueFalse $null)";

@@ -472,8 +472,8 @@ class Field
             }
         }
 
-        if (array_key_exists('c', $newVal)) {
-            if (empty($newVal['h']) || $newVal['c'] === $newVal['v'] || (is_float($newVal['c']) && is_int($newVal['v']) && $newVal['c'] == $newVal['v'])) {
+        if (key_exists('c', $newVal)) {
+            if (empty($newVal['h']) || $newVal['c'] === $newVal['v'] || (is_numeric($newVal['c']) && is_numeric($newVal['v']) && $newVal['c'] == $newVal['v'])) {
                 unset($newVal['c']);
             }
         }
@@ -548,7 +548,7 @@ class Field
 
         if (empty($newVal['h'])
             || $newVal['c'] === $newVal['v']
-            || (is_float($newVal['c']) && is_int($newVal['v']) && $newVal['c'] == $newVal['v'])) {
+            || (is_numeric($newVal['c']) && is_numeric($newVal['v']) && $newVal['c'] == $newVal['v'])) {
             unset($newVal['c']);
         }
 

@@ -15,12 +15,11 @@ use totum\models\Table;
 use totum\models\TablesCalcsConnects;
 use totum\tableTypes\aTable;
 use totum\tableTypes\calcsTable;
-use totum\tableTypes\globcalcsTable;
 
 class Cycle
 {
-    protected $cycleId;
-    protected $cyclesTableId;
+    protected int $cycleId;
+    protected int $cyclesTableId;
     protected $cyclesTableRow;
     protected $tables = [];
     protected $tableVersions = [];

@@ -820,7 +820,7 @@ class Calculate
                 $result = pow($left, $right);
                 break;
             case '/':
-                if ((float)$right === 0) {
+                if ((float)$right === 0.0) {
                     throw new errorException('Деление на ноль');
                 }
                 $result = $left / $right;
@@ -1273,7 +1273,7 @@ SQL;
                 break;
             case '/':
                 $func = function ($l, $num) {
-                    if ((float)($num) === 0) {
+                    if ((float)$num === 0.0) {
                         throw new errorException('Деление на ноль');
                     }
                     return round($l / $num, 10);
@@ -2976,7 +2976,7 @@ SQL;
             $params,
             $mode,
             $this->row['id'] ?? null,
-            get_class($this) == Calculate::class
+            $this::class === Calculate::class
         );
     }
 
@@ -3463,7 +3463,7 @@ SQL;
             if (key_exists('field', $params)) {
                 $inVars['inAddRecalc'] = $params['field'];
             }
-            if ($tableRow['type'] == 'calcs') {
+            if ($tableRow['type'] === 'calcs') {
                 if (empty($params['cycle']) && $this->Table->getTableRow()['type'] === 'calcs' && $this->Table->getTableRow()['tree_node_id'] === $tableRow['tree_node_id']) {
                     $params['cycle'] = [$this->Table->getCycle()->getId()];
                 }
@@ -3479,7 +3479,7 @@ SQL;
                     $table = $Cycle->getTable($tableRow);
                     $table->reCalculateFromOvers($inVars, $this->Table->getCalculateLog(), 0);
                 }
-            } elseif ($tableRow['type'] == 'tmp') {
+            } elseif ($tableRow['type'] === 'tmp') {
                 if ($this->Table->getTableRow()['type'] === 'tmp' && $this->Table->getTableRow()['name'] === $tableRow['name']) {
                     if (empty($params['hash'])) {
                         $table = $this->Table;
@@ -3540,7 +3540,7 @@ SQL;
                 }
             // no break
             case 'boolean':
-                return $paramArray['boolean'] == 'false' ? false : true;
+                return $paramArray['boolean'] === 'false' ? false : true;
             default:
                 throw new errorException('Неверное оформление кода [[' . $paramArray['type'] . ']] не там, где может быть');
         }
@@ -3583,7 +3583,7 @@ SQL;
                             $matches
                         )) {
                             $field = $this->execSubCode($matches[1], 'orderField');
-                            $AscDesc = !empty($matches[2]) && strtolower($matches[2]) == 'desc' ? 'desc' : 'asc';
+                            $AscDesc = !empty($matches[2]) && strtolower($matches[2]) === 'desc' ? 'desc' : 'asc';
 
                             $paramVal = [
                                 'field' => $field, //$this->getParam($field, []),
@@ -3608,7 +3608,7 @@ SQL;
                             if (empty($whereCodes['comparison'])) {
                                 throw new errorException('Параметр ' . $param . ' должен содержать элемент сравнения ');
                             }
-                            if ($param == 'filter' && $whereCodes['comparison'] != '=') {
+                            if ($param === 'filter' && $whereCodes['comparison'] !== '=') {
                                 throw new errorException('Параметр ' . $param . ' пока может принимать только =');
                             }
 
@@ -3731,7 +3731,7 @@ SQL;
                                         }
                                         break;
                                     case 'number':
-                                        if (count($formatData) == 2) {
+                                        if (count($formatData) === 2) {
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     $value = number_format(
@@ -3746,7 +3746,7 @@ SQL;
                                         }
                                         break;
                                     case 'date':
-                                        if (count($formatData) == 2) {
+                                        if (count($formatData) === 2) {
                                             if ($date = date_create($value)) {
                                                 if (strpos($formatData[1], 'F') !== false) {
                                                     $formatData[1] = str_replace(
@@ -3769,7 +3769,7 @@ SQL;
                                     case 'checkbox':
                                         if (is_bool($value)) {
                                             $sings = [];
-                                            if (count($formatData) == 2) {
+                                            if (count($formatData) === 2) {
                                                 $sings = explode('|', $formatData[1] ?? '');
                                             }
 
@@ -3844,7 +3844,7 @@ SQL;
                 }
                 switch ((string)$actions[$i]) {
                     case '(':
-                        if ($sc++ == 0) {
+                        if ($sc++ === 0) {
                             $interval_start = $i;
                         }
                         break;
@@ -3852,7 +3852,7 @@ SQL;
                         if ($sc < 1) {
                             throw new errorException('Непарная закрывающая скобка');
                         }
-                        if (--$sc == 0) {
+                        if (--$sc === 0) {
                             array_splice(
                                 $actions,
                                 $interval_start,
@@ -3994,7 +3994,7 @@ SQL;
                 }
                 switch ((string)$actions[$i]) {
                     case '(':
-                        if ($sc++ == 0) {
+                        if ($sc++ === 0) {
                             $interval_start = $i;
                         }
                         break;
@@ -4002,7 +4002,7 @@ SQL;
                         if ($sc < 1) {
                             throw new errorException('Непарная закрывающая скобка');
                         }
-                        if (--$sc == 0) {
+                        if (--$sc === 0) {
                             array_splice(
                                 $actions,
                                 $interval_start,

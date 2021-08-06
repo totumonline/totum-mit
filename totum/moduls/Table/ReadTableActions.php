@@ -1072,7 +1072,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         ) ?? []) : $this->post['data']) {
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
-            } elseif ($click['item'][0] === 'i') {
+            } elseif (is_string($click['item']) && $click['item'][0] === 'i') {
                 $row = TmpTables::init($this->Totum->getConfig())->getByHash(
                     '_insert_row',
                     $this->User,

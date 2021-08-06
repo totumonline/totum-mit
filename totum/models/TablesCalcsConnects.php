@@ -18,7 +18,7 @@ class TablesCalcsConnects extends Model
 
     protected $isServiceTable = true;
 
-    public function addConnects($tableId, $cycle_id = 0, $cycles_table_id = 0, array $sourceTableIds)
+    public function addConnects($tableId, array $sourceTableIds, $cycle_id = 0, $cycles_table_id = 0)
     {
         foreach ($sourceTableIds as $sourceTableId => $null) {
             $this->insertPrepared(

@@ -16,6 +16,7 @@ class installController extends interfaceController
 {
     public static $pageTemplate = 'page_install_template.php';
 
+    /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct()
     {
     }

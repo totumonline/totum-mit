@@ -86,14 +86,6 @@ class User
         return $this->allData[$string];
     }
 
-    /**
-     * @param int $shadowRole
-     */
-    public function setShadowRole($shadowRole): ?int
-    {
-        $this->shadowRole = $shadowRole;
-    }
-
     private function loadRolesTables()
     {
         $roles = $this->Config->getModel('roles')->executePrepared(

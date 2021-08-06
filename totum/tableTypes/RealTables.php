@@ -894,12 +894,12 @@ abstract class RealTables extends aTable
             if (!empty($this->tbl['rows'][$id])) {
                 $this->tbl['rows'][$id] = $this->modifyRow(
                     $channel,
+                    $this->tbl['rows'][$id],
                     $modify[$id] ?? [],
                     $setValuesToDefaults[$id] ?? [],
                     $setValuesToPinned[$id] ?? [],
-                    $this->tbl['rows'][$id],
-                    $modifyCalculated,
-                    !$isCheck
+                    modifyCalculated: $modifyCalculated,
+                    saveIt: !$isCheck
                 );
             }
         }
@@ -976,7 +976,7 @@ abstract class RealTables extends aTable
         $this->model = $this->Totum->getModel($this->tableRow['name']);
     }
 
-    protected function modifyRow($channel, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $oldRow, $modifyCalculated = true, $saveIt = true)
+    protected function modifyRow($channel,  $oldRow, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $modifyCalculated = true, $saveIt = true)
     {
         $changedData = ['id' => $oldRow['id']];
 
@@ -1097,7 +1097,7 @@ abstract class RealTables extends aTable
 
         /******Расчет дублированной строки для  REAL-таблиц********/
 
-        $baseRow = $this->modifyRow($channel, [], [], [], $baseRow);
+        $baseRow = $this->modifyRow($channel, $baseRow);
         $newRowData = [];
         foreach ($this->sortedFields['column'] as $field) {
             if (array_key_exists($field['name'], ($replaces))) {

@@ -2723,7 +2723,7 @@ CODE;;
                     case 'filterable':
                         return false;
                     default:
-                        true;
+                        return true;
                 }
                 break;
             default:

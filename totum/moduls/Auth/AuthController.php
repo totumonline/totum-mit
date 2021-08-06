@@ -62,10 +62,10 @@ class AuthController extends interfaceController
 
             $getNewPass = function () {
                 $letters = 'abdfjhijklmnqrstuvwxz';
-                return $letters{mt_rand(0, strlen($letters) - 1)} . $letters{mt_rand(
+                return $letters[mt_rand(0, strlen($letters) - 1)] . $letters[mt_rand(
                     0,
                     strlen($letters) - 1
-                )} . str_pad(mt_rand(1, 9999), 4, 0);
+                )] . str_pad(mt_rand(1, 9999), 4, 0);
             };
 
             if (empty($post['login'])) {

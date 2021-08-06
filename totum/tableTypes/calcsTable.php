@@ -81,9 +81,9 @@ class calcsTable extends JsonTables
         $model = TablesCalcsConnects::init($this->Totum->getConfig());
         $model->addConnects(
             $this->tableRow['id'],
+            $this->sourceTables,
             $this->Cycle->getId(),
-            $this->Cycle->getCyclesTableId(),
-            $this->sourceTables
+            $this->Cycle->getCyclesTableId()
         );
     }
 

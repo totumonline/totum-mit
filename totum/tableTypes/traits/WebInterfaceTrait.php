@@ -12,6 +12,8 @@ use totum\tableTypes\JsonTables;
 
 trait WebInterfaceTrait
 {
+    protected $insertRowSetData;
+
     public function changeFieldsSets($func = null)
     {
         if ($this->getTableRow()['type'] === 'calcs') {
@@ -481,7 +483,7 @@ trait WebInterfaceTrait
                         if (!$fieldName) {
                             continue;
                         }
-                        if (($field = ($this->fields[$footerName] ?? null)) && !in_array(
+                        if (($field = ($this->fields[$fieldName] ?? null)) && !in_array(
                             $field['type'],
                             ['comments', 'button']
                         )) {

@@ -234,24 +234,25 @@ class Calculate
                 return $n ? 'true' : 'false';
             case 'integer':
             case 'double':
-                return strval($n);
-            case 'array':
-                static::__compare_array_normalize($n);
+            case 'string':
+                if(is_numeric($n)){
+                    return (float)$n;
+                }
                 return $n;
+            case 'array':
+                return static::__compare_array_normalize($n);
         }
-//        if ($n === "0" || $n === 0) {
-//            return "000000";
-//        }
         return $n;
     }
 
-    protected static function __compare_array_normalize(&$n)
+    protected static function __compare_array_normalize($n)
     {
         ksort($n);
         foreach ($n as &$nItem) {
             $nItem = static::__compare_normalize($nItem);
         }
         unset($nItem);
+        return $n;
     }
 
     protected static function _compare_n_array($operator, $n, array $n2, $key = null, $isTopLevel = false)
@@ -355,18 +356,14 @@ class Calculate
                 case '!==':
                     $r = false;
                     if (count($n) === count($n2)) {
-                        static::__compare_array_normalize($n);
-                        static::__compare_array_normalize($n2);
-                        $r = $n === $n2;
+                        $r = static::__compare_array_normalize($n) === static::__compare_array_normalize($n2);
                     }
                     $r = !$r;
                     break;
                 case '==':
                     $r = false;
                     if (count($n) === count($n2)) {
-                        static::__compare_array_normalize($n);
-                        static::__compare_array_normalize($n2);
-                        $r = $n === $n2;
+                        $r = static::__compare_array_normalize($n) === static::__compare_array_normalize($n2);
                     }
                     break;
                 case '=':

@@ -61,8 +61,7 @@ class TablesFields extends Model
 
         $r = parent::update($params, $where);
 
-        $table = $this->Totum->getTableRow($oldRow['table_id']['v']);
-        if ($table && $table['type'] !== 'tmp' && $table['type'] !== 'calcs') {
+        if ($oldRow && ($table = $this->Totum->getTableRow($oldRow['table_id']['v'])) && $table['type'] !== 'tmp' && $table['type'] !== 'calcs') {
             $Table = $this->Totum->getTable($table);
             if (!empty($params['category'])) {
                 $newCategory = json_decode($params['category'], true)['v'];

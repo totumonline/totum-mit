@@ -12,7 +12,7 @@ use totum\common\Model;
 
 class UserV extends Model
 {
-    protected $isServiceTable = true;
+    protected bool $isServiceTable = true;
     protected $users;
 
     public function getFio($id)

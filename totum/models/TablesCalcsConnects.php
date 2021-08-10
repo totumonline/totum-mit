@@ -16,7 +16,7 @@ class TablesCalcsConnects extends Model
 {
     protected const VIEW_NAME = 'tables_calcs_connects__v';
 
-    protected $isServiceTable = true;
+    protected bool $isServiceTable = true;
 
     public function addConnects($tableId, array $sourceTableIds, $cycle_id = 0, $cycles_table_id = 0)
     {

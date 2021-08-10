@@ -47,14 +47,6 @@ class Tree extends Model
                 $params['top'] = json_encode(['v' => $treeVRow['top']], JSON_UNESCAPED_UNICODE);
                 parent::update($params, $where, null);
             }
-
-            /*TODO заменить на код вызываемый из схемы при обновлении поля parent_id*/
-            /*$Tables = tableTypes::getTable(Table::getTableRowById(Table::$TableId));
-            $ids = $Tables->loadRowsByParams([['field' => 'type', 'operator' => '!=', 'value' => "calcs"]]);
-            $Tables->reCalculateFromOvers(['modify' => array_map(function () {
-                return [];
-            },
-                array_flip($ids))]);*/
         }
         return $r;
     }

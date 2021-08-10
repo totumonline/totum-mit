@@ -10,7 +10,7 @@ class TmpTables extends Model
     const serviceTables=[
       'insert_row'=>'_insert_row',
     ];
-    protected $isServiceTable = true;
+    protected bool $isServiceTable = true;
 
     public function saveByHash($table_name, $User, $hash, $data, $isNewHash = false): bool
     {

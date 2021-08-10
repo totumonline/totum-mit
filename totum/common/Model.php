@@ -17,7 +17,7 @@ class Model
 
     protected $table;
     protected $idFieldName = 'id';
-    protected $isServiceTable = false;
+    protected bool $isServiceTable = false;
     /**
      * @var Sql
      */

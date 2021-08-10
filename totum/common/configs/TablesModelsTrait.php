@@ -55,7 +55,7 @@ trait TablesModelsTrait
         );
     }
 
-    public static function getTableNameByModel($className): string
+    public static function getTableNameByModel(string $className): string
     {
         $tableName = array_flip(static::$modelsConnector)[$className] ?? null;
 

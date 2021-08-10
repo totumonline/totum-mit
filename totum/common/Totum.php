@@ -278,12 +278,12 @@ class Totum
         unset($this->cacheCycles[$hashKey]);
     }
 
-    public function getNamedModel($className, $isService = false): Model
+    public function getNamedModel(string $className, $isService = false): Model
     {
         return $this->getModel(TablesModelsTrait::getTableNameByModel($className), $isService);
     }
 
-    public function getModel($tableName, $isService = false): Model
+    public function getModel(string $tableName, $isService = false): Model
     {
         $m = $this->Config->getModel($tableName, null, $isService);
 

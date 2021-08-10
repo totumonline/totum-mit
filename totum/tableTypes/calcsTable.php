@@ -87,7 +87,7 @@ class calcsTable extends JsonTables
         );
     }
 
-    public static function __createTable($name, Totum $Totum)
+    public static function __createTable(string $name, Totum $Totum)
     {
         $fields = [];
         $fields[] = 'id SERIAL PRIMARY KEY NOT NULL';

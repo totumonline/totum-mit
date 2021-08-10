@@ -832,7 +832,7 @@ CONF;
                 $tableId = $schemaRow['tableId'];
                 switch ($schemaRow['type']) {
                     case 'globcalcs':
-                        $this->Totum->getModel(NonProjectCalcs::class)->update(
+                        $this->Totum->getNamedModel(NonProjectCalcs::class)->update(
                             ['tbl' => json_encode(
                                 $schemaRow['data'],
                                 JSON_UNESCAPED_UNICODE

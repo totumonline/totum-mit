@@ -31,11 +31,12 @@ trait TablesModelsTrait
         , 'calcstable_versions' => CalcsTablesVersions::class
         , '_tmp_tables' => TmpTables::class
     ];
+
     private $tableRowsById = [];
     private $tableRowsByName = [];
 
     /* Инициализированные модели */
-    protected $models = [];
+    protected array $models = [];
 
     public function getModel($table, $idField = null, $isService = null): Model
     {
@@ -54,14 +55,13 @@ trait TablesModelsTrait
         );
     }
 
-    public static function getTableNameByModel($className)
+    public static function getTableNameByModel($className): string
     {
         $tableName = array_flip(static::$modelsConnector)[$className] ?? null;
 
         if (!$tableName) {
             if ($className === Model::class) {
                 debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                /*TODO после тестирования и проверок - обрабатывать по-другому*/
                 throw new Exception('Ошибка модель вызывается по-старому');
             }
             throw new Exception('Модель ' . $className . ' не подключена к коннектору');
@@ -112,7 +112,7 @@ trait TablesModelsTrait
         return $row;
     }
 
-    public function getNamedModel($className, $isService)
+    public function getNamedModel($className, $isService): Model
     {
         return $this->getModel(static::getTableNameByModel($className), null, $isService);
     }

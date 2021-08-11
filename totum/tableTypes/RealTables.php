@@ -284,9 +284,9 @@ abstract class RealTables extends aTable
                 $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
                 if ((!array_key_exists($field, $fields) && !in_array(
-                    $field,
-                    Model::serviceFields
-                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
+                            $field,
+                            Model::serviceFields
+                        )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
                     throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
                 }
                 if (in_array($field, Model::serviceFields)) {
@@ -338,11 +338,11 @@ abstract class RealTables extends aTable
 
             //техническая выборка - не трогать
             if ($params['field'] === ['__all__']) {
-                $notLoaded='';
+                $notLoaded = '';
                 if ($this->withoutNotLoaded) {
                     foreach ($this->sortedFields['column'] as $field) {
-                        if ($field['notLoaded']??null) {
-                            $notLoaded.=', \'{"v": "**NOT LOADED**"}\' as '.$field['name'];
+                        if ($field['notLoaded'] ?? null) {
+                            $notLoaded .= ', \'{"v": "**NOT LOADED**"}\' as ' . $field['name'];
                         }
                     }
                 }
@@ -350,7 +350,7 @@ abstract class RealTables extends aTable
                 return $this->model->executePrepared(
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
-                    '*'.$notLoaded,
+                    '*' . $notLoaded,
                     $order,
                     $limit
                 );
@@ -489,13 +489,13 @@ abstract class RealTables extends aTable
             }
             array_push($paramsWhere, ... $untilId);
             return $this->model->executePreparedSimple(
-                true,
-                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                    true,
+                    "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
                         ',',
                         array_fill(0, count($untilId), '?')
                     ) . ")",
-                $paramsWhere
-            )->fetchColumn(1) + $isRefresh;
+                    $paramsWhere
+                )->fetchColumn(1) + $isRefresh;
         }
 
         return $this->model->executePrepared(
@@ -597,10 +597,10 @@ abstract class RealTables extends aTable
             if ($fieldsWithActionOnChange) {
                 foreach ($fieldsWithActionOnChange as $field) {
                     if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
-                        '!==',
-                        $loadedTbl['params'][$field['name']]['v'],
-                        $tbl['params'][$field['name']]['v']
-                    )) {
+                            '!==',
+                            $loadedTbl['params'][$field['name']]['v'],
+                            $tbl['params'][$field['name']]['v']
+                        )) {
                         Field::init($field, $this)->action(
                             $loadedTbl['params'],
                             $tbl['params'],
@@ -827,9 +827,9 @@ abstract class RealTables extends aTable
             foreach ($add as $rAdd) {
                 if ($this->tableRow['with_order_field'] ?? false) {
                     if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN(
-                        $fIds,
-                        $afterN
-                    )) {
+                            $fIds,
+                            $afterN
+                        )) {
                         $afterN = $rAdd['n'] = $n;
                     }
                 }
@@ -976,7 +976,7 @@ abstract class RealTables extends aTable
         $this->model = $this->Totum->getModel($this->tableRow['name']);
     }
 
-    protected function modifyRow($channel,  $oldRow, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $modifyCalculated = true, $saveIt = true)
+    protected function modifyRow($channel, $oldRow, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $modifyCalculated = true, $saveIt = true)
     {
         $changedData = ['id' => $oldRow['id']];
 
@@ -1177,10 +1177,10 @@ abstract class RealTables extends aTable
                 $len = 4;
 
                 while (bccomp(
-                    $diff,
-                    ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
-                    $scaleDiff > $len ? $scaleDiff : $len
-                ) !== 1) {
+                        $diff,
+                        ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
+                        $scaleDiff > $len ? $scaleDiff : $len
+                    ) !== 1) {
                     $len += 4;
                 }
 
@@ -1249,9 +1249,9 @@ abstract class RealTables extends aTable
             $_channel = $channel;
 
             if (!key_exists(
-                $v['name'],
-                $addData
-            ) && $this->insertRowSetData && key_exists(
+                    $v['name'],
+                    $addData
+                ) && $this->insertRowSetData && key_exists(
                     $v['name'],
                     $this->insertRowSetData
                 )) {
@@ -1519,6 +1519,28 @@ abstract class RealTables extends aTable
                 }
             } /* Поиск не в полях-листах по массиву */
             elseif (is_array($value)) {
+                $checkIsArrayInArray = function () use ($fieldName, $value) {
+                    foreach ($value as $v) {
+                        if (is_array($v)) {
+                            throw new errorException("В параметре where [[$fieldName]] получен лист, в качестве элемента которого содержится лист");
+                        }
+                    }
+                };
+                $isEmptyValueInArray = function (array &$value): bool {
+                    $newValue = array_filter(
+                        $value,
+                        function ($v) {
+                            return !(is_null($v) || $v === '');
+                        }
+                    );
+                    if ($newValue !== $value) {
+                        $value = $newValue;
+                        return true;
+                    }
+                    return false;
+                };
+
+
                 switch ($operator) {
                     case '==':
                         $where[] = 'FALSE';
@@ -1533,40 +1555,49 @@ abstract class RealTables extends aTable
                         throw new errorException('При сравнении с листом операторы  <=> не допустимы');
                         break;
                     case '=':
-                    case '!=':
                         /*Если на вход пришел пустой массив*/
                         if (empty($value)) {
-                            if ($operator === '=') {
-                                $where[] = 'FALSE';
-                            } else {
-                                $where[] = 'TRUE';
-                            }
+                            $where[] = 'FALSE';
                         } else {
-                            foreach ($value as $v) {
-                                if (is_array($v)) {
-                                    throw new errorException("В параметре where [[$fieldName]] получен лист, в качестве элемента которого содержится лист");
-                                }
-                            }
                             /*Если в массиве содержится пустое значение*/
                             $q = "";
-                            if (in_array('', $value, true) || in_array(null, $value, true)) {
-                                $value = array_filter(
-                                    $value,
-                                    function ($v) {
-                                        return !(is_null($v) || $v === '');
-                                    }
-                                );
-                                $q .= "$fieldQuoted  IS " . ($operator === '=' ? '' : 'NOT') . " NULL ";
+                            if ($isEmptyValueInArray($value)) {
+                                $q .= "$fieldQuoted  IS NULL OR $fieldQuoted = ''";
                             }
                             /*если есть непустые значения*/
                             if (!empty($value)) {
+                                $checkIsArrayInArray();
                                 if ($q) {
-                                    $q .= " OR ";
+                                    $q .= ' OR ';
                                 }
-                                $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
-                                    ',?',
-                                    count($value) - 1
-                                ) . ')';
+                                $q .= $fieldQuoted.' IN (?' . str_repeat(
+                                        ',?',
+                                        count($value) - 1
+                                    ) . ')';
+                                array_push($params, ...$value);
+                            }
+                            $where[] = "($q)";
+                        }
+                        break;
+                    case '!=':
+                        /*Если на вход пришел пустой массив*/
+                        if (empty($value)) {
+                            $where[] = 'TRUE';
+                        } else {
+                            /*Если в массиве содержится пустое значение*/
+                            $q = "";
+                            if ($isEmptyValueInArray($value)) {
+                                $q .= "$fieldQuoted  IS NOT NULL AND $fieldQuoted != '' AND ";
+                            }else{
+                                $q .= "$fieldQuoted  IS NULL OR";
+                            }
+                            /*если есть непустые значения*/
+                            if (!empty($value)) {
+                                $checkIsArrayInArray();
+                                $q .= $fieldQuoted.' NOT IN (?' . str_repeat(
+                                        ',?',
+                                        count($value) - 1
+                                    ) . ')';
                                 array_push($params, ...$value);
                             }
                             $where[] = "($q)";

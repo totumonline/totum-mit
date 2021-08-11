@@ -4175,7 +4175,11 @@ SQL;
             if ($part === '') {
                 $result .= " ";
             } else {
-                $result .= $this->execSubCode($part, 'part' . $i);
+                $res=$this->execSubCode($part, 'part' . $i);
+                if(is_array($res)){
+                    $res=json_encode($res, JSON_UNESCAPED_UNICODE);
+                }
+                $result .= $res;
             }
         }
         return $result;

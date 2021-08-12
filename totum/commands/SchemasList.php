@@ -19,7 +19,10 @@ class SchemasList extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        foreach (array_unique(array_values(Conf::getSchemas())) as $schemaName) {
+        $schemas=array_unique(array_values(Conf::getSchemas()));
+        sort($schemas, SORT_STRING);
+
+        foreach ($schemas as $schemaName) {
             $output->writeln($schemaName);
         }
     }

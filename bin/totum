@@ -13,6 +13,7 @@ use totum\commands\Install;
 use totum\commands\SchemaDuplicate;
 use totum\commands\SchemaPasswd;
 use totum\commands\SchemasCrons;
+use totum\commands\SchemasList;
 use totum\commands\SchemasUpdates;
 use totum\commands\SchemaUpdate;
 use totum\commands\Vacuum;
@@ -44,6 +45,7 @@ if (class_exists(Conf::class)) {
         $app->add(new SchemasUpdates());
         $app->add(new SchemaDuplicate());
         $app->add(new SchemaAdd());
+        $app->add(new SchemasList());
     }
 } else {
     $app->add(new Install());

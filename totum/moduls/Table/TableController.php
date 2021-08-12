@@ -48,6 +48,7 @@ class TableController extends interfaceController
      */
     protected $CalculateLog;
     protected $totumTries = 0;
+    protected bool $isMainAction= false;
 
     public function __construct(Conf $Config, $totumPrefix = '')
     {
@@ -292,7 +293,7 @@ class TableController extends interfaceController
         }
         $tree = array_values($tree);
 
-        if (empty($tree)) {
+        if (empty($tree) && $this->isMainAction) {
             foreach (Table::init($this->Config)->getAll(
                 ['id' => $this->User->getFavoriteTables()],
                 'id, top, title, type, icon',
@@ -415,6 +416,7 @@ class TableController extends interfaceController
             $this->tableUri = $requestTable;
         } else {
             $action = 'Main';
+            $this->isMainAction=true;
         }
         try {
             try {

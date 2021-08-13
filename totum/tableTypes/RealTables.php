@@ -834,16 +834,16 @@ abstract class RealTables extends aTable
                     }
                 }
 
-                $row = $this->addRow($channel, $rAdd, false, $addWithId, 0, $isCheck);
-
-                if ($this->tableRow['with_order_field'] ?? false) {
-                    if (is_null($orderMinN) || $orderMinN > $row['n']) {
-                        $orderMinN = $row['n'];
+                if ($row = $this->addRow($channel, $rAdd, false, $addWithId, 0, $isCheck)) {
+                    if ($this->tableRow['with_order_field'] ?? false) {
+                        if (is_null($orderMinN) || $orderMinN > $row['n']) {
+                            $orderMinN = $row['n'];
+                        }
                     }
+                    if (!is_a($this, cyclesTable::class)) {
+                        $modifiedIds[] = $row['id'];
+                    } //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
                 }
-                if (!$isCheck && !is_a($this, cyclesTable::class)) {
-                    $modifiedIds[] = $row['id'];
-                } //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
             }
         }
         if (!empty($this->tableRow['recalc_in_reorder'])) {
@@ -1570,7 +1570,7 @@ abstract class RealTables extends aTable
                                 if ($q) {
                                     $q .= ' OR ';
                                 }
-                                $q .= $fieldQuoted.' IN (?' . str_repeat(
+                                $q .= $fieldQuoted . ' IN (?' . str_repeat(
                                         ',?',
                                         count($value) - 1
                                     ) . ')';
@@ -1588,13 +1588,13 @@ abstract class RealTables extends aTable
                             $q = "";
                             if ($isEmptyValueInArray($value)) {
                                 $q .= "$fieldQuoted  IS NOT NULL AND $fieldQuoted != '' AND ";
-                            }else{
+                            } else {
                                 $q .= "$fieldQuoted  IS NULL OR";
                             }
                             /*если есть непустые значения*/
                             if (!empty($value)) {
                                 $checkIsArrayInArray();
-                                $q .= $fieldQuoted.' NOT IN (?' . str_repeat(
+                                $q .= $fieldQuoted . ' NOT IN (?' . str_repeat(
                                         ',?',
                                         count($value) - 1
                                     ) . ')';

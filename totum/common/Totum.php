@@ -176,13 +176,13 @@ class Totum
 
 
     /**
-     * @param int|string|array $table
+     * @param array|int|string $table
      * @param null $extraData
-     * @param bool $light - используется в isTableChanged.php
+     * @param bool $light - возможно, не используется
      * @return aTable
      * @throws errorException
      */
-    public function getTable($table, $extraData = null, $light = false, $forceNew = false): aTable
+    public function getTable(array|int|string $table, $extraData = null, $light = false, $forceNew = false): aTable
     {
         if (is_array($table)) {
             $tableRow = $table;

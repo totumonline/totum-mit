@@ -973,6 +973,7 @@ CODE;;
                 throw $exception;
             }
         }
+
         $this->inAddRecalc = [];
         $this->onCalculating = false;
         $this->recalculateWithALog = false;
@@ -2054,8 +2055,9 @@ CODE;;
                 } elseif (key_exists(
                         $Field->getName(),
                         $modified
-                    ) && ($thisRow[$Field->getName()]['v'] !== $oldVal['v'] || ($thisRow[$Field->getName()]['h'] ?? null) !== ($oldVal['h'] ?? null))) {
+                    ) && ($oldVal && ($thisRow[$Field->getName()]['v'] !== $oldVal['v'] || ($thisRow[$Field->getName()]['h'] ?? null) !== ($oldVal['h'] ?? null)))) {
                     $funcName = 'modify';
+
                     if (($thisRow[$Field->getName()]['h'] ?? null) === true && !($oldVal['h'] ?? null)) {
                         $funcName = 'pin';
                     }

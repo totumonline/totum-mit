@@ -4,6 +4,7 @@
 namespace totum\common\configs;
 
 use Exception;
+use totum\common\errorException;
 use totum\common\Model;
 use totum\models\CalcsTableCycleVersion;
 use totum\models\CalcsTablesVersions;
@@ -76,7 +77,10 @@ trait TablesModelsTrait
      */
     public function getTableRow($table, $force = false)
     {
-        if (is_int($table) || ctype_digit($table)) {
+        if(empty($table)){
+            throw new errorException('NAME таблицы не может быть пуст');
+        }
+        elseif (is_int($table) || ctype_digit($table)) {
             if (!$force && key_exists($table, $this->tableRowsById)) {
                 return $this->tableRowsById[$table];
             }

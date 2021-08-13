@@ -25,8 +25,10 @@ class calcsTable extends JsonTables
     public function __construct(Totum $Totum, $tableRow, Cycle $Cycle, $light = false)
     {
         $this->Cycle = $Cycle;
-        if (!$Cycle->getRow() && $this->CalculateLog) {
-            $this->CalculateLog->addParam('backtrace', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
+        if (!$Cycle->getRow()) {
+            if($this->CalculateLog){
+                $this->CalculateLog->addParam('backtrace', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
+            }
             throw new errorException('Цикла с id [[' . $Cycle->getId() . ']] в таблице циклов [[' . $Cycle->getCyclesTableId() . ']] не существует');
         }
         parent::__construct($Totum, $tableRow, $Cycle, $light);

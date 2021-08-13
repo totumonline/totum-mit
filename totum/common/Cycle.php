@@ -61,7 +61,7 @@ class Cycle
 
     public function getVersionForTable($tableName)
     {
-        if (!key_exists($tableName, $this->cacheVersions)) {
+        if (empty($this->cacheVersions[$tableName])) {
             $this->cacheVersions[$tableName] = CalcsTableCycleVersion::init($this->Totum->getConfig())->executePrepared(
                 true,
                 ['table_name' => $tableName, 'cycle' => $this->getId()],
@@ -87,8 +87,9 @@ class Cycle
     protected function removeVersionsForCycle()
     {
         $cycleId = $this->getId();
-        $this->Totum->getTable('calcstable_cycle_version')->reCalculateFromOvers(
-            ['remove' => $this->Totum->getTable('calcstable_cycle_version')->getByParams(
+        $calcsVersionsTable = $this->Totum->getTable('calcstable_cycle_version');
+        $calcsVersionsTable->reCalculateFromOvers(
+            ['remove' => $calcsVersionsTable->getByParams(
                 [
                     'field' => 'id',
                     'where' => [
@@ -209,15 +210,15 @@ class Cycle
     /**
      * @return bool
      */
-    public function loadRow()
+    public function loadRow(): bool
     {
         if (is_null($this->cyclesTableRow)) {
             if ($this->cycleId && $this->cyclesTableId) {
-                $cycleTableRow = $this->Totum->getTableRow($this->cyclesTableId);
-                if (!$cycleTableRow || $cycleTableRow['type'] !== 'cycles') {
+                $cyclesTableRow = $this->Totum->getTableRow($this->cyclesTableId);
+                if (!$cyclesTableRow || $cyclesTableRow['type'] !== 'cycles') {
                     throw new errorException('Таблица циклов не найдена');
                 }
-                if ($row = $this->Totum->getModel($cycleTableRow['name'])->get(['id' => $this->cycleId, 'is_del' => false])) {
+                if ($row = $this->Totum->getModel($cyclesTableRow['name'])->get(['id' => $this->cycleId, 'is_del' => false])) {
                     foreach ($row as $k => &$v) {
                         if (!in_array($k, Model::serviceFields)) {
                             $v = json_decode($v, true);
@@ -329,18 +330,20 @@ class Cycle
 
     public function recalculate($isAdding = false)
     {
-        $tables = $this->getTableIds();
+        $tablesIds = $this->getTableIds();
         $tablesUpdates = [];
 
-        foreach ($tables as &$t) {
+        $tables=[];
+        foreach ($tablesIds as $t) {
             $t = $this->getTable($t);
-            $tablesUpdates[$t->getTableRow()["id"]] = $t->getLastUpdated();
+            $tablesUpdates[$t->getTableRow()['id']] = $t->getLastUpdated();
+            $tables[] =$t;
         }
         unset($t);
 
         $cyclesTable = $this->Totum->getTable($this->cyclesTableId);
         foreach ($tables as $t) {
-            if ($tablesUpdates[$t->getTableRow()["id"]] === $t->getLastUpdated()) {
+            if ($tablesUpdates[$t->getTableRow()['id']] === $t->getLastUpdated()) {
                 /** @var calcsTable $t */
                 if ($isAdding) {
                     $t->setIsTableAdding(true);

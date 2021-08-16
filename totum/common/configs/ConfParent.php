@@ -444,7 +444,7 @@ abstract class ConfParent
         $dbConnect = sprintf(
             "postgresql://%s:%s@%s/%s",
             $db['username'],
-            $db['password'],
+            urlencode($db['password']),
             $db['host'],
             $db['dbname']
         );

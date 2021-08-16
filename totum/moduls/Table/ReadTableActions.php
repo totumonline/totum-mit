@@ -383,6 +383,9 @@ class ReadTableActions extends Actions
         switch ($pageViewType = $this->getPageViewType()) {
             case 'tree':
                 $result += ['chdata' => $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']])];
+                if(!is_array($this->post) || !key_exists('tree', $this->post)){
+                    throw new errorException('Индекс дерева не передан. Возможно, по причине таблицы циклов');
+                }
                 $treeIndex = json_decode($this->post['tree'], true);
                 $result['chdata'] = array_merge(
                     $result['chdata'],

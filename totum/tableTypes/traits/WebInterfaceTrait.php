@@ -124,7 +124,10 @@ trait WebInterfaceTrait
             if ($data['add']==='new cycle') {
                 $inVars['add'] = [[]];
             }
-            if ($insertRowHash = $data['add']) {
+            elseif(is_array($data['add'])){
+                $inVars['add'] = [$data['add']];
+            }
+            elseif ($insertRowHash = $data['add']) {
                 $this->insertRowSetData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
                     TmpTables::serviceTables['insert_row'],
                     $this->getUser(),

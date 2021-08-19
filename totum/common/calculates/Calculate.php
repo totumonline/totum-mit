@@ -90,7 +90,7 @@ class Calculate
         }
     }
 
-    public static function parseTotumCode($code, $table_name = null)
+    public static function parseTotumCode($code, $table_name = null): array
     {
         $c = [];
         $fixes = [];
@@ -100,27 +100,90 @@ class Calculate
 
         $tableParams = [];
 
+
+        $usedHashParams = function (string $clearedLine) use ($table_name, &$tableParams) {
+            if ($table_name) {
+                if (preg_match_all('/(.?)#(?:[a-z]{1,3}\.)?([a-z_0-9]+)/', $clearedLine, $matches)) {
+                    foreach ($matches[2] as $i => $m) {
+                        if ($matches[1][$i] !== '$') {
+                            $tableParams[$table_name][$m] = 1;
+                        }
+                    }
+                }
+                if (preg_match_all('/@([a-z_0-9]{2,})\.([a-z_0-9]+)/', $clearedLine, $matches)) {
+                    foreach ($matches[2] as $i => $m) {
+                        $tableParams[$matches[1][$i]][$m] = 1;
+                    }
+                }
+            }
+        };
+        $replace_line_params = function ($line) use ($usedHashParams, &$lineParams) {
+            return preg_replace_callback(
+                '/{([^}]+)}/',
+                function ($matches) use ($usedHashParams, &$lineParams) {
+                    if ($matches[1] === "") {
+                        return '{}';
+                    }
+                    $Num = count($lineParams);
+                    $lineParams[] = $matches[1];
+                    $usedHashParams($matches[1]);
+                    return '{' . $Num . '}';
+                },
+                $line
+            );
+        };
+        $replace_strings = function ($line) use ($usedHashParams, &$strings, &$replace_line_params, &$replace_strings) {
+            return preg_replace_callback(
+                '/(?|(math|json|str|cond)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
+                function ($matches) use ($usedHashParams, &$strings, &$replace_line_params, &$replace_strings) {
+                    if ($matches[1] === "") {
+                        return '""';
+                    }
+                    switch ($matches[1]) {
+                        case 'json':
+                            if (!json_decode($matches[2]) && json_last_error()) {
+                                $matches[2] = $replace_strings($matches[2]);
+                                $usedHashParams($matches[2]);
+                            }
+                            break;
+                        case 'math':
+                        case 'str':
+                        case 'cond':
+                            $matches[2] = $replace_strings($matches[2]);
+                            $matches[2] = $replace_line_params($matches[2]);
+                            $usedHashParams($matches[2]);
+                            break;
+                    }
+                    $stringNum = count($strings);
+                    $strings[] = $matches[1] . $matches[2];
+                    return '"' . $stringNum . '"';
+                },
+                $line
+            );
+        };
+
         foreach (preg_split('/[\r\n]+/', trim($code)) as $row) {
             $row = trim($row);
             /*Убрать комментарии*/
-            if (substr($row, 0, 2) === '//') {
+            if (str_starts_with($row, '//')) {
                 continue;
             }
             /*Разбираем код построчно*/
             if (preg_match('/^([a-z0-9]*=\s*|~?[a-zA-Z0-9_]+)\s*(?<catch>[a-zA-Z0-9_]*)\s*:(.*)$/', $row, $matches)) {
                 $lineName = trim($matches['1']);
-                if (substr($lineName, 0, 1) === '~') {
+                if (str_starts_with($lineName, '~')) {
                     $lineName = substr($lineName, 1);
                     $fixes[] = $lineName;
                 }
 
+                /*TryCatch*/
                 if (substr($lineName, -1, 1) === '=' && $matches['catch']) {
                     $catch = $matches['catch'];
                     $catches [$lineName] = $catch;
                 }
 
                 $line = trim($matches[3]);
-                /*Используемые параметры*/
+                /*Используемые параметры в функциях*/
                 if ($table_name) {
                     if (preg_match_all('/\(.*?table:\s*\'([a-z0-9_]+)\'.*?\)/', $line, $matches)) {
                         foreach ($matches[1] as $i => $t_name) {
@@ -146,61 +209,12 @@ class Calculate
                     }
                 }
 
-                $replace_line_params = function ($line) use (&$lineParams) {
-                    return preg_replace_callback(
-                        '/{([^}]+)}/',
-                        function ($matches) use (&$lineParams) {
-                            if ($matches[1] === "") {
-                                return '{}';
-                            }
-                            $Num = count($lineParams);
-                            $lineParams[] = $matches[1];
-                            return '{' . $Num . '}';
-                        },
-                        $line
-                    );
-                };
-                $replace_strings = function ($line) use (&$strings, &$replace_line_params, &$replace_strings) {
-                    return preg_replace_callback(
-                        '/(?|(math|json|str|cond)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
-                        function ($matches) use (&$strings, &$replace_line_params, &$replace_strings) {
-                            if ($matches[1] === "") {
-                                return '""';
-                            }
-                            switch ($matches[1]) {
-                                case 'json':
-                                    if (!json_decode($matches[2]) && json_last_error()) {
-                                        $matches[2] = $replace_strings($matches[2]);
-                                    }
-                                    break;
-                                case 'math':
-                                case 'str':
-                                case 'cond':
-                                    $matches[2] = $replace_strings($matches[2]);
-                                    $matches[2] = $replace_line_params($matches[2]);
-                                    break;
-                            }
-                            $stringNum = count($strings);
-                            $strings[] = $matches[1] . $matches[2];
-                            return '"' . $stringNum . '"';
-                        },
-                        $line
-                    );
-                };
-
 
                 $line = $replace_strings($line);
                 $line = str_replace(' ', '', $line);
 
-                if ($table_name && preg_match_all('/(.?)#([a-z_0-9]+)/', $line, $matches)) {
-                    foreach ($matches[2] as $i => $m) {
-                        if ($matches[1][$i] !== '$') {
-                            $tableParams[$table_name][$m] = 1;
-                        }
-                    }
-                }
-
                 $line = $replace_line_params($line);
+                $usedHashParams($line);
                 $c[$lineName] = $line;
             }
         }
@@ -235,7 +249,7 @@ class Calculate
             case 'integer':
             case 'double':
             case 'string':
-                if(is_numeric($n)){
+                if (is_numeric($n)) {
                     return (float)$n;
                 }
                 return $n;
@@ -518,9 +532,9 @@ class Calculate
                             } elseif ($comparison = $matches['comparison']) {
                                 if (array_key_exists('comparison', $code)) {
                                     throw new errorException('Оператор сравнения может быть только один в строке' . print_r(
-                                        $matches,
-                                        1
-                                    ));
+                                            $matches,
+                                            1
+                                        ));
                                 }
 
                                 $code['comparison'] = $comparison;
@@ -650,7 +664,7 @@ class Calculate
                                 $this->CodeLineCatches[$sectionName]
                             );
                         } else {
-                            throw new errorException('Строка catch кода '.$this->code[$this->CodeLineCatches[$sectionName]].' не найдена.');
+                            throw new errorException('Строка catch кода ' . $this->code[$this->CodeLineCatches[$sectionName]] . ' не найдена.');
                         }
                     } else {
                         throw $exception;
@@ -873,9 +887,9 @@ class Calculate
 
                         $replaced = $back_replace_strings($this->CodeStrings[$m[1]]);
                         return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr(
-                            $replaced,
-                            4
-                        ) . '`';
+                                $replaced,
+                                4
+                            ) . '`';
                 }
             },
             $code
@@ -1017,9 +1031,9 @@ class Calculate
                 } else {
                     if (!is_null($res)) {
                         throw new errorException('Ошибка кода - отсутствие оператора в выражении [[' . $code . ']] ' . var_export(
-                            $codes,
-                            1
-                        ));
+                                $codes,
+                                1
+                            ));
                     }
 
                     $res = $rTmp;
@@ -1694,12 +1708,12 @@ SQL;
                         } elseif (key_exists($nameVar, $this->tbl['params'] ?? [])) {
                             $rowVar = $this->tbl['params'][$nameVar];
                         } elseif (key_exists(
-                            $nameVar,
-                            $this->oldRow ?? []
-                        ) && !key_exists(
-                            $nameVar,
-                            $this->row ?? []
-                        )) {
+                                $nameVar,
+                                $this->oldRow ?? []
+                            ) && !key_exists(
+                                $nameVar,
+                                $this->row ?? []
+                            )) {
                             if (in_array($nameVar, Model::serviceFields)) {
                                 $rowVar = null;
                             } else {
@@ -1708,9 +1722,9 @@ SQL;
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {
                             $rowVar = ['v' => null];
                         } elseif ($nameVar === 'id' && key_exists(
-                            $this->varName,
-                            $this->Table->getFields()
-                        ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
+                                $this->varName,
+                                $this->Table->getFields()
+                            ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
                             $rowVar = null;
                         } else {
                             throw new errorException('Параметр [[' . $nameVar . ']] не найден');
@@ -1780,9 +1794,9 @@ SQL;
                             $r = array_map(
                                 function ($_ri) use ($item) {
                                     if (!is_array($_ri) || !key_exists(
-                                        $item,
-                                        $_ri
-                                    )) {
+                                            $item,
+                                            $_ri
+                                        )) {
                                         throw new errorException('Ключ [[' . $item . ']] не обнаружен в одном из элементов массива');
                                     }
                                     return $_ri[$item];
@@ -1821,11 +1835,11 @@ SQL;
 
         if (is_numeric($value)) {
             return number_format(
-                $value,
-                $params['dectimals'] ?? 0,
-                $params['decsep'] ?? ',',
-                $params['thousandssep'] ?? ''
-            )
+                    $value,
+                    $params['dectimals'] ?? 0,
+                    $params['decsep'] ?? ',',
+                    $params['thousandssep'] ?? ''
+                )
                 . ($params['unittype'] ?? '');
         }
     }
@@ -2169,9 +2183,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                'str',
-                $params
-            ) || is_array($params["str"])) {
+                    'str',
+                    $params
+                ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strLength');
             }
 
@@ -2185,9 +2199,9 @@ SQL;
     {
         if ($params = $this->getParamsArray($params)) {
             if (!array_key_exists(
-                'str',
-                $params
-            ) || is_array($params["str"])) {
+                    'str',
+                    $params
+                ) || is_array($params["str"])) {
                 throw new errorException('Ошибка параметрa str strMdF');
             }
 
@@ -2315,10 +2329,10 @@ SQL;
             $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
 
             if (empty($params['format']) || !($formated = $this->dateFormat(
-                $date,
-                strval($params['format']),
-                $params['lang'] ?? null
-            ))) {
+                    $date,
+                    strval($params['format']),
+                    $params['lang'] ?? null
+                ))) {
                 throw new errorException('Ошибка  параметра format функции [[DateFormat]]');
             }
 
@@ -2335,11 +2349,11 @@ SQL;
                 $result = '';
                 $format = new Formats;
                 foreach (preg_split(
-                    '/([DlMF])/',
-                    $fStr,
-                    null,
-                    PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
-                ) as $split) {
+                             '/([DlMF])/',
+                             $fStr,
+                             null,
+                             PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
+                         ) as $split) {
                     $var = null;
                     switch ($split) {
                         case 'D':
@@ -2722,9 +2736,9 @@ SQL;
             case 'key':
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     $isAssoc = (array_keys($params['list']) !== range(
-                        0,
-                        count($params['list']) - 1
-                    )) && count($params['list']) > 0;
+                                0,
+                                count($params['list']) - 1
+                            )) && count($params['list']) > 0;
 
                     if ($isAssoc) {
                         krsort($params['list'], $flags);
@@ -2752,9 +2766,9 @@ SQL;
                 break;
             case 'value':
                 $isAssoc = (array_keys($params['list']) !== range(
-                    0,
-                    count($params['list']) - 1
-                )) && count($params['list']) > 0;
+                            0,
+                            count($params['list']) - 1
+                        )) && count($params['list']) > 0;
                 if (!empty($params['direction']) && $params['direction'] === 'desc') {
                     if ($isAssoc) {
                         arsort($params['list'], $flags);
@@ -3732,11 +3746,11 @@ SQL;
                                             if (is_numeric($value)) {
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     $value = number_format(
-                                                        $value,
-                                                        $numberVals[0],
-                                                        $numberVals[1] ?? '.',
-                                                        $numberVals[2] ?? ''
-                                                    )
+                                                            $value,
+                                                            $numberVals[0],
+                                                            $numberVals[1] ?? '.',
+                                                            $numberVals[2] ?? ''
+                                                        )
                                                         . ($numberVals[3] ?? '');
                                                 }
                                             }
@@ -3794,9 +3808,9 @@ SQL;
 
         if ($style) {
             return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
-                $mainTemplate,
-                $params['data'] ?? []
-            ) . '</body>';
+                    $mainTemplate,
+                    $params['data'] ?? []
+                ) . '</body>';
         } else {
             return $funcReplaceTemplates($mainTemplate, $params['data'] ?? []);
         }
@@ -4175,9 +4189,9 @@ SQL;
             if ($part === '') {
                 $result .= " ";
             } else {
-                $res=$this->execSubCode($part, 'part' . $i);
-                if(is_array($res)){
-                    $res=json_encode($res, JSON_UNESCAPED_UNICODE);
+                $res = $this->execSubCode($part, 'part' . $i);
+                if (is_array($res)) {
+                    $res = json_encode($res, JSON_UNESCAPED_UNICODE);
                 }
                 $result .= $res;
             }
@@ -4191,9 +4205,9 @@ SQL;
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-            '`https?://`',
-            $params['uri']
-        )) {
+                '`https?://`',
+                $params['uri']
+            )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -4213,9 +4227,9 @@ SQL;
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-            'script',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'script',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
 
         try {
             $r = $this->cURL(

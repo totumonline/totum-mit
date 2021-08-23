@@ -3442,6 +3442,14 @@ SQL;
         }
         return $table;
     }
+    protected function __checkRequiredParams(array $params, array $requireds, string $funcName)
+    {
+        foreach ($requireds as $param){
+            if(!key_exists($param, $params)){
+                throw new errorException('Парамер [['.$param.']] является обязательным в функции [['.$funcName.']]');
+            }
+        }
+    }
 
     protected function __checkNumericParam($isDigit, $paramName, $funcName = null)
     {

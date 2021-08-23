@@ -59,6 +59,7 @@ class CalculateSelect extends Calculate
     protected function funcSelectListAssoc($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order']);
+        $this->__checkRequiredParams($params, ['field'], 'selectListAssoc');
 
         $params2 = $params;
 
@@ -214,9 +215,9 @@ class CalculateSelect extends Calculate
     protected function funcSelectRowListForSelect($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order'], ['previewscode']);
+        $this->__checkRequiredParams($params, ['field'], 'selectRowListForSelect');
 
         $params2 = $params;
-
         $baseField = $params['bfield'] ?? 'id';
 
         $params2['field'] = [$params['field'], $baseField, 'is_del'];

@@ -8,6 +8,7 @@
 
 namespace totum\tableTypes;
 
+use Closure;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
@@ -20,7 +21,6 @@ abstract class JsonTables extends aTable
 {
     protected $deletedIds = [];
     protected $modelConnects;
-    protected $reordered = false;
     protected $filteredIds;
 
 
@@ -206,7 +206,7 @@ abstract class JsonTables extends aTable
 
     /**
      * @param $ids
-     * @return \Closure
+     * @return Closure
      * @throws errorException
      */
     protected function getIntervalsfunction($ids)
@@ -253,30 +253,64 @@ abstract class JsonTables extends aTable
 
     protected function reCalculateRows($calculate, $channel, $isCheck, $modifyCalculated, $isTableAdding, $remove, $restore, $add, $modify, $setValuesToDefaults, $setValuesToPinned, $duplicate, $reorder, $addAfter, $addWithId)
     {
-        $Log = $this->calcLog(["recalculate" => 'column']);
+        $Log = $this->calcLog(['recalculate' => 'column']);
 
         /*****Берем старую таблицу*******/
         $SavedRows = $this->savedTbl['rows'] ?? [];
 
         /***reorder***/
         if ($reorder) {
-            $old_order = array_intersect(array_keys($SavedRows), $reorder);
 
-            if (!empty($this->tableRow['order_desc'])) {
-                $reorder = array_reverse($reorder);
-            }
+            if ($addAfter) {
+                $addAfter = (int)$addAfter;
+                $newRows = [];
+                $reorderIds = array_flip($reorder);
 
-            $reorders = array_combine($old_order, $reorder);
-            $newRows = [];
-            foreach ($SavedRows as $id => $row) {
-                if (key_exists($id, $reorders)) {
-                    $id = $reorders[$id];
+                foreach ($SavedRows as $id => $row) {
+                    if ($addAfter === $id) {
+                        if (!key_exists($id, $reorderIds)) {
+                            $newRows[$id] = $row;
+                        }
+                        foreach ($reorderIds as $_id => $_) {
+                            if (!key_exists($_id, $SavedRows)) continue;
+                            $newRows[$_id] = $SavedRows[$_id];
+                        }
+                        $addAfter = null;
+                    } else {
+                        if (key_exists($id, $reorderIds)) continue;
+                        $newRows[$id] = $row;
+                    }
                 }
-                $newRows[$id] = $SavedRows[$id];
+
+                if ($addAfter) {
+                    throw new errorException('Строки с id [[' . $addAfter . ']] не существует');
+                }
+
+            } elseif (count($SavedRows) === count($reorder)) {
+                $old_order = array_intersect(array_keys($SavedRows), $reorder);
+                $reorders = array_combine($old_order, $reorder);
+                $newRows = [];
+                foreach ($SavedRows as $id => $row) {
+                    if (key_exists($id, $reorders)) {
+                        $id = $reorders[$id];
+                    }
+                    $newRows[$id] = $SavedRows[$id];
+                }
+            } else {
+                $newRows = [];
+                $reorderIds = array_flip($reorder);
+                foreach ($SavedRows as $id => $row) {
+                    if (key_exists($id, $reorderIds)) {
+                        $id = array_shift($reorder);
+                    }
+                    $newRows[$id] = $SavedRows[$id];
+                }
             }
+
             $SavedRows = $newRows;
             unset($newRows);
             $this->setIsTableDataChanged(true);
+            $this->changeIds['reordered']=true;
         }
 
 
@@ -305,7 +339,7 @@ abstract class JsonTables extends aTable
                 $insertList = array_filter(
                     $insertList,
                     function ($v) {
-                        if (!is_null($v) && $v !== "") {
+                        if (!is_null($v) && $v !== '') {
                             return true;
                         }
                     }
@@ -449,7 +483,7 @@ abstract class JsonTables extends aTable
                         $modify[$newRow['id']][$field['name']] = $row[$field['name']]['v'];
                         continue;
                     }
-                    if (is_null($field['default'] ?? null) && empty($field['code']) && $field['type'] !== "comments") {
+                    if (is_null($field['default'] ?? null) && empty($field['code']) && $field['type'] !== 'comments') {
                         $modify[$newRow['id']][$field['name']] = $row[$field['name']]['v'];
                     }
                 }
@@ -1191,15 +1225,15 @@ abstract class JsonTables extends aTable
             }
             $offset = (int)$offset;
 
-            $limit = ($params['limit']) ?? "";
-            if ($limit !== "") {
+            $limit = ($params['limit']) ?? '';
+            if ($limit !== '') {
                 if (!(ctype_digit(strval($limit)))) {
                     throw new errorException('Параметр limit должен быть целым числом');
                 }
                 $limit = (int)$limit;
             }
 
-            if ($limit !== "" || $offset !== 0) {
+            if ($limit !== '' || $offset !== 0) {
                 if (isset($fOrdering)) {
                     uasort($array, $fOrdering);
                     $fOrdering = null;
@@ -1260,12 +1294,12 @@ abstract class JsonTables extends aTable
 
                     /***Фиг его значет зачем это - либо для чисел, либо для null. И почему только для selectList тоже не ясно**/
                     if (!is_bool($val) && !is_array($val)) {
-                        $val .= "";
+                        $val .= '';
                     }
                     $list[$row['id']] = array_merge($row, ['_VAL' => $val]);
                 }
 
-                if ($limit !== "" && count($list) === $limit) {
+                if ($limit !== '' && count($list) === $limit) {
                     break;
                 }
             }

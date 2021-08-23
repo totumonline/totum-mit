@@ -426,7 +426,7 @@ class ReadTableActions extends Actions
             array_column($result['chdata']['rows'], 'id'),
             $result['chdata']['rows']
         );
-        if ($this->Table->getTableRow()['new_row_in_sort']) {
+        if ($this->Table->getTableRow()['new_row_in_sort'] || $this->Table->getChangeIds()['reordered']) {
             $result['chdata']['order'] = array_column($result['chdata']['rows'], 'id');
         }
         return $result;
@@ -1564,6 +1564,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             );
             $this->Table->calcLog($Log, 'result', $tFormat);
         }
+        if($this->Table->getChangeIds()['reordered']){
+            $tFormat['refreshOrder']=true;
+        }
+
         return $tFormat;
     }
 
@@ -1702,6 +1706,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $return['chdata']['params'] = $return['chdata']['params'] ?? [];
 
             $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web');
+            if ($this->Table->getChangeIds()['reordered']) {
+                $return['chdata']['order'] = array_column($return['chdata']['rows'], 'id');
+            }
 
             if (empty($return['chdata']['params'])) {
                 unset($return['chdata']['params']);

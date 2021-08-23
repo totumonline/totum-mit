@@ -96,6 +96,7 @@ abstract class aTable
         'changed' => [],
         'rowOperations' => [],
         'rowOperationsPre' => [],
+        'reordered' => false,
     ];
     protected $onCalculating = false //Рассчитывается ли таблица - для некеширования запросов к ней
     ;
@@ -228,6 +229,19 @@ abstract class aTable
             $dataToSave
         );
         return $this->tbl['rowInserted'];
+    }
+
+    public function actionReorder(array $ids, int $after = 0)
+    {
+        if(!$this->tableRow['with_order_field']){
+            throw new errorException('Таблица [['.$this->tableRow['name'].']] без N-сортировки.');
+        }
+        $this->reCalculateFromOvers(
+            [
+                'reorder' => $ids,
+                'addAfter' => $after
+            ]
+        );
     }
 
 
@@ -1203,7 +1217,6 @@ CODE;;
                 if (empty($row[$f['name']])) {
                     continue;
                 }
-
 
 
                 if (!empty($f['notLoaded']) && $viewType === 'web') {

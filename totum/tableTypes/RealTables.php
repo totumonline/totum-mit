@@ -708,52 +708,78 @@ abstract class RealTables extends aTable
 
         /***reorder***/
         if ($reorder) {
-            $startId = 0;
+
             foreach ($reorder as $id) {
                 if (!is_int($id)) {
                     throw new errorException('Ошибка клиентской части. Получена строка вместо id');
                 }
             }
             $old_order_arrays = $this->model->executePrepared(true, ['id' => $reorder], 'n, id', 'n')->fetchAll();
-            if (!empty($this->tableRow['order_desc'])) {
-                $reorder = array_reverse($reorder);
-            }
 
-            foreach ($old_order_arrays as $i => $orderRow) {
-                if ($orderRow['id'] === $reorder[0]) {
-                    array_splice($reorder, 0, 1);
-                    unset($old_order_arrays[$i]);
+            /*Удаляем из reorder несуществующие id*/
+            $reorder = array_intersect($reorder, array_column($old_order_arrays, 'id'));
+
+            if ($addAfter) {
+                if ($getNRow = $this->model->executePrepared(true, ['id' => $addAfter], 'n, id', 'n')->fetch()) {
+                    $addAfterN = $getNRow['n'];
                 } else {
-                    break;
+                    throw new errorException('Строки с id [[' . $addAfter . ']] не существует');
                 }
-            }
-            if ($reorder) {
-                $old_order_arrays_rev = array_reverse($old_order_arrays);
-                $reorder_rev = array_reverse($reorder);
-                foreach ($old_order_arrays_rev as $i => $orderRow) {
-                    if ($orderRow['id'] === $reorder_rev[0]) {
-                        array_splice($reorder_rev, 0, 1);
-                        unset($old_order_arrays_rev[$i]);
+                $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
+                foreach ($reorder as $rId) {
+                    $nextN = $this->getNextN(null, $addAfterN);
+                    if(!$orderMinN){
+                        $orderMinN = $nextN;
+                    }
+                    $this->model->updatePrepared(true, ['n' => $nextN], ['id' => [$rId]]);
+                    $addAfterN=$nextN;
+                }
+                $this->setIsTableDataChanged(true);
+                $this->changeIds['reordered']=true;
+            } else {
+
+                /*Удаляем из реордера совпадающие по порядку id с начала*/
+                foreach ($old_order_arrays as $i => $orderRow) {
+                    if ($orderRow['id'] === $reorder[0]) {
+                        array_splice($reorder, 0, 1);
+                        unset($old_order_arrays[$i]);
                     } else {
                         break;
                     }
                 }
+                if ($reorder) {
+                    /*Удаляем из реордера совпадающие по порядку id с конца*/
+                    $old_order_arrays_rev = array_reverse($old_order_arrays);
+                    $reorder_rev = array_reverse($reorder);
+                    foreach ($old_order_arrays_rev as $i => $orderRow) {
+                        if ($orderRow['id'] === $reorder_rev[0]) {
+                            array_splice($reorder_rev, 0, 1);
+                            unset($old_order_arrays_rev[$i]);
+                        } else {
+                            break;
+                        }
+                    }
 
-                $old_order_arrays = [];
-                foreach (array_reverse($old_order_arrays_rev) as $oldOrdRow) {
-                    $old_order_arrays[] = $oldOrdRow['n'];
+                    $old_order_arrays = [];
+                    foreach (array_reverse($old_order_arrays_rev) as $oldOrdRow) {
+                        $old_order_arrays[] = $oldOrdRow['n'];
+                    }
+
+                    /*Обнуляем n у сортируемых*/
+                    $reorder = array_reverse($reorder_rev);
+                    $orderMinN = $old_order_arrays[0];
+                    $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
+                    /*Проставляем n у сортируемых из старых N*/
+                    foreach ($reorder as $i => $rId) {
+                        $this->model->updatePrepared(true, ['n' => $old_order_arrays[$i]], ['id' => [$rId]]);
+                    }
+                    $this->tbl['rows'] = [];
+                    $this->setIsTableDataChanged(true);
+                    $this->changeIds['reordered']=true;
                 }
-
-                $reorder = array_reverse($reorder_rev);
-                $orderMinN = $old_order_arrays[0];
-                $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
-
-                foreach ($reorder as $i => $rId) {
-                    $this->model->updatePrepared(true, ['n' => $old_order_arrays[$i]], ['id' => [$rId]]);
-                }
-                $this->tbl['rows'] = [];
-                $this->setIsTableDataChanged(true);
             }
+
+
         }
 
 

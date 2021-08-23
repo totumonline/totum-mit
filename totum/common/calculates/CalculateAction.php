@@ -1528,4 +1528,16 @@ class CalculateAction extends Calculate
             true
         );
     }
+
+    protected function funcReorder($params){
+        $this->__doAction(
+            $params,
+            function ($params) {
+                $this->__checkRequiredParams($params, ['ids'], 'reorder');
+                $table = $this->getSourceTable($params);
+                $table->actionReorder($params['ids'], (int)($params['after']??null));
+            },
+            true
+        );
+    }
 }

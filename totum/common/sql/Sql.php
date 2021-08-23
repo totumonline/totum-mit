@@ -347,12 +347,20 @@ class Sql
             }
         }
         unset($param);
-        $r = $statement->execute($listOfParams);
-        if (!$r || $statement->errorCode() !== "00000") {
+
+        try{
+            $r = $statement->execute($listOfParams);
+            if (!$r || $statement->errorCode() !== "00000") {
+                $info = $statement->errorInfo();
+                $info[2] = "(prep{$statement->num}) {$info[2]}";
+                $this->errorHandler($statement->queryString, $info, $listOfParams);
+            }
+        }catch (\PDOException $exception){
             $info = $statement->errorInfo();
             $info[2] = "(prep{$statement->num}) {$info[2]}";
             $this->errorHandler($statement->queryString, $info, $listOfParams);
         }
+
 
         $query_time_pad = str_pad(round(microtime(1) - $microTime, 3), 5, '0', STR_PAD_LEFT);
         $this->lastQuery['time'] = $query_time_pad;

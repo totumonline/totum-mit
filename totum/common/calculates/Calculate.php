@@ -1546,6 +1546,9 @@ SQL;
                                 if (!array_key_exists($nameVar, $this->vars)) {
                                     throw new errorException('Переменная  [[' . $nameVar . ']] не определена');
                                 }
+                                if(is_callable($this->vars[$nameVar])){
+                                    $this->vars[$nameVar] = $this->vars[$nameVar]();
+                                }
                                 $r = $this->vars[$nameVar];
                             }
                     }

@@ -233,8 +233,8 @@ abstract class aTable
 
     public function actionReorder(array $ids, int $after = 0)
     {
-        if(!$this->tableRow['with_order_field']){
-            throw new errorException('Таблица [['.$this->tableRow['name'].']] без N-сортировки.');
+        if (!$this->tableRow['with_order_field']) {
+            throw new errorException('Таблица [[' . $this->tableRow['name'] . ']] без N-сортировки.');
         }
         $this->reCalculateFromOvers(
             [
@@ -1657,6 +1657,24 @@ CODE;;
                 $params[] = ['field' => 'is_del', 'operator' => '=', 'value' => true];
             }
             $filteredIds = $this->loadRowsByParams($params, $this->orderParamsForLoadRows());
+        }
+        return $filteredIds;
+    }
+
+    public function checkFilteredIds($channel, $ids): array
+    {
+        $filteredIds = [];
+        $this->reCalculateFilters($channel);
+        $params = $this->filtersParamsForLoadRows($channel, $ids, [], true);
+        if ($params !== false) {
+            if ($params) {
+                $filteredIds = $this->getByParams(
+                    ['where' => $params, 'field' => 'id'],
+                    'list'
+                );
+            } else {
+                return $ids;
+            }
         }
         return $filteredIds;
     }

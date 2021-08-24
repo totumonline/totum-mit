@@ -412,31 +412,21 @@ class Calculate
                     throw new errorException('Для сравнения листов только =, == и !=, !==, не ' . $operator);
             }
         } elseif (is_numeric($n) && is_numeric($n2)) {
-            switch ($n <=> $n2) {
-                case 0:
-                    $r = in_array($operator, ['>=', '<=', '=', '==']) ? true : false;
-                    break;
-                case 1:
-                    $r = in_array($operator, ['>=', '>', '!=', '!==']) ? true : false;
-                    break;
-                default:
-                    $r = in_array($operator, ['<=', '<', '!=', '!==']) ? true : false;
-            }
+            $r = match ($n <=> $n2) {
+                0 => in_array($operator, ['>=', '<=', '=', '==']),
+                1 => in_array($operator, ['>=', '>', '!=', '!==']),
+                default => in_array($operator, ['<=', '<', '!=', '!==']),
+            };
         } elseif ($n2IsArray) {
             return static::_compare_n_array($operator, $n, $n2, null, true);
         } elseif ($nIsArray) {
             return static::_compare_n_array($operator, $n2, $n, null, true);
         } else {
-            switch (static::__compare_normalize($n) <=> static::__compare_normalize($n2)) {
-                case 0:
-                    $r = in_array($operator, ['>=', '<=', '=', '==']) ? true : false;
-                    break;
-                case 1:
-                    $r = in_array($operator, ['>=', '>', '!=', '!==']) ? true : false;
-                    break;
-                default:
-                    $r = in_array($operator, ['<=', '<', '!=', '!==']) ? true : false;
-            }
+            $r = match (static::__compare_normalize($n) <=> static::__compare_normalize($n2)) {
+                0 => in_array($operator, ['>=', '<=', '=', '==']),
+                1 => in_array($operator, ['>=', '>', '!=', '!==']),
+                default => in_array($operator, ['<=', '<', '!=', '!==']),
+            };
         }
 
         return $r;
@@ -960,7 +950,7 @@ class Calculate
                         case 'func':
                             $func = $r['func'];
 
-                            if (strpos($func, 'ext') === 0) {
+                            if (str_starts_with($func, 'ext')) {
                                 $func = $this->Table->getTotum()->getConfig()->getCalculateExtensionFunction($func);
                                 try {
                                     $rTmp = $func->call($this, $r['params'], $rTmp);
@@ -990,25 +980,15 @@ class Calculate
                         case 'stringParam':
                             $spec = substr($this->CodeStrings[$r['string']], 0, 4);
 
-                            switch ($spec) {
-                                case 'math':
-                                    $rTmp = $this->getMathFromString(substr($this->CodeStrings[$r['string']], 4));
-                                    break;
-                                case 'json':
-                                    $rTmp = $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4));
-                                    break;
-                                case 'cond':
-                                    $rTmp = $this->parseTotumCond(substr($this->CodeStrings[$r['string']], 4));
-                                    break;
-                                default:
-                                    switch (substr($this->CodeStrings[$r['string']], 0, 3)) {
-                                        case 'str':
-                                            $rTmp = $this->parseTotumStr(substr($this->CodeStrings[$r['string']], 3));
-                                            break;
-                                        default:
-                                            $rTmp = substr($this->CodeStrings[$r['string']], 1);
-                                    }
-                            }
+                            $rTmp = match ($spec) {
+                                'math' => $this->getMathFromString(substr($this->CodeStrings[$r['string']], 4)),
+                                'json' => $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4)),
+                                'cond' => $this->parseTotumCond(substr($this->CodeStrings[$r['string']], 4)),
+                                default => match (substr($this->CodeStrings[$r['string']], 0, 3)) {
+                                    'str' => $this->parseTotumStr(substr($this->CodeStrings[$r['string']], 3)),
+                                    default => substr($this->CodeStrings[$r['string']], 1),
+                                },
+                            };
 
                             break;
                         case 'string':
@@ -1260,39 +1240,27 @@ SQL;
         $list = $params['list'][0] ?? false;
         $this->__checkListParam($list, 'list', 'listMath');
 
-        switch ($params['operator'] ?? '') {
-            case '+':
-                $func = function ($l, $num) {
-                    return round($l + $num, 10);
-                };
-
-                break;
-            case '-':
-                $func = function ($l, $num) {
-                    return round($l - $num, 10);
-                };
-                break;
-            case '*':
-                $func = function ($l, $num) {
-                    return round($l * $num, 10);
-                };
-                break;
-            case '^':
-                $func = function ($l, $num) {
-                    return pow($l, $num);
-                };
-                break;
-            case '/':
-                $func = function ($l, $num) {
-                    if ((float)$num === 0.0) {
-                        throw new errorException('Деление на ноль');
-                    }
-                    return round($l / $num, 10);
-                };
-                break;
-            default:
-                throw new errorException('Параметр operator должен быть равен +,-,/,*');
-        }
+        $func = match ($params['operator'] ?? '') {
+            '+' => function ($l, $num) {
+                return round($l + $num, 10);
+            },
+            '-' => function ($l, $num) {
+                return round($l - $num, 10);
+            },
+            '*' => function ($l, $num) {
+                return round($l * $num, 10);
+            },
+            '^' => function ($l, $num) {
+                return pow($l, $num);
+            },
+            '/' => function ($l, $num) {
+                if ((float)$num === 0.0) {
+                    throw new errorException('Деление на ноль');
+                }
+                return round($l / $num, 10);
+            },
+            default => throw new errorException('Параметр operator должен быть равен +,-,/,*'),
+        };
 
         for ($i = 1; $i < count($params['list']); $i++) {
             $list2 = $params['list'][$i] ?? false;
@@ -1653,9 +1621,9 @@ SQL;
                         } elseif (array_key_exists($nameVar, $this->oldTbl['params'] ?? [])) {
                             $rowVar = $this->oldTbl['params'][$nameVar];
                         } else {
-                            $rowVar = "";
+                            $rowVar = '';
                         }
-                    } elseif (($substr = substr($nameVar, 0, 2)) === 's.' || $substr === 'l.') {
+                    } elseif (str_starts_with($nameVar, 's.') || str_starts_with($nameVar, 'l.')) {
                         $paramArray['param'] = substr($nameVar, 2);
 
                         if ($fName = $this->getParam($paramArray['param'], $paramArray)) {
@@ -1663,31 +1631,27 @@ SQL;
                                 $paramArray['param'] = '#' . $fName;
 
                                 $Field = Field::init($selectField, $this->Table);
-                                switch ($substr) {
-                                    case 's.':
-                                        $r = $Field->getSelectValue(
-                                            $this->getParam($paramArray['param'], $paramArray),
-                                            $this->row,
-                                            $this->tbl
-                                        );
-                                        break;
-                                    case 'l.':
-                                        $r = $Field->getLevelValue(
-                                            $this->getParam($paramArray['param'], $paramArray),
-                                            $this->row,
-                                            $this->tbl
-                                        );
-                                        break;
-                                }
+                                $r = match (substr($nameVar, 0, 2)) {
+                                    's.' => $Field->getSelectValue(
+                                        $this->getParam($paramArray['param'], $paramArray),
+                                        $this->row,
+                                        $this->tbl
+                                    ),
+                                    'l.' => $Field->getLevelValue(
+                                        $this->getParam($paramArray['param'], $paramArray),
+                                        $this->row,
+                                        $this->tbl
+                                    ),
+                                };
                             }
                         }
                     } elseif (preg_match('/^prv\./i', $nameVar)) {
                         $nameVar = substr($nameVar, 4);
 
-                        if (!array_key_exists('PrevRow', $this->row)) {
+                        if (!key_exists('PrevRow', $this->row)) {
                             throw new errorException('Предыдущая строка не найдена. Проверьте подключение поля Порядок и "Пересчитывать при изменении порядка" в настройках таблицы');
                         } else {
-                            $rowVar = $this->row['PrevRow'][$nameVar] ?? "";
+                            $rowVar = $this->row['PrevRow'][$nameVar] ?? '';
                         }
                     } else {
                         switch (substr($nameVar, 0, 2)) {
@@ -1701,7 +1665,7 @@ SQL;
                                 break;
                         }
 
-                        if ($nameVar === $this->varName && get_class($this) === Calculate::class) {
+                        if ($nameVar === $this->varName && $this::class === Calculate::class) {
                             throw new errorException('Нельзя из кода Код обращаться к текущему значению поля');
                         } elseif (key_exists($nameVar, $this->row)) {
                             $rowVar = $this->row[$nameVar];
@@ -1971,7 +1935,7 @@ SQL;
                 case "false":
                     break;
                 default:
-                    $characters += strval($params['numbers']);
+                    $characters .= strval($params['numbers']);
             }
         } else {
             $characters .= $numbers;
@@ -1985,15 +1949,15 @@ SQL;
                 case "false":
                     break;
                 default:
-                    $characters += strval($params['letters']);
+                    $characters .= strval($params['letters']);
             }
         }
         if (array_key_exists('simbols', $params)) {
             switch ($params['simbols']) {
-                case "true":
+                case 'true':
                     $characters .= $simbols;
                     break;
-                case "false":
+                case 'false':
                     break;
                 default:
                     $characters .= strval($params['simbols']);
@@ -2029,6 +1993,44 @@ SQL;
         } else {
             throw new errorException('Ошибка параметров функции StrAdd');
         }
+    }
+
+    protected function funcStrPart($params): string
+    {
+        $params = $this->getParamsArray($params);
+
+        $this->__checkRequiredParams($params, ['str', 'offset'], 'strPart');
+
+        if ($params['str']) {
+            if (is_array($params['str'])) {
+                throw new errorException('Параметр [[str]] должен быть строкой');
+            }
+            $str = (string)$params['str'];
+        } else {
+            $str = '';
+        }
+        if ($params['offset']) {
+            if (is_array($params['offset'])) {
+                throw new errorException('Параметр [[offset]] должен быть числом');
+            }
+            $offset = (int)$params['offset'];
+        } else {
+            $offset = 0;
+        }
+        $length = null;
+
+        if (key_exists('length', $params)) {
+            if (is_array($params['length'])) {
+                throw new errorException('Параметр [[length]] должен быть числом');
+            }
+            if ($params['length']) {
+                $length = (int)$params['length'];
+            } else {
+                $length = $params['length'];
+            }
+        }
+
+        return mb_substr($str, $offset, $length, 'UTF-8');
     }
 
     protected function funcStrGz($params)
@@ -2504,11 +2506,12 @@ SQL;
 
         if (array_key_exists('value', $params)) {
             $this->vars[$params['name']] = $params['value'];
-        } elseif (array_key_exists($params['name'], $this->vars)) {
-        } elseif (array_key_exists('default', $params)) {
-            $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
-        } else {
-            throw new errorException('Параметр [[' . $params['name'] . ']] не был установлен в этом коде');
+        } elseif (!array_key_exists($params['name'], $this->vars)) {
+            if (array_key_exists('default', $params)) {
+                $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
+            } else {
+                throw new errorException('Параметр [[' . $params['name'] . ']] не был установлен в этом коде');
+            }
         }
         return $this->vars[$params['name']];
     }
@@ -2564,7 +2567,7 @@ SQL;
         $params = $this->getParamsArray($params);
         return $this->Table->getSelectByParams(
             $params,
-            "table",
+            'table',
             $this->row['id'] ?? null,
             get_class($this) === Calculate::class
         );
@@ -3442,11 +3445,12 @@ SQL;
         }
         return $table;
     }
+
     protected function __checkRequiredParams(array $params, array $requireds, string $funcName)
     {
-        foreach ($requireds as $param){
-            if(!key_exists($param, $params)){
-                throw new errorException('Парамер [['.$param.']] является обязательным в функции [['.$funcName.']]');
+        foreach ($requireds as $param) {
+            if (!key_exists($param, $params)) {
+                throw new errorException('Парамер [[' . $param . ']] является обязательным в функции [[' . $funcName . ']]');
             }
         }
     }
@@ -3465,7 +3469,7 @@ SQL;
 
     protected function __checkListParam(&$List, $paramName, $funcName = null)
     {
-        if (is_null($List) || $List === "") {
+        if (is_null($List) || $List === '') {
             $List = [];
         }
         if (!is_array($List)) {
@@ -3613,43 +3617,44 @@ SQL;
                         }
                         break;
                     default:
-                        if (in_array($param, $notExecParams)) {
-                        } elseif (in_array($param, $threePartParams)) {
-                            try {
-                                $whereCodes = $this->getCodes($paramVal);
-                            } catch (errorException $e) {
-                                throw new errorException('Неправильно оформлено условие выборки [[' . $paramVal . ']] в поле [[' . $this->varName . ']] (' . $e->getMessage() . ')');
-                            }
+                        if (!in_array($param, $notExecParams)) {
+                            if (in_array($param, $threePartParams)) {
+                                try {
+                                    $whereCodes = $this->getCodes($paramVal);
+                                } catch (errorException $e) {
+                                    throw new errorException('Неправильно оформлено условие выборки [[' . $paramVal . ']] в поле [[' . $this->varName . ']] (' . $e->getMessage() . ')');
+                                }
 
-                            if (count($whereCodes) != 3) {
-                                throw new errorException('Параметр ' . $param . ' должен содержать 3 элемента ');
-                            }
-                            if (empty($whereCodes['comparison'])) {
-                                throw new errorException('Параметр ' . $param . ' должен содержать элемент сравнения ');
-                            }
-                            if ($param === 'filter' && $whereCodes['comparison'] !== '=') {
-                                throw new errorException('Параметр ' . $param . ' пока может принимать только =');
-                            }
+                                if (count($whereCodes) != 3) {
+                                    throw new errorException('Параметр ' . $param . ' должен содержать 3 элемента ');
+                                }
+                                if (empty($whereCodes['comparison'])) {
+                                    throw new errorException('Параметр ' . $param . ' должен содержать элемент сравнения ');
+                                }
+                                if ($param === 'filter' && $whereCodes['comparison'] !== '=') {
+                                    throw new errorException('Параметр ' . $param . ' пока может принимать только =');
+                                }
 
-                            if (is_array($whereCodes[0])) {
-                                $field = $this->__getValue($whereCodes[0]);
+                                if (is_array($whereCodes[0])) {
+                                    $field = $this->__getValue($whereCodes[0]);
+                                } else {
+                                    $field = $whereCodes[0];
+                                }
+                                if (is_array($whereCodes[1])) {
+                                    $value = $this->__getValue($whereCodes[1]);
+                                } else {
+                                    $value = $whereCodes[1];
+                                }
+
+                                $paramVal = [
+                                    'field' => $this->getParam(
+                                        $field,
+                                        []
+                                    ), 'operator' => $whereCodes['comparison'], 'value' => $value
+                                ];
                             } else {
-                                $field = $whereCodes[0];
+                                $paramVal = $this->execSubCode($paramVal, $param, true);
                             }
-                            if (is_array($whereCodes[1])) {
-                                $value = $this->__getValue($whereCodes[1]);
-                            } else {
-                                $value = $whereCodes[1];
-                            }
-
-                            $paramVal = [
-                                'field' => $this->getParam(
-                                    $field,
-                                    []
-                                ), 'operator' => $whereCodes['comparison'], 'value' => $value
-                            ];
-                        } else {
-                            $paramVal = $this->execSubCode($paramVal, $param, true);
                         }
                         break;
                 }
@@ -3767,14 +3772,14 @@ SQL;
                                     case 'date':
                                         if (count($formatData) === 2) {
                                             if ($date = date_create($value)) {
-                                                if (strpos($formatData[1], 'F') !== false) {
+                                                if (str_contains($formatData[1], 'F')) {
                                                     $formatData[1] = str_replace(
                                                         'F',
                                                         Formats::months[$date->format('n')],
                                                         $formatData[1]
                                                     );
                                                 }
-                                                if (strpos($formatData[1], 'f') !== false) {
+                                                if (str_contains($formatData[1], 'f')) {
                                                     $formatData[1] = str_replace(
                                                         'f',
                                                         Formats::monthRods[$date->format('n')],
@@ -4230,7 +4235,7 @@ SQL;
 
 
         if (!empty($params['gets'])) {
-            $link .= strpos($link, '?') === false ? '?' : '&';
+            $link .= !str_contains($link, '?') ? '?' : '&';
             $link .= http_build_query($params['gets']);
         }
 
@@ -4268,8 +4273,9 @@ SQL;
             return $r;
         } catch (\Exception $e) {
             if ($toBfl) {
+                $r = $r ?? '';
                 $this->Table->getTotum()->getOutersLogger()->error(
-                    "getFromScript:",
+                    'getFromScript:',
                     ['error' => $e->getMessage()] + [
                         'link' => $link,
                         'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),

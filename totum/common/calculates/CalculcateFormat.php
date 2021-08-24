@@ -108,7 +108,33 @@ class CalculcateFormat extends Calculate
 
             if ($conditionTest) {
                 if (key_exists('ids', $params) && is_array($params['ids'] =  $this->execSubCode($params['ids'], 'ids'))) {
-                    $this->formatArray["hideRows"] = $params['ids'];
+                    $this->formatArray['hideRows'] = $params['ids'];
+                }
+            }
+        }
+    }
+    protected function funcSetRowsShow($params)
+    {
+        if ($params = $this->getParamsArray($params, ['condition'], ['condition', 'ids'])) {
+            $conditionTest = true;
+            if (!empty($params['condition'])) {
+                foreach ($params['condition'] as $i => $c) {
+                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+
+
+                    if (!is_bool($condition)) {
+                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                    }
+                    if (!$condition) {
+                        $conditionTest = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($conditionTest) {
+                if (key_exists('ids', $params) && is_array($params['ids'] =  $this->execSubCode($params['ids'], 'ids'))) {
+                    $this->formatArray['showRows'] = $params['ids'];
                 }
             }
         }

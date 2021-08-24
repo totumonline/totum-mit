@@ -1649,7 +1649,7 @@ SQL;
                         $nameVar = substr($nameVar, 4);
 
                         if (!key_exists('PrevRow', $this->row)) {
-                            throw new errorException('Предыдущая строка не найдена. Проверьте подключение поля Порядок и "Пересчитывать при изменении порядка" в настройках таблицы');
+                            throw new errorException('Предыдущая строка не найдена. Работает только для расчетных таблиц.');
                         } else {
                             $rowVar = $this->row['PrevRow'][$nameVar] ?? '';
                         }

@@ -1397,8 +1397,8 @@ abstract class RealTables extends aTable
 
 
             /*Поиск в полях-листах*/
-            if (Field::isFieldListValues(
-                $fields[$wI['field']]['type'] ?? null,
+            if (key_exists($wI['field'], $fields) && Field::isFieldListValues(
+                $fields[$wI['field']]['type'],
                 $fields[$wI['field']]['multiple'] ?? false
             )) {
                 $trueFalse = "TRUE";

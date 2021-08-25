@@ -41,14 +41,13 @@ class Field
     ];
     protected const NO_ERROR_IN_VALUE = ['number', 'checkbox'];
 
-    public static $fields = [];
+    public static array $fields = [];
     protected $data;
     protected $table;
     protected $CalculateCode;
     protected $CalculateCodeSelect;
     protected $CalculateCodeSelectValue;
     protected $CalculateFormat;
-    protected $timeCalculating = ['calculate' => 0, 'calculateSelect' => 0];
     protected $log;
     /**
      * @var string
@@ -58,23 +57,17 @@ class Field
     /**
      * Является ли значение поля листом
      *
-     * @param $type
+     * @param string $type
      * @param $isMulty
      * @return bool
      */
-    public static function isFieldListValues($type, $isMulty)
+    public static function isFieldListValues(string $type, $isMulty): bool
     {
-        switch ($type) {
-            case 'select':
-            case 'tree':
-                return !!$isMulty;
-                break;
-            case 'listRow':
-            case 'fieldParams':
-            case 'fieldParamsResult':
-            case 'file':
-                return true;
-        }
+        return match ($type) {
+            'select', 'tree' => !!$isMulty,
+            'listRow', 'fieldParams', 'fieldParamsResult', 'file' => true,
+            default => false,
+        };
     }
 
     public function getName()

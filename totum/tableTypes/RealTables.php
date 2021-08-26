@@ -1379,6 +1379,7 @@ abstract class RealTables extends aTable
             }
 
             /*Проверка на число - чтобы ошибок в базе не случалось*/
+            $isNumeric = false;
             if ($fieldName === 'is_del') {
                 $withoutDeleted = false;
             } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
@@ -1390,8 +1391,10 @@ abstract class RealTables extends aTable
 
                 if ($fieldName === 'id') {
                     $fieldQuoted = "(id)::NUMERIC";
+                    $isNumeric = true;
                 } elseif ($fieldName !== 'n') {
                     $fieldQuoted = "$fieldQuoted::NUMERIC";
+                    $isNumeric = true;
                 }
             }
 
@@ -1586,9 +1589,12 @@ abstract class RealTables extends aTable
                             $where[] = 'FALSE';
                         } else {
                             /*Если в массиве содержится пустое значение*/
-                            $q = "";
+                            $q = '';
                             if ($isEmptyValueInArray($value)) {
-                                $q .= "$fieldQuoted  IS NULL OR $fieldQuoted = ''";
+                                $q .= "$fieldQuoted  IS NULL";
+                                if(!$isNumeric) {
+                                    $q.=" OR $fieldQuoted = ''";
+                                }
                             }
                             /*если есть непустые значения*/
                             if (!empty($value)) {
@@ -1611,9 +1617,13 @@ abstract class RealTables extends aTable
                             $where[] = 'TRUE';
                         } else {
                             /*Если в массиве содержится пустое значение*/
-                            $q = "";
+                            $q = '';
                             if ($isEmptyValueInArray($value)) {
-                                $q .= "$fieldQuoted  IS NOT NULL AND $fieldQuoted != '' AND ";
+                                $emptyString='';
+                                if(!$isNumeric){
+                                    $emptyString="AND $fieldQuoted != ''";
+                                }
+                                $q .= "$fieldQuoted  IS NOT NULL $emptyString AND ";
                             } else {
                                 $q .= "$fieldQuoted  IS NULL OR";
                             }

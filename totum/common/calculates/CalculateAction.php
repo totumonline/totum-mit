@@ -371,9 +371,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-            'email',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'email',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -422,17 +422,17 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, [], []);
         if (array_key_exists(
-            'options',
-            $params
-        ) && !is_array($params['options'])) {
+                'options',
+                $params
+            ) && !is_array($params['options'])) {
             throw new errorException('options должно быть типа row');
         }
 
 
         $toBfl = $params['bfl'] ?? in_array(
-            'soap',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'soap',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,
@@ -621,13 +621,13 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-            [],
-            'styles, html, name',
-            'name'
-        )) || (!array_key_exists(
-            $params['template'],
-            $templates
-        ))) {
+                [],
+                'styles, html, name',
+                'name'
+            )) || (!array_key_exists(
+                $params['template'],
+                $templates
+            ))) {
             throw new errorException('Шаблон не найден');
         }
 
@@ -695,11 +695,11 @@ class CalculateAction extends Calculate
                                                 if ($numberVals = explode('|', $formatData[1])) {
                                                     if (is_numeric($value)) {
                                                         $value = number_format(
-                                                            $value,
-                                                            $numberVals[0],
-                                                            $numberVals[1] ?? '.',
-                                                            $numberVals[2] ?? ''
-                                                        )
+                                                                $value,
+                                                                $numberVals[0],
+                                                                $numberVals[1] ?? '.',
+                                                                $numberVals[2] ?? ''
+                                                            )
                                                             . ($numberVals[3] ?? '');
                                                     }
                                                 }
@@ -795,9 +795,9 @@ class CalculateAction extends Calculate
         $t = $tableRow['id'];
         if ($d) {
             $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
-                json_encode($d, JSON_UNESCAPED_UNICODE),
-                $this->Table->getTotum()->getConfig()->getCryptSolt()
-            ));
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
     }
@@ -814,9 +814,9 @@ class CalculateAction extends Calculate
         }
         if ($d) {
             return 'd=' . urlencode(Crypt::getCrypted(
-                json_encode($d, JSON_UNESCAPED_UNICODE),
-                $this->Table->getTotum()->getConfig()->getCryptSolt()
-            ));
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
         }
     }
 
@@ -831,7 +831,7 @@ class CalculateAction extends Calculate
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
             ['title' => $title, 'width' => $width, 'text' => htmlspecialchars(is_array($params['text']) ?
-                "OBJECT: ".json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
+                "OBJECT: " . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
                 $params['text'] ?? '')],
             $params['refresh'] ?? false
         );
@@ -839,18 +839,41 @@ class CalculateAction extends Calculate
 
     protected function funcLinkToDataJson($params)
     {
-        $params = $this->getParamsArray($params);
+        $params = $this->getParamsArray($params, ['var'], [], ['var']);
 
         $title = $params['title'] ?? 'Здесь должен быть title';
 
         $width = $params['width'] ?? 600;
 
+        $data = ['title' => $title,
+            'width' => $width,
+            'json' => $params['data'],
+            'refresh'=>$params['refresh'] ?? false];
+
+
+        if (!empty($params['code'])) {
+            $vars=[];
+            foreach ($params['var']??[] as $var){
+                $vars[$var['field']]=$var['value'];
+            }
+            $saveData = ['code' => $params['code'], 'var' => $vars];
+
+            /** @var TmpTables $model */
+            $model = $this->Table->getTotum()->getNamedModel(TmpTables::class);
+            $saveData['env'] = $this->getEnvironment();
+
+            $hash=$model->getNewHash(TmpTables::serviceTables['linktodatajson'],
+                $this->Table->getTotum()->getUser(),
+                $saveData);
+
+
+            $data['hash']=$hash;
+            $data['buttontext'] = $params['buttontext'] ?? 'OK';
+        }
+
         $this->Table->getTotum()->addToInterfaceDatas(
             'json',
-            ['title' => $title,
-                'width' => $width,
-                'json' => $params['data'],
-                $params['refresh'] ?? false]
+            $data
         );
     }
 
@@ -874,9 +897,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
 
         if (!key_exists(
-            'num',
-            $params
-        ) || !is_numeric(strval($params['num']))) {
+                'num',
+                $params
+            ) || !is_numeric(strval($params['num']))) {
             throw new errorException('Параметр num обязателен и должен быть числом');
         }
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
@@ -981,9 +1004,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
         if (empty($params['uri']) || !preg_match(
-            '`https?://`',
-            $params['uri']
-        )) {
+                '`https?://`',
+                $params['uri']
+            )) {
             throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
         }
 
@@ -1529,13 +1552,14 @@ class CalculateAction extends Calculate
         );
     }
 
-    protected function funcReorder($params){
+    protected function funcReorder($params)
+    {
         $this->__doAction(
             $params,
             function ($params) {
                 $this->__checkRequiredParams($params, ['ids'], 'reorder');
                 $table = $this->getSourceTable($params);
-                $table->actionReorder($params['ids'], (int)($params['after']??null));
+                $table->actionReorder($params['ids'], (int)($params['after'] ?? null));
             },
             true
         );

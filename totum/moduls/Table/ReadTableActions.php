@@ -124,7 +124,43 @@ class ReadTableActions extends Actions
 
         return ['value' => Field::init($field, $this->Table)->getFullValue($val['v'], $data['rowId'] ?? null)];
     }
+    /**
+     * Нажатие кнопки в linktodatajson
+     *
+     * @throws errorException
+     */
+    public function linkJsonClick(){
+        if(empty($this->post['hash']) || !is_string($this->post['hash'])){
+            throw new errorException('Ошибка интерфейса');
+        }
 
+        /** @var TmpTables $model */
+        $model = $this->Totum->getNamedModel(TmpTables::class);
+        $data=$model->getByHash(TmpTables::serviceTables['linktodatajson'], $this->User, $this->post['hash'], true);
+        if(!$data){
+            throw new errorException('Время хранения временной таблицы истекло');
+        }
+        list($Table, $row)=$this->loadEnvirement($data);
+
+
+        $vars=$data['var'];
+        $vars['value']=json_decode($this->post['json'], true);
+
+        $CA = new CalculateAction($data['code']);
+        $CA->execAction(
+            'CODE FROM JSON LINK',
+            [],
+            $row,
+            $Table->getTbl(),
+            $Table->getTbl(),
+            $Table,
+            'exec',
+            $vars
+        );
+        $model->deleteByHash(TmpTables::serviceTables['linktodatajson'], $this->User, $this->post['hash']);
+        return ['ok' => 1];
+
+    }
 
     /**
      * Нажатие кнопки на панели кнопок
@@ -140,20 +176,7 @@ class ReadTableActions extends Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
             if (key_exists('index', $this->post) && $data['buttons'][$this->post['index']] ?? null) {
-                if (key_exists('cycle_id', $data['env'])) {
-                    $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
-                } elseif (key_exists('hash', $data['env'])) {
-                    $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
-                } else {
-                    $Table = $this->Totum->getTable($data['env']['table']);
-                }
-
-                $row = [];
-                if (key_exists('id', $data['env'])) {
-                    if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
-                        $row = $Table->getTbl()['rows'][$data['env']['id']];
-                    }
-                }
+                list($Table, $row)=$this->loadEnvirement($data);
 
 
                 if ($Table->getFields()[$data['buttons'][$this->post['index']]['code']] ?? false) {
@@ -2007,5 +2030,24 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         } else {
             throw new errorException('Ошибка получения Id ветки');
         }
+    }
+
+    protected function loadEnvirement(array $data): array
+    {
+        if (key_exists('cycle_id', $data['env'])) {
+            $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
+        } elseif (key_exists('hash', $data['env'])) {
+            $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
+        } else {
+            $Table = $this->Totum->getTable($data['env']['table']);
+        }
+
+        $row = [];
+        if (key_exists('id', $data['env'])) {
+            if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
+                $row = $Table->getTbl()['rows'][$data['env']['id']];
+            }
+        }
+        return [$Table, $row];
     }
 }

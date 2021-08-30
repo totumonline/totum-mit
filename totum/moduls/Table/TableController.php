@@ -48,7 +48,7 @@ class TableController extends interfaceController
      */
     protected $CalculateLog;
     protected $totumTries = 0;
-    protected bool $isMainAction= false;
+    protected bool $isMainAction = false;
 
     public function __construct(Conf $Config, $totumPrefix = '')
     {
@@ -61,11 +61,11 @@ class TableController extends interfaceController
     {
         $tmpTables = $this->Totum->getTable('roles')->getByParams(
             [
-            'field' => 'tmp_for_favorites', 'where' => [
+                'field' => 'tmp_for_favorites', 'where' => [
                 ['field' => 'id', 'operator' => '=', 'value' => $this->Totum->getUser()->getRoles()],
                 ['field' => 'tmp_for_favorites', 'operator' => '!=', 'value' => []]
             ]
-        ],
+            ],
             'list'
         );
         $tmp = [];
@@ -74,13 +74,13 @@ class TableController extends interfaceController
         }
 
         if ($tmp) {
-            $tmp_tables=$this->Totum->getTable('tables')->getByParams(
+            $tmp_tables = $this->Totum->getTable('tables')->getByParams(
                 [
-                'field'=>['id', 'title'],
-                'where'=>[
-                    ['field'=>'id', 'operator'=>'=', 'value'=>$tmp]
-                ]
-            ],
+                    'field' => ['id', 'title'],
+                    'where' => [
+                        ['field' => 'id', 'operator' => '=', 'value' => $tmp]
+                    ]
+                ],
                 'rows'
             );
 
@@ -192,7 +192,7 @@ class TableController extends interfaceController
                     ]
                 ]
                 + (
-                    $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
+                $t['icon'] ? ['icon' => 'fa fa-' . $t['icon']] : []
                 );
             if ($t['type'] !== "link") {
                 $branchIds[] = $t['id'];
@@ -254,7 +254,7 @@ class TableController extends interfaceController
                 if ($tableRow = $this->Totum->getTableRow($tName)) {
                     $tId = $tableRow['id'];
                     if (array_key_exists($tId, $this->User->getTreeTables())) {
-                        $tree[] = [
+                        $tbl = [
                             'id' => 'table' . $tId
                             , 'href' => $this->Table->getTableRow()['tree_node_id'] . '/' . $this->Cycle->getId() . '/' . $tId
                             , 'text' => $tableRow['title']
@@ -267,6 +267,10 @@ class TableController extends interfaceController
                                 'selected' => $this->Table->getTableRow()['id'] === $tId
                             ]
                         ];
+                        if ($this->User->isCreator()) {
+                            $tbl['name'] = $tableRow['name'];
+                        }
+                        $tree[] = $tbl;
                         if ($this->anchorId) {
                             unset($tree[count($tree) - 1]['href']);
                             $tree[count($tree) - 1]['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
@@ -296,10 +300,10 @@ class TableController extends interfaceController
         if (empty($tree) && $this->isMainAction) {
             foreach (Table::init($this->Config)->getAll(
                 ['id' => $this->User->getFavoriteTables()],
-                'id, top, title, type, icon',
+                'id, top, title, type, icon, name',
                 'sort'
             ) as $t) {
-                $tree[] = [
+                $tbl = [
                     'id' => 'table' . $t['id']
                     , 'href' => $this->modulePath . $t['top'] . '/' . $t['id']
                     , 'text' => $t['title']
@@ -307,6 +311,10 @@ class TableController extends interfaceController
                     , 'icon' => ($t['icon'] ?? null)
                     , 'parent' => '#'
                 ];
+                if ($this->User->isCreator()) {
+                    $tbl['name'] = $t['name'];
+                }
+                $tree[] = $tbl;
             }
         }
 
@@ -381,9 +389,9 @@ class TableController extends interfaceController
             }
             $branch['href'] = $href;
             if (is_a(
-                $this,
-                TableController::class
-            ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
+                    $this,
+                    TableController::class
+                ) && !empty($this->branchId) && $branch['id'] === (int)$this->branchId) {
                 $branch['active'] = true;
             }
         }
@@ -416,7 +424,7 @@ class TableController extends interfaceController
             $this->tableUri = $requestTable;
         } else {
             $action = 'Main';
-            $this->isMainAction=true;
+            $this->isMainAction = true;
         }
         try {
             try {
@@ -439,9 +447,9 @@ class TableController extends interfaceController
             }
             $message = $e->getMessage();
             if ($this->User && $this->User->isCreator() && key_exists(
-                WithPathMessTrait::class,
-                class_uses(get_class($e))
-            )) {
+                    WithPathMessTrait::class,
+                    class_uses(get_class($e))
+                )) {
                 $message .= "<br/>" . $e->getPathMess();
             }
             $this->__addAnswerVar('error', $message);
@@ -593,9 +601,9 @@ class TableController extends interfaceController
 
 
         if (!empty($request->getParsedBody()['method']) && in_array(
-            $request->getParsedBody()['method'],
-            ['getValue']
-        )) {
+                $request->getParsedBody()['method'],
+                ['getValue']
+            )) {
             if (!empty($request->getParsedBody()['table_id'])) {
                 $checkTreeTable((int)$request->getParsedBody()['table_id']);
                 return;
@@ -604,10 +612,10 @@ class TableController extends interfaceController
 
 
         if ($tableUri && (preg_match(
-            '/^(\d+)\/(\d+)\/(\d+)/',
-            $tableUri,
-            $tableMatches
-        ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
+                    '/^(\d+)\/(\d+)\/(\d+)/',
+                    $tableUri,
+                    $tableMatches
+                ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
             if (empty($tableMatches[3])) {
                 $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
@@ -650,14 +658,14 @@ class TableController extends interfaceController
                 //Проверка доступа к циклу
 
                 if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
-                    $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                    [1, 2, 3]
-                )) {
+                        $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                        [1, 2, 3]
+                    )) {
                     //Если не связанный пользователь
                     if (count(array_intersect(
-                        $this->Cycle->getRow()['creator_id']['v'],
-                        $this->User->getConnectedUsers()
-                    )) === 0) {
+                            $this->Cycle->getRow()['creator_id']['v'],
+                            $this->User->getConnectedUsers()
+                        )) === 0) {
                         if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {

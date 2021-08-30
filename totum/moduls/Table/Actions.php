@@ -11,7 +11,9 @@ use totum\common\errorException;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\common\User;
+use totum\models\Table;
 use totum\models\TablesFields;
+use totum\models\Tree;
 use totum\tableTypes\aTable;
 
 class Actions
@@ -50,7 +52,7 @@ class Actions
         $this->Request = $Request;
         $this->post = $Request->getParsedBody();
 
-        if(!empty($this->post['restoreView'])){
+        if (!empty($this->post['restoreView'])) {
             $this->Table->setRestoreView(true);
         }
 
@@ -71,6 +73,60 @@ class Actions
         $this->Totum->addToInterfaceLink($this->Request->getParsedBody()['location'], 'self', 'reload');
 
         return ['ok' => 1];
+    }
+
+    public function seachUserTables()
+    {
+        $TreeModel = $this->Totum->getNamedModel(Tree::class);
+        $q = mb_strtolower($this->post['q'], 'UTF-8');
+        $words = preg_split('/\s+/', $q);
+
+        $checkWords = function ($test) use ($words) {
+            foreach ($words as $w) {
+                if (!str_contains($test, $w)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        $branchesArray = [];
+
+        foreach ($TreeModel->getBranchesByTables(
+            null,
+            array_keys($this->User->getTreeTables()),
+            $this->User->getRoles()
+        ) as $br) {
+            if ((int)$br['id'] !== (int)($this->post['et'] ?? 0)) {
+                array_push($branchesArray,
+                    ...$TreeModel->getBranchesByTables(
+                        $br['id'],
+                        array_keys($this->User->getTreeTables()),
+                        $this->User->getRoles()
+                    ));
+            }
+        }
+        $branchIds = array_column($branchesArray, 'id');
+        $branchesCombine = array_combine($branchIds, array_column($branchesArray, 'top'));
+        $tables = [];
+
+        foreach ($this->Totum->getNamedModel(Table::class)->getAll(
+            ['tree_node_id' => ($branchIds), 'id' => array_keys($this->User->getTreeTables())],
+            'id, title, name, tree_node_id, type, icon',
+            '(sort->>\'v\')::numeric'
+        ) as $table) {
+            if ($checkWords($table['name']) || $checkWords(mb_strtolower($table['title'], 'UTF-8'))) {
+                $tables[] = ['id' => $table['id'], 'title' => $table['title'], 'top' => $branchesCombine[$table['tree_node_id']], 'icon' => $table['icon'] ?? null, 'type'=>$table['type']];
+            }
+        }
+
+        $tree = [];
+        foreach ($branchesArray as $br) {
+            if (in_array($br['type'], ['link', 'anchor']) && $checkWords(mb_strtolower($br['title'], 'UTF-8'))) {
+                $tree[] = ['id' => $br['id'], 'title' => $br['title'], 'type' => $br['type'], 'href' => ($br['href'] ?? null), 'icon' => $br['icon']];
+            }
+        }
+        return ['tables' => $tables, 'trees' => $tree];
     }
 
     public function getNotificationsTable()
@@ -278,15 +334,15 @@ class Actions
             if ($actived) {
                 $result['deactivated'] = [];
                 if ($ids = ($model->getColumn(
-                    'id',
-                    ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'false']
-                ) ?? [])) {
+                        'id',
+                        ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'false']
+                    ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
                 if ($ids = ($model->getColumn(
-                    'id',
-                    ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'true', '>active_dt_from' => date('Y-m-d H:i')]
-                ) ?? [])) {
+                        'id',
+                        ['id' => $actived, 'user_id' => $this->User->getId(), 'active' => 'true', '>active_dt_from' => date('Y-m-d H:i')]
+                    ) ?? [])) {
                     $result['deactivated'] = array_merge($result['deactivated'], $ids);
                 }
                 if (empty($result['deactivated'])) {
@@ -318,12 +374,12 @@ class Actions
             $result = $getNotification();
         }
         echo json_encode($result + ['notifications' => array_map(
-            function ($n) {
+                function ($n) {
                     $n[0] = 'notification';
                     return $n;
                 },
-            $this->Totum->getInterfaceDatas()
-        )]);
+                $this->Totum->getInterfaceDatas()
+            )]);
         die;
     }
 }

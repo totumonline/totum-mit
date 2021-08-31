@@ -12,6 +12,7 @@ use SoapClient;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Formats;
+use totum\common\Lang\RU;
 use totum\common\TotumInstall;
 use totum\models\TmpTables;
 use totum\tableTypes\aTable;
@@ -89,16 +90,15 @@ class CalculateAction extends Calculate
         return null;
     }
 
-    /*TODO сломано*/
     protected function funcSchemaGzStringGet($params)
     {
         $params = $this->getParamsArray($params);
         if (!$this->Table->getUser()->isCreator()) {
-            throw new errorException('Функция доступна только роли Создатель');
+            throw new errorException($this->translate('The function is only available for the Creator role.'));
         }
 
         if ($params['password'] !== $this->Table->getUser()->getVar('pass')) {
-            throw new errorException('Пароль не подходит');
+            throw new errorException($this->translate('Password doesn\'t match.'));
         }
 
         $pathDbPsql = $this->Table->getTotum()->getConfig()->getSshPostgreConnect('pg_dump');
@@ -129,14 +129,14 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params);
         if (!$this->Table->getUser()->isCreator()) {
-            throw new errorException('Функция доступна только роли Создатель');
+            throw new errorException($this->translate('The function is only available for the Creator role.'));
         }
 
         if ($params['password'] !== $this->Table->getUser()->getVar('pass')) {
-            throw new errorException('Пароль не подходит');
+            throw new errorException($this->translate('Password doesn\'t match.'));
         }
         if (empty($params['gzstring'])) {
-            throw new errorException('Строка схемы пуста');
+            throw new errorException($this->translate('Scheme string is empty.'));
         }
         $pathDbPsql = $this->Table->getTotum()->getConfig()->getSshPostgreConnect('psql');
 
@@ -180,11 +180,12 @@ class CalculateAction extends Calculate
             $tableRow = $this->__checkTableIdOrName($params['table'], 'table', '$table->reCalculate(reCalculate');
 
             if ($tableRow['type'] !== 'cycles') {
-                throw new errorException('Функция принимает только таблицы циклов');
+                throw new errorException($this->translate('The function is only available for cycles tables.'));
             }
+            $params['cycle'] = $params['cycle'] ?? null;
 
             if (!is_array($params['cycle']) && empty($params['cycle'])) {
-                throw new errorException('Не указан [[cycle]] в функции [[reCalculate]]');
+                throw new errorException($this->translate('Fill in the parameter [[%s]].', 'cycle'));
             }
 
             $Cycles = (array)$params['cycle'];
@@ -222,7 +223,7 @@ class CalculateAction extends Calculate
                 $s = 'ex';
                 break;
             default:
-                throw new errorException('Системная ошибка. Не указан тип действия');
+                throw new errorException($this->translate('System error. Action type not specified.'));
         }
         $this->startSections = array_merge(
             $this->allStartSections[''] ?? [],
@@ -244,7 +245,7 @@ class CalculateAction extends Calculate
 
         $params['schema'] = TotumInstall::applyMatches($params['schema'], $params);
         if (empty($params['matches_name'])) {
-            throw new errorException('Не определен источник схемы');
+            throw new errorException($this->translate('Scheme source not defined.'));
         }
 
         $TotumInstall->updateSchema($params['schema'], true, $params['matches_name']);
@@ -254,13 +255,13 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params);
         if (empty($params['title'])) {
-            throw new errorException('Заполните параметр [[title]]');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'title'));
         }
         if (empty($params['buttons'])) {
-            throw new errorException('Заполните параметр [[buttons]]');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'buttons'));
         }
         if (!is_array($params['buttons'])) {
-            throw new errorException('Параметр [[buttons]] должен содержать массив');
+            throw new errorException($this->translate('The [[%s]] parameter must contain an array.', 'buttons'));
         }
 
         $params['refresh'] = $params['refresh'] ?? false;
@@ -271,7 +272,7 @@ class CalculateAction extends Calculate
         foreach ($params['buttons'] as $btn) {
             foreach ($requiredByttonParams as $req) {
                 if (empty($btn[$req])) {
-                    throw new errorException('Каждая кнопка должна содержать [[' . $req . ']]');
+                    throw new errorException($this->translate('Each button must contain [[%s]].', $btn[$req]));
                 }
             }
             unset($btn['code']);
@@ -312,10 +313,10 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['var'], [], ['var']);
         if (empty($params['title'])) {
-            throw new errorException('Заполните параметр [[title]]');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'title'));
         }
         if (empty($params['code'])) {
-            throw new errorException('Заполните параметр [[code]]');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'code'));
         }
 
         $params['input'] = '';
@@ -361,13 +362,13 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, [], []);
 
         if (empty($params['to'])) {
-            throw new errorException('Параметр to обязателен');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'to'));
         }
         if (empty($params['title'])) {
-            throw new errorException('Параметр title обязателен');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'title'));
         }
         if (empty($params['body'])) {
-            throw new errorException('Параметр body обязателен');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'body'));
         }
 
         $toBfl = $params['bfl'] ?? in_array(
@@ -404,10 +405,10 @@ class CalculateAction extends Calculate
         $paramsBefore = $this->getParamsArray($params, [], ['catch', 'try']);
 
         if (!array_key_exists('try', $paramsBefore)) {
-            throw new errorException('try - обязательный параметр');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'try'));
         }
         if (!array_key_exists('catch', $paramsBefore)) {
-            throw new errorException('catch - обязательный параметр');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'catch'));
         }
 
         try {
@@ -425,7 +426,7 @@ class CalculateAction extends Calculate
                 'options',
                 $params
             ) && !is_array($params['options'])) {
-            throw new errorException('options должно быть типа row');
+            throw new errorException($this->translate('The parameter [[%s]] should be of type row/list.', 'options'));
         }
 
 
@@ -500,13 +501,13 @@ class CalculateAction extends Calculate
         $files = array_merge($params['files'] ?? [], $params['file'] ?? []);
         foreach ($files as &$file) {
             if (empty($file['name'])) {
-                throw new errorException('Пустой name не допустим');
+                throw new errorException($this->translate('Fill in the parameter [[%s]].', 'name'));
             }
             if (empty($file['filestring'])) {
-                throw new errorException('Пустой string не допустим');
+                throw new errorException($this->translate('Fill in the parameter [[%s]].', 'filestring'));
             }
             if (empty($file['type'])) {
-                throw new errorException('Пустой type не допустим');
+                throw new errorException($this->translate('Fill in the parameter [[%s]].', 'type'));
             }
             $file['string'] = base64_encode($file['filestring']);
             unset($file['filestring']);
@@ -519,10 +520,10 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['var'], [], ['var']);
         if (empty($params['title'])) {
-            throw new errorException('Заполните параметр [[title]]');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'title'));
         }
         if (empty($params['code'])) {
-            throw new errorException('Заполните параметр [[code]]');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'code'));
         }
 
         $vars = [];
@@ -580,7 +581,7 @@ class CalculateAction extends Calculate
 
                 $link .= $topTableRow['top'] . '/' . $topTableRow['id'] . '/' . $Cycle_id . '/' . $tableRow['id'] . '/';
             } else {
-                throw new errorException('Таблица циклов указана неверно');
+                throw new errorException($this->translate('The cycles table is specified incorrectly.'));
             }
         } else {
             $link .= $tableRow ['top'] . '/' . $tableRow['id'] . '/';
@@ -628,7 +629,7 @@ class CalculateAction extends Calculate
                 $params['template'],
                 $templates
             ))) {
-            throw new errorException('Шаблон не найден');
+            throw new errorException($this->translate('Template not found.'));
         }
 
         $style = $templates[$params['template']]['styles'];
@@ -648,13 +649,15 @@ class CalculateAction extends Calculate
                                     $value = $data[$matches[2]][$matches[3]] ?? null;
                                 } else {
                                     if (empty($data[$matches[2]]['template'])) {
-                                        throw new errorException('Не указан template для параметра [' . $matches[2] . ']');
+                                        throw new errorException($this->translate('No [[%s]] is specified for the [[%s]] parameter.',
+                                            ['template', $matches[2]]));
                                     }
                                     if (!array_key_exists(
                                         $data[$matches[2]]['template'],
                                         $templates
                                     )) {
-                                        throw new errorException('Не найден template [' . $data[$matches[2]]['template'] . '] для параметра [' . $matches[2] . ']');
+                                        throw new errorException($this->translate('Not found [[%s]] for the [[%s]] parameter.',
+                                            ['template', $matches[2]]));
                                     }
                                     $template = $templates[$data[$matches[2]]['template']];
                                     $html = '';
@@ -783,7 +786,7 @@ class CalculateAction extends Calculate
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         if ($tableRow['type'] !== "tmp") {
-            throw new errorException('Только для временных таблиц');
+            throw new errorException($this->translate('For temporary tables only.'));
         }
         $d = [];
         if (!empty($params['data'])) {
@@ -824,7 +827,7 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params);
 
-        $title = $params['title'] ?? 'Здесь должен быть title';
+        $title = $params['title'] ?? $this->translate('The %s should be here.', 'title');
 
         $width = $params['width'] ?? 600;
 
@@ -841,20 +844,20 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['var'], [], ['var']);
 
-        $title = $params['title'] ?? 'Здесь должен быть title';
+        $title = $params['title'] ?? $this->translate('The %s should be here.', 'title');
 
         $width = $params['width'] ?? 600;
 
         $data = ['title' => $title,
             'width' => $width,
             'json' => $params['data'],
-            'refresh'=>$params['refresh'] ?? false];
+            'refresh' => $params['refresh'] ?? false];
 
 
         if (!empty($params['code'])) {
-            $vars=[];
-            foreach ($params['var']??[] as $var){
-                $vars[$var['field']]=$var['value'];
+            $vars = [];
+            foreach ($params['var'] ?? [] as $var) {
+                $vars[$var['field']] = $var['value'];
             }
             $saveData = ['code' => $params['code'], 'var' => $vars];
 
@@ -862,12 +865,12 @@ class CalculateAction extends Calculate
             $model = $this->Table->getTotum()->getNamedModel(TmpTables::class);
             $saveData['env'] = $this->getEnvironment();
 
-            $hash=$model->getNewHash(TmpTables::serviceTables['linktodatajson'],
+            $hash = $model->getNewHash(TmpTables::serviceTables['linktodatajson'],
                 $this->Table->getTotum()->getUser(),
                 $saveData);
 
 
-            $data['hash']=$hash;
+            $data['hash'] = $hash;
             $data['buttontext'] = $params['buttontext'] ?? 'OK';
         }
 
@@ -881,7 +884,7 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params);
 
-        $title = $params['title'] ?? 'Здесь должен быть title';
+        $title = $params['title'] ?? $this->translate('The %s should be here.', 'title');
 
         $width = $params['width'] ?? 600;
 
@@ -900,7 +903,7 @@ class CalculateAction extends Calculate
                 'num',
                 $params
             ) || !is_numeric(strval($params['num']))) {
-            throw new errorException('Параметр num обязателен и должен быть числом');
+            throw new errorException($this->translate('Parametr [[%s]] is required and should be a number.', 'num'));
         }
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
 
@@ -910,10 +913,10 @@ class CalculateAction extends Calculate
             $table,
             RealTables::class
         )) {
-            throw new errorException('Нормализация проводится только для простых таблиц и таблиц циклов');
+            throw new errorException($this->translate('For simple and cycles tables only.'));
         }
         if (!$tableRow['with_order_field']) {
-            throw new errorException('Таблица не сортируется по N');
+            throw new errorException($this->translate('The table has no n-sorting.'));
         }
 
         if ($table->getNTailLength() >= (int)$params['num']) {
@@ -942,7 +945,7 @@ class CalculateAction extends Calculate
                 $Cycle = $this->Table->getTotum()->getCycle($Cycle_id, $tableRow['tree_node_id']);
                 $linkedTable = $Cycle->getTable($tableRow);
             } else {
-                throw new errorException('Таблица циклов указана неверно');
+                throw new errorException($this->translate('The cycles table is specified incorrectly.'));
             }
         } else {
             $linkedTable = $this->Table->getTotum()->getTable($tableRow);
@@ -1007,11 +1010,12 @@ class CalculateAction extends Calculate
                 '`https?://`',
                 $params['uri']
             )) {
-            throw new errorException('Параметр uri обязателен и должен начитаться с http/https');
+            throw new errorException($this->translate('The %s parameter is required and must start with %s.',
+                ['uri', 'http/https']));
         }
 
         $link = $params['uri'];
-        $title = $params['title'] ?? 'Обращение к стороннему скрипту';
+        $title = $params['title'] ?? $this->translate('Calling a third-party script.');
         if (!empty($params['post'])) {
             $post = $this->__getActionFields($params['post'], 'linkToScript');
         }
@@ -1078,17 +1082,18 @@ class CalculateAction extends Calculate
         if ($params = $this->getParamsArray($params)) {
             $table = $this->getSourceTable($params);
             if ($table->getTableRow()['type'] === 'tmp') {
-                throw new errorException('Нельзя писать в лог данные временной таблицы');
+                throw new errorException($this->translate('Not for the temporary table.'));
             }
             if (empty($params['field'])) {
-                throw new errorException('Заполните поле field');
+                throw new errorException($this->translate('Fill in the parameter [[%s]].', 'field'));
             }
             if (!($field = $table->getFields()[$params['field']])) {
-                throw new errorException('Поле [[' . $params['field'] . ']] не найдено в таблице ' . $table->getTableRow()['name']);
+                throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
+                    [$params['field'], $table->getTableRow()['name']]));
             }
             if ($field['category'] === 'column') {
                 if (!is_numeric($params['id'])) {
-                    throw new errorException('Поле id должно быть числовым');
+                    throw new errorException($this->translate('The %s field must be numeric.', 'id'));
                 }
 
 
@@ -1097,7 +1102,8 @@ class CalculateAction extends Calculate
                     'row'
                 );
                 if (!$valID) {
-                    throw new errorException('Строка с ид ' . $params['id'] . ' не найдена в таблице ' . $table->getTableRow()['name']);
+                    throw new errorException($this->translate('The row with %s was not found in table %s.',
+                        ['id ' . $params['id'], $table->getTableRow()['name']]));
                 }
                 $val = $valID[$params['field']];
             } else {
@@ -1122,7 +1128,8 @@ class CalculateAction extends Calculate
 
         if ($params['fields'] ?? null) {
             if (!is_array($params['fields'])) {
-                throw new errorException('Параметр fields должен быть row или list');
+                throw new errorException($this->translate('The parameter [[%s]] should be of type row/list.',
+                    'fields'));
             }
 
             if (ctype_digit((string)array_keys($params['fields'])[0])) {
@@ -1443,13 +1450,14 @@ class CalculateAction extends Calculate
         $table = $this->getSourceTable($params);
         $params['field'] = $params['field'][0] ?? null;
         if (!$params['field']) {
-            throw new errorException('Поле кнопки не указано');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'field'));
         }
         if (!key_exists(
             $params['field'],
             $table->getFields()
         )) {
-            throw new errorException('Поле кнопки не указано');
+            throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
+                [$params['field'], $table->getTableRow()['name']]));
         }
 
         $field = $table->getFields()[$params['field']];

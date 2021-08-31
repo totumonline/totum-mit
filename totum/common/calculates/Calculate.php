@@ -13,6 +13,7 @@ use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FieldModifyItem;
 use totum\common\Formats;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\sql\SqlException;
 use totum\common\Json\TotumJson;
@@ -36,7 +37,6 @@ class Calculate
     protected $row;
     protected $tbl;
     protected $code;
-    protected $dectimalPlaces;
     protected $varName;
     protected $log;
     protected $error;
@@ -80,6 +80,11 @@ class Calculate
 
         $this->code = $code;
         $this->formStartSections();
+    }
+
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->Table->getTotum()->getLangObj()->translate($str, $vars);
     }
 
     protected function formStartSections()
@@ -1546,7 +1551,7 @@ SQL;
                                 if (!array_key_exists($nameVar, $this->vars)) {
                                     throw new errorException('Переменная  [[' . $nameVar . ']] не определена');
                                 }
-                                if(is_callable($this->vars[$nameVar])){
+                                if (is_callable($this->vars[$nameVar])) {
                                     $this->vars[$nameVar] = $this->vars[$nameVar]();
                                 }
                                 $r = $this->vars[$nameVar];

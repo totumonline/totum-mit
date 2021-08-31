@@ -9,8 +9,8 @@
 namespace totum\common\configs;
 
 use totum\common\calculates\CalculateAction;
-use totum\common\criticalErrorException;
 use totum\common\errorException;
+use totum\common\Lang\LangInterface;
 use totum\common\logs\Log;
 use totum\common\sql\Sql;
 use totum\common\sql\SqlException;
@@ -73,6 +73,7 @@ abstract class ConfParent
      */
     protected $baseDir;
     protected $procVars = [];
+    protected $Lang;
 
 
     public function __construct($env = self::ENV_LEVELS["production"])
@@ -88,6 +89,15 @@ abstract class ConfParent
         $this->tmpTableChangesDirPath = $this->baseDir . $this->tmpTableChangesDirPath;
         $this->logsDir = $this->baseDir . $this->logsDir;
         $this->env = $env;
+
+        if (empty(static::LANG)) {
+            throw new Exception('Language is not defined in constant LANG in Conf.php');
+        }
+        if (!class_exists('totum\\common\\Lang\\' . static::LANG)) {
+            throw new Exception('Specified ' . static::LANG . ' language is not supported');
+        }
+        $this->Lang = new ('totum\\common\\Lang\\' . static::LANG)();
+
     }
 
     public function getDefaultSender()
@@ -386,9 +396,9 @@ abstract class ConfParent
     {
         $this->getObjectWithExtFunctions();
         if (!property_exists(
-            $this->CalculateExtensions,
-            $funcName
-        ) || !is_callable($this->CalculateExtensions->$funcName)) {
+                $this->CalculateExtensions,
+                $funcName
+            ) || !is_callable($this->CalculateExtensions->$funcName)) {
             throw new errorException('Функция [[' . $funcName . ']] не найдена');
         }
         return $this->CalculateExtensions->$funcName;
@@ -668,6 +678,11 @@ ON CONFLICT (name) DO UPDATE
         }
 
         return $this->procVars[$name] ?? null;
+    }
+
+    public function getLangObj(): LangInterface
+    {
+        return $this->Lang;
     }
 
     public function getTotumFooter()

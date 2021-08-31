@@ -137,6 +137,8 @@ abstract class aTable
         $this->hash = $hash;
         $this->tableRow['pagination'] = $this->tableRow['pagination'] ?? '0/0';
         $this->Totum = $Totum;
+
+
     }
 
     /**

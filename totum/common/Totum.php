@@ -407,4 +407,9 @@ class Totum
     {
         return null;
     }
+
+    public function getLangObj(): Lang\LangInterface
+    {
+        return $this->Config->getLangObj();
+    }
 }

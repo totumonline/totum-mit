@@ -177,7 +177,7 @@ abstract class ConfParent
         return $this->tmpTableChangesDirPath;
     }
 
-    public function getSchema($force = true)
+    public function getSchema($force = true): string
     {
         if ($force && empty($this->schemaName)) {
             errorException::criticalException('Схема не подключена', $this);

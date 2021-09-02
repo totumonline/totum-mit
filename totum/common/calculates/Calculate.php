@@ -26,6 +26,12 @@ use totum\tableTypes\RealTables;
 
 class Calculate
 {
+    use FuncDatesTrait;
+    use FuncArraysTrait;
+    use FuncStrTrait;
+    use FuncNumbersTrait;
+    use FuncNowTrait;
+
     protected static $codes;
     protected static $initCodes = [];
 
@@ -438,14 +444,13 @@ class Calculate
         return $r;
     }
 
-    public static function getDateObject($dateFromParams, LangInterface $Lang)
+    public static function getDateObject($dateFromParams, LangInterface $Lang): \DateTime|null
     {
-        $date = null;
         if (is_array($dateFromParams)) {
             throw new errorException($Lang->translate('There should be a date, not a list.'));
         }
         $dateFromParams = strval($dateFromParams);
-        if ($dateFromParams !== "") {
+        if ($dateFromParams !== '') {
             foreach (['Y-m-d', 'd.m.y', 'd.m.Y', 'Y-m-d H:i', 'd.m.y H:i', 'd.m.Y H:i', 'Y-m-d H:i:s'] as $format) {
                 if ($date = date_create_from_format($format, $dateFromParams)) {
                     if (!strpos($format, 'H')) {
@@ -758,43 +763,39 @@ class Calculate
 
     protected function funcExec($params)
     {
-        if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $code = $params['code'] ?? $params['kod'] ?? '';
-            if (!empty($code)) {
-                if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
-                    $code = $this->Table->getFields()[$code]['code'] ?? '';
-                }
+        $params = $this->getParamsArray($params, ['var'], ['var']);
 
-                $CA = new Calculate($code);
-                try {
-                    $Vars = [];
-                    foreach ($params['var'] ?? [] as $v) {
-                        $Vars = array_merge($Vars, $this->getExecParamVal($v));
-                    }
-                    $r = $CA->exec(
-                        $this->varData,
-                        $this->newVal,
-                        $this->oldRow,
-                        $this->row,
-                        $this->oldTbl,
-                        $this->tbl,
-                        $this->Table,
-                        $Vars
-                    );
+        $code = $params['code'] ?? $params['kod'] ?? '';
+        if (!empty($code)) {
+            if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
+                $code = $this->Table->getFields()[$code]['code'] ?? '';
+            }
 
-                    $this->newLogParent['children'][] = $CA->getLogVar();
-                    return $r;
-                } catch (errorException $e) {
-                    $this->newLogParent['children'][] = $CA->getLogVar();
-                    throw $e;
+            $CA = new Calculate($code);
+            try {
+                $Vars = [];
+                foreach ($params['var'] ?? [] as $v) {
+                    $Vars = array_merge($Vars, $this->getExecParamVal($v));
                 }
+                $r = $CA->exec(
+                    $this->varData,
+                    $this->newVal,
+                    $this->oldRow,
+                    $this->row,
+                    $this->oldTbl,
+                    $this->tbl,
+                    $this->Table,
+                    $Vars
+                );
+
+                $this->newLogParent['children'][] = $CA->getLogVar();
+                return $r;
+            } catch (errorException $e) {
+                $this->newLogParent['children'][] = $CA->getLogVar();
+                throw $e;
             }
         }
-    }
-
-    protected function funcNowSchema()
-    {
-        return $this->Table->getTotum()->getConfig()->getSchema();
+        return null;
     }
 
     protected function setEnvironmentVars($varData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table)
@@ -1072,36 +1073,6 @@ SQL;
         )->fetchAll();
     }
 
-    protected function funcStrSplit($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkRequiredParams($params, ['str'], 'strSplit');
-
-        if (is_array($params['str'])) {
-            throw new errorException($this->translate('The %s parameter should not be an array.', 'str'));
-        }
-
-        if (!key_exists('separator', $params)) {
-            $list = [$params['str']];
-        } elseif ($params['separator'] === '' || is_null($params['separator'])) {
-            $list = str_split($params['str']);
-        } elseif (is_array($params['separator'])) {
-            throw new errorException($this->translate('The %s parameter should not be an array.', 'separator'));
-        } else {
-            $list = explode($params['separator'], $params['str']);
-        }
-        if (key_exists('limit', $params)) {
-            if (!ctype_digit(strval($params['limit']))) {
-                throw new errorException($this->translate('The %s parameter must be a number.', 'limit'));
-            }
-            if ($params['limit'] < count($list)) {
-                $list = array_slice($list, 0, $params['limit']);
-            }
-        }
-
-        return $list;
-    }
-
     protected function funcLogRowList($params)
     {
         $params = $this->getParamsArray($params);
@@ -1247,82 +1218,6 @@ SQL;
         return $data;
     }
 
-    protected function funcListMath($params)
-    {
-        $params = $this->getParamsArray($params, ['list']);
-
-        $list = $params['list'][0] ?? false;
-        $this->__checkListParam($list, 'list');
-
-        $func = match ($params['operator'] ?? '') {
-            '+' => function ($l, $num) {
-                return round($l + $num, 10);
-            },
-            '-' => function ($l, $num) {
-                return round($l - $num, 10);
-            },
-            '*' => function ($l, $num) {
-                return round($l * $num, 10);
-            },
-            '^' => function ($l, $num) {
-                return pow($l, $num);
-            },
-            '/' => function ($l, $num) {
-                if ((float)$num === 0.0) {
-                    throw new errorException($this->translate('Division by zero.'));
-                }
-                return round($l / $num, 10);
-            },
-            default => throw new errorException($this->translate('The [[%s]] parameter must be set to one of the following values: %s',
-                ['operator', '+,-,/,*'])),
-        };
-
-        for ($i = 1; $i < count($params['list']); $i++) {
-            $list2 = $params['list'][$i] ?? false;
-            $this->__checkListParam($list2, 'list2');
-            foreach ($list as $k => &$l) {
-                if (empty($l)) {
-                    $l = 0;
-                }
-
-                if (!is_numeric((string)$l)) {
-                    throw new errorException($this->translate('Non-numeric parameter in the list %s', ''));
-                }
-                if (!key_exists($k, $list2)) {
-                    throw new errorException($this->translate('There is no [[%s]] key in the [[%s]] list.',
-                        [$k, ($i + 1)]));
-                }
-                if (empty($list2[$k])) {
-                    $list2[$k] = 0;
-                }
-                if (!is_numeric((string)$list2[$k])) {
-                    throw new errorException($this->translate('Non-numeric parameter in the list %s',
-                        (string)($i + 1)));
-                }
-
-                $l = $func($l, $list2[$k]);
-            }
-            unset($l);
-        }
-
-
-        if (key_exists('num', $params)) {
-            $num = $params['num'];
-            $this->__checkNumericParam($num, 'num');
-            foreach ($list as &$l) {
-                if (empty($l)) {
-                    $l = 0;
-                }
-                if (!is_numeric((string)$l)) {
-                    throw new errorException($this->translate('Non-numeric parameter in the list %s', ''));
-                }
-                $l = $func($l, $num);
-            }
-            unset($l);
-        }
-        return $list;
-    }
-
     protected function funcFileGetContent($params)
     {
         $params = $this->getParamsArray($params);
@@ -1331,49 +1226,6 @@ SQL;
         }
 
         return File::getContent($params['file'], $this->Table->getTotum()->getConfig());
-    }
-
-    protected function funcStrRegMatches($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $params['template'] = (string)$params['template'] ?? '';
-        $params['str'] = (string)$params['str'] ?? '';
-        $params['flags'] = (string)$params['flags'] ?? '';
-
-
-        if ($r = preg_match(
-            '/' . str_replace('/', '\/', $params['template']) . '/'
-            . ($params['flags'] ?? 'u'),
-            $params['str'],
-            $matches
-        )) {
-            if ($params['matches'] ?? null) {
-                $this->vars[$params['matches']] = $matches;
-            }
-        }
-        if ($r === false) {
-            throw new errorException($this->translate('Regular expression error: [[%s]]', $params['template']));
-        }
-        return !!$r;
-    }
-
-    protected function funcStrRegAllMatches($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        if ($r = preg_match_all(
-            '/' . str_replace('/', '\/', $params['template']) . '/'
-            . ($params['flags'] ?? 'u'),
-            $params['str'],
-            $matches
-        )) {
-            $this->vars[$params['matches']] = $matches;
-        }
-        if ($r === false) {
-            throw new errorException($this->translate('Regular expression error: [[%s]]', $params['template']));
-        }
-        return !!$r;
     }
 
     protected function funcWhile($params)
@@ -1812,52 +1664,6 @@ SQL;
         return $r;
     }
 
-    protected function funcNumFormat($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $value = (string)($params['num'] ?? null);
-
-        if (is_numeric($value)) {
-            return number_format(
-                    $value,
-                    $params['dectimals'] ?? 0,
-                    $params['decsep'] ?? ',',
-                    $params['thousandssep'] ?? ''
-                )
-                . ($params['unittype'] ?? '');
-        }
-    }
-
-    protected function funcNumRand($params)
-    {
-        $params = $this->getParamsArray($params);
-        if (key_exists('min', $params)) {
-            if (key_exists('max', $params)) {
-                return rand($params['min'] ?? 0, $params['max'] ?? 0);
-            }
-            return rand($params['min'] ?? 0);
-        }
-        return rand();
-    }
-
-    protected function diffDates($date1, $date2, $unit)
-    {
-        switch ($unit) {
-            case 'year':
-                $diff = $date1->diff($date2);
-                return $diff->y + $diff->m / 12 + $diff->d / 365;
-            case 'month':
-                $diff = $date1->diff($date2);
-                return $diff->m + $diff->y * 12 + $diff->d / 30;
-            case 'minute':
-                return ($date2->getTimestamp() - $date1->getTimestamp()) / (60);
-            case 'hour':
-                return ($date2->getTimestamp() - $date1->getTimestamp()) / (60 * 60);
-            default:
-                return ($date2->getTimestamp() - $date1->getTimestamp()) / (24 * 60 * 60);
-        }
-    }
 
     protected function funcIf($params)
     {
@@ -1893,234 +1699,6 @@ SQL;
 
     }
 
-    protected function funcStrBaseEncode($params)
-    {
-        $params = $this->getParamsArray($params);
-        if (!key_exists('str', $params) || is_array($params['str'])) {
-            throw new errorException($this->translate('Parametr [[%s]] is required and should be a string.', 'str'));
-        }
-        return base64_encode($params['str']);
-    }
-
-    protected function funcStrBaseDecode($params)
-    {
-        $params = $this->getParamsArray($params);
-        if (!key_exists('str', $params) || is_array($params['str'])) {
-            throw new errorException($this->translate('Parametr [[%s]] is required and should be a string.', 'str'));
-        }
-        return base64_decode($params['str']);
-    }
-
-    protected function funcDiffDates($params)
-    {
-        $vars = $this->getParamsArray($params, ['date']);
-        if (empty($vars['date']) || count($vars['date']) != 2) {
-            throw new errorException($this->translate('There must be two [[%s]] parameters in the [[%s]] function.',
-                ['date', 'diffDates']));
-        }
-
-        $date1 = $this->__checkGetDate($vars['date'][0], 'date - 1', 'diffDates');
-        $date2 = $this->__checkGetDate($vars['date'][1], 'date - 2', 'diffDates');
-
-        return $this->diffDates($date1, $date2, $vars['unit'] ?? 'day');
-    }
-
-    protected function funcDateDiff($params)
-    {
-        return $this->funcDiffDates($params);
-    }
-
-    protected function funcsysTranslit($params)
-    {
-        $vars = $this->getParamsArray($params);
-        $str = $vars['str'] ?? '';
-        return Formats::translit($str);
-    }
-
-    protected function funcstrRandom($params)
-    {
-        $characters = "";
-        $numbers = "0123456789";
-        $letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        $simbols = "!@#$%^&*()_+=-%,.;:";
-
-        $params = $this->getParamsArray($params);
-        $length = (int)$params['length'] ?? 0;
-        if ($length < 1) {
-            throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].', ['length', '> 0']));
-        }
-        if (array_key_exists('numbers', $params)) {
-            switch ($params['numbers']) {
-                case "true":
-                    $characters .= $numbers;
-                    break;
-                case "false":
-                    break;
-                default:
-                    $characters .= strval($params['numbers']);
-            }
-        } else {
-            $characters .= $numbers;
-        }
-
-        if (array_key_exists('letters', $params)) {
-            switch ($params['letters']) {
-                case "true":
-                    $characters .= $letters;
-                    break;
-                case "false":
-                    break;
-                default:
-                    $characters .= strval($params['letters']);
-            }
-        }
-        if (array_key_exists('simbols', $params)) {
-            switch ($params['simbols']) {
-                case 'true':
-                    $characters .= $simbols;
-                    break;
-                case 'false':
-                    break;
-                default:
-                    $characters .= strval($params['simbols']);
-            }
-        }
-        if (!$characters) {
-            throw new errorException($this->translate('No characters selected for generation.'));
-        }
-
-        $charactersLength = mb_strlen($characters, 'utf-8');
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= mb_substr($characters, mt_rand(0, $charactersLength - 1), 1, 'utf-8');
-        }
-        return $randomString;
-    }
-
-    protected function funcStrAdd($params)
-    {
-        $vars = $this->getParamsArray($params, ['str']);
-        ksort($vars);
-        $str = '';
-
-        foreach ($vars['str'] ?? [] as $v) {
-            if (is_array($v)) {
-                throw new errorException($this->translate('The parameter [[%s]] should be of type string.', 'str'));
-            }
-            $str .= $v;
-        }
-
-        return $str;
-
-    }
-
-    protected function funcStrPart($params): string
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkRequiredParams($params, ['str', 'offset'], 'strPart');
-
-        if ($params['str']) {
-            if (is_array($params['str'])) {
-                throw new errorException($this->translate('The parameter [[%s]] should be of type string.', 'str'));
-            }
-            $str = (string)$params['str'];
-        } else {
-            $str = '';
-        }
-        if ($params['offset']) {
-            if (is_array($params['offset'])) {
-                throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
-            }
-            $offset = (int)$params['offset'];
-        } else {
-            $offset = 0;
-        }
-        $length = null;
-
-        if (key_exists('length', $params)) {
-            if (is_array($params['length'])) {
-                throw new errorException($this->translate('The %s parameter must be a number.', 'length'));
-            }
-            if ($params['length']) {
-                $length = (int)$params['length'];
-            } else {
-                $length = $params['length'];
-            }
-        }
-
-        return mb_substr($str, $offset, $length, 'UTF-8');
-    }
-
-    protected function funcStrGz($params)
-    {
-        if (($params = $this->getParamsArray($params)) && array_key_exists('str', $params)) {
-            if (is_array($params['str'])) {
-                throw new errorException($this->translate('The parameter [[%s]] should be of type string.', 'str'));
-            }
-            return gzencode($params['str']);
-        } else {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'str'));
-        }
-    }
-
-    protected function funcStrUnGz($params)
-    {
-        if (($params = $this->getParamsArray($params)) && array_key_exists('str', $params)) {
-            return gzdecode($params['str']);
-        } else {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'str'));
-        }
-    }
-
-    protected function funcNowDate($params)
-    {
-        $params = $this->getParamsArray($params);
-        return $this->dateFormat(date_create(), ($params['format'] ?? 'Y-m-d H:i'), $params['lang'] ?? null);
-    }
-
-    protected function funcNowField()
-    {
-        if (empty($this->varName)) {
-            throw new errorException($this->translate('There is no NowField enabled in this type of code. We\'ll fix it - write us.'));
-        }
-        return $this->varName;
-    }
-
-    protected function funcNowFieldValue()
-    {
-        if (empty($this->varName)) {
-            throw new errorException($this->translate('There is no NowField enabled in this type of code. We\'ll fix it - write us.'));
-        }
-
-        return $this->getParam('#' . $this->varName, ['type' => 'param', 'param' => '#' . $this->varName]);
-    }
-
-
-    protected function funcNowTableName()
-    {
-        return $this->Table->getTableRow()['name'];
-    }
-
-    protected function funcNowTableId()
-    {
-        return $this->Table->getTableRow()['id'];
-    }
-
-    protected function funcNowTableUpdatedDt()
-    {
-        return json_decode($this->Table->getSavedUpdated(), true)['dt'];
-    }
-
-
-    protected function funcNowCycleId()
-    {
-        if ($this->Table->getTableRow()['type'] != 'calcs') {
-            throw new errorException($this->translate('[[%s]] is available only for the calculation table in the cycle.',
-                'NowCycleId'));
-        }
-        return $this->Table->getCycle()->getId();
-    }
 
     protected function funcErrorExeption($params)
     {
@@ -2129,73 +1707,6 @@ SQL;
                 throw new errorException((string)$params['text']);
             }
         }
-    }
-
-    protected function funcStrReplace($params)
-    {
-        $params = $this->getParamsArray($params);
-        if (!array_key_exists('str', $params)) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'str'));
-        }
-        if (!array_key_exists('from', $params)) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'from'));
-        }
-        if (!array_key_exists('to', $params)) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'to'));
-        }
-
-        return str_replace($params['from'], $params['to'], $params['str']);
-
-    }
-
-    protected function funcStrTransform($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkRequiredParams($params, ['str', 'to'], 'strTransform');
-        $this->__checkNotArrayParams($params, ['str', 'to']);
-
-        return match ($params['to'] ?? '') {
-            'upper' => mb_convert_case($params['str'], MB_CASE_UPPER, 'UTF-8'),
-            'lower' => mb_convert_case($params['str'], MB_CASE_LOWER, 'UTF-8'),
-            'capitalize' => mb_convert_case($params['str'], MB_CASE_TITLE, 'UTF-8'),
-            default => throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'to')),
-        };
-
-    }
-
-    protected function funcStrRepeat($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkRequiredParams($params, ['str', 'num'], 'strRepeat');
-        $this->__checkNotArrayParams($params, ['str', 'num']);
-        return str_repeat($params['str'], (int)$params['num']);
-    }
-
-    protected function funcListRepeat($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkRequiredParams($params, ['item', 'num'], 'ListRepeat');
-
-        return array_fill(0, (int)$params['num'], $params['item']);
-    }
-
-    protected function funcStrLength($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkRequiredParams($params, ['str'], 'strLength');
-        $this->__checkNotArrayParams($params, ['str']);
-
-        return mb_strlen($params['str'], 'utf-8');
-
-    }
-
-    protected function funcStrMd5($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkRequiredParams($params, ['str'], 'strMd5');
-        $this->__checkNotArrayParams($params, ['str']);
-
-        return md5($params['str']);
     }
 
     protected function funcExecSSH($params)
@@ -2227,31 +1738,6 @@ SQL;
             setlocale(LC_CTYPE, $localeOld);
         }
         return shell_exec($string);
-    }
-
-    protected function funcDateAdd($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        if (empty($params['date'])) {
-            return null;
-        }
-        $date = $this->__checkGetDate($params['date'], 'date', 'dateAdd');
-
-
-        foreach (['days' => 'day', 'hours' => 'hour', 'minutes' => 'minute', 'years' => 'year', 'months' => 'month'] as $period => $datePeriodStr) {
-            if (!empty($params[$period])) {
-                $this->__checkNumericParam($params[$period], $period);
-
-                $periodVal = intval($params[$period]);
-                if ($periodVal > 0) {
-                    $periodVal = '+' . $periodVal;
-                }
-
-                $date->modify($periodVal . ' ' . $datePeriodStr);
-            }
-        }
-        return $this->dateFormat($date, ($params['format'] ?? 'Y-m-d H:i'), $params['lang'] ?? null);
     }
 
     protected function funcJsonExtract($params)
@@ -2305,87 +1791,6 @@ SQL;
         return $date;
     }
 
-    protected function funcDateFormat($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        if (($params['date'] ?? '') === '') {
-            return '';
-        }
-        $this->__checkRequiredParams($params, ['date', 'format']);
-        $this->__checkNotArrayParams($params, ['date', 'format']);
-        $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
-        return $this->dateFormat($date, strval($params['format']), $params['lang'] ?? null);
-    }
-
-    protected function funcListCheck($params): bool
-    {
-        $params = $this->getParamsArray($params);
-        if (!key_exists('list', $params) || !is_array($params['list'])) {
-            return false;
-        }
-        return true;
-    }
-
-    protected function dateFormat(\DateTime $date, $fStr, $lang = null): string
-    {
-        switch ($lang) {
-            case 'ru':
-                $result = '';
-                $format = new Formats;
-                foreach (preg_split(
-                             '/([DlMF])/',
-                             $fStr,
-                             null,
-                             PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
-                         ) as $split) {
-                    $var = null;
-                    switch ($split) {
-                        case 'D':
-                            $var = "weekDaysShort";
-                        // no break
-                        case 'l':
-                            $var = $var ?? "weekDays";
-                            $result .= $format->getConstant($var)[$date->format('N')];
-                            break;
-                        case 'F':
-                            $var = "months";
-                        // no break
-                        case 'M':
-                            $var = $var ?? "monthsShort";
-                            $result .= $format->getConstant($var)[$date->format('n')];
-                            break;
-                        default:
-                            $result .= $date->format($split);
-                    }
-                }
-                return $result;
-            default:
-                return $date->format($fStr);
-        }
-    }
-
-    protected function funcDateWeekDay($params)
-    {
-        $params = $this->getParamsArray($params);
-        $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
-
-        $formated = match ($params['format'] ?? null) {
-            'number' => $date->format('N'),
-            'short' => Formats::weekDaysShort[$date->format('N')],
-            'full' => Formats::weekDays[$date->format('N')],
-            default => throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'format')),
-        };
-
-        return $formated;
-
-    }
-
-    protected function funcNowUser()
-    {
-        return strval($this->Table->getTotum()->getUser()->getId());
-    }
-
     protected function funcUserInRoles($params)
     {
         if ($params = $this->getParamsArray($params, ['role'])) {
@@ -2397,42 +1802,6 @@ SQL;
             }
         }
         return false;
-    }
-
-    protected function funcNowRoles()
-    {
-        return $this->Table->getTotum()->getUser()->getRoles();
-    }
-
-    protected function funcListMax($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkListParam($params['list'], 'list');
-
-        $max = null;
-        foreach ($params['list'] as $l) {
-            $l = strval($l);
-            if (is_null($max)) {
-                $max = $l;
-                continue;
-            }
-            if (is_numeric($l) && is_numeric($max)) {
-                if (floatval($max) < floatval($l)) {
-                    $max = $l;
-                }
-            } elseif ($l > $max) {
-                $max = $l;
-            }
-        }
-        if (is_null($max)) {
-            if (array_key_exists('default', $params)) {
-                return $params['default'];
-            }
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'default'));
-        }
-
-        return $max;
     }
 
     protected function funcGetVar($params)
@@ -2490,50 +1859,6 @@ SQL;
     }
 
 
-    protected function funcListMin(string $params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkListParam($params['list'], 'list');
-
-        $min = null;
-        foreach ($params['list'] as $l) {
-            $l = strval($l);
-            if (is_null($min)) {
-                $min = $l;
-                continue;
-            }
-            if (is_numeric($l) && is_numeric($min)) {
-                if (floatval($min) > floatval($l)) {
-                    $min = $l;
-                }
-            } elseif ($l < $min) {
-                $min = $l;
-            }
-        }
-        if (is_null($min)) {
-            if (array_key_exists('default', $params)) {
-                return $params['default'];
-            }
-
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'default'));
-        }
-
-        return $min;
-    }
-
-    protected function funcListItem(string $params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkListParam($params['list'], 'list');
-
-        $this->__checkRequiredParams($params, ['item']);
-        $this->__checkNotArrayParams($params, ['item']);
-
-
-        return $params['list'][$params['item']] ?? null;
-    }
-
     protected function funcGetTableSource(string $params)
     {
         $params = $this->getParamsArray($params);
@@ -2569,384 +1894,6 @@ SQL;
         return json_decode($SourceTable->getSavedUpdated(), true);
     }
 
-    protected function funcListSum(string $params): float
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkListParam($params['list'], 'list');
-
-        $sum = 0;
-        foreach ($params['list'] as $l) {
-            $sum += floatval($l);
-        }
-
-        return round($sum, 10);
-    }
-
-    protected function funcListCount($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkListParam($params['list'], 'list');
-
-        return count($params['list']);
-    }
-
-    protected function funcListCut(string $params): array
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkListParam($params['list'], 'list');
-        $list = $params['list'];
-        $num = (int)($params['num'] ?? 1);
-
-        if ($num !== 0) {
-            if ($num > count($list)) {
-                throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].',
-                    ['num', '<=' . count($params['list'])]));
-            }
-            switch ($params['cut'] ?? null) {
-                case 'first':
-                    array_splice($list, 0, $num);
-                    break;
-                case 'last':
-                    array_splice($list, -$num, $num);
-                    break;
-                default:
-                    throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'cut'));
-            }
-        }
-        return $list;
-    }
-
-    protected function funcListJoin($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkListParam($params['list'], 'list');
-
-        return implode(($params['str'] ?? ''), $params['list']);
-    }
-
-    protected function funcListTrain(string $params): array
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkListParam($params['list'], 'list');
-
-        $mainlist = [];
-        foreach ($params['list'] as $list) {
-            if (!is_array($list)) {
-                throw new errorException($this->translate('All list elements must be lists.'));
-            }
-            $mainlist = array_merge($mainlist, $list);
-        }
-
-        return $mainlist;
-    }
-
-    protected function funcListCreate($params)
-    {
-        $params = $this->getParamsArray($params, ['item']);
-        return $params['item'] ?? [];
-    }
-
-    protected function funcListUniq($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        if ($params['list']) {
-            $this->__checkListParam($params['list'], 'list');
-            return array_values(
-                array_unique(
-                    $params['list'],
-                    is_array($params['list'][0] ?? null) ? SORT_REGULAR : SORT_STRING
-                )
-            );
-        } else {
-            return [];
-        }
-    }
-
-    protected function funcListMinus($params)
-    {
-        $params = $this->getParamsArray($params, ['list', 'item']);
-
-        $MainList = null;
-
-        if (!$params['list'][0]) {
-            return [];
-        }
-
-        foreach ($params['list'] as $i => $list) {
-            if ($list) {
-                $this->__checkListParam($list, 'list' . (++$i));
-                if (is_null($MainList)) {
-                    $MainList = $list;
-                } else {
-                    $MainList = @array_diff($MainList, $list);
-                }
-            }
-        }
-        foreach ($params['item'] ?? [] as $i => $item) {
-            $MainList = array_diff($MainList, [$item]);
-        }
-
-        return array_values($MainList);
-    }
-
-    protected function funcListSort(string $params): array
-    {
-        $params = $this->getParamsArray($params, [], [], []);
-        $this->__checkListParam($params['list'], 'list');
-
-        $flags = 0;
-        $params['type'] = $params['type'] ?? 'regular';
-        $this->__checkNotArrayParams($params, ['type']);
-
-        $flags = match ($params['type']) {
-            'number' => $flags | SORT_NUMERIC,
-            'string' => $flags | SORT_STRING,
-            default => $flags | SORT_REGULAR,
-        };
-
-        switch ($params['key'] ?? 'value') {
-            case 'key':
-                if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    $isAssoc = (array_keys($params['list']) !== range(
-                                0,
-                                count($params['list']) - 1
-                            )) && count($params['list']) > 0;
-
-                    if ($isAssoc) {
-                        krsort($params['list'], $flags);
-                    } else {
-                        $params['list'] = array_reverse($params['list'], $flags);
-                    }
-                } else {
-                    ksort($params['list'], $flags);
-                }
-
-                break;
-            case 'item':
-                if (is_null($params['item'] ?? null)) {
-                    throw new errorException($this->translate('Fill in the parameter [[%s]].', 'item'));
-                }
-
-                if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    $sort = SORT_DESC;
-                } else {
-                    $sort = SORT_ASC;
-                }
-                $column = array_column($params['list'], $params['item']);
-                array_multisort($column, $flags, $sort, $params['list']);
-
-                break;
-            case 'value':
-                $isAssoc = (array_keys($params['list']) !== range(
-                            0,
-                            count($params['list']) - 1
-                        )) && count($params['list']) > 0;
-                if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    if ($isAssoc) {
-                        arsort($params['list'], $flags);
-                    } else {
-                        rsort($params['list'], $flags);
-                    }
-                } elseif ($isAssoc) {
-                    asort($params['list'], $flags);
-                } else {
-                    sort($params['list'], $flags);
-                }
-
-                break;
-            default:
-                throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'key'));
-        }
-
-        return $params['list'];
-    }
-
-
-    protected function funcListCross($params)
-    {
-        $params = $this->getParamsArray($params, ['list']);
-
-        $MainList = null;
-
-        foreach ($params['list'] as $i => $list) {
-            $this->__checkListParam($list, 'list' . (++$i));
-            if (is_null($MainList)) {
-                $MainList = $list;
-            } else {
-                $MainList = array_intersect($MainList, $list);
-            }
-        }
-
-        return array_values($MainList);
-    }
-
-    protected function funclistReplace(string $params): array
-    {
-        $params = $this->getParamsArray($params, ['action'], ['action'], []);
-        $this->__checkListParam($params['list'], 'list');
-        $key = $params['key'] ?? null;
-        $value = $params['value'] ?? null;
-
-        $this->__checkRequiredParams($params, ['action']);
-        $this->__checkNotArrayParams($params, ['key', 'value']);
-
-        $actions = [];
-        foreach ($params['action'] as $_a) {
-            $actions[] = $this->getCodes($_a);
-        }
-
-        $list = $params['list'];
-        foreach ($list as $k => $v) {
-            $inVars = [];
-            $pastVals = [];
-            if ($key) {
-                $inVars[$key] = $k;
-            }
-            if ($value) {
-                $inVars[$value] = $v;
-            }
-            if ($inVars) {
-                $pastVals = $this->inVarsApply($inVars);
-            }
-
-            foreach ($actions as $a => $action) {
-                $Log = $this->Table->calcLog(['name' => 'iteration ' . $k . ' / action' . ($a + 1)]);
-
-                try {
-                    if (count($action) > 1) {
-                        $_k = $this->__getValue($action[0]);
-                        $_v = $this->__getValue($action[1]);
-                        $list[$k][$_k] = $_v;
-                        $this->Table->calcLog($Log, 'result', [$_k => $_v]);
-                    } else {
-                        $list[$k] = $this->__getValue($action[0]);
-                        $this->Table->calcLog($Log, 'result', $list[$k]);
-                    }
-                } catch (\Exception $e) {
-                    $this->Table->calcLog($Log, 'error', $e->getMessage());
-                    throw $e;
-                }
-            }
-
-            if ($pastVals) {
-                $this->inVarsRevert($pastVals);
-            }
-        }
-
-        return $list;
-    }
-
-    protected function funcListAdd($params)
-    {
-        $params = $this->getParamsArray($params, ['list', 'item']);
-
-
-        $MainList = [];
-        $this->__checkListParam($params['list'], 'list');
-
-        foreach ($params['list'] as $i => $list) {
-            if ($list) {
-                $this->__checkListParam($list, 'list' . (++$i));
-                $MainList = array_merge($MainList, $list);
-            }
-        }
-        foreach ($params['item'] ?? [] as $i => $item) {
-            if (is_null($MainList)) {
-                $MainList = [$item];
-            } else {
-                $MainList[] = $item;
-            }
-        }
-        return array_values($MainList);
-    }
-
-    protected function funcRowAdd($params)
-    {
-        $params = $this->getParamsArray($params, ['row', 'field'], ['field']);
-
-        $MainList = [];
-
-        foreach ($params['row'] as $i => $row) {
-            if ($row) {
-                $this->__checkListParam($row, 'row' . (++$i));
-                $MainList = array_replace($MainList, $row);
-            }
-        }
-        foreach ($params['field'] ?? [] as $i => $field) {
-            $field = $this->getExecParamVal($field);
-            $k = array_keys($field)[0];
-            $v = array_values($field)[0];
-            if (is_null($MainList)) {
-                $MainList = [$k => $v];
-            } else {
-                $MainList[$k] = $v;
-            }
-        }
-        return $MainList;
-    }
-
-    protected function funcListNumberRange(string $params): array
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkRequiredParams($params, ['min', 'max', 'step']);
-
-        $this->__checkNumericParam($params['min'], 'min');
-        $this->__checkNumericParam($params['max'], 'max');
-        $this->__checkNumericParam($params['step'], 'step');
-
-        if ($params['step'] == 0) {
-            throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].', ['step', '!=0']));
-        } elseif ($params['step'] > 0) {
-            $list = [$next = $params['min']];
-            while (($next += $params['step']) < $params['max']) {
-                $list[] = $next;
-            }
-        } else {
-            $list = [$next = $params['max']];
-            while (($next += $params['step']) > $params['min']) {
-                $list[] = $next;
-            }
-        }
-        return $list;
-    }
-
-    protected function funcRowListAdd($params)
-    {
-        $params = $this->getParamsArray($params, ['rowlist', 'field'], ['field']);
-
-        $MainList = [];
-
-        foreach ($params['rowlist'] as $i => $rowList) {
-            if ($rowList) {
-                $this->__checkListParam($rowList, 'rowlist' . (++$i));
-                $max = count($MainList) > count($rowList) ? count($MainList) : count($rowList);
-                for ($i = 0; $i < $max; $i++) {
-                    $MainList[$i] = array_replace($MainList[$i] ?? [], $rowList[$i] ?? []);
-                }
-            }
-        }
-        foreach ($params['field'] ?? [] as $i => $field) {
-            $field = $this->getExecParamVal($field);
-            $k = array_keys($field)[0];
-            $v = array_values($field)[0];
-            if (is_array($v) && array_key_exists(0, $v)) {
-                $max = count($MainList) > count($v) ? count($MainList) : count($v);
-                for ($i = 0; $i < $max; $i++) {
-                    $MainList[$i] = array_replace($MainList[$i] ?? [], [$k => $v[$i] ?? null]);
-                }
-            } else {
-                $max = count($MainList);
-                for ($i = 0; $i < $max; $i++) {
-                    $MainList[$i] = array_replace($MainList[$i] ?? [], [$k => $v]);
-                }
-            }
-        }
-        return $MainList;
-    }
 
     protected function select($params, $mode, $withOutSection = false, $codeNameForLog = '')
     {
@@ -2966,299 +1913,6 @@ SQL;
     protected function funcSelect($params, $codeNameForLog)
     {
         return $this->select($params, 'field', false, $codeNameForLog);
-    }
-
-    protected function funcRowKeys($params)
-    {
-        $params = $this->getParamsArray($params, []);
-        $this->__checkListParam($params['row'], 'row');
-        return array_keys($params['row']);
-    }
-
-    protected function funcRowKeysRemove($params)
-    {
-        $params = $this->getParamsArray($params, ['key'], [], []);
-
-        $this->__checkListParam($params['row'], 'row');
-        if (array_key_exists('keys', $params)) {
-            $this->__checkListParam($params['keys'], 'keys');
-        }
-        $keys = array_unique(array_merge(($params['key'] ?? []), ($params['keys'] ?? [])));
-
-        if (!empty($keys) && !empty($params['row'])) {
-            if ($params['recursive'] ?? false) {
-                $remover = function ($row) use (&$remover, $keys) {
-                    foreach ($keys as $key) {
-                        unset($row[$key]);
-                    }
-                    foreach ($row as $k => $item) {
-                        if (is_array($item)) {
-                            $row[$k] = $remover($item);
-                        }
-                    }
-                    return $row;
-                };
-            } else {
-                $remover = function ($row) use (&$remover, $keys) {
-                    foreach ($keys as $key) {
-                        unset($row[$key]);
-                    }
-                    return $row;
-                };
-            }
-            $row = $remover($params['row']);
-        } else {
-            $row = $params['row'];
-        }
-
-        return $row;
-    }
-
-    protected function funcRowKeysReplace(string $params): array
-    {
-        $params = $this->getParamsArray($params, []);
-        $this->__checkListParam($params['row'], 'row');
-
-        $this->__checkRequiredParams($params, ['from', 'to']);
-
-        if (is_array($params['from']) && is_array($params['to'])) {
-            if (count($params['from']) != count($params['to'])) {
-
-                throw new errorException($this->translate('The number of the [[%s]] must be equal to the number of [[%s]].',
-                    ['from', 'to']));
-            }
-        }
-
-        if (is_array($params['to']) != is_array($params['from'])) {
-            throw new errorException($this->translate('The [[%s]] parameter must be one type with [[%s]] parameter.',
-                ['to', 'from']));
-        }
-
-        $recursive = $params['recursive'] ?? false;
-
-
-        if (is_array($params['from']) && is_array($params['to'])) {
-            $funcKeyReplace = function ($k) use ($params) {
-                $_seach = array_search(strval($k), $params['from']);
-                if ($_seach !== false) {
-                    return $params['to'][$_seach];
-                }
-                return $k;
-            };
-        } elseif (is_array($params['from'])) {
-            $funcKeyReplace = function ($k) use ($params) {
-                $_seach = array_search(strval($k), $params['from']);
-                if ($_seach !== false) {
-                    return $params['to'];
-                }
-                return $k;
-            };
-        } else {
-            $funcKeyReplace = function ($k) use ($params) {
-                if (strval($k) == $params['from']) {
-                    return $params['to'];
-                }
-                return $k;
-            };
-        }
-
-
-        $funcReplace = function ($row) use ($recursive, &$funcReplace, &$funcKeyReplace) {
-            $rowOut = [];
-            foreach ($row as $k => $v) {
-                if ($recursive && is_array($v)) {
-                    $vOut = $funcReplace($v);
-                } else {
-                    $vOut = $v;
-                }
-                $rowOut[$funcKeyReplace($k)] = $vOut;
-            }
-            return $rowOut;
-        };
-
-        return $funcReplace($params['row']);
-    }
-
-    protected function funcRowValues($params)
-    {
-        $params = $this->getParamsArray($params, []);
-        $this->__checkListParam($params['row'], 'row');
-        return array_values($params['row']);
-    }
-
-    protected function funcListFilter($params)
-    {
-        $params = $this->getParamsArray($params, []);
-        $this->__checkListParam($params['list'], 'list');
-        $this->__checkNotEmptyParams($params, ['key']);
-        $isGerExp = $params['regexp'] ?? false;
-
-        if ($isGerExp) {
-            $regExpFlags = $params['regexp'] !== true && $params['regexp'] !== 'true' ? $params['regexp'] : 'u';
-
-            if (!in_array($params['key']['operator'], ['=', '!=', '!==', '==='])) {
-                throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].',
-                    ['key operator', '=, != (for regexp)']));
-            } else {
-                $operator = in_array($params['key']['operator'], ['=', '===']);
-            }
-            $pattern = '/' . str_replace('/', '\/', $params['key']['value']) . '/' . $regExpFlags;
-            $matches = [];
-
-            $getCompare = function ($v) use ($operator, $pattern, &$matches) {
-                if (preg_match($pattern, $v, $_matches)) {
-                    $matches[] = $_matches;
-                    return $operator;
-                }
-                return !$operator;
-            };
-        } else {
-            $operator = $params['key']['operator'];
-            $value = $params['key']['value'];
-            $getCompare = function ($v) use ($operator, $value) {
-                return Calculate::compare($operator, $v, $value, $this->getLangObj());
-            };
-        }
-
-        switch ($params['key']['field']) {
-            case 'value':
-                $filter = function ($k, $v) use ($getCompare) {
-                    return $getCompare($v);
-                };
-                break;
-            case 'key':
-                $filter = function ($k, $v) use ($getCompare) {
-                    return $getCompare($k);
-                };
-                break;
-            default:
-
-                if ($params['key']['field'] === 'item') {
-                    $this->__checkRequiredParams($params, ['item']);
-                } else {
-                    $params['item'] = $params['key']['field'];
-                }
-
-                $skip = $params['skip'] ?? false;
-
-                $filter = function ($k, $v) use ($params, $skip, $getCompare) {
-                    if (!is_array($v)) {
-                        if (!$skip) {
-                            throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
-                        }
-                        return false;
-                    } elseif (!array_key_exists(
-                        $params['item'],
-                        $v
-                    )) {
-                        if (!$skip) {
-                            throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
-                        }
-                        return false;
-                    }
-                    return $getCompare($v[$params['item']]);
-                };
-                break;
-        }
-
-        $filtered = [];
-        $nIsRow = false;
-        if ((array_keys($params['list']) !== range(0, count($params['list']) - 1))) {
-            $nIsRow = true;
-        }
-        foreach ($params['list'] as $k => $v) {
-            if ($filter($k, $v)) {
-                if ($nIsRow) {
-                    $filtered[$k] = $v;
-                } else {
-                    $filtered[] = $v;
-                }
-            }
-        }
-        if ($isGerExp && ($params['matches'] ?? null)) {
-            $this->vars[$params['matches']] = $matches;
-        }
-
-        return $filtered;
-    }
-
-    protected function funcListSection($params)
-    {
-        $params = $this->getParamsArray($params, []);
-        $this->__checkListParam($params['list'], 'list');
-        $this->__checkRequiredParams($params, ['item']);
-
-        $filter = function ($v) use ($params) {
-            if (!is_array($v)) {
-                throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
-            } elseif (!array_key_exists(
-                $params['item'],
-                $v
-            )) {
-                throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
-            }
-            return $v[$params['item']];
-        };
-
-
-        $filtered = [];
-        foreach ($params['list'] as $k => $v) {
-            $filtered[$k] = $filter($v);
-        }
-
-        return $filtered;
-    }
-
-    protected function funcListSearch($params)
-    {
-        $params = $this->getParamsArray($params, []);
-        $this->__checkListParam($params['list'], 'list');
-
-        $this->__checkNotEmptyParams($params, 'key');
-
-
-        switch ($params['key']['field']) {
-            case 'value':
-                $filter = function ($k, $v) use ($params) {
-                    return Calculate::compare($params['key']['operator'],
-                        $v,
-                        $params['key']['value'],
-                        $this->getLangObj());
-                };
-                break;
-            default:
-                if ($params['key']['field'] === 'item') {
-                    $this->__checkRequiredParams($params, 'item');
-                } else {
-                    $params['item'] = $params['key']['field'];
-                }
-
-                $filter = function ($k, $v) use ($params) {
-                    if (!is_array($v)) {
-                        throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
-                    } elseif (!array_key_exists(
-                        $params['item'],
-                        $v
-                    )) {
-                        throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
-                    }
-                    return Calculate::compare($params['key']['operator'],
-                        $v[$params['item']],
-                        $params['key']['value'],
-                        $this->getLangObj());
-                };
-                break;
-
-        }
-
-        $filtered = [];
-        foreach ($params['list'] as $k => $v) {
-            if ($filter($k, $v)) {
-                $filtered[] = $k;
-            }
-        }
-
-        return $filtered;
     }
 
     protected function funcSelectRow($params, $codeNameForLog)
@@ -3301,108 +1955,6 @@ SQL;
             $this->row['id'] ?? null,
             get_class($this) === Calculate::class
         );
-    }
-
-    protected function funcRowCreateByLists($params)
-    {
-        $params = $this->getParamsArray($params, [], []);
-        $this->__checkListParam($params['keys'], 'keys');
-        $this->__checkListParam($params['values'], 'values');
-        return array_combine($params['keys'], $params['values']);
-    }
-
-    protected function funcRowCreate($params)
-    {
-        $params = $this->getParamsArray($params, ['field'], ['field']);
-        $row = [];
-        foreach ($params['field'] as $f) {
-            $f = $this->getExecParamVal($f);
-            if (ctype_digit(strval(array_keys($f)[0]))) {
-                $row = $f + $row;
-            } else {
-                $row = array_merge($row, $f);
-            }
-        }
-
-        return $row;
-    }
-
-    protected function funcRowListCreate($params)
-    {
-        $params = $this->getParamsArray($params, ['field'], ['field']);
-
-        $rows = [];
-        $listCount = 0;
-        foreach ($params['field'] as $f) {
-            $f = $this->getExecParamVal($f);
-            $rows = array_replace($rows, $f);
-        }
-        $rowList = [];
-        foreach ($rows as $f => $list) {
-            if (is_array($rows[$f]) && key_exists(0, $rows[$f])) {
-                if (count($rows[$f]) > $listCount) {
-                    $listCount = count($rows[$f]);
-                }
-            }
-        }
-        foreach ($rows as $f => &$list) {
-            if (!is_array($rows[$f]) || !key_exists(0, $rows[$f])) {
-                $list = array_fill(0, $listCount, $list);
-            } elseif (count($list) < $listCount) {
-                $diff = $listCount - count($list);
-                for ($i = 0; $i < $diff; $i++) {
-                    $list[] = null;
-                }
-            }
-            $list = array_values($list);
-        }
-        unset($list);
-
-        for ($i = 0; $i < $listCount; $i++) {
-            $rowList[$i] = [];
-            foreach ($rows as $f => $list) {
-                $rowList[$i][$f] = $list[$i];
-            }
-        }
-        return $rowList;
-    }
-
-    protected function funcRound($params)
-    {
-        $params = $this->getParamsArray($params);
-        $val = $params['num'] ?? 0;
-
-        $func = 'round';
-        if (!empty($params['type'])) {
-            switch ($params['type']) {
-                case 'up':
-                    $func = 'ceil';
-                    break;
-                case 'down':
-                    $func = 'floor';
-                    break;
-            }
-        }
-
-
-        if (!empty($params['step'])) {
-            $fig = (int)str_pad('1', $params['dectimal'] ?? 0 + 1, '0');
-            $step = $params['step'] * $fig;
-
-            $val = $func($val * $fig / $step) * $step / $fig;
-            $val = round($val, 10);
-            $val = bcadd($val, 0, $params['dectimal'] ?? 0);
-        } else {
-            $val = $func($val);
-        }
-        return $val;
-    }
-
-    protected function funcModul($params)
-    {
-        $params = $this->getParamsArray($params);
-        $val = $params['num'] ?? 0;
-        return abs($val);
     }
 
     protected function __checkTableIdOrName($tableId, string $paramName): array
@@ -3649,182 +2201,6 @@ SQL;
             }
         }
         return $params;
-    }
-
-    protected function funcTextByTemplate($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $getTemplate = function ($name) {
-            return $this->Table->getTotum()->getModel('print_templates')->getPrepared(
-                ['name' => $name],
-                'styles, html, name'
-            );
-        };
-
-        if ($params['template'] ?? null) {
-            if ($main = $getTemplate($params['template'])) {
-                $mainTemplate = $main['html'];
-                $style = $main['styles'];
-            } else {
-                throw new errorException($this->translate('Template not found.'));
-            }
-        } else {
-            if ($params['text'] ?? null) {
-                $mainTemplate = $params['text'];
-                $style = null;
-            } else {
-                throw new errorException($this->translate('Template not found.'));
-            }
-        }
-
-
-        $usedStyles = [];
-
-        $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $getTemplate, &$style, &$usedStyles) {
-            return preg_replace_callback(
-                '/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
-                function ($matches) use ($data, $getTemplate, &$funcReplaceTemplates, &$style, &$usedStyles) {
-                    if (array_key_exists($matches[2], $data)) {
-                        if (is_array($data[$matches[2]])) {
-                            if (!empty($matches[3])) {
-                                $matches[3] = substr($matches[3], 2, -2);
-                                if (!array_key_exists(
-                                    $matches[3],
-                                    $data[$matches[2]]
-                                )) {
-                                    throw new errorException($this->translate('There is no [[%s]] key in the [[%s]] list.',
-                                        [$matches[3], $matches[2]]));
-                                }
-                                $value = $data[$matches[2]][$matches[3]];
-                            } else {
-                                if (!empty($data[$matches[2]]['template'])) {
-                                    $template = $getTemplate($data[$matches[2]]['template']);
-                                    if (!$template) {
-                                        throw new errorException($this->translate('Not found template [[%s]] for parameter [[%s]].',
-                                            [$data[$matches[2]]['template'], $matches[2]]));
-                                    }
-
-                                    if (!in_array($template['name'], $usedStyles)) {
-                                        $style .= $template['styles'];
-                                        $usedStyles[] = $template['name'];
-                                    }
-                                } elseif (key_exists("text", $data[$matches[2]])) {
-                                    $template = ['html' => $data[$matches[2]]["text"]];
-                                } else {
-                                    throw new errorException($this->translate('No template is specified for [[%s]].',
-                                        $matches[2]));
-                                }
-
-                                $html = '';
-
-
-                                if (array_key_exists(0, $data[$matches[2]]['data'])) {
-                                    foreach ($data[$matches[2]]['data'] ?? [] as $_data) {
-                                        $html .= $funcReplaceTemplates($template['html'], $_data);
-                                    }
-                                } else {
-                                    $html .= $funcReplaceTemplates(
-                                        $template['html'],
-                                        (array)$data[$matches[2]]['data']
-                                    );
-                                }
-
-                                return $html;
-                            }
-                        } else {
-                            $value = $data[$matches[2]];
-                        }
-
-                        if (!empty($matches[4])) {
-                            if ($formatData = explode(':', $matches[4], 2)) {
-                                switch ($formatData[0]) {
-                                    case 'money':
-                                        if (is_numeric($value)) {
-                                            $value = Formats::num2str($value);
-                                        }
-                                        break;
-                                    case 'number':
-                                        if (count($formatData) === 2) {
-                                            if (is_numeric($value)) {
-                                                if ($numberVals = explode('|', $formatData[1])) {
-                                                    $value = number_format(
-                                                            $value,
-                                                            $numberVals[0],
-                                                            $numberVals[1] ?? '.',
-                                                            $numberVals[2] ?? ''
-                                                        )
-                                                        . ($numberVals[3] ?? '');
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    case 'date':
-                                        if (count($formatData) === 2) {
-                                            if ($date = date_create($value)) {
-                                                if (str_contains($formatData[1], 'F')) {
-                                                    $formatData[1] = str_replace(
-                                                        'F',
-                                                        Formats::months[$date->format('n')],
-                                                        $formatData[1]
-                                                    );
-                                                }
-                                                if (str_contains($formatData[1], 'f')) {
-                                                    $formatData[1] = str_replace(
-                                                        'f',
-                                                        Formats::monthRods[$date->format('n')],
-                                                        $formatData[1]
-                                                    );
-                                                }
-                                                $value = $date->format($formatData[1]);
-                                            }
-                                        }
-                                        break;
-                                    case 'checkbox':
-                                        if (is_bool($value)) {
-                                            $sings = [];
-                                            if (count($formatData) === 2) {
-                                                $sings = explode('|', $formatData[1] ?? '');
-                                            }
-
-                                            switch ($value) {
-                                                case true:
-                                                    $value = $sings[0] ?? '✓';
-                                                    break;
-                                                case false:
-                                                    $value = $sings[1] ?? '-';
-                                                    break;
-                                            }
-                                        }
-                                        break;
-                                }
-                            }
-                        }
-
-                        return $value;
-                    }
-                },
-                $html
-            );
-        };
-
-
-        if ($style) {
-            return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
-                    $mainTemplate,
-                    $params['data'] ?? []
-                ) . '</body>';
-        } else {
-            return $funcReplaceTemplates($mainTemplate, $params['data'] ?? []);
-        }
-    }
-
-    protected function funcNowTableHash()
-    {
-        if ($this->Table->getTableRow()['type'] != 'tmp') {
-            throw new errorException($this->translate('For temporary tables only.'));
-        }
-        return $this->Table->getTableRow()['sess_hash'];
     }
 
     protected function parseTotumCond($string)
@@ -4097,7 +2473,7 @@ SQL;
                 $i++;
             }
             if (count($action) !== 1 || !is_numeric((string)$action[0])) {
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].','math:'. $string));
+                throw new errorException($this->translate('TOTUM-code format error [[%s]].', 'math:' . $string));
             }
             return $action[0];
         };
@@ -4214,7 +2590,8 @@ SQL;
                 '`https?://`',
                 $params['uri']
             )) {
-            throw new errorException($this->translate('The %s parameter is required and must start with %s.', ['uri', 'http/https']));
+            throw new errorException($this->translate('The %s parameter is required and must start with %s.',
+                ['uri', 'http/https']));
         }
 
         $link = $params['uri'];
@@ -4363,7 +2740,7 @@ SQL;
 
                 throw new errorException($e->getMessage() . ' [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
             } catch (\Exception $e) {
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].', $f ));
+                throw new errorException($this->translate('TOTUM-code format error [[%s]].', $f));
             }
             $fields[$fieldName] = $fieldValue;
         }

@@ -220,7 +220,7 @@ class Comments extends Field
         if (!is_array($commentArray)) {
             return [];
         }
-        $commentArray[0] = $this->getDateFormated(Calculate::getDateObject($commentArray[0]));
+        $commentArray[0] = $this->getDateFormated(Calculate::getDateObject($commentArray[0], $this->table->getLangObj()));
 
         if ($textCut) {
             if (mb_strlen($commentArray[2]) > $this->data['viewTextMaxLength']) {

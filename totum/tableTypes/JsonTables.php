@@ -150,10 +150,10 @@ abstract class JsonTables extends aTable
                         $this->changeIds['deleted'][$id] = null;
                     } elseif (!empty($oldRow) && empty($row['is_del'])) {
                         //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
-                        if (Calculate::compare('!==', $oldRow, $row)) {
+                        if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
                             foreach ($row as $k => $v) {
                                 /*key_exists for $oldRow[$k] не использовать!*/
-                                if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v)) {
+                                if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v, $this->getLangObj())) {
                                     $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                     $this->changeIds['changed'][$id][$k] = null;
                                 }
@@ -947,7 +947,8 @@ abstract class JsonTables extends aTable
                 if (key_exists($field['name'], $loadedTbl['params'] ?? []) && Calculate::compare(
                         '!==',
                         $loadedTbl['params'][$field['name']]['v'],
-                        $tbl['params'][$field['name']]['v']
+                        $tbl['params'][$field['name']]['v'],
+                        $this->getLangObj()
                     )) {
                     Field::init($field, $this)->action(
                         $loadedTbl['params'],
@@ -1013,7 +1014,8 @@ abstract class JsonTables extends aTable
                         if (Calculate::compare(
                             '!==',
                             $loadedTbl['rows'][$row['id']][$field['name']]['v'],
-                            $row[$field['name']]['v']
+                            $row[$field['name']]['v'],
+                            $this->getLangObj()
                         )) {
                             $actionIt = 'change';
                         }
@@ -1115,7 +1117,7 @@ abstract class JsonTables extends aTable
                         $row2[$k] = $row2[$k] ?? null;
                     }
                     if ($row1[$k] !== $row2[$k]) {
-                        $o = $ord['acsDesc'] * (Calculate::compare('>', $row1[$k], $row2[$k]) ? 1 : -1);
+                        $o = $ord['acsDesc'] * (Calculate::compare('>', $row1[$k], $row2[$k], $this->getLangObj()) ? 1 : -1);
                     }
                     if ($o !== 0) {
                         return $o;
@@ -1203,7 +1205,7 @@ abstract class JsonTables extends aTable
                     if ($w['isArray']) {
                         $a = $a['v'] ?? null;
                     }
-                    if (!Calculate::compare($w['operator'], $a, $w['val'])) {
+                    if (!Calculate::compare($w['operator'], $a, $w['val'], $this->getLangObj())) {
                         $checkedTrue = false;
                         break;
                     }
@@ -1259,7 +1261,7 @@ abstract class JsonTables extends aTable
                         $a = $a['v'] ?? null;
                     }
 
-                    if (!Calculate::compare($w['operator'], $a, $w['val'])) {
+                    if (!Calculate::compare($w['operator'], $a, $w['val'], $this->getLangObj())) {
                         continue 2;
                     }
                 }

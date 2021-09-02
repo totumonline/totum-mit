@@ -125,7 +125,7 @@ class CalculateSelect extends Calculate
         $params2['field'][] = $params['parent'];
 
         if (key_exists('disabled', $params)) {
-            $this->__checkListParam($params['disabled'], 'disabled', $params);
+            $this->__checkListParam($params['disabled'], 'disabled');
             $disabled = array_flip(array_unique($params['disabled']));
         } else {
             $disabled = [];

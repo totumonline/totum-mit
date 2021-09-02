@@ -177,7 +177,7 @@ class CalculateAction extends Calculate
     protected function funcReCalculateCycle($params)
     {
         if ($params = $this->getParamsArray($params)) {
-            $tableRow = $this->__checkTableIdOrName($params['table'], 'table', '$table->reCalculate(reCalculate');
+            $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
             if ($tableRow['type'] !== 'cycles') {
                 throw new errorException($this->translate('The function is only available for cycles tables.'));
@@ -254,15 +254,9 @@ class CalculateAction extends Calculate
     protected function funcLinkToButtons($params)
     {
         $params = $this->getParamsArray($params);
-        if (empty($params['title'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'title'));
-        }
-        if (empty($params['buttons'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'buttons'));
-        }
-        if (!is_array($params['buttons'])) {
-            throw new errorException($this->translate('The [[%s]] parameter must contain an array.', 'buttons'));
-        }
+        $this->__checkNotEmptyParams($params, ['title', 'buttons']);
+        $this->__checkNotArrayParams($params, ['title']);
+        $this->__checkListParam($params, 'buttons');
 
         $params['refresh'] = $params['refresh'] ?? false;
         $params['env'] = $this->getEnvironment();
@@ -567,7 +561,7 @@ class CalculateAction extends Calculate
     protected function funcLinkToPanel($params)
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'LinkToPanel');
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
         $link = '/Table/';
 
         if ($tableRow['type'] === 'calcs') {
@@ -575,7 +569,7 @@ class CalculateAction extends Calculate
                 if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
                 } else {
-                    $this->__checkNumericParam($params['cycle'], 'cycle', 'LinkToPanel');
+                    $this->__checkNumericParam($params['cycle'], 'cycle');
                     $Cycle_id = $params['cycle'];
                 }
 
@@ -905,7 +899,7 @@ class CalculateAction extends Calculate
             ) || !is_numeric(strval($params['num']))) {
             throw new errorException($this->translate('Parametr [[%s]] is required and should be a number.', 'num'));
         }
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'NormalizeN');
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         /** @var RealTables $table */
         $table = $this->Table->getTotum()->getTable($tableRow);
@@ -928,7 +922,7 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
 
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'LinkToTable');
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         $link = '/Table/';
 
@@ -937,7 +931,7 @@ class CalculateAction extends Calculate
                 if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
                 } else {
-                    $this->__checkNumericParam($params['cycle'], 'cycle', 'LinkToTable');
+                    $this->__checkNumericParam($params['cycle'], 'cycle');
                     $Cycle_id = $params['cycle'];
                 }
 
@@ -1093,7 +1087,7 @@ class CalculateAction extends Calculate
             }
             if ($field['category'] === 'column') {
                 if (!is_numeric($params['id'])) {
-                    throw new errorException($this->translate('The %s field must be numeric.', 'id'));
+                    throw new errorException($this->translate('The %s parameter must be a number.', 'id'));
                 }
 
 
@@ -1124,7 +1118,7 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
         $MainList = [];
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table', 'InsertListExtended');
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         if ($params['fields'] ?? null) {
             if (!is_array($params['fields'])) {

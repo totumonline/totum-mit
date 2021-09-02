@@ -439,7 +439,7 @@ abstract class RealTables extends aTable
                 $old = $oldRow[$field['name']]['v'] ?? null;
                 $new = $row[$field['name']]['v'] ?? null;
 
-                if ($action !== 'Change' || Calculate::compare('!==', $old, $new)) {
+                if ($action !== 'Change' || Calculate::compare('!==', $old, $new, $this->getLangObj())) {
                     $this->changeIds['rowOperations'][] = function () use ($field, $oldRow, $row, $action) {
                         Field::init($field, $this)->action(
                             $oldRow,
@@ -599,7 +599,9 @@ abstract class RealTables extends aTable
                     if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
                             '!==',
                             $loadedTbl['params'][$field['name']]['v'],
-                            $tbl['params'][$field['name']]['v']
+                            $tbl['params'][$field['name']]['v'],
+                            $this->getLangObj()
+
                         )) {
                         Field::init($field, $this)->action(
                             $loadedTbl['params'],

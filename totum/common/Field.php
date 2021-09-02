@@ -229,7 +229,7 @@ class Field
             return Field::CHANGED_FLAGS['setToDefault'];
         } elseif (isset($newVal) || $newValExists) {
             if ($modifyCalculated !== true) {
-                if ($oldVal && (Calculate::compare('==', $oldVal['v'], $newVal))) {
+                if ($oldVal && (Calculate::compare('==', $oldVal['v'], $newVal, $this->table->getLangObj()))) {
                     return false;
                 }
                 switch ($modifyCalculated) {

@@ -354,7 +354,7 @@ class ReadTableActions extends Actions
         }
         foreach ($row as $k => &$v) {
             if (key_exists($k, $fields)) {
-                if ($fields[$k]['type'] === 'date' && $v && $v = Calculate::getDateObject($v)) {
+                if ($fields[$k]['type'] === 'date' && $v && $v = Calculate::getDateObject($v, $this->Totum->getLangObj())) {
                     if (!empty($fields[$k]['dateTime'])) {
                         $v = $v->format('Y-m-d H:i');
                     } else {

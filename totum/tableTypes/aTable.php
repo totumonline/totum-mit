@@ -16,6 +16,7 @@ use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FieldModifyItem;
 use totum\common\Cycle;
+use totum\common\Lang\LangInterface;
 use totum\common\logs\CalculateLog;
 use totum\common\Model;
 use totum\common\Totum;
@@ -244,6 +245,11 @@ abstract class aTable
                 'addAfter' => $after
             ]
         );
+    }
+
+    public function getLangObj(): LangInterface
+    {
+        return $this->Totum->getLangObj();
     }
 
 

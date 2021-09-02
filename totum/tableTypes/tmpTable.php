@@ -102,10 +102,10 @@ class tmpTable extends JsonTables
                 if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                     $this->changeIds['deleted'][$id] = null;
                 } elseif (!empty($oldRow) && empty($row['is_del'])) {
-                    if (Calculate::compare('!==', $oldRow, $row)) {
+                    if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
                         foreach ($row as $k => $v) {
                             /*key_exists for $oldRow[$k] не использовать!*/
-                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v)) {
+                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v, $this->getLangObj())) {
                                 $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                 $this->changeIds['changed'][$id][$k] = null;
                             }

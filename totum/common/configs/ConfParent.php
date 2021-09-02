@@ -91,10 +91,10 @@ abstract class ConfParent
         $this->env = $env;
 
         if (empty(static::LANG)) {
-            throw new Exception('Language is not defined in constant LANG in Conf.php');
+            throw new \Exception('Language is not defined in constant LANG in Conf.php');
         }
-        if (!class_exists('totum\\common\\Lang\\' . static::LANG)) {
-            throw new Exception('Specified ' . static::LANG . ' language is not supported');
+        if (!class_exists('totum\\common\\Lang\\' . strtoupper(static::LANG))) {
+            throw new \Exception('Specified ' . static::LANG . ' language is not supported');
         }
         $this->Lang = new ('totum\\common\\Lang\\' . static::LANG)();
 

@@ -118,5 +118,17 @@ class RU implements LangInterface
 
 
         'Format sections'=>'Секции форматирования',
+
+        'Cron error'=>'Ошибка крона',
+        'The schema is not connected.'=>'Схема не подключена.',
+        'Error accessing the anonymous tables module.'=>'Ошибка доступа к модулю анонимных таблиц.',
+
+        'Page processing time: %s sec.<br/>
+    RAM: %sM. of %s.<br/>
+    Sql Schema: %s, V %s<br/>.'=>'Время обработки страницы: %s сек.<br/>
+    Оперативная память: %sM. из %s.<br/>
+    Sql схема: %s, V %s<br/>',
+
+
     ];
 }

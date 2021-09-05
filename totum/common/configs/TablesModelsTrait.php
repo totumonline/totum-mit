@@ -5,6 +5,7 @@ namespace totum\common\configs;
 
 use Exception;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\models\CalcsTableCycleVersion;
 use totum\models\CalcsTablesVersions;
@@ -63,9 +64,9 @@ trait TablesModelsTrait
         if (!$tableName) {
             if ($className === Model::class) {
                 debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                throw new Exception('Ошибка модель вызывается по-старому');
+                throw new Exception('Design error: Incorrect model call from php code.');
             }
-            throw new Exception('Модель ' . $className . ' не подключена к коннектору');
+            throw new Exception('Model ' . $className . '  is not connected to the connector.');
         }
         return $tableName;
     }
@@ -75,10 +76,10 @@ trait TablesModelsTrait
      * @param int|string $table
      * @return array|null
      */
-    public function getTableRow($table, $force = false)
+    public function getTableRow($table, $force = false): ?array
     {
         if(empty($table)){
-            throw new errorException('NAME таблицы не может быть пуст');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'name of table'));
         }
         elseif (is_int($table) || ctype_digit($table)) {
             if (!$force && key_exists($table, $this->tableRowsById)) {
@@ -136,4 +137,5 @@ trait TablesModelsTrait
         $this->tableRowsById=[];
         $this->tableRowsByName=[];
     }
+
 }

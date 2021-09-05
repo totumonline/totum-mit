@@ -11,6 +11,7 @@ namespace totum\common\configs;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Lang\LangInterface;
+use totum\common\Lang\RU;
 use totum\common\logs\Log;
 use totum\common\sql\Sql;
 use totum\common\sql\SqlException;
@@ -132,10 +133,15 @@ abstract class ConfParent
 
     public function cronErrorActions($cronRow, $User, $exception)
     {
+        $errTitle=$this->translate('Cron error');
+
         try {
             $Totum = new Totum($this, $User);
             $Table = $Totum->getTable('settings');
-            $Cacl = new CalculateAction('=: insert(table: "notifications"; field: \'user_id\'=1; field: \'active\'=true; field: \'title\'="Ошибка крона"; field: \'code\'="admin_text"; field: "vars"=$#vars)');
+
+
+
+            $Cacl = new CalculateAction('=: insert(table: "notifications"; field: \'user_id\'=1; field: \'active\'=true; field: \'title\'="'.$errTitle.'"; field: \'code\'="admin_text"; field: "vars"=$#vars)');
             $Cacl->execAction(
                 'kod',
                 $cronRow,
@@ -144,14 +150,14 @@ abstract class ConfParent
                 $Table->getTbl(),
                 $Table,
                 'exec',
-                ['vars' => ['text' => 'Ошибка крона <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]
+                ['vars' => ['text' => $errTitle.': <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]
             );
         } catch (\Exception $e) {
         }
 
         $this->sendMail(
             static::adminEmail,
-            'Ошибка крона ' . $this->getSchema() . ' ' . ($cronRow['descr'] ?? $cronRow['id']),
+            $errTitle.' ' . $this->getSchema() . ' ' . ($cronRow['descr'] ?? $cronRow['id']),
             $exception->getMessage()
         );
     }
@@ -180,7 +186,7 @@ abstract class ConfParent
     public function getSchema($force = true): string
     {
         if ($force && empty($this->schemaName)) {
-            errorException::criticalException('Схема не подключена', $this);
+            errorException::criticalException($this->translate('The schema is not connected.'), $this);
         }
         return $this->schemaName;
     }
@@ -341,9 +347,9 @@ abstract class ConfParent
             $split[1] = $uri;
         }
         if ($split[0] === $this->getAnonymModul()) {
-            $split[0] = "An";
+            $split[0] = 'An';
         } elseif ($split[0] === 'An') {
-            die('Ошибка доступа к модулю анонимных таблиц');
+            die($this->translate('Error accessing the anonymous tables module.'));
         }
 
         return [$split[0], $split[1] ?? ''];
@@ -399,7 +405,7 @@ abstract class ConfParent
                 $this->CalculateExtensions,
                 $funcName
             ) || !is_callable($this->CalculateExtensions->$funcName)) {
-            throw new errorException('Функция [[' . $funcName . ']] не найдена');
+            throw new errorException($this->translate('Function [[%s]] is not found.', $funcName));
         }
         return $this->CalculateExtensions->$funcName;
     }
@@ -698,10 +704,13 @@ ON CONFLICT (name) DO UPDATE
         $SchemaName = $this->getSchema();
         $version = Totum::VERSION;
 
-        return <<<FOOTER
-    Время обработки страницы: $genTime сек.<br/>
-    Оперативная память: {$mb}M. из $memory_limit.<br/>
-    Sql схема: $SchemaName, V $version<br/>
-FOOTER;
+        return $this->translate('Page processing time: %s sec.<br/>
+    RAM: %sM. of %s.<br/>
+    Sql Schema: %s, V %s<br/>.', [$genTime, $mb, $memory_limit, $SchemaName, $version]);
+    }
+
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->getLangObj()->translate($str, $vars);
     }
 }

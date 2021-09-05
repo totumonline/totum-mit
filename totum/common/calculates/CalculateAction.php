@@ -204,7 +204,7 @@ class CalculateAction extends Calculate
         return $r;
     }
 
-    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
+    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
         switch ($vars['tpa'] ?? null) {
             case 'add':

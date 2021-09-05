@@ -212,6 +212,8 @@ class CalculcateFormat extends Calculate
         $this->formatArray = [];
         $this->fixedCodeVars = [];
 
+
+        $this->Table = $table;
         $this->newLog = ['text' => $this->translate('Format sections'), 'children' => []];
         $this->newLogParent = &$this->newLog;
         $this->vars = $Vars;
@@ -220,7 +222,7 @@ class CalculcateFormat extends Calculate
 
         $this->row = $row;
         $this->tbl = $tbl;
-        $this->Table = $table;
+
         $result = [];
 
         try {

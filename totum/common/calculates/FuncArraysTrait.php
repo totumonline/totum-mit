@@ -36,10 +36,8 @@ trait FuncArraysTrait
     protected function funcListCheck(string $params): bool
     {
         $params = $this->getParamsArray($params);
-        if (!key_exists('list', $params) || !is_array($params['list'])) {
-            return false;
-        }
-        return true;
+        $this->__checkRequiredParams($params, 'list');
+        return is_array($params['list']);
     }
 
     protected function funcListCount(string $params): int
@@ -626,7 +624,7 @@ trait FuncArraysTrait
             }
         }
         foreach ($params['field'] ?? [] as $field) {
-            $field = $this->getExecParamVal($field);
+            $field = $this->getExecParamVal($field, 'field');
             $k = array_keys($field)[0];
             $v = array_values($field)[0];
             if (is_null($MainList)) {
@@ -643,7 +641,7 @@ trait FuncArraysTrait
         $params = $this->getParamsArray($params, ['field'], ['field']);
         $row = [];
         foreach ($params['field'] ?? [] as $f) {
-            $f = $this->getExecParamVal($f);
+            $f = $this->getExecParamVal($f, 'field');
             if (ctype_digit(strval(array_keys($f)[0]))) {
                 $row = $f + $row;
             } else {
@@ -796,7 +794,7 @@ trait FuncArraysTrait
             }
         }
         foreach ($params['field'] ?? [] as $field) {
-            $field = $this->getExecParamVal($field);
+            $field = $this->getExecParamVal($field, 'field');
             $k = array_keys($field)[0];
             $v = array_values($field)[0];
             if (is_array($v) && array_key_exists(0, $v)) {
@@ -821,7 +819,7 @@ trait FuncArraysTrait
         $rows = [];
         $listCount = 0;
         foreach ($params['field'] ?? [] as $f) {
-            $f = $this->getExecParamVal($f);
+            $f = $this->getExecParamVal($f, 'field');
             $rows = array_replace($rows, $f);
         }
         $rowList = [];

@@ -17,6 +17,7 @@ use totum\common\Field;
 use totum\common\FieldModifyItem;
 use totum\common\Cycle;
 use totum\common\Lang\LangInterface;
+use totum\common\Lang\RU;
 use totum\common\logs\CalculateLog;
 use totum\common\Model;
 use totum\common\Totum;
@@ -1432,7 +1433,7 @@ CODE;;
     public function getSelectByParams($params, $returnType = 'field', $rowId = null, $toSource = false)
     {
         if (empty($params['table'])) {
-            throw new errorException('Не задан параметр таблица');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'table'));
         }
 
         if (in_array(
@@ -1440,12 +1441,12 @@ CODE;;
                 ['field']
             ) && empty($params['field']) && empty($params['sfield'])
         ) {
-            throw new errorException('Не задан параметр поле');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'field/sfield'));
         }
 
         $sourceTableRow = $this->Totum->getTableRow($params['table']);
         if (!$sourceTableRow) {
-            throw new errorException('Таблица [[' . $params['table'] . ']] не найдена');
+            throw new errorException($this->translate('Table [[%s]] is not found.', $params['table']));
         }
 
         if ($sourceTableRow['type'] === 'tmp') {
@@ -1454,7 +1455,7 @@ CODE;;
             } elseif (!empty($params['hash'])) {
                 $SourceTable = $this->getTotum()->getTable($sourceTableRow, $params['hash']);
             } else {
-                throw new errorException('Не заполнен параметр [[hash]]');
+                throw new errorException($this->translate('Fill in the parameter [[%s]].', 'hash'));
             }
         } elseif ($this->getTableRow()['type'] === 'calcs'
             && $sourceTableRow['type'] === 'calcs'
@@ -1473,7 +1474,7 @@ CODE;;
                 if ($this->tableRow['type'] === 'cycles' && (int)$sourceTableRow['tree_node_id'] === $this->tableRow['id'] && $rowId) {
                     $params['cycle'] = $rowId;
                 } else {
-                    throw new errorException('Не передан параметр [[cycle]]');
+                    throw new errorException($this->translate('Fill in the parameter [[%s]].', 'cycle'));
                 }
             }
 
@@ -1486,7 +1487,7 @@ CODE;;
                 }
                 return $list;
             } elseif (!ctype_digit(strval($params['cycle']))) {
-                throw new errorException('Параметр [[cycle]] должен быть числом');
+                throw new errorException($this->translate('The %s parameter must be a number.', 'cycle'));
             } else {
                 $SourceCycle = $this->Totum->getCycle($params['cycle'], $sourceTableRow['tree_node_id']);
                 $SourceTable = $SourceCycle->getTable($sourceTableRow);
@@ -2771,5 +2772,9 @@ CODE;;
                 throw new errorException('Channel ' . $channel . ' not supported in function isField');
         }
         return false;
+    }
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->getTotum()->getLangObj()->translate($str, $vars);
     }
 }

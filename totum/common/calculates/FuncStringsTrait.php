@@ -2,11 +2,77 @@
 
 namespace totum\common\calculates;
 
+use JsonException;
 use totum\common\errorException;
 use totum\common\Formats;
+use totum\common\Lang\RU;
 
-trait FuncStrTrait
+trait FuncStringsTrait
 {
+
+    protected function funcJsonCreate(string $params): string
+    {
+        if ($params = $this->getParamsArray($params, ['field', 'flag'], ['field'])) {
+
+            if (key_exists('data', $params)) {
+                if (key_exists('field', $params)) {
+                    $this->__checkListParam($params['data'], 'data');
+                }
+                $data = $params['data'];
+            } else {
+                $data = [];
+            }
+
+            foreach ($params['field'] ?? [] as $f) {
+                $f = $this->getExecParamVal($f, 'field');
+                if (ctype_digit(strval(array_keys($f)[0]))) {
+                    $data = $f + $data;
+                } else {
+                    $data = array_merge($data, $f);
+                }
+            }
+            $flags = 0;
+            if (key_exists('flag', $params)) {
+                $escaped = false;
+                foreach ($params['flag'] as $flag) {
+                    switch ($flag) {
+                        case 'ESCAPED_UNICODE':
+                            $escaped = true;
+                            break;
+                        case 'PRETTY':
+                            $flags = $flags | JSON_PRETTY_PRINT;
+                            break;
+                    }
+                }
+                if (!$escaped) {
+                    $flags = $flags | JSON_UNESCAPED_UNICODE;
+                }
+            } else {
+                $flags = JSON_UNESCAPED_UNICODE;
+            }
+
+            $r = json_encode($data, $flags);
+
+            if ($r !== false) {
+                return $r;
+            }
+            throw new errorException($this->translate('JSON generation error: [[%s]].', json_last_error_msg()));
+        }
+        return '';
+    }
+
+    protected function funcJsonExtract(string $params)
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkRequiredParams($params, ['text']);
+        $this->__checkNotArrayParams($params, ['text']);
+
+        try {
+            return json_decode((string)$params['text'], true, flags: JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new errorException($this->translate('JSON parsing error: [[%s]].', $e->getMessage()));
+        }
+    }
 
     protected function funcStrAdd(string $params): string
     {
@@ -119,8 +185,7 @@ trait FuncStrTrait
         if ($length < 1) {
             throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].', ['length', '> 0']));
         }
-        $getCharacters= function ($key, string $defaultSimbols) use ($params): string
-        {
+        $getCharacters = function ($key, string $defaultSimbols) use ($params): string {
             if (array_key_exists($key, $params)) {
                 if ($params[$key] !== 'false' && $params[$key] !== false) {
                     return match ($params[$key]) {
@@ -161,7 +226,7 @@ trait FuncStrTrait
             (string)$params['str'],
             $matches
         )) {
-            if(!empty($params['matches'])){
+            if (!empty($params['matches'])) {
                 $this->vars[$params['matches']] = $matches;
             }
         }
@@ -184,7 +249,7 @@ trait FuncStrTrait
             (string)$params['str'],
             $matches
         )) {
-            if(!empty($params['matches'])){
+            if (!empty($params['matches'])) {
                 $this->vars[$params['matches']] = $matches;
             }
         }
@@ -379,6 +444,40 @@ trait FuncStrTrait
         } else {
             return $funcReplaceTemplates($mainTemplate, $params['data'] ?? []) ?? '';
         }
+    }
+
+    protected function funcXmlExtract(string $params): array
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkRequiredParams($params, ['xml'], 'xmlExtract');
+
+        $params['attrpref'] = $params['attrpref'] ?? '';
+        $params['textname'] = $params['textname'] ?? 'TEXT';
+
+        if ($xml = @simplexml_load_string($params['xml'])) {
+            $getData = function (\SimpleXMLElement $xml) use (&$getData, $params) {
+                $children = [];
+                foreach ($xml->attributes() as $k => $attr) {
+                    $children[$params['attrpref'] . $k] = (string)$attr;
+                }
+                foreach ($xml->getNamespaces() as $pref => $namespace) {
+                    foreach ($xml->children($namespace) as $k => $child) {
+                        $children[$pref . ':' . $k][] = $getData($child);
+                    }
+                }
+                foreach ($xml->children() as $k => $child) {
+                    $children[$k][] = $getData($child);
+                }
+                if ((string)$xml) {
+                    $children[$params['textname']] = trim((string)$xml);
+                }
+                return $children;
+            };
+
+            return [$xml->getName() => $getData($xml)];
+        }
+
+        throw new errorException($this->translate('XML Format Error.'));
     }
 
 

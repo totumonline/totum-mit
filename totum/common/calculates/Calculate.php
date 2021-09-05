@@ -8,34 +8,30 @@
 
 namespace totum\common\calculates;
 
-use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FieldModifyItem;
-use totum\common\Formats;
 use totum\common\Lang\LangInterface;
 use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\sql\SqlException;
-use totum\common\Json\TotumJson;
-use totum\fieldTypes\File;
-use totum\models\TablesFields;
 use totum\tableTypes\aTable;
-use totum\tableTypes\calcsTable;
-use totum\tableTypes\RealTables;
 
 class Calculate
 {
     use FuncDatesTrait;
     use FuncArraysTrait;
-    use FuncStrTrait;
+    use FuncStringsTrait;
     use FuncNumbersTrait;
     use FuncNowTrait;
+    use FuncTablesTrait;
+    use FuncOperationsTrait;
+    use ParsesTrait;
 
     protected static $codes;
     protected static $initCodes = [];
 
-    protected $startSections;
+    protected array $startSections;
 
     protected $cachedCodes = [];
     protected $oldRow;
@@ -89,6 +85,27 @@ class Calculate
         $this->formStartSections();
     }
 
+    protected function getConditionsResult(array $params): bool
+    {
+        $conditionTest = true;
+        if (!empty($params['condition'])) {
+            foreach ($params['condition'] as $i => $c) {
+                $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+
+
+                if (!is_bool($condition)) {
+                    throw new errorException($this->translate('Parameter [[%s]] returned a non-true/false value.',
+                        (1 + $i)));
+                }
+                if (!$condition) {
+                    $conditionTest = false;
+                    break;
+                }
+            }
+        }
+        return $conditionTest;
+    }
+
     protected function translate(string $str, array|string $vars = []): string
     {
         return $this->Table->getTotum()->getLangObj()->translate($str, $vars);
@@ -100,155 +117,6 @@ class Calculate
             $this->startSections = ['=' => $this->code['=']];
             unset($this->code['=']);
         }
-    }
-
-    public static function parseTotumCode($code, $table_name = null): array
-    {
-        $c = [];
-        $fixes = [];
-        $catches = [];
-        $strings = [];
-        $lineParams = [];
-
-        $tableParams = [];
-
-
-        $usedHashParams = function (string $clearedLine) use ($table_name, &$tableParams) {
-            if ($table_name) {
-                if (preg_match_all('/(.?)#(?:[a-z]{1,3}\.)?([a-z_0-9]+)/', $clearedLine, $matches)) {
-                    foreach ($matches[2] as $i => $m) {
-                        if ($matches[1][$i] !== '$') {
-                            $tableParams[$table_name][$m] = 1;
-                        }
-                    }
-                }
-                if (preg_match_all('/@([a-z_0-9]{2,})\.([a-z_0-9]+)/', $clearedLine, $matches)) {
-                    foreach ($matches[2] as $i => $m) {
-                        $tableParams[$matches[1][$i]][$m] = 1;
-                    }
-                }
-            }
-        };
-        $replace_line_params = function ($line) use ($usedHashParams, &$lineParams) {
-            return preg_replace_callback(
-                '/{([^}]+)}/',
-                function ($matches) use ($usedHashParams, &$lineParams) {
-                    if ($matches[1] === "") {
-                        return '{}';
-                    }
-                    $Num = count($lineParams);
-                    $lineParams[] = $matches[1];
-                    $usedHashParams($matches[1]);
-                    return '{' . $Num . '}';
-                },
-                $line
-            );
-        };
-        $replace_strings = function ($line) use ($usedHashParams, &$strings, &$replace_line_params, &$replace_strings) {
-            return preg_replace_callback(
-                '/(?|(math|json|str|cond)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
-                function ($matches) use ($usedHashParams, &$strings, &$replace_line_params, &$replace_strings) {
-                    if ($matches[1] === "") {
-                        return '""';
-                    }
-                    switch ($matches[1]) {
-                        case 'json':
-                            if (!json_decode($matches[2]) && json_last_error()) {
-                                $matches[2] = $replace_strings($matches[2]);
-                                $usedHashParams($matches[2]);
-                            }
-                            break;
-                        case 'math':
-                        case 'str':
-                        case 'cond':
-                            $matches[2] = $replace_strings($matches[2]);
-                            $matches[2] = $replace_line_params($matches[2]);
-                            $usedHashParams($matches[2]);
-                            break;
-                    }
-                    $stringNum = count($strings);
-                    $strings[] = $matches[1] . $matches[2];
-                    return '"' . $stringNum . '"';
-                },
-                $line
-            );
-        };
-
-        foreach (preg_split('/[\r\n]+/', trim($code)) as $row) {
-            $row = trim($row);
-            /*Убрать комментарии*/
-            if (str_starts_with($row, '//')) {
-                continue;
-            }
-            /*Разбираем код построчно*/
-            if (preg_match('/^([a-z0-9]*=\s*|~?[a-zA-Z0-9_]+)\s*(?<catch>[a-zA-Z0-9_]*)\s*:(.*)$/', $row, $matches)) {
-                $lineName = trim($matches['1']);
-                if (str_starts_with($lineName, '~')) {
-                    $lineName = substr($lineName, 1);
-                    $fixes[] = $lineName;
-                }
-
-                /*TryCatch*/
-                if (substr($lineName, -1, 1) === '=' && $matches['catch']) {
-                    $catch = $matches['catch'];
-                    $catches [$lineName] = $catch;
-                }
-
-                $line = trim($matches[3]);
-                /*Используемые параметры в функциях*/
-                if ($table_name) {
-                    if (preg_match_all('/\(.*?table:\s*\'([a-z0-9_]+)\'.*?\)/', $line, $matches)) {
-                        foreach ($matches[1] as $i => $t_name) {
-                            if (preg_match_all(
-                                '/(field|where|order|sfield|bfield|tfield|preview|parent|section|table|filter):\s*\'([a-z0-9_]+)\'/',
-                                $matches[0][$i],
-                                $mches
-                            )) {
-                                foreach ($mches[2] as $field) {
-                                    $tableParams[$t_name][$field] = 1;
-                                }
-                            }
-                        }
-                    }
-                    if (preg_match_all('/\(.*?table:\s*\$#ntn.*?\)/', $line, $matches)) {
-                        foreach ($matches[0] as $i => $t_name) {
-                            if (preg_match_all('/(field|where|order):\s*\'([a-z0-9_]+)\'/', $matches[0][$i], $mches)) {
-                                foreach ($mches[2] as $field) {
-                                    $tableParams[$table_name][$field] = 1;
-                                }
-                            }
-                        }
-                    }
-                }
-
-
-                $line = $replace_strings($line);
-                $line = str_replace(' ', '', $line);
-
-                $line = $replace_line_params($line);
-                $usedHashParams($line);
-                $c[$lineName] = $line;
-            }
-        }
-
-
-        if ($fixes) {
-            $c['==fixes=='] = $fixes;
-        }
-        if ($strings) {
-            $c['==strings=='] = $strings;
-        }
-        if ($lineParams) {
-            $c['==lineParams=='] = $lineParams;
-        }
-        if ($tableParams) {
-            $c['==usedFields=='] = $tableParams;
-        }
-        if ($catches) {
-            $c['==catches=='] = $catches;
-        }
-
-        return $c;
     }
 
     protected static function __compare_normalize($n)
@@ -292,7 +160,7 @@ class Calculate
                 break;
             case '=':
                 if (count($n2) === 0) {
-                    if ($isTopLevel && (($n ?? "") === "")) {
+                    if ($isTopLevel && (($n ?? '') === '')) {
                         $r = true;
                     } else {
                         $r = false;
@@ -321,7 +189,7 @@ class Calculate
                 break;
             case '!=':
                 if (count($n2) === 0) {
-                    if ($isTopLevel && (($n ?? "") === "")) {
+                    if ($isTopLevel && (($n ?? '') === '')) {
                         $r = true;
                     } else {
                         $r = false;
@@ -477,7 +345,7 @@ class Calculate
             $code = [];
             $string = $stringIN;
 
-            while ($done && ($i < 100) && $string !== "") {
+            while ($done && ($i < 100) && $string !== '') {
                 $done = 0;
                 $i++;
                 $string = preg_replace_callback(
@@ -532,7 +400,7 @@ class Calculate
                                 } else {
                                     $code[] = [
                                         'type' => 'string',
-                                        'string' => ""
+                                        'string' => ''
                                     ];
                                 }
                             } elseif ($comparison = $matches['comparison']) {
@@ -592,42 +460,7 @@ class Calculate
         return $this->error;
     }
 
-    protected function funcXmlExtract($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkRequiredParams($params, ['xml'], 'xmlExtract');
-
-        $params['attrpref'] = $params['attrpref'] ?? '';
-        $params['textname'] = $params['textname'] ?? 'TEXT';
-
-        if ($xml = @simplexml_load_string($params['xml'])) {
-            $getData = function (\SimpleXMLElement $xml) use (&$getData, $params) {
-                $children = [];
-                foreach ($xml->attributes() as $k => $attr) {
-                    $children[$params['attrpref'] . $k] = (string)$attr;
-                }
-                foreach ($xml->getNamespaces() as $pref => $namespace) {
-                    foreach ($xml->children($namespace) as $k => $child) {
-                        $children[$pref . ':' . $k][] = $getData($child);
-                    }
-                }
-                foreach ($xml->children() as $k => $child) {
-                    $children[$k][] = $getData($child);
-                }
-                if ((string)$xml) {
-                    $children[$params['textname']] = trim((string)$xml);
-                }
-                return $children;
-            };
-
-            return [$xml->getName() => $getData($xml)];
-        } else {
-            throw new errorException($this->translate('XML Format Error.'));
-        }
-
-    }
-
-    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
+    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
         $this->error = null;
 
@@ -719,85 +552,6 @@ class Calculate
         return $r ?? $this->error;
     }
 
-    protected function funcLinkToDataTable($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        if (!is_a($this, CalculateAction::class) && empty($params['hide'])) {
-            errorException::criticalException($this->translate('You cannot use linktoDataTable outside of actionCode without hide:true.'));
-        }
-
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
-
-        $tmp = $this->Table->getTotum()->getTable($tableRow);
-        $tmp->addData(['tbl' => $params['data'] ?? [], 'params' => ($params['params'] ?? [])]);
-        if (empty($params['hide'])) {
-            if (empty($params['width'])) {
-                $width = 130;
-                foreach ($tmp->getVisibleFields('web', true)['column'] as $field) {
-                    $width += $field['width'];
-                }
-                if ($width > 1200) {
-                    $width = 1200;
-                }
-            } else {
-                $width = $params['width'];
-            }
-            $table = [
-                'title' => $params['title'] ?? $tableRow['title'],
-                'table_id' => $tableRow['id'],
-                'sess_hash' => $tmp->getTableRow()['sess_hash'],
-                'width' => $width,
-                'height' => $params['height'] ?? '80vh'
-            ];
-            $this->Table->getTotum()->addToInterfaceDatas(
-                'table',
-                $table,
-                $params['refresh'] ?? false,
-                ['header' => $params['header'] ?? true,
-                    'footer' => $params['footer'] ?? true]
-            );
-        }
-        return $tmp->getTableRow()['sess_hash'];
-    }
-
-    protected function funcExec($params)
-    {
-        $params = $this->getParamsArray($params, ['var'], ['var']);
-
-        $code = $params['code'] ?? $params['kod'] ?? '';
-        if (!empty($code)) {
-            if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
-                $code = $this->Table->getFields()[$code]['code'] ?? '';
-            }
-
-            $CA = new Calculate($code);
-            try {
-                $Vars = [];
-                foreach ($params['var'] ?? [] as $v) {
-                    $Vars = array_merge($Vars, $this->getExecParamVal($v));
-                }
-                $r = $CA->exec(
-                    $this->varData,
-                    $this->newVal,
-                    $this->oldRow,
-                    $this->row,
-                    $this->oldTbl,
-                    $this->tbl,
-                    $this->Table,
-                    $Vars
-                );
-
-                $this->newLogParent['children'][] = $CA->getLogVar();
-                return $r;
-            } catch (errorException $e) {
-                $this->newLogParent['children'][] = $CA->getLogVar();
-                throw $e;
-            }
-        }
-        return null;
-    }
-
     protected function setEnvironmentVars($varData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table)
     {
         // Log::calcs($newVal, $row, $tbl, $dectimalPlaces);
@@ -858,7 +612,7 @@ class Calculate
         $code = preg_replace_callback(
             '/{(.*?)}/',
             function ($m) {
-                if ($m[1] === "") {
+                if ($m[1] === '') {
                     return '{}';
                 }
                 return '{' . $this->CodeLineParams[$m[1]] . '}';
@@ -868,7 +622,7 @@ class Calculate
         $code = preg_replace_callback(
             '/"(.*?)"/',
             function ($m) {
-                if ($m[1] === "") {
+                if ($m[1] === '') {
                     return '""';
                 }
                 $qoute = $this->CodeStrings[$m[1]][0];
@@ -876,13 +630,12 @@ class Calculate
                     case '"':
                     case "'":
                         return $qoute . substr($this->CodeStrings[$m[1]], 1) . $qoute;
-                        break;
                     default:
                         $back_replace_strings = function ($str) {
                             return preg_replace_callback(
                                 '/"(\d+)"/',
                                 function ($matches) {
-                                    if ($matches[1] === "") {
+                                    if ($matches[1] === '') {
                                         return '""';
                                     }
                                     return '"' . $this->CodeStrings[$matches[1]] . '"';
@@ -928,7 +681,7 @@ class Calculate
         }
     }
 
-    protected function execSubCode($code, $codeName, $notLoging = false, $inVars = [])
+    protected function execSubCode($code, $codeName, $notLoging = false, $inVars = []): mixed
     {
         $Log = $this->Table->calcLog(['name' => $codeName, 'code' => function () use ($code) {
             return $this->getReadCodeForLog($code);
@@ -957,12 +710,11 @@ class Calculate
                 } else {
                     switch ($r['type']) {
                         case 'spec_math':
-                            $rTmp = $this->getMathFromString($r['string']);
+                            $rTmp = $this->parseTotumMath($r['string']);
                             break;
                         case 'operator':
                             $operator = $r['operator'];
                             continue 2;
-                            break;
                         case 'func':
                             $func = $r['func'];
 
@@ -997,7 +749,7 @@ class Calculate
                             $spec = substr($this->CodeStrings[$r['string']], 0, 4);
 
                             $rTmp = match ($spec) {
-                                'math' => $this->getMathFromString(substr($this->CodeStrings[$r['string']], 4)),
+                                'math' => $this->parseTotumMath(substr($this->CodeStrings[$r['string']], 4)),
                                 'json' => $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4)),
                                 'cond' => $this->parseTotumCond(substr($this->CodeStrings[$r['string']], 4)),
                                 default => match (substr($this->CodeStrings[$r['string']], 0, 3)) {
@@ -1051,252 +803,7 @@ class Calculate
         return $result;
     }
 
-    protected function funcGetUsingFields($params)
-    {
-        $params = $this->getParamsArray($params);
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
-        if (empty($params['field']) || !is_string($params['field'])) {
-            throw new errorException($this->translate('Parametr [[%s]] is required and should be a string.', 'field'));
-        }
-
-        $query = <<<SQL
-select table_name->>'v' as table_name, name->>'v' as name, version->>'v' as version from tables_fields where data->'v'->'code'->'==usedFields=='-> :table ->> :field = '1'
-           OR data->'v'->'codeSelect'->'==usedFields=='-> :table ->> :field = '1'
-            OR data->'v'->'codeAction'->'==usedFields=='-> :table ->> :field = '1';
-SQL;
-
-
-        return TablesFields::init($this->Table->getTotum()->getConfig(), true)->executePreparedSimple(
-            false,
-            $query,
-            ['table' => $tableRow['name'], 'field' => $params['field']]
-        )->fetchAll();
-    }
-
-    protected function funcLogRowList($params)
-    {
-        $params = $this->getParamsArray($params);
-        $where = [];
-
-        if (!ctype_digit((string)$params['table'])) {
-            $where['tableid'] = $this->__checkTableIdOrName($params['table'] ?? null, 'table')['id'];
-        } else {
-            $where['tableid'] = $params['table'];
-        }
-        if (!empty($params['cycle'])) {
-            $where['cycleid'] = (int)$params['cycle'];
-        }
-        if (!empty($params['id'])) {
-            $where['rowid'] = (int)$params['id'];
-        }
-        $where['field'] = (string)($params['field'] ?? '');
-
-        $fields = ['comment' => 'modify_text', 'dt' => 'dt', 'user' => 'userid', 'action' => 'action', 'value' => 'v'];
-        if (empty($params['params']) || !is_array($params['params'])) {
-            $params['params'] = array_keys($fields);
-        }
-
-        $fieldsStr = '';
-        foreach ($params['params'] as $param) {
-            if (key_exists($param, $fields)) {
-                if ($fieldsStr) {
-                    $fieldsStr .= ',';
-                }
-                $fieldsStr .= $fields[$param] . ' as ' . $param;
-            }
-        }
-        if ($fieldsStr) {
-            $data = $this->Table->getTotum()->getModel('_log', true)->executePrepared(
-                true,
-                $where,
-                $fieldsStr,
-                'dt desc',
-                key_exists('limit', $params) ? '0,' . ((int)$params['limit']) : null
-            )->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (in_array('dt', $params['params'])) {
-                foreach ($data as &$_row) {
-                    $_row['dt'] = substr($_row['dt'], 0, 19);
-                }
-                unset($_row);
-            }
-            return $data;
-        } else {
-            throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'params'));
-        }
-    }
-
-    protected function funcTableLogSelect($params)
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkListParam($params['users'], 'users');
-        $date_from = $this->__checkGetDate($params['from'], 'from', 'TableLogSelect');
-
-        $date_to = $this->__checkGetDate($params['to'], 'to', 'TableLogSelect');
-        $date_to->modify('+1 day');
-
-        $date_to = $date_to->format('Y-m-d');
-        $date_from = $date_from->format('Y-m-d');
-        $data = [];
-        if ($params['users']) {
-            $slqData = $this->Table->getTotum()->getModel('_log', true)->executePrepared(
-                true,
-                ['userid' => $params['users'], '>=dt' => $date_from, '<dt' => $date_to],
-                'tableid, cycleid,rowid,field,modify_text,v,action,userid,dt',
-                'dt'
-            );
-
-            $action = [];
-            $tmp_data = [];
-            foreach ($slqData as $row) {
-                $row['dt'] = substr($row['dt'], 0, 19);
-
-                $tmp_action = [$row['userid'], $row['tableid'], $row['cycleid'], $row['rowid'], $row['action'], $row['dt']];
-                if (array_slice($action, 0, 5) == array_slice($tmp_action, 0, 5)) {
-                    $Date = date_create($action[5]);
-                    $Date->modify('+1 second');
-                    if ($Date->format('Y-m-d H:i:s') >= $row['dt']) {
-                        $tmp_data[] = $row;
-                        $action = $tmp_action;
-                        continue;
-                    }
-                }
-
-                if (!empty($tmp_data)) {
-                    $fields = [];
-                    foreach ($tmp_data as $t) {
-                        if ($t['field']) {
-                            $fields[$t['field']] = [$t['v'], $t['modify_text']];
-                        } elseif ($t['modify_text'] && (string)$row['action'] === "4") {
-                            $fields[$this->translate('Deleting')] = $t['modify_text'];
-                        }
-                    }
-
-                    $data[] = ['userid' => $row['userid'], 'tableid' => $tmp_data[0]['tableid'], 'cycleid' => $tmp_data[0]['cycleid'], 'rowid' => $tmp_data[0]['rowid'], 'action' => $tmp_data[0]['action'], 'dt' => $tmp_data[0]['dt'], 'fields' => $fields];
-                }
-                $tmp_data = [$row];
-
-
-                $action = $tmp_action;
-            }
-
-            if (!empty($tmp_data)) {
-                $fields = [];
-                foreach ($tmp_data as $t) {
-                    if ($t['field']) {
-                        $fields[$t['field']] = [$t['v'], $t['modify_text']];
-                    }
-                }
-                $data[] = ['userid' => $row['userid'], 'tableid' => $tmp_data[0]['tableid'], 'cycleid' => $tmp_data[0]['cycleid'], 'rowid' => $tmp_data[0]['rowid'], 'action' => $tmp_data[0]['action'], 'dt' => $tmp_data[0]['dt'], 'fields' => $fields];
-            }
-
-            if (!empty($params['order'])) {
-                usort(
-                    $data,
-                    function ($a, $b) use ($params) {
-                        foreach ($params['order'] as $o) {
-                            if (!key_exists(
-                                $o['field'],
-                                $a
-                            )) {
-                                throw new errorException($this->translate('No key %s was found in the data row.',
-                                    $o['field']));
-                            }
-                            if ($a[$o['field']] != $b[$o['field']]) {
-                                $r = $a[$o['field']] < $b[$o['field']] ? -1 : 1;
-                                if ($o['ad'] === 'desc') {
-                                    return -$r;
-                                }
-                                return $r;
-                            }
-                        }
-                        return 0;
-                    }
-                );
-            }
-        }
-        return $data;
-    }
-
-    protected function funcFileGetContent($params)
-    {
-        $params = $this->getParamsArray($params);
-        if (empty($params['file'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'file'));
-        }
-
-        return File::getContent($params['file'], $this->Table->getTotum()->getConfig());
-    }
-
-    protected function funcWhile($params)
-    {
-        $vars = $this->getParamsArray(
-            $params,
-            ['action', 'preaction', 'postaction'],
-            ['action', 'preaction', 'postaction', 'limit']
-        );
-
-        $iteratorName = $vars['iterator'] ?? '';
-
-        $return = null;
-
-        if (!empty($vars['preaction'])) {
-            foreach ($vars['preaction'] as $i => $action) {
-                $return = $this->execSubCode($action, 'preaction' . (++$i));
-            }
-        }
-
-        if (!empty($vars['action'])) {
-            $limit = (int)array_key_exists('limit', $vars) ? $this->execSubCode($vars['limit'], 'limit') : 1;
-            $whileIterator = 0;
-            $isPostaction = false;
-
-            while ($limit-- > 0) {
-                if ($iteratorName) {
-                    $this->whileIterators[$iteratorName] = $whileIterator;
-                }
-
-                if (!isset($vars['condition'])) {
-                    $conditionTest = true;
-                } else {
-                    $conditionTest = true;
-                    foreach ($vars['condition'] as $i => $c) {
-                        $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-                        if (!is_bool($condition)) {
-                            throw new errorException($this->translate('Parameter [[%s]] returned a non-true/false value.',
-                                'condition' . (1 + $i)));
-                        }
-                        if (!$condition) {
-                            $conditionTest = false;
-                            break;
-                        }
-                    }
-                }
-
-                if ($conditionTest) {
-                    foreach ($vars['action'] as $i => $action) {
-                        $return = $this->execSubCode($action, 'action' . (++$i));
-                    }
-                    $isPostaction = true;
-                } else {
-                    break;
-                }
-
-
-                $whileIterator++;
-            }
-
-            if ($isPostaction && !empty($vars['postaction'])) {
-                foreach ($vars['postaction'] as $i => $action) {
-                    $return = $this->execSubCode($action, 'postaction' . (++$i));
-                }
-            }
-        }
-
-        return $return;
-    }
-
-    protected function getExecParamVal($paramVal)
+    protected function getExecParamVal($paramVal, string $paramsName)
     {
         try {
             $codes = $this->getCodes($paramVal);
@@ -1305,7 +812,7 @@ SQL;
         }
 
         if (count($codes) < 2) {
-            throw new errorException($this->translate('The parameter must contain 2 elements.'));
+            throw new errorException($this->translate('The [[%s]] parameter must contain 2 elements.', $paramsName));
         }
 
         if (is_array($codes[0])) {
@@ -1436,11 +943,11 @@ SQL;
                     $inVars = [];
                     if ($varsStart = strpos($codeName, '{')) {
                         $codeNum = substr($codeName, $varsStart + 1, -1);
-                        if ($codeNum !== "") {
+                        if ($codeNum !== '') {
                             $vars = $this->CodeLineParams[$codeNum];
                             $vars = $this->getParamsArray($vars, ['var'], ['var']);
                             foreach ($vars['var'] ?? [] as $var) {
-                                $inVars = array_merge($inVars, $this->getExecParamVal($var));
+                                $inVars = array_merge($inVars, $this->getExecParamVal($var, 'var'));
                             }
                         }
                         $codeName = substr($codeName, 0, $varsStart);
@@ -1461,7 +968,7 @@ SQL;
                                 $inVars
                             );
                         } else {
-                            $Log = $this->Table->calcLog(['name' => $codeName, 'type' => "fixed"]);
+                            $Log = $this->Table->calcLog(['name' => $codeName, 'type' => 'fixed']);
                             $this->Table->calcLog($Log, 'result', $this->fixedCodeVars[$cacheCodeName]);
                         }
                         $r = $this->fixedCodeVars[$cacheCodeName];
@@ -1575,16 +1082,11 @@ SQL;
                                 $rowVar = json_decode($rowVar, true);
                             }
 
-                            switch ($typeVal ?? null) {
-                                case 'h':
-                                    $r = $rowVar['h'] ?? false;
-                                    break;
-                                case 'c':
-                                    $r = key_exists('c', $rowVar) ? $rowVar['c'] : ($rowVar['v'] ?? null);
-                                    break;
-                                default:
-                                    $r = $rowVar['v'] ?? null;
-                            }
+                            $r = match ($typeVal ?? null) {
+                                'h' => $rowVar['h'] ?? false,
+                                'c' => key_exists('c', $rowVar) ? $rowVar['c'] : ($rowVar['v'] ?? null),
+                                default => $rowVar['v'] ?? null,
+                            };
                         }
                     }
                 }
@@ -1665,124 +1167,6 @@ SQL;
     }
 
 
-    protected function funcIf($params)
-    {
-        $vars = $this->getParamsArray($params);
-
-        if (empty($vars['condition'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'condition'));
-        }
-        $conditionTest = true;
-        foreach ($vars['condition'] as $i => $c) {
-            $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-            if (!is_bool($condition)) {
-                throw new errorException($this->translate('Parameter [[%s]] returned a non-true/false value.',
-                    'condition' . (1 + $i)));
-            }
-            if (!$condition) {
-                $conditionTest = false;
-                break;
-            }
-        }
-
-        if ($conditionTest) {
-            if (array_key_exists('then', $vars)) {
-                return $this->execSubCode($vars['then'], 'then');
-            } else {
-                return null;
-            }
-        } elseif (array_key_exists('else', $vars)) {
-            return $this->execSubCode($vars['else'], 'else');
-        } else {
-            return null;
-        }
-
-    }
-
-
-    protected function funcErrorExeption($params)
-    {
-        if ($params = $this->getParamsArray($params)) {
-            if (!empty($params['text'])) {
-                throw new errorException((string)$params['text']);
-            }
-        }
-    }
-
-    protected function funcExecSSH($params)
-    {
-        if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
-            throw new criticalErrorException($this->translate('The ExecSSH function is disabled. Enable it in Conf.php.'));
-        }
-        $params = $this->getParamsArray($params);
-        if (empty($params['ssh'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'ssh'));
-        }
-        $string = $params['ssh'];
-        if ($params['vars'] ?? null) {
-            $localeOld = setlocale(LC_CTYPE, 0);
-            setlocale(LC_CTYPE, "en_US.UTF-8");
-
-            if (!is_array($params['vars'])) {
-                throw new errorException($this->translate('The parameter [[%s]] should be of type row/list.', 'vars'));
-            }
-            if (key_exists('0', $params['vars'])) {
-                foreach ($params['vars'] as $v) {
-                    $string .= ' ' . escapeshellarg($v) . '';
-                }
-            } else {
-                foreach ($params['vars'] as $k => $v) {
-                    $string .= ' ' . escapeshellcmd($k) . '=' . escapeshellarg($v) . '';
-                }
-            }
-            setlocale(LC_CTYPE, $localeOld);
-        }
-        return shell_exec($string);
-    }
-
-    protected function funcJsonExtract($params)
-    {
-        if ($params = $this->getParamsArray($params)) {
-            return json_decode($params['text'] ?? null, true);
-        }
-    }
-
-    protected function funcJsonCreate($params)
-    {
-        if ($params = $this->getParamsArray($params, ['field', 'flag'], ['field'])) {
-            $data = $params['data'] ?? [];
-            foreach ($params['field'] ?? [] as $f) {
-                $f = $this->getExecParamVal($f);
-                if (ctype_digit(strval(array_keys($f)[0]))) {
-                    $data = $f + $data;
-                } else {
-                    $data = array_merge($data, $f);
-                }
-            }
-            $flags = 0;
-            if (key_exists('flag', $params)) {
-                $escaped = false;
-                foreach ($params['flag'] as $flag) {
-                    switch ($flag) {
-                        case 'ESCAPED_UNICODE':
-                            $escaped = true;
-                            break;
-                        case 'PRETTY':
-                            $flags = $flags | JSON_PRETTY_PRINT;
-                            break;
-                    }
-                }
-                if (!$escaped) {
-                    $flags = $flags | JSON_UNESCAPED_UNICODE;
-                }
-            } else {
-                $flags = JSON_UNESCAPED_UNICODE;
-            }
-
-            return json_encode($data, $flags);
-        }
-    }
-
     protected function __checkGetDate($dateFromParams, $paramName, $funcName)
     {
         if (empty($dateFromParams) || !($date = static::getDateObject($dateFromParams, $this->getLangObj()))) {
@@ -1791,171 +1175,6 @@ SQL;
         return $date;
     }
 
-    protected function funcUserInRoles($params)
-    {
-        if ($params = $this->getParamsArray($params, ['role'])) {
-            $roles = $this->Table->getTotum()->getUser()->getRoles();
-            foreach ($params['role'] ?? [] as $role) {
-                if (in_array($role, $roles)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    protected function funcGetVar($params)
-    {
-        $params = $this->getParamsArray($params, [], ['default']);
-        $this->__checkNotEmptyParams($params, ['name']);
-        $this->__checkNotArrayParams($params, ['name']);
-
-        if (!array_key_exists(
-            $params['name'],
-            $this->vars
-        )) {
-            if (array_key_exists('default', $params)) {
-                $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
-            } else {
-                throw new errorException($this->translate('The [[%s]] parameter has not been set in this code.',
-                    $params['name']));
-            }
-        }
-        return $this->vars[$params['name']];
-    }
-
-    /**
-     * @deprecated
-     */
-    protected function funcSetVar($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkNotEmptyParams($params, ['name']);
-        $this->__checkNotArrayParams($params, ['name']);
-
-        $this->__checkRequiredParams($params, ['value']);
-
-        return $this->vars[$params['name']] = $params['value'];
-    }
-
-    protected function funcVar(string $params)
-    {
-        $params = $this->getParamsArray($params, [], ['default']);
-        $this->__checkNotEmptyParams($params, ['name']);
-        $this->__checkNotArrayParams($params, ['name']);
-
-        if (array_key_exists('value', $params)) {
-            $this->vars[$params['name']] = $params['value'];
-        } elseif (!array_key_exists($params['name'], $this->vars)) {
-            if (array_key_exists('default', $params)) {
-                $this->vars[$params['name']] = $this->execSubCode($params['default'], 'default');
-            } else {
-                throw new errorException($this->translate('The [[%s]] parameter has not been set in this code.',
-                    $params['name']));
-            }
-        }
-        return $this->vars[$params['name']];
-    }
-
-
-    protected function funcGetTableSource(string $params)
-    {
-        $params = $this->getParamsArray($params);
-        return $this->Table->getSelectByParams(
-            $params,
-            'table',
-            $this->row['id'] ?? null,
-            $this::class === Calculate::class
-        );
-    }
-
-    protected function funcGetTableUpdated(string $params): array
-    {
-        $params = $this->getParamsArray($params);
-        $this->__checkNotEmptyParams($params, ['table']);
-        $this->__checkNotArrayParams($params, ['table']);
-
-        $sourceTableRow = $this->Table->getTotum()->getTableRow($params['table']);
-
-        if (!$sourceTableRow) {
-            throw new errorException($this->translate('Table [[%s]] is not found.', $params['table']));
-        }
-
-        if ($sourceTableRow['type'] === 'calcs') {
-            $this->__checkNotEmptyParams($params, ['cycle']);
-            $this->__checkNotArrayParams($params, ['cycle']);
-
-            $SourceCycle = $this->Table->getTotum()->getCycle($params['cycle'], $sourceTableRow['tree_node_id']);
-            $SourceTable = $SourceCycle->getTable($sourceTableRow);
-        } else {
-            $SourceTable = $this->Table->getTotum()->getTable($sourceTableRow);
-        }
-        return json_decode($SourceTable->getSavedUpdated(), true);
-    }
-
-
-    protected function select($params, $mode, $withOutSection = false, $codeNameForLog = '')
-    {
-        $params = $this->getParamsArray($params, ['where', 'order', 'sfield']);
-
-        if ($withOutSection) {
-            unset($params['section']);
-        }
-        return $this->Table->getSelectByParams(
-            $params,
-            $mode,
-            $this->row['id'] ?? null,
-            $this::class === Calculate::class
-        );
-    }
-
-    protected function funcSelect($params, $codeNameForLog)
-    {
-        return $this->select($params, 'field', false, $codeNameForLog);
-    }
-
-    protected function funcSelectRow($params, $codeNameForLog)
-    {
-        $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
-        if (!empty($params['fields'])) {
-            $params['field'] = array_merge($params['field'] ?? [], $params['fields']);
-        }
-        if (!empty($params['sfields'])) {
-            $params['sfield'] = array_merge($params['sfield'] ?? [], $params['sfields']);
-        }
-        unset($params['section']);
-
-        $row = $this->Table->getSelectByParams(
-            $params,
-            'row',
-            $this->row['id'] ?? null,
-            get_class($this) === Calculate::class
-        );
-        if (!empty($row['__sectionFunction'])) {
-            $row = $row['__sectionFunction']();
-        }
-        return $row;
-    }
-
-    protected function funcSelectRowList($params, $codeNameForLog)
-    {
-        $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
-        if (!empty($params['fields'])) {
-            $params['field'] = array_merge($params['field'] ?? [], $params['fields']);
-        }
-        if (!empty($params['sfields'])) {
-            $params['sfield'] = array_merge($params['sfield'] ?? [], $params['sfields']);
-        }
-        unset($params['section']);
-
-        return $this->Table->getSelectByParams(
-            $params,
-            'rows',
-            $this->row['id'] ?? null,
-            get_class($this) === Calculate::class
-        );
-    }
 
     protected function __checkTableIdOrName($tableId, string $paramName): array
     {
@@ -2011,97 +1230,24 @@ SQL;
         }
     }
 
-    protected function funcReCalculate(string $params)
-    {
-        $params = $this->getParamsArray($params, ['field']);
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
-
-        $inVars = [];
-        if (key_exists('field', $params)) {
-            $inVars['inAddRecalc'] = $params['field'];
-        }
-        if ($tableRow['type'] === 'calcs') {
-            if (empty($params['cycle']) && $this->Table->getTableRow()['type'] === 'calcs' && $this->Table->getTableRow()['tree_node_id'] === $tableRow['tree_node_id']) {
-                $params['cycle'] = [$this->Table->getCycle()->getId()];
-            }
-
-
-            if (!is_array($params['cycle'])) {
-                $this->__checkNotEmptyParams($params, ['cycle']);
-            }
-
-            $Cycles = (array)$params['cycle'];
-            foreach ($Cycles as $cycleId) {
-                $params['cycle'] = $cycleId;
-                $Cycle = $this->Table->getTotum()->getCycle($params['cycle'], $tableRow['tree_node_id']);
-                /** @var calcsTable $table */
-                $table = $Cycle->getTable($tableRow);
-                $table->reCalculateFromOvers($inVars, $this->Table->getCalculateLog(), 0);
-            }
-        } elseif ($tableRow['type'] === 'tmp') {
-            if ($this->Table->getTableRow()['type'] === 'tmp' && $this->Table->getTableRow()['name'] === $tableRow['name']) {
-                if (empty($params['hash'])) {
-                    $table = $this->Table;
-                }
-            }
-            if (empty($table)) {
-                $table = $this->Table->getTotum()->getTable($tableRow, $params['hash']);
-            }
-            $table->reCalculateFromOvers($inVars, $this->Table->getCalculateLog());
-        } else {
-            $table = $this->Table->getTotum()->getTable($tableRow);
-
-            if (is_subclass_of($table, RealTables::class) && !empty($params['where'])) {
-                $ids = $table->getByParams(['field' => 'id', 'where' => $params['where']], 'list');
-                $inVars['modify'] = array_fill_keys($ids, []);
-                $table->reCalculateFromOvers($inVars, $this->Table->getCalculateLog());
-            } else {
-                $table->reCalculateFromOvers($inVars, $this->Table->getCalculateLog());
-            }
-        }
-    }
-
-    protected function funcSelectTreeChildren($params)
-    {
-        $params = $this->getParamsArray($params);
-        return $this->select($params, 'treeChildren');
-    }
-
-    protected function funcSelectList($params)
-    {
-        return $this->select($params, 'list');
-    }
-
     protected function __getValue(array $paramArray)
     {
-        switch ($paramArray['type']) {
-            case 'param':
-                return $this->getParam($paramArray['param'], $paramArray);
-            case 'string':
-                return $paramArray['string'];
-            case 'stringParam':
-                $spec = substr($this->CodeStrings[$paramArray['string']], 0, 4);
-
-                switch ($spec) {
-                    case 'math':
-                        return $this->getMathFromString(substr($this->CodeStrings[$paramArray['string']], 4));
-                    case 'json':
-                        return $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4));
-                    case 'cond':
-                        return $this->parseTotumCond($str = substr($this->CodeStrings[$paramArray['string']], 4));
-                    default:
-                        switch (substr($spec, 0, 3)) {
-                            case 'str':
-                                return $this->parseTotumStr(substr($this->CodeStrings[$paramArray['string']], 3));
-                        }
-                        return substr($this->CodeStrings[$paramArray['string']], 1);
-                }
-            // no break
-            case 'boolean':
-                return !($paramArray['boolean'] === 'false');
-            default:
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].', $paramArray['string']));
-        }
+        return match ($paramArray['type']) {
+            'param' => $this->getParam($paramArray['param'], $paramArray),
+            'string' => $paramArray['string'],
+            'stringParam' => match ($spec = substr($this->CodeStrings[$paramArray['string']], 0, 4)) {
+                'math' => $this->parseTotumMath(substr($this->CodeStrings[$paramArray['string']], 4)),
+                'json' => $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4)),
+                'cond' => $this->parseTotumCond($str = substr($this->CodeStrings[$paramArray['string']], 4)),
+                default => match (substr($spec, 0, 3)) {
+                    'str' => $this->parseTotumStr(substr($this->CodeStrings[$paramArray['string']], 3)),
+                    default => substr($this->CodeStrings[$paramArray['string']], 1),
+                },
+            },
+            'boolean' => !($paramArray['boolean'] === 'false'),
+            default => throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                $paramArray['string'])),
+        };
     }
 
     protected function getParamsArray(string|array $paramsString, array $arrayParams = [], array $notExecParams = [], array $threePartParams = ['where', 'filter', 'key']): array
@@ -2163,7 +1309,7 @@ SQL;
                                 }
 
                                 if (count($whereCodes) != 3) {
-                                    throw new errorException($this->translate('The parameter must contain 3 elements.'));
+                                    throw new errorException($this->translate('The [[%s]] parameter must contain 3 elements.', $param));
                                 }
                                 if (empty($whereCodes['comparison'])) {
                                     throw new errorException($this->translate('The %s parameter must contain a comparison element.',
@@ -2203,283 +1349,6 @@ SQL;
         return $params;
     }
 
-    protected function parseTotumCond($string)
-    {
-        $string = preg_replace('/\s+/', '', $string);
-
-        $actions = preg_split(
-            '`(
-                        \(|\)|
-                        [&]{2}|
-                        [|]{2}|
-                        ==|
-                        !=|
-                        >=|
-                        <=|
-                        [><=]
-                        )`x',
-            $string,
-            null,
-            PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
-        );
-
-        $pack_Sc = function ($actions) use (&$pack_Sc, &$calcIt) {
-            $sc = 0;
-            $interval_start = null;
-            $i = 0;
-            while ($i < count($actions)) {
-                if ($actions[$i] === "") {
-                    array_splice($actions, $i, 1);
-                    continue;
-                }
-                switch ((string)$actions[$i]) {
-                    case '(':
-                        if ($sc++ === 0) {
-                            $interval_start = $i;
-                        }
-                        break;
-                    case ')':
-                        if ($sc < 1) {
-                            throw new errorException($this->translate('The unpaired closing parenthesis.'));
-                        }
-                        if (--$sc === 0) {
-                            array_splice(
-                                $actions,
-                                $interval_start,
-                                $i + 1 - $interval_start,
-                                $calcIt($pack_Sc(array_slice(
-                                    $actions,
-                                    $interval_start + 1,
-                                    $i - $interval_start - 1
-                                )))
-                            );
-                            $i = $interval_start - 1;
-                        }
-                        break;
-                }
-                $i++;
-            }
-            return $actions;
-        };
-
-        $checkValue = function ($varIn, $onlyBool = true) {
-            if ($varIn === 'false' || $varIn === false) {
-                return false;
-            }
-            if ($varIn === 'true' || $varIn === true) {
-                return true;
-            }
-
-            $var = $this->execSubCode($varIn, 'CondCode ' . $varIn);
-
-            if ($onlyBool) {
-                if ($var === 'false' || $var === false) {
-                    return false;
-                }
-                if ($var === 'true' || $var === true) {
-                    return true;
-                }
-                throw new errorException($this->translate('The parameter [[%s]] should be of type true/false.',
-                    'cond:' . $varIn));
-            }
-            return $var;
-        };
-
-        $getValue = function ($var) use ($checkValue) {
-            if ($var && !is_numeric($var)) {
-                $var = $checkValue($var, false);
-            }
-            return $var;
-        };
-
-        $calcIt = function ($action) use ($checkValue, $getValue, $string) {
-            $i = 0;
-            while ($i < count($action)) {
-                switch ((string)$action[$i]) {
-                    case '<':
-                    case '>':
-                    case '=':
-                    case '==':
-                    case '!=':
-                    case '<=':
-                    case '>=':
-
-                        $left = $getValue($action[$i - 1]);
-                        $right = $getValue($action[$i + 1]);
-
-                        $val = static::compare($action[$i], $left, $right, $this->getLangObj());
-                        array_splice($action, $i - 1, 3, $val);
-                        $i--;
-                }
-                $i++;
-            }
-
-
-            $i = 0;
-
-            while ($i < count($action)) {
-                switch ((string)$action[$i]) {
-                    case '&&':
-                        $left = $i === 0 ? true : $checkValue($action[$i - 1]);
-
-                        if (!$left) {
-                            $val = false;
-                        } elseif (key_exists($i + 1, $action)) {
-                            $val = $checkValue($action[$i + 1]);
-                        } else {
-                            break 2;
-                        }
-
-                        if ($i === 0) {
-                            array_splice($action, 0, 2, $val);
-                        } else {
-                            array_splice($action, $i - 1, 3, $val);
-                        }
-
-                        $i--;
-                        break;
-                    case '||':
-                        $left = $i === 0 ? false : $checkValue($action[$i - 1]);
-
-                        if ($left) {
-                            $val = true;
-                        } elseif (key_exists($i + 1, $action)) {
-                            $val = $checkValue($action[$i + 1]);
-                        } else {
-                            break 2;
-                        }
-
-                        if ($i === 0) {
-                            array_splice($action, 0, 2, $val);
-                        } else {
-                            array_splice($action, $i - 1, 3, $val);
-                        }
-
-                        $i--;
-                }
-                $i++;
-            }
-            if (count($action) !== 1) {
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].', 'cond:' . $string));
-            }
-            return $checkValue($action[0]);
-        };
-        return $calcIt($pack_Sc($actions));
-    }
-
-    protected function getMathFromString($string)
-    {
-        $string = preg_replace('/\s+/', '', $string);
-
-        $actions = preg_split(
-            '`((?<=[^(+\-^*/])[()+\-^*/]|[(])`',
-            $string,
-            null,
-            PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
-        );
-
-        $pack_Sc = function ($actions) use (&$pack_Sc, &$calcIt) {
-            $sc = 0;
-            $interval_start = null;
-            $i = 0;
-            while ($i < count($actions)) {
-                if ($actions[$i] === "") {
-                    array_splice($actions, $i, 1);
-                    continue;
-                }
-                switch ((string)$actions[$i]) {
-                    case '(':
-                        if ($sc++ === 0) {
-                            $interval_start = $i;
-                        }
-                        break;
-                    case ')':
-                        if ($sc < 1) {
-                            throw new errorException($this->translate('The unpaired closing parenthesis.'));
-                        }
-                        if (--$sc === 0) {
-                            array_splice(
-                                $actions,
-                                $interval_start,
-                                $i + 1 - $interval_start,
-                                $calcIt($pack_Sc(array_slice(
-                                    $actions,
-                                    $interval_start + 1,
-                                    $i - $interval_start - 1
-                                )))
-                            );
-                            $i = $interval_start - 1;
-                        }
-                        break;
-                }
-                $i++;
-            }
-            return $actions;
-        };
-
-        $checkValue = function ($var) {
-            if ($var && !is_numeric($var)) {
-                $var = $this->execSubCode($var, 'MathCode');
-            }
-            return $var;
-        };
-
-        $calcIt = function ($action) use ($checkValue, $string) {
-            $i = 0;
-            while ($i < count($action)) {
-                switch ((string)$action[$i]) {
-                    case '^':
-                        $left = $checkValue($action[$i - 1]);
-                        $right = $checkValue($action[$i + 1]);
-                        $val = $this->operatorExec($action[$i], $left, $right);
-                        array_splice($action, $i - 1, 3, $val);
-                        $i--;
-                }
-                $i++;
-            }
-
-            $i = 0;
-            while ($i < count($action)) {
-                switch ((string)$action[$i]) {
-                    case '/':
-                    case '*':
-                        $left = $checkValue($action[$i - 1]);
-                        $right = $checkValue($action[$i + 1]);
-                        $val = $this->operatorExec($action[$i], $left, $right);
-                        array_splice($action, $i - 1, 3, $val);
-                        $i--;
-                }
-                $i++;
-            }
-
-            $i = 0;
-
-            while ($i < count($action)) {
-                switch ((string)$action[$i]) {
-                    case '+':
-                    case '-':
-                        $left = $i === 0 ? 0 : $checkValue($action[$i - 1]);
-                        $right = $checkValue($action[$i + 1]);
-
-                        $val = $this->operatorExec($action[$i], $left, $right);
-
-                        if ($i === 0) {
-                            array_splice($action, 0, 2, $val);
-                        } else {
-                            array_splice($action, $i - 1, 3, $val);
-                        }
-                        $i--;
-                }
-                $i++;
-            }
-            if (count($action) !== 1 || !is_numeric((string)$action[0])) {
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].', 'math:' . $string));
-            }
-            return $action[0];
-        };
-        return $calcIt($pack_Sc($actions));
-    }
-
     protected function getSourceTable($params)
     {
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
@@ -2514,46 +1383,15 @@ SQL;
         return $table;
     }
 
-    protected function parseTotumJson(string $str)
-    {
-        $r = json_decode($str, true);
-        if (json_last_error() && ($error = json_last_error_msg())) {
-            try {
-                $TJ = new TotumJson($str);
-                $TJ->setTotumCalculate(function ($param) {
-                    return $this->execSubCode($param, 'paramFromJson');
-                });
-                $TJ->setStringCalculate(function ($str) {
-                    if (key_exists($str, $this->CodeStrings)) {
-                        return substr($this->CodeStrings[$str], 1);
-                    } else {
-                        return $str;
-                    }
-                });
-                $TJ->parse();
-            } catch (\Exception $e) {
-                throw new errorException($e->getMessage());
-            }
-
-            return $TJ->getJson();
-        } else {
-            return $r;
-        }
-    }
-
     protected function getEnvironment(): array
     {
         $env = [
             'table' => $this->Table->getTableRow()['name']
         ];
-        switch ($this->Table->getTableRow()['type']) {
-            case 'calcs':
-                $env['cycle_id'] = $this->Table->getCycle()->getId();
-                break;
-            case 'tmp':
-                $env['cycle_id'] = $this->Table->getTableRow()['sess_hash'];
-                break;
-        }
+        $env['cycle_id'] = match ($this->Table->getTableRow()['type']) {
+            'calcs' => $this->Table->getCycle()->getId(),
+            'tmp' => $this->Table->getTableRow()['sess_hash'],
+        };
 
         if (!empty($this->row['id'])) {
             $env['id'] = $this->row['id'];
@@ -2562,141 +1400,6 @@ SQL;
         return $env;
     }
 
-    protected function parseTotumStr($string): string
-    {
-        $string = preg_replace('/\s+/', '', $string);
-        $result = "";
-
-        foreach (explode('+', $string) as $i => $part) {
-            if ($part === '') {
-                $result .= " ";
-            } else {
-                $res = $this->execSubCode($part, 'part' . $i);
-                if (is_array($res)) {
-                    $res = json_encode($res, JSON_UNESCAPED_UNICODE);
-                }
-                $result .= $res;
-            }
-        }
-        return $result;
-    }
-
-
-    protected function funcGetFromScript($params)
-    {
-        $params = $this->getParamsArray($params, ['post'], ['post']);
-
-        if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
-            throw new errorException($this->translate('The %s parameter is required and must start with %s.',
-                ['uri', 'http/https']));
-        }
-
-        $link = $params['uri'];
-        if (!empty($params['post'])) {
-            $post = $this->__getActionFields($params['post'], 'GetFromScript');
-        } elseif (!empty($params['posts'])) {
-            $post = $params['posts'];
-        } else {
-            $post = null;
-        }
-
-
-        if (!empty($params['gets'])) {
-            $link .= !str_contains($link, '?') ? '?' : '&';
-            $link .= http_build_query($params['gets']);
-        }
-
-        $toBfl = $params['bfl'] ?? in_array(
-                'script',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
-
-        try {
-            $r = $this->cURL(
-                $link,
-                'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
-                $params['header'] ?? 0,
-                $params['cookie'] ?? '',
-                $post,
-                (($params['ssh'] ?? false) ? 'parallel' : $params['timeout'] ?? null),
-                ($params['headers'] ?? ""),
-                ($params['method'] ?? ""),
-            );
-            if ($toBfl) {
-                $this->Table->getTotum()->getOutersLogger()->error(
-                    "getFromScript",
-                    [
-                        'link' => $link,
-                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
-                        'header' => $params['header'] ?? 0,
-                        'headers' => $params['headers'] ?? 0,
-                        'cookie' => $params['cookie'] ?? '',
-                        'post' => $post,
-                        'timeout' => ($params['timeout'] ?? null),
-                        'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
-                    ]
-                );
-            }
-            return $r;
-        } catch (\Exception $e) {
-            if ($toBfl) {
-                $r = $r ?? '';
-                $this->Table->getTotum()->getOutersLogger()->error(
-                    'getFromScript:',
-                    ['error' => $e->getMessage()] + [
-                        'link' => $link,
-                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
-                        'header' => $params['header'] ?? 0,
-                        'headers' => $params['headers'] ?? 0,
-                        'cookie' => $params['cookie'] ?? '',
-                        'post' => $post,
-                        'timeout' => ($params['timeout'] ?? null),
-                        'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
-                    ]
-                );
-            }
-            throw new errorException($e->getMessage());
-        }
-    }
-
-    protected function funcGlobVar($params)
-    {
-        $params = $this->getParamsArray($params, [], []);
-
-        $this->__checkNotEmptyParams($params, 'name');
-
-        $_params = [];
-        if (key_exists('value', $params)) {
-            $_params['value'] = $params['value'];
-        } elseif (key_exists('default', $params)) {
-            $_params['default'] = $params['default'];
-        } elseif (key_exists('block', $params)) {
-            $_params['block'] = $params['block'];
-        }
-        if ($params['date'] ?? false) {
-            $_params['date'] = true;
-        }
-
-        return $this->Table->getTotum()->getConfig()->globVar($params['name'], $_params);
-    }
-
-    protected function funcProcVar($params)
-    {
-        $params = $this->getParamsArray($params, [], []);
-        $this->__checkNotEmptyParams($params, 'name');
-
-        $_params = [];
-        if (key_exists('value', $params)) {
-            $_params['value'] = $params['value'];
-        } elseif (key_exists('default', $params)) {
-            $_params['default'] = $params['default'];
-        }
-
-        return $this->Table->getTotum()->getConfig()->procVar($params['name'], $_params);
-    }
 
     protected function __getActionFields($fieldParams, $funcName)
     {
@@ -2736,7 +1439,7 @@ SQL;
                 $e->addPath('[[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
                 throw $e;
             } catch (SqlException $e) {
-                throw $e;
+                //throw $e;
 
                 throw new errorException($e->getMessage() . ' [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
             } catch (\Exception $e) {
@@ -2745,103 +1448,6 @@ SQL;
             $fields[$fieldName] = $fieldValue;
         }
         return $fields;
-    }
-
-    /**
-     * @param $url
-     * @param string $ref
-     * @param int $header
-     * @param string $cookie
-     * @param null $post
-     * @param int|"parallel"|null $timeout
-     * @param null $headers
-     * @param null $method
-     * @return bool|string
-     * @throws errorException
-     */
-    public static function cURL($url, $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null, $method = null)
-    {
-        if ($headers) {
-            $headers = (array)$headers;
-        } else {
-            $headers = [];
-        }
-        if ($cookie) {
-            $headers[] = "Cookie: " . $cookie;
-        }
-
-        if ($timeout === "parallel") {
-            $data = "";
-            if (empty($method)) {
-                $method = null;
-            }
-            $localeOld = setlocale(LC_CTYPE, 0);
-            setlocale(LC_CTYPE, "en_US.UTF-8");
-            if (!is_null($post)) {
-                $method = $method ?? "POST";
-                if (!empty($post)) {
-                    $post = is_array($post) ? http_build_query($post) : $post;
-                    $data = '--data ' . escapeshellarg($post);
-                }
-            } else {
-                $method = $method ?? "GET";
-            }
-
-            if ($ref) {
-                $ref = '--referer ' . escapeshellarg($ref);
-            }
-
-            $hhs = [];
-            foreach ($headers ?? [] as $h) {
-                $hhs[] = '-H ' . escapeshellarg($h);
-            }
-
-            setlocale(LC_CTYPE, $localeOld);
-
-            $hhs = implode(' ', $hhs);
-            `curl --insecure --request $method $ref $hhs $url $data  > /dev/null 2>&1 &`;
-
-            return null;
-        }
-
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-        curl_setopt($ch, CURLOPT_REFERER, $ref);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HEADER, $header);
-
-        if ($timeout) {
-            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        }
-
-        if (!empty($method)) {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        }
-
-        if (!is_null($post)) {
-            if (empty($method)) {
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_setopt($ch, CURLOPT_POST, 1);
-            }
-            curl_setopt($ch, CURLOPT_POSTFIELDS, is_array($post) ? http_build_query($post) : $post);
-        }
-
-
-        if ($headers) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, (array)$headers);
-        }
-
-        $result = curl_exec($ch);
-        if ($error = curl_error($ch)) {
-            curl_close($ch);
-            throw new errorException($error);
-        }
-        curl_close($ch);
-        return $result;
     }
 
     protected function getLangObj(): LangInterface

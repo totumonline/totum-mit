@@ -58,7 +58,7 @@ class RU implements LangInterface
         'Code format error - no start section.' => 'Ошибка формата кода - нет стартовой секции.',
         'The [[catch]] code of line [[%s]] was not found.' => 'Строка [[catch]] кода [[%s]] не найдена.',
         'ERR!' => 'ОШБК!',
-        'Database error while processing [[%s]] code.' => 'Ошибка базы данных при обработке кода [[%s]].',
+        'Database error: [[%s]]' => 'Ошибка базы данных: [[%s]]',
         'Critical error while processing [[%s]] code.' => 'Критическая ошибка при обработке кода [[%s]].',
         'field [[%s]] of [[%s]] table' => 'поле [[%s]] таблицы [[%s]]',
         'You cannot use linktoDataTable outside of actionCode without hide:true.' => 'Нельзя использовать linktoDataTable вне actionCode без hide:true.',
@@ -79,8 +79,8 @@ class RU implements LangInterface
         'There is no [[%s]] key in the [[%s]] list.' => 'Не существует ключа [[%s]] в листе [[%s]].',
         'Regular expression error: [[%s]]' => 'Ошибка регулярного выражения: [[%s]]',
         'Parameter [[%s]] returned a non-true/false value.' => 'Параметр [[%s]] вернул не true/false.',
-        'The parameter must contain 2 elements.' => 'Параметр должен содержать 2 элемента.',
-        'The parameter must contain 3 elements.' => 'Параметр должен содержать 3 элемента.',
+        'The [[%s]] parameter must contain 2 elements.' => 'Параметр [[%s]] должен содержать 2 элемента.',
+        'The [[%s]] parameter must contain 3 elements.' => 'Параметр [[%s]] должен содержать 3 элемента.',
         'The %s parameter must contain a comparison element.' => 'Параметр %s должен содержать элемент сравнения.',
 
         'Variable [[%s]] is not defined.' => 'Переменная [[%s]] не определена.',
@@ -92,6 +92,7 @@ class RU implements LangInterface
         'The key [[%s]] is not found in one of the array elements.' => 'Ключ [[%s]] не обнаружен в одном из элементов массива.',
         'There must be two [[%s]] parameters in the [[%s]] function.' => 'Должно быть два параметра [[%s]] в функции [[%s]].',
         'The [[%s]] parameter must be [[%s]].' => 'Параметр [[%s]] должен быть [[%s]].',
+        'The [[%s]] parameter must [[not]] be [[%s]].' => 'Параметр [[%s]] [[не]] должен быть [[%s]].',
         'The number of the [[%s]] must be equal to the number of [[%s]].' => 'Количество [[%s]] должен быть равно количеству [[%s]].',
         'The [[%s]] parameter must be one type with [[%s]] parameter.' => 'Параметр [[%s]] должен быть одного типа с параметром [[%s]].',
 
@@ -109,6 +110,13 @@ class RU implements LangInterface
         '[[%s]] is not a multiple parameter.' => '[[%s]] - не множественный параметр.',
         'Not found template [[%s]] for parameter [[%s]].' => 'Не найден template [[%s]] для параметра [[%s]].',
         'No template is specified for [[%s]].' => 'Не указан template для параметра [[%s]].',
-        'The unpaired closing parenthesis.'=>'Непарная закрывающая скобка.'
+        'The unpaired closing parenthesis.'=>'Непарная закрывающая скобка.',
+        'JSON generation error: [[%s]].'=>'Ошибка формирования JSON: [[%s]].',
+        'JSON parsing error: [[%s]].'=>'Ошибка разбора JSON: [[%s]].',
+        'The code should return [[%s]].'=>'Код должен возвращать [[%s]].',
+
+
+
+        'Format sections'=>'Секции форматирования',
     ];
 }

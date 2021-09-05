@@ -403,7 +403,7 @@ class File extends Field
         }
     }
 
-    public static function getContent($fname, Conf $Config)
+    public static function getContent($fname, Conf $Config): bool|string|null
     {
         $filepath = static::getFilePath($fname, $Config);
         if (key_exists($filepath, static::$transactionCommits)) {

@@ -51,7 +51,7 @@ class CalculateAction extends Calculate
         }
     }
 
-    protected function funcExec($params)
+    protected function funcExec(string $params): mixed
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
             $code = $params['code'] ?? $params['kod'];
@@ -65,7 +65,7 @@ class CalculateAction extends Calculate
                 try {
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {
-                        $Vars = array_merge($Vars, $this->getExecParamVal($v));
+                        $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
                     }
 
                     $r = $CA->execAction(
@@ -1141,7 +1141,7 @@ class CalculateAction extends Calculate
 
         $rows = $MainList;
         foreach (($params['field'] ?? []) as $f) {
-            $f = $this->getExecParamVal($f);
+            $f = $this->getExecParamVal($f, 'field');
             $rows = array_replace($rows, $f);
         }
 

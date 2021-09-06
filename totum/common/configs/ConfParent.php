@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpMissingReturnTypeInspection */
+
 /**
  * Created by PhpStorm.
  * User: tatiana
@@ -35,7 +36,7 @@ abstract class ConfParent
 
     protected $execSSHOn = false;
 
-    const LANG = "";
+    const LANG = '';
 
     /* Переменные работы конфига */
     protected static $handlersRegistered = false;
@@ -50,7 +51,7 @@ abstract class ConfParent
      * @var string production|development
      */
     protected $env;
-    public const ENV_LEVELS = ["production" => "production", "development" => "development"];
+    public const ENV_LEVELS = ['production' => 'production', 'development' => 'development'];
 
 
     protected $dbConnectData;
@@ -77,12 +78,13 @@ abstract class ConfParent
     protected $Lang;
 
 
-    public function __construct($env = self::ENV_LEVELS["production"])
+    /** @noinspection PhpNewClassMissingParameterListInspection */
+    public function __construct($env = self::ENV_LEVELS['production'])
     {
         $this->mktimeStart = microtime(true);
         set_time_limit(static::$timeLimit);
         $this->logLevels =
-            $env === self::ENV_LEVELS["production"] ? ['critical', 'emergency']
+            $env === self::ENV_LEVELS['production'] ? ['critical', 'emergency']
                 : ['error', 'debug', 'alert', 'critical', 'emergency', 'info', 'notice', 'warning'];
 
         $this->baseDir = $this->getBaseDir();
@@ -103,7 +105,7 @@ abstract class ConfParent
 
     public function getDefaultSender()
     {
-        return "no-reply@" . $this->getFullHostName();
+        return 'no-reply@' . $this->getFullHostName();
     }
 
     public function setSessionCookieParams()
@@ -152,7 +154,7 @@ abstract class ConfParent
                 'exec',
                 ['vars' => ['text' => $errTitle.': <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]
             );
-        } catch (\Exception $e) {
+        } catch (\Exception) {
         }
 
         $this->sendMail(
@@ -218,7 +220,7 @@ abstract class ConfParent
 
     /********************* MAIL SECTION **************/
 
-    protected function mailBodyAttachments($body, $attachmentsIn = [])
+    protected function mailBodyAttachments($body, $attachmentsIn = []): array
     {
         $attachments = [];
         foreach ($attachmentsIn as $k => $v) {
@@ -238,6 +240,7 @@ abstract class ConfParent
                     $attachments[$md5] = $file;
                     return 'src="cid:' . $md5 . '"';
                 }
+                return null;
             },
             $body
         );
@@ -258,12 +261,12 @@ abstract class ConfParent
      */
     public function sendMail($to, $title, $body, $attachments = [], $from = null)
     {
-        throw new errorException('Настройки для отправки почты не заданы');
+        throw new errorException($this->translate('Settings for sending mail are not set.'));
     }
 
     /********************* ANONYM SECTION **************/
 
-    protected const ANONYM_ALIAS = "An";
+    protected const ANONYM_ALIAS = 'An';
 
     public function getAnonymHost()
     {
@@ -305,27 +308,23 @@ abstract class ConfParent
         $error = error_get_last();
 
         if ($error !== null) {
-            $errno = $error["type"];
-            $errfile = $error["file"];
-            $errline = $error["line"];
-            $errstr = $error["message"];
+            $errno = $error['type'];
+            $errfile = $error['file'];
+            $errline = $error['line'];
+            $errstr = $error['message'];
 
 
+            $errorStr = $errstr;
             if ($errno === E_ERROR) {
-                $errorStr = $errstr;
                 if (empty($_POST['ajax'])) {
                     echo $errorStr;
                 }
 
                 static::errorHandler($errno, $errorStr, $errfile, $errline);
-                if (static::$logPhp) {
-                    static::$logPhp->error($errfile . ':' . $errline . ' ' . $errstr);
-                }
+                static::$logPhp?->error($errfile . ':' . $errline . ' ' . $errstr);
                 if (static::$CalcLogs) {
                     $this->getLogger('sql')->error(static::$CalcLogs);
                 }
-            } else {
-                $errorStr = $errstr;
             }
 
             if (!empty($_POST['ajax'])) {
@@ -401,10 +400,7 @@ abstract class ConfParent
     public function getCalculateExtensionFunction($funcName)
     {
         $this->getObjectWithExtFunctions();
-        if (!property_exists(
-                $this->CalculateExtensions,
-                $funcName
-            ) || !is_callable($this->CalculateExtensions->$funcName)) {
+        if (!method_exists($this->CalculateExtensions, $funcName)) {
             throw new errorException($this->translate('Function [[%s]] is not found.', $funcName));
         }
         return $this->CalculateExtensions->$funcName;
@@ -450,15 +446,15 @@ abstract class ConfParent
 
     abstract public static function getSchemas();
 
-    public function getSshPostgreConnect($type)
+    public function getSshPostgreConnect($type): string
     {
         $db = $this->getDb(false);
         if (empty($db[$type])) {
-            errorException::criticalException('Не задан путь к ssh скрипту ' . $type, $this);
+            errorException::criticalException($this->translate('The path to ssh script %s is not set.', $type), $this);
         }
         $pathPsql = $db[$type];
         $dbConnect = sprintf(
-            "postgresql://%s:%s@%s/%s",
+            'postgresql://%s:%s@%s/%s',
             $db['username'],
             urlencode($db['password']),
             $db['host'],
@@ -614,9 +610,9 @@ ON CONFLICT (name) DO UPDATE
             }
             if ($data = $prepare->fetch()) {
                 if ($params['date'] ?? false) {
-                    return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                    return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];
                 } else {
-                    return json_decode($data["value"], true)["v"];
+                    return json_decode($data['value'], true)['v'];
                 }
             } else {
                 return null;
@@ -652,9 +648,9 @@ ON CONFLICT (name) DO UPDATE
                     if ($data = $prepareSelectBlocked->fetch()) {
                         if ($data['was_blocked']) {
                             if ($params['date'] ?? false) {
-                                return ['date' => $data["dt"], 'value' => json_decode($data["value"], true)["v"]];
+                                return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];
                             } else {
-                                return json_decode($data["value"], true)["v"];
+                                return json_decode($data['value'], true)['v'];
                             }
                         }
                     } else {

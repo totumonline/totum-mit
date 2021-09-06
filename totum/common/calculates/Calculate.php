@@ -922,7 +922,7 @@ class Calculate
                                     throw new errorException($this->translate('Variable [[%s]] is not defined.',
                                         $nameVar));
                                 }
-                                if (gettype($this->vars[$nameVar]) === 'function') {
+                                if (gettype($this->vars[$nameVar]) === 'object') {
                                     $this->vars[$nameVar] = $this->vars[$nameVar]();
                                 }
                                 $r = $this->vars[$nameVar];

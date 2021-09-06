@@ -129,6 +129,7 @@ class RU implements LangInterface
     Оперативная память: %sM. из %s.<br/>
     Sql схема: %s, V %s<br/>',
 
-
+        'Settings for sending mail are not set.'=>'Настройки для отправки почты не заданы.',
+        'The path to ssh script %s is not set.'=>'Не задан путь к ssh скрипту %s.',
     ];
 }

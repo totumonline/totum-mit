@@ -402,6 +402,7 @@ class ReadTableActions extends Actions
         switch ($pageViewType = $this->getPageViewType()) {
             case 'tree':
                 $result += ['chdata' => $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']])];
+
                 if (!is_array($this->post) || !key_exists('tree', $this->post)) {
                     throw new errorException('Индекс дерева не передан. Возможно, по причине таблицы циклов');
                 }
@@ -418,9 +419,10 @@ class ReadTableActions extends Actions
                                 }
                             }
                         },
-                        [""]
+                        ['']
                     )
                 );
+                $result['chdata']['f'] = $this->getTableFormat(array_column($result['chdata']['rows'] ?? [], 'id'));
                 break;
             default:
                 $result += ['chdata' => $this->getTableClientData(
@@ -873,9 +875,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
         {
-            $f = $this->getTableFormat(array_column($data['rows'] ?? [], 'id'));
             $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
-            $data['f'] = $f;
         }
         $this->Table->calcLog($Log, 'result', 'done');
 
@@ -922,6 +922,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
 
         $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
+        $result['f'] = $this->getTableFormat(array_column($data['rows'] ?? [], 'id'));
         $result['rows'] = $data['rows'];
 
         $result['filtersString'] = $this->getFiltersString();
@@ -1842,6 +1843,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             )
         );
         $result['filtersString'] = $this->getFiltersString();
+        $result['f'] = $this->getTableFormat(array_column($result['rows'] ?? [], 'id'));
         return $result;
     }
 

@@ -15,11 +15,7 @@ class Crypt
     private static function getKey($sess)
     {
         if ($sess === true) {
-            if (empty($_SESSION['crypt_key'])) {
-                $_SESSION['crypt_key'] = md5(microtime(true));
-            }
-
-            return $_SESSION['crypt_key'];
+            return static::setKeySess();
         } else {
             return 'Y`9~g8_cjZrZkGd!' . $sess;
         }
@@ -30,6 +26,7 @@ class Crypt
         if (empty($_SESSION['crypt_key'])) {
             $_SESSION['crypt_key'] = md5(microtime(true));
         }
+        return $_SESSION['crypt_key'];
     }
 
     public static function getCrypted($string, $sess = true)

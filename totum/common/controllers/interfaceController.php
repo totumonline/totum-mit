@@ -7,6 +7,9 @@ namespace totum\common\controllers;
  *
  * */
 
+use \JsonException;
+use \ReflectionClass;
+use totum\common\Lang\RU;
 use totum\common\sql\SqlException;
 use totum\common\User;
 use totum\config\Conf;
@@ -34,9 +37,9 @@ abstract class interfaceController extends Controller
     {
         parent::__construct($Config, $totumPrefix);
 
-        $controllerFile = (new \ReflectionClass(get_called_class()))->getFileName();
+        $controllerFile = (new ReflectionClass(get_called_class()))->getFileName();
 
-        $dir = '\\'.DIRECTORY_SEPARATOR;
+        $dir = '\\' . DIRECTORY_SEPARATOR;
         $modul = preg_replace(
             "`^.*?([^{$dir}]+){$dir}[^{$dir}]+$`",
             '$1',
@@ -65,24 +68,23 @@ abstract class interfaceController extends Controller
     protected function outputJson()
     {
         if (empty($this->answerVars)) {
-            $this->answerVars['error'] = 'Ошибка обработки запроса.';
+            $this->answerVars['error'] = $this->translate('Request processing error.');
         }
 
-        $data = json_encode($this->answerVars, JSON_UNESCAPED_UNICODE);
-        if ($this->answerVars && !$data) {
-            $data['error'] = 'Ошибка обработки запроса.';
+        try {
+            $data = json_encode($this->answerVars, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
             if ($this->User && $this->User->isCreator()) {
-                $data['error'] = 'Ошибка вывода не utf-содержимого или слишком большого пакета данных. ' . json_last_error_msg();
+                $error =  $this->translate('Error generating JSON response to client [[%s]].', $exception->getMessage());
+            } else {
+                $error = $this->translate('Request processing error.');
             }
-            $data = json_encode($data, JSON_UNESCAPED_UNICODE);
+            $data = json_encode(['error' => $error], JSON_UNESCAPED_UNICODE);
         }
-        if (empty($data)) {
-            $data = '["error":"Пустой ответ сервера"]';
-        }
+
         echo $data;
     }
 
-    /*Emit it?*/
     protected function outputHtmlTemplate()
     {
         try {
@@ -93,7 +95,7 @@ abstract class interfaceController extends Controller
             $this->__addAnswerVar('settings', $settings, true);
         } catch (SqlException $e) {
             $this->Config->getLogger('sql')->error($e->getMessage(), $e->getTrace());
-            $error = "Ошибка базы данных";
+            $error = $this->translate('Database error: [[%s]]', $e->getMessage());
         }
 
         extract($this->answerVars);
@@ -107,7 +109,7 @@ abstract class interfaceController extends Controller
      */
     protected function location($to = null, $withPrefix = true)
     {
-        $to = ($withPrefix ? $this->totumPrefix : "") . ($to ?? '/');
+        $to = ($withPrefix ? $this->totumPrefix : '') . ($to ?? '/');
         header('location: ' . $to);
         die;
     }
@@ -132,5 +134,10 @@ abstract class interfaceController extends Controller
         } else {
             $this->answerVars[$name] = $var;
         }
+    }
+
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->Totum->getLangObj()->translate($str, $vars);
     }
 }

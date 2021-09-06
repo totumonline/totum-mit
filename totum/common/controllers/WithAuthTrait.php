@@ -21,7 +21,6 @@ trait WithAuthTrait
 
     protected function __UnauthorizedAnswer()
     {
-        /*TODO check header sends*/
         header('HTTP/1.0 401 Unauthorized');
         header('location: /Auth/Login/?from='.urlencode($_SERVER['REQUEST_URI']));
         die;

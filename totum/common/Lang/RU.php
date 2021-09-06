@@ -131,5 +131,9 @@ class RU implements LangInterface
 
         'Settings for sending mail are not set.'=>'Настройки для отправки почты не заданы.',
         'The path to ssh script %s is not set.'=>'Не задан путь к ssh скрипту %s.',
+
+        'Request processing error.'=>'Ошибка обработки запроса.',
+        'Error generating JSON response to client [[%s]].'=>'Ошибка формирования JSON-ответа на клиент [[%s]].',
+
     ];
 }

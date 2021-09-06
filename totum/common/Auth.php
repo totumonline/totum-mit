@@ -39,7 +39,7 @@ class Auth
         return null;
     }
 
-    public static function webInterfaceSessionStart($Config, $close = true)
+    public static function webInterfaceSessionStart($Config)
     {
         $User = null;
         $Config->setSessionCookieParams();
@@ -51,9 +51,7 @@ class Auth
                 Crypt::setKeySess();
             }
         }
-        if ($close) {
-            session_write_close();
-        }
+        session_write_close();
         return $User;
     }
 
@@ -218,6 +216,7 @@ class Auth
             session_start();
         }
         $_SESSION['userId'] = $userId;
+        session_write_close();
     }
 
     public static function webInterfaceRemoveAuth()
@@ -229,11 +228,14 @@ class Auth
     public static function asUser($Config, $id, User $User)
     {
         $Config->setSessionCookieParams();
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         if (empty($_SESSION['ShadowUserId']) || empty($_SESSION['ShadowRole'])) {
             $_SESSION['ShadowUserId'] = $User->getId();
             $_SESSION['ShadowRole'] = array_values(array_intersect(static::$shadowRoles, $User->getRoles()))[0];
         }
+
         $_SESSION['userId'] = $id;
         session_write_close();
     }

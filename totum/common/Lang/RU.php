@@ -22,6 +22,7 @@ class RU implements LangInterface
         'System error. Action type not specified.' => 'Системная ошибка. Не указан тип действия.',
         'Scheme source not defined.' => 'Не определен источник схемы.',
         'Fill in the parameter [[%s]].' => 'Заполните параметр [[%s]].',
+        'Parametr [[%s]] is required.' => 'Параметр [[%s]] обязателен.',
         'Each button must contain [[%s]].' => 'Каждая кнопка должна содержать [[%s]].',
         'The parameter [[%s]] should be of type row/list.' => 'Параметр [[%s]] должен быть типа row/list.',
         'The parameter [[%s]] should be of type true/false.' => 'Параметр [[%s]] должен быть типа true/false.',
@@ -59,6 +60,7 @@ class RU implements LangInterface
         'The [[catch]] code of line [[%s]] was not found.' => 'Строка [[catch]] кода [[%s]] не найдена.',
         'ERR!' => 'ОШБК!',
         'Database error: [[%s]]' => 'Ошибка базы данных: [[%s]]',
+        'Database connect error. Try later. [[%s]]' => 'Ошибка подключения к базе данных. Попробуйте позже. [[%s]]',
         'Critical error while processing [[%s]] code.' => 'Критическая ошибка при обработке кода [[%s]].',
         'field [[%s]] of [[%s]] table' => 'поле [[%s]] таблицы [[%s]]',
         'You cannot use linktoDataTable outside of actionCode without hide:true.' => 'Нельзя использовать linktoDataTable вне actionCode без hide:true.',
@@ -134,6 +136,36 @@ class RU implements LangInterface
 
         'Request processing error.'=>'Ошибка обработки запроса.',
         'Error generating JSON response to client [[%s]].'=>'Ошибка формирования JSON-ответа на клиент [[%s]].',
+
+        'Initialization error: [[%s]].'=>'Ошибка инициализации: [[%s]].',
+        'Header'=>'Хэдер',
+        'Footer'=>'Футер',
+        'Rows part'=>'Строчная часть',
+        'Filters'=>'Фильтры',
+        'Row: id %s'=>'Строка: id %s',
+
+        'User %s is not configured. Contact your system administrator.'=>'Пользователь %s не настроен. Обратитесь к администратору системы.',
+        'Table [[%s]] has been changed. Update the table to make the changes.'=>'Таблица [[%s]] была изменена. Обновите таблицу для проведения изменений.',
+        'The anchor field settings are incorrect.'=>'Настройки якорного поля заданы неверно.',
+        'Field type is not defined.'=>'Тип поля не определен.',
+        'Table type is not defined.'=>'Тип таблицы не определен.',
+        'The [[%s]] table type is not connected to the system.'=>'Тип [[%s]] таблицы не подключен к системе.',
+        'Unsupported channel [[%s]] is specified.'=>'Указан не поддерживаемый канал [[%s]].',
+        'Field [[%s]] of table [[%s]] is required.'=>'Поле [[%s]] таблицы [[%s]] обязательно для заполнения.',
+        'Authorization lost.'=>'Потеряна авторизация.',
+        'Scheme file not found.'=>'Файл схемы не найден.',
+        'Wrong format scheme file.'=>'Файл схемы неверного формата.',
+
+        'Administrator'=>'Администратор',
+        'The type of the loaded table [[%s]] does not match.'=>'Несовпадение типа загружаемой таблицы [[%s]].',
+        'The cycles table for the adding calculation table [[%s]] is not set.'=>'Не задана таблица циклов для добавляемой расчетной таблицы [[%s]].',
+        'The format of the schema name is incorrect. Small English letters, numbers and - _'=>'Формат имени схемы неверен. Строчные английские буквы, цифры и - _',
+        'A scheme exists - choose another one to install.'=>'Схема существует - выберите другую для установки.',
+        'Category [[%s]] not found for replacement.'=>'Категория [[%s]] не найдена для замены.',
+        'Role [[%s]] not found for replacement.'=>'Категория [[%s]] не найдена для замены.',
+        'Branch [[%s]] not found for replacement.'=>'Ветка [[%s]] не найдена для замены.',
+        'Error saving file %s'=>'Ошибка сохранения файла %s',
+        'A nonexistent [[%s]] property was requested.'=>'Запрошено несуществующее свойство [[%s]].'
 
     ];
 }

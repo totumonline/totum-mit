@@ -389,6 +389,7 @@ abstract class ConfParent
         }
         $this->Loggers[$type] = new Log(
             $fileName ?? $dir . $type . '_' . $this->getSchema(false) . '.log',
+            $this->getLangObj(),
             $levels,
             $templateCallback
         );
@@ -481,7 +482,7 @@ abstract class ConfParent
     public function getSql($mainInstance = true, $withSchema = true, $Logger = null)
     {
         $getSql = function () use ($withSchema, $Logger) {
-            return new Sql($this->getDb($withSchema), $Logger ?? $this->getLogger('sql'), $withSchema);
+            return new Sql($this->getDb($withSchema), $Logger ?? $this->getLogger('sql'), $withSchema, $this->getLangObj());
         };
         if ($mainInstance) {
             return $this->Sql ?? $this->Sql = $getSql();

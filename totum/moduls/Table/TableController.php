@@ -137,7 +137,7 @@ class TableController extends interfaceController
             } else {
                 $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
                 //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
-                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
+                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
             }
         }
         return $result;
@@ -559,7 +559,7 @@ class TableController extends interfaceController
                     $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => 'Расчет таблицы']];
                 } else {
                     $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree()];
+                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
                     // $result['treeLogs'] = $this->CalculateLog->getLodTree();
                 }
             }

@@ -4,6 +4,8 @@ namespace totum\common\logs;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
+use totum\common\Lang\LangInterface;
+use totum\common\Lang\RU;
 
 class Log implements LoggerInterface
 {
@@ -28,7 +30,7 @@ class Log implements LoggerInterface
      */
     protected $levels;
 
-    public function __construct(string $path, $levels = null, $templateCallback = null)
+    public function __construct(string $path, protected LangInterface $Lang, $levels = null, $templateCallback = null)
     {
         if (!$levels) {
             $levels = static::$defaultLevels;
@@ -43,7 +45,7 @@ class Log implements LoggerInterface
     {
         if ($templateCallback) {
             if (!is_callable($templateCallback)) {
-                throw new \Exception('Ошибка инициализации Логгера');
+                throw new \Exception($this->Lang->translate('Initialization error: [[%s]].', 'Logger template is not callback.'));
             }
         } else {
             $templateCallback = function ($level, $message) {
@@ -69,7 +71,7 @@ class Log implements LoggerInterface
     {
         if (empty($this->logFileResource)) {
             $this->logFileResource = fopen($this->logFilePath, 'a');
-            fwrite($this->logFileResource, "-------" . PHP_EOL);
+            fwrite($this->logFileResource, '-------' . PHP_EOL);
         }
         fwrite($this->logFileResource, $row . PHP_EOL);
     }
@@ -79,7 +81,7 @@ class Log implements LoggerInterface
         fclose($this->logFileResource);
     }
 
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = [])
     {
         if (key_exists($level, $this->levels)) {
             $this->printToFile($level, $message, $context);

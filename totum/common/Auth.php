@@ -2,6 +2,7 @@
 
 namespace totum\common;
 
+use totum\common\Lang\RU;
 use totum\config\Conf;
 
 class Auth
@@ -111,18 +112,16 @@ class Auth
         if ($userRow = static::getUserWhere($Config, ['login' => 'service'])) {
             return new User($userRow, $Config);
         } else {
-            die('Пользователь service не настроен. Обратитесь к администратору системы');
+            die($Config->getLangObj()->translate('User %s is not configured. Contact your system administrator.', 'service'));
         }
     }
 
     public static function getUserRowWithServiceRestriction($login, Conf $Config, $interface = 'web')
     {
-        /*блокируем возможность авторизоваться под сервисными логинами*/
-        if ($login === 'cron' || $login === 'service') {
-            return false;
-        } else {
+        /*block the ability to log in with service logins*/
+        if ($login !== 'cron' && $login !== 'service') {
             $where = ['on_off' => true, 'is_del' => false, 'interface' => $interface];
-            if (strpos($login, '@') !== false) {
+            if (str_contains($login, '@')) {
                 $where['email'] = strtolower($login);
             } else {
                 $where = ['login' => $login];
@@ -130,8 +129,8 @@ class Auth
             if ($UserRow = static::getUserWhere($Config, $where, false)) {
                 return $UserRow;
             }
-            return false;
         }
+        return false;
     }
 
     public static function passwordCheckingAndProtection($login, $pass, &$userRow, Conf $Config, $interface): int

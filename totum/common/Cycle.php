@@ -9,6 +9,7 @@
 namespace totum\common;
 
 use PDO;
+use totum\common\Lang\RU;
 use totum\models\CalcsTableCycleVersion;
 use totum\models\CalcsTablesVersions;
 use totum\models\Table;
@@ -216,7 +217,7 @@ class Cycle
             if ($this->cycleId && $this->cyclesTableId) {
                 $cyclesTableRow = $this->Totum->getTableRow($this->cyclesTableId);
                 if (!$cyclesTableRow || $cyclesTableRow['type'] !== 'cycles') {
-                    throw new errorException('Таблица циклов не найдена');
+                    throw new errorException($this->Totum->getLangObj()->translate('The cycles table is specified incorrectly.'));
                 }
                 if ($row = $this->Totum->getModel($cyclesTableRow['name'])->get(['id' => $this->cycleId, 'is_del' => false])) {
                     foreach ($row as $k => &$v) {
@@ -247,13 +248,13 @@ class Cycle
 
         if ($tableRow['type'] !== 'calcs') {
             errorException::criticalException(
-                'Через Cycle создаются только расчетные таблицы цикла',
+                $this->Totum->getLangObj()->translate('[[%s]] is available only for the calculation table in the cycle.', 'Cycle->getTable'),
                 $this->getCyclesTable()
             );
         }
         if ((int)$tableRow['tree_node_id'] !== $this->getCyclesTableId()) {
             errorException::criticalException(
-                'Ошибка обращения к таблице не своей циклической таблицы',
+                $this->Totum->getLangObj()->translate('The [[%s]] parameter is not correct.', 'tree_node_id'),
                 $this->getCyclesTable()
             );
         }

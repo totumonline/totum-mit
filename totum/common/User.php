@@ -4,6 +4,7 @@
 namespace totum\common;
 
 use Exception;
+use totum\common\Lang\RU;
 use totum\config\Conf;
 use totum\models\Table;
 
@@ -39,7 +40,7 @@ class User
             return $this->allData[$name];
         }
 
-        throw new Exception('Запрошено несуществующее свойство ' . $name);
+        throw new Exception($this->Config->getLangObj()->translate('A nonexistent [[%s]] property was requested.', $name));
     }
 
     public function __construct($allData, Conf $Config)

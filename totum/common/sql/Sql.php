@@ -6,6 +6,8 @@ use Exception;
 use \PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
+use totum\common\Lang\LangInterface;
+use totum\common\Lang\RU;
 
 class Sql
 {
@@ -25,7 +27,7 @@ class Sql
     protected $preparedCount;
 
 
-    public function __construct(array $settings, LoggerInterface $Log, $withSchema = true)
+    public function __construct(array $settings, LoggerInterface $Log, $withSchema, protected LangInterface $Lang)
     {
         $this->Log = $Log;
         $this->PDO = static::getNewConnection($settings, $withSchema);
@@ -297,7 +299,7 @@ class Sql
     public function errorHandler($query_string, $error = null, $data = null)
     {
         $error = $error ?? $this->PDO->errorInfo();
-        $error = $error[2] ?? "Ошибка POSTGRES: CODE " . $error[0];
+        $error = $error[2] ?? $this->Lang->translate('Database error: [[%s]]', 'CODE ' . $error[0]);
 
         if ($error) {
             $this->Log->error(
@@ -382,7 +384,7 @@ class Sql
             }
             if ($withSchema) {
                 if (empty($conf['schema'])) {
-                    throw new SqlException('Не определена схема');
+                    throw new SqlException($this->Lang->translate('Scheme string is empty.'));
                 }
                 $this->Log->debug('SET search_path TO "' . $conf['schema'] . '"');
                 $PDO->exec('SET search_path TO "' . $conf['schema'] . '"');
@@ -392,7 +394,7 @@ class Sql
                 }
             }
         } catch (Exception $e) {
-            throw new SqlException('Ошибка подключения к базе данных . Попробуйте позже:' . $e->getMessage(), 0, $e);
+            throw new SqlException($this->Lang->translate('Database connect error. Try later. [[%s]]', $e->getMessage()), 0, $e);
         }
         return $PDO;
     }

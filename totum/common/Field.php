@@ -8,9 +8,11 @@
 
 namespace totum\common;
 
+use JetBrains\PhpStorm\ExpectedValues;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
+use totum\common\Lang\RU;
 use totum\fieldTypes\Checkbox;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Date;
@@ -103,7 +105,7 @@ class Field
 
                 $this->data['code'] = '=:select(' . $params . ')';
             } else {
-                $this->data['code'] = '=:errorExeption(text: "Неверные параметры якорного поля")';
+                $this->data['code'] = '=:errorExeption(text: "'.$this->translate('The anchor field settings are incorrect.').'")';
             }
             $this->data['codeOnlyInAdd'] = false;
         }
@@ -116,8 +118,12 @@ class Field
             $this->CalculateFormat = new CalculcateFormat($this->data['format']);
         }
         if (empty($this->data['errorText'])) {
-            $this->data['errorText'] = 'ОШБК!';
+            $this->data['errorText'] = $this->translate('ERR!');
         }
+    }
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->table->getTotum()->getLangObj()->translate($str, $vars);
     }
 
     /**
@@ -190,7 +196,7 @@ class Field
                     default:
                         $model = Field::class;
                         debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                        throw new errorException('Тип поля не определен');
+                        throw new errorException($this->translate('Field type is not defined.'));
                 }
                 return new $model($fieldData, $table);
             })
@@ -261,7 +267,7 @@ class Field
                     $vars
                 );
             } catch (errorException $e) {
-                $e->addPath('Таблица [[' . $this->table->getTableRow()['name'] . ']]; Поле [[' . $this->data['name'] . ']]');
+                $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->data['name'] , $this->table->getTableRow()['name']]));
                 throw $e;
             }
         }
@@ -280,6 +286,7 @@ class Field
         return true;
     }
 
+    #[ExpectedValues(values: ['web', 'xml', 'inner'])]
     public function isChannelChangeable($action, $channel)
     {
         switch ($channel) {
@@ -290,7 +297,7 @@ class Field
             case 'inner':
                 return true;
             default:
-                throw new errorException('Не указан канал ' . $action);
+                throw new errorException($this->translate('Unsupported channel [[%s]] is specified.' , $action));
         }
     }
 
@@ -395,20 +402,12 @@ class Field
 
     public function add($channel, $inNewVal, $row = [], $oldTbl = [], $tbl = [], $isCheck = false, $vars = [])
     {
-        switch ($channel) {
-            case 'inner':
-                $insertable = true;
-                break;
-            case 'web':
-                $insertable = $this->isWebChangeable('insert');
-
-                break;
-            case 'xml':
-                $insertable = $this->isXmlChangeable('insert');
-                break;
-            default:
-                throw new errorException('Не указан канал добавления');
-        }
+        $insertable = match ($channel) {
+            'inner' => true,
+            'web' => $this->isWebChangeable('insert'),
+            'xml' => $this->isXmlChangeable('insert'),
+            default => throw new errorException($this->translate('Unsupported channel [[%s]] is specified.', $channel)),
+        };
 
         $newVal = ['v' => null];
 
@@ -423,7 +422,7 @@ class Field
                 $inNewVal = $this->getDefaultValue();
                 $newVal = ['v' => $inNewVal];
             } elseif ($insertable && !empty($this->data['required']) && !$isCheck) {
-                throw new errorException('Поле [[' . $this->data['title'] . ']] обязательно для заполнения Таблица [[' . $this->table->getTableRow()['title'] . ']]');
+                throw new errorException($this->translate('Field [[%s]] of table [[%s]] is required.', [$this->data['title'], $this->table->getTableRow()['title']]));
             }
         }
 
@@ -452,7 +451,7 @@ class Field
         try {
             $this->checkVal($newVal, $row, $isCheck);
         } catch (errorException $e) {
-            $e->addPath('Таблица [[' . $this->table->getTableRow()['name'] . ']]; Поле: [[' . $this->data['name'] . ']]');
+            $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->data['name'] , $this->table->getTableRow()['name']]));
 
             if (!$isCheck) {
                 throw $e;
@@ -530,7 +529,7 @@ class Field
         try {
             $this->checkVal($newVal, $row, $isCheck);
         } catch (errorException $e) {
-            $e->addPath('Таблица [[' . $this->table->getTableRow()['name'] . ']]; Поле: [[' . $this->data['name'] . ']]');
+            $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->data['name'] , $this->table->getTableRow()['name']]));
 
             throw $e;
         }
@@ -612,7 +611,7 @@ class Field
      */
     public function calculateSelectList(&$val, $row, $tbl = [])
     {
-        throw new errorException('Это не поле селекта');
+        throw new errorException('This is not select field');
     }
 
 
@@ -647,7 +646,7 @@ class Field
 
         if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val === null)) {
             errorException::criticalException(
-                'Поле [[' . $this->data['title'] . ']] таблицы [[' . ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name']) . ']] должно быть заполнено',
+                $this->translate('Field [[%s]] of table [[%s]] is required.', [ $this->data['title'], ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name'])]),
                 $this->table
             );
         }

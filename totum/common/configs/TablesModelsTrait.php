@@ -113,6 +113,8 @@ trait TablesModelsTrait
 
             $this->tableRowsByName[$row['name']] = $row;
             $this->tableRowsById[$row['id']] = $row;
+        }else{
+            return null;
         }
         return $row;
     }

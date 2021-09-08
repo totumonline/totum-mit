@@ -3,6 +3,7 @@
 namespace totum\common;
 
 use totum\common\configs\TablesModelsTrait;
+use totum\common\Lang\RU;
 use totum\common\logs\ActionsLog;
 use totum\common\logs\CalculateLog;
 use totum\common\logs\OutersLog;
@@ -192,10 +193,10 @@ class Totum
 
 
         if (empty($tableRow)) {
-            throw new errorException('Таблица [[' . $table . ']] не найдена');
+            throw new errorException($this->translate('Table [[%s]] is not found.', $table));
         } elseif (empty($tableRow['type'])) {
             debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-            throw new errorException('Внутренняя ошибка: не указан тип таблицы');
+            throw new errorException($this->translate('Table type is not defined.'));
         }
         if (is_array($tableRow['type'])) {
             debug_print_backtrace();
@@ -240,8 +241,7 @@ class Totum
                     $this->tablesInstances[$cacheString] = cyclesTable::init($this, $tableRow, $extraData, $light);
                     break;
                 default:
-                    errorException::criticalException(
-                        "Таблица типа {$tableRow['type']} не подключена в системе",
+                    errorException::criticalException($this->translate('The [[%s]] table type is not connected to the system.', $tableRow['type']),
                         $this
                     );
             }
@@ -348,7 +348,7 @@ class Totum
     public function getUser(): User
     {
         if (!$this->User) {
-            errorException::criticalException('Потеряна авторизация');
+            errorException::criticalException($this->translate('Authorization lost.'), $this);
         }
         return $this->User;
     }
@@ -357,7 +357,7 @@ class Totum
     {
         if (!$this->totumLogger) {
             if (!$this->User) {
-                errorException::criticalException('Нельзя проводить изменения с логированием без авторизации', $this);
+                errorException::criticalException($this->translate('Authorization lost.'), $this);
             }
             $this->totumLogger = new ActionsLog($this);
         }
@@ -411,5 +411,10 @@ class Totum
     public function getLangObj(): Lang\LangInterface
     {
         return $this->Config->getLangObj();
+    }
+
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->getLangObj()->translate($str, $vars);
     }
 }

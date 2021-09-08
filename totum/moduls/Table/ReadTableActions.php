@@ -124,27 +124,29 @@ class ReadTableActions extends Actions
 
         return ['value' => Field::init($field, $this->Table)->getFullValue($val['v'], $data['rowId'] ?? null)];
     }
+
     /**
      * Нажатие кнопки в linktodatajson
      *
      * @throws errorException
      */
-    public function linkJsonClick(){
-        if(empty($this->post['hash']) || !is_string($this->post['hash'])){
+    public function linkJsonClick()
+    {
+        if (empty($this->post['hash']) || !is_string($this->post['hash'])) {
             throw new errorException('Ошибка интерфейса');
         }
 
         /** @var TmpTables $model */
         $model = $this->Totum->getNamedModel(TmpTables::class);
-        $data=$model->getByHash(TmpTables::serviceTables['linktodatajson'], $this->User, $this->post['hash'], true);
-        if(!$data){
+        $data = $model->getByHash(TmpTables::serviceTables['linktodatajson'], $this->User, $this->post['hash'], true);
+        if (!$data) {
             throw new errorException('Время хранения временной таблицы истекло');
         }
-        list($Table, $row)=$this->loadEnvirement($data);
+        list($Table, $row) = $this->loadEnvirement($data);
 
 
-        $vars=$data['var'];
-        $vars['value']=json_decode($this->post['json'], true);
+        $vars = $data['var'];
+        $vars['value'] = json_decode($this->post['json'], true);
 
         $CA = new CalculateAction($data['code']);
         $CA->execAction(
@@ -176,7 +178,7 @@ class ReadTableActions extends Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
             if (key_exists('index', $this->post) && $data['buttons'][$this->post['index']] ?? null) {
-                list($Table, $row)=$this->loadEnvirement($data);
+                list($Table, $row) = $this->loadEnvirement($data);
 
 
                 if ($Table->getFields()[$data['buttons'][$this->post['index']]['code']] ?? false) {
@@ -354,7 +356,8 @@ class ReadTableActions extends Actions
         }
         foreach ($row as $k => &$v) {
             if (key_exists($k, $fields)) {
-                if ($fields[$k]['type'] === 'date' && $v && $v = Calculate::getDateObject($v, $this->Totum->getLangObj())) {
+                if ($fields[$k]['type'] === 'date' && $v && $v = Calculate::getDateObject($v,
+                        $this->Totum->getLangObj())) {
                     if (!empty($fields[$k]['dateTime'])) {
                         $v = $v->format('Y-m-d H:i');
                     } else {
@@ -401,7 +404,7 @@ class ReadTableActions extends Actions
 
         switch ($pageViewType = $this->getPageViewType()) {
             case 'tree':
-                $result += ['chdata' => $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']])];
+                $result += ['chdata' => $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'])];
 
                 if (!is_array($this->post) || !key_exists('tree', $this->post)) {
                     throw new errorException('Индекс дерева не передан. Возможно, по причине таблицы циклов');
@@ -871,15 +874,15 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return 'common';
     }
 
-    protected function addValuesAndFormats($data)
+    protected function addValuesAndFormatsOfParams($params)
     {
-        $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
+        $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS OF OTHER NON-ROWS PARTS']);
         {
-            $data = $this->Table->getValuesAndFormatsForClient($data, 'web');
+            $params = $this->Table->getValuesAndFormatsForClient(['params' => $params], 'web');
         }
         $this->Table->calcLog($Log, 'result', 'done');
 
-        return $data;
+        return $params;
     }
 
     protected function getTableClientData($pageIds = 0, $onPage = null, $calcFilters = true, $onlyFields = null)
@@ -921,7 +924,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             )['rows'];
         }
 
-        $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
+        $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params']);
         $result['f'] = $this->getTableFormat(array_column($data['rows'] ?? [], 'id'));
         $result['rows'] = $data['rows'];
 
@@ -1334,7 +1337,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         foreach ($this->Table->getVisibleFields('web', true)['filter'] as $fName => $sortedVisibleField) {
             $filters['params'][$fName] = $params[$fName];
         }
-        $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
+        $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS OF FILTERS']);
         $changedData = $this->Table->getValuesAndFormatsForClient($filters, 'web');
 
         $this->Table->calcLog($Log, 'result', $changedData);
@@ -1607,7 +1610,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($this->Table->getTableRow()['table_format'] && $this->Table->getTableRow()['table_format'] != 'f1=:') {
             $Log = $this->Table->calcLog(['name' => 'Table format']);
 
-            $rowsFunc = function () use ($rowIds):array {
+            $rowsFunc = function () use ($rowIds): array {
                 $rows = [];
                 if ($rowIds) {
                     $rowIds = $this->Table->loadFilteredRows('web', $rowIds);
@@ -1660,6 +1663,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $return = [];
         if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh']) || $this->Totum->getConfig()->procVar()) {
+
+
             $this->Table->reCalculateFilters(
                 'web',
                 false,
@@ -1667,7 +1672,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
             );
 
-            $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
+
             $pageIds = json_decode($this->post['ids'], true);
 
             $return['chdata']['rows'] = [];
@@ -1762,9 +1767,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 )['tree'];
             }
 
-
+            $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
             $return['chdata']['params'] = $this->Table->getTbl()['params'];
-            $return['chdata']['f'] = $this->getTableFormat($pageIds?:[]);
+            $return['chdata']['f'] = $this->getTableFormat($pageIds ?: []);
 
             if (!empty($return['chdata']['rows'])) {
                 foreach ($return['chdata']['rows'] as $id => &$row) {
@@ -1824,7 +1829,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     protected function getTreeTopLevel($load, $open)
     {
-        $result = $this->addValuesAndFormats(['params' => $this->Table->getTbl()['params']]);
+        $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params']);
 
         $result = array_merge(
             $result,

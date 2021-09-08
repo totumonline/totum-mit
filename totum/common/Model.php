@@ -409,7 +409,7 @@ class Model
                 $whereStr .= '(';
                 if (preg_match('/^\d+$/', $k)) {
                     debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                    errorException::criticalException('Ошибка формирования запроса для prepared');
+                    errorException::criticalException('Forming query error for prepared.', $this->Sql);
                 } else {
                     if ($matches[1]) {
                         switch ($matches[1]) {
@@ -424,7 +424,7 @@ class Model
                                 break;
                             default:
                                 if (is_array($v)) {
-                                    throw new SqlException('Сравнение больше/меньше неприменимо к массивам');
+                                    throw new SqlException('The greater/lower comparison does not apply to arrays.');
                                 }
                                 $operator = " {$matches[1]} ?";
                         }
@@ -608,7 +608,7 @@ class Model
     public function delete($where, $ignore = 0)
     {
         if (empty($where)) {
-            throw new \Exception('Данные не верны');
+            throw new \Exception('Fill where parameter.');
         }
         if ($where = $this->getWhere($where)) {
             $query_string = 'delete ' . ($ignore ? 'ignore' : '') . ' from ' . $this->table . ' where ' . $where;

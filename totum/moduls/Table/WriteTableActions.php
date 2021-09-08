@@ -90,13 +90,13 @@ class WriteTableActions extends ReadTableActions
 
         $columnFilter = [];
         foreach ($this->Table->getSortedFields()['filter'] as $k => $f) {
-            if (($f['showInWeb'] ?? false) && $f['column'] ?? false) {
+            if (($f['showInWeb'] ?? false) && ($f['column'] ?? false)) {
                 $columnFilter[$f['column']] = $k;
             }
         }
         foreach ($visibleFields['column'] as $v) {
             $filtered = null;
-            if (key_exists($v['name'], $columnFilter)) {
+            if (key_exists($v['name'], $columnFilter) && empty($v['code'])) {
                 $val = $this->Table->getTbl()['params'][$columnFilter[$v['name']]]['v'];
 
                 if (isset($columnFilter[$v['name']])

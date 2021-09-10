@@ -8,6 +8,7 @@ use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\common\User;
@@ -62,11 +63,11 @@ class Actions
     public function reuser()
     {
         if (!Auth::isCanBeOnShadow($this->User)) {
-            throw new errorException('Функция вам недоступна');
+            throw new errorException($this->translate('The function is not available to you.'));
         }
         $user = Auth::getUsersForShadow($this->Totum->getConfig(), $this->User, $this->post['userId']);
         if (!$user) {
-            throw new errorException('Пользователь не найден');
+            throw new errorException($this->translate('User not found'));
         }
         Auth::asUser($this->Totum->getConfig(), $user[0]['id'], $this->User);
 
@@ -131,7 +132,7 @@ class Actions
 
     public function getNotificationsTable()
     {
-        $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "Нотификации"; width: 800; height: "80vh"; refresh: false; header: true; footer: true)');
+        $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "'.$this->translate('Notifications').'"; width: 800; height: "80vh"; refresh: false; header: true; footer: true)');
         $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'), 'exec');
     }
 
@@ -189,7 +190,7 @@ class Actions
                 }
             }
         } else {
-            throw new errorException('Предложенный выбор устарел.');
+            throw new errorException($this->translate('The choice is outdated.'));
         }
         return ['ok' => 1];
     }
@@ -275,7 +276,7 @@ class Actions
 
             $model->delete($key);
         } else {
-            throw new errorException('Предложенный ввод устарел.');
+            throw new errorException($this->translate('The proposed input is outdated.'));
         }
         return ['ok' => 1];
     }
@@ -381,5 +382,9 @@ class Actions
                 $this->Totum->getInterfaceDatas()
             )]);
         die;
+    }
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->Totum->getLangObj()->translate($str, $vars);
     }
 }

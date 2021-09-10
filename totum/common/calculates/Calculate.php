@@ -8,6 +8,7 @@
 
 namespace totum\common\calculates;
 
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FieldModifyItem;
@@ -1309,7 +1310,8 @@ class Calculate
                                 }
 
                                 if (count($whereCodes) != 3) {
-                                    throw new errorException($this->translate('The [[%s]] parameter must contain 3 elements.', $param));
+                                    throw new errorException($this->translate('The [[%s]] parameter must contain 3 elements.',
+                                        $param));
                                 }
                                 if (empty($whereCodes['comparison'])) {
                                     throw new errorException($this->translate('The %s parameter must contain a comparison element.',
@@ -1410,7 +1412,6 @@ class Calculate
         }
         foreach ($fieldParams as $f) {
             $fc = $this->getCodes($f);
-
             try {
                 if (count($fc) < 2) {
                     throw new \Exception();
@@ -1440,11 +1441,14 @@ class Calculate
                 throw $e;
             } catch (SqlException $e) {
                 //throw $e;
-
                 throw new errorException($e->getMessage() . ' [[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
+            } catch (criticalErrorException $e) {
+                $e->addPath('[[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
+                throw $e;
             } catch (\Exception $e) {
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].', $f));
+                throw new errorException($this->translate('TOTUM-code format error [[%s]].', $this->getReadCodeForLog($f)));
             }
+
             $fields[$fieldName] = $fieldValue;
         }
         return $fields;

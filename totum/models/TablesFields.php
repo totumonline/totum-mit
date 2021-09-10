@@ -1,7 +1,9 @@
 <?php
+
 namespace totum\models;
 
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\models\traits\WithTotumTrait;
@@ -28,7 +30,7 @@ class TablesFields extends Model
                     $fieldRow['category'] = json_decode($fieldRow['category'], true)['v'];
 
                     if (in_array($fieldRow['name'], Model::serviceFields)) {
-                        throw new errorException('Нельзя удалять системные поля');
+                        throw new errorException($this->translate('You cannot delete system fields.'));
                     }
                     $tableRow = $this->Totum->getTableRow($fieldRow['table_id']);
                     if ($tableRow['type'] !== 'calcs') {
@@ -50,7 +52,7 @@ class TablesFields extends Model
         if (key_exists('name', $params)) {
             $name = json_decode($params['name'], true)['v'];
             if ($this->getPrepared(['table_name' => $oldRow['table_name']['v'], 'name' => $name])) {
-                throw new errorException('Поле name [[' . $name . ']] уже есть в таблице');
+                throw new errorException($this->translate('The [[%s]] field is already present in the table.', $name));
             }
             $tableRow = $this->Totum->getTableRow($oldRow['table_name']['v']);
 
@@ -91,14 +93,6 @@ class TablesFields extends Model
 
     public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true): int
     {
-        if (!array_key_exists('data_src', $vars) || !($newData = json_decode(
-            $vars['data_src'],
-            true
-        )['v'])
-        ) {
-            throw new errorException('Необходимо заполнить параметры');
-        }
-
         $decodedVars = array_map(
             function ($v) {
                 return json_decode($v, true)['v'];
@@ -106,17 +100,20 @@ class TablesFields extends Model
             $vars
         );
 
+        if (empty($decodedVars['data_src'])) {
+            throw new errorException($this->translate('Fill in the field parameters.'));
+        }
+
         if (!$decodedVars['table_id']) {
-            throw new errorException('Выберите таблицу');
+            throw new errorException($this->translate('[[%s]] is reqired.', 'table'));
         }
         if ($decodedVars['name'] === 'new_field') {
-            throw new errorException('Name поля не может быть new_field');
+            throw new errorException($this->translate('The name of the field cannot be new_field'));
         }
-        if (in_array($decodedVars['name'], Model::serviceFields)) {
-            throw new errorException('[[' . $decodedVars['name'] . ']] - название технического поля. Выберите другое имя');
-        }
-        if (in_array($decodedVars['name'], Model::RESERVED_WORDS)) {
-            throw new errorException('[[' . $decodedVars['name'] . ']] - слово зарезервировано в sql. Выберите другое имя');
+        if (in_array($decodedVars['name'], Model::serviceFields) || in_array($decodedVars['name'],
+                Model::RESERVED_WORDS)) {
+            throw new errorException($this->translate('[[%s]] cannot be a field name. Choose another name.',
+                $decodedVars['name']));
         }
         if (!is_array($vars['table_id'])) {
             $tableRowId = json_decode($vars['table_id'], true)['v'];
@@ -129,7 +126,7 @@ class TablesFields extends Model
         $category = $decodedVars['category'];
 
         if ($this->fieldExits($decodedVars['table_id'], $decodedVars['name'], $decodedVars['version'])) {
-            throw new errorException('Поле [[' . $name . ']] уже существует в этой таблице.');
+            throw new errorException($this->translate('The [[%s]] field is already present in the table.', $name));
         }
 
         /*$this->checkParams($vars, $tableRowId);*/
@@ -154,7 +151,7 @@ class TablesFields extends Model
                             || $decodedVars['category'] === ($data['showInWebOtherPlacement'] ?? false)
                         ) {
                             $dataSrc['showInWebOtherOrd']['Val'] += 10;
-                            $update[$field['id']] = ['data_src'=>$dataSrc];
+                            $update[$field['id']] = ['data_src' => $dataSrc];
                         }
                     }
                     if ($update) {

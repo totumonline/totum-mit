@@ -13,6 +13,7 @@ use totum\common\calculates\CalculateSelect;
 use totum\common\calculates\CalculateSelectValue;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\tableTypes\aTable;
 
 class Tree extends Field
@@ -213,13 +214,13 @@ class Tree extends Field
         if ($this->data['category'] === 'filter') {
             $add = [];
             if (!empty($this->data['selectFilterWithEmpty'])) {
-                $add[''] = [($this->data['selectFilterWithEmptyText'] ?? 'Пустое'), 0];
+                $add[''] = [($this->data['selectFilterWithEmptyText'] ?? $this->translate('Empty')), 0];
             }
             if (!empty($this->data['selectFilterWithAll'])) {
-                $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? 'Все'), 0];
+                $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? $this->translate('All')), 0];
             }
             if (!empty($this->data['selectFilterWithNone'])) {
-                $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? 'Ничего'), 0];
+                $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
             }
             $list = $add + $list;
         }
@@ -465,7 +466,7 @@ class Tree extends Field
 
         $getParentsTitle = function ($parents, $level = 0) use (&$getParentsTitle) {
             if ($level > 100) {
-                return 'Зацикленное дерево';
+                return $this->translate('The looped tree');
             }
             return (!empty($parents['path']) ? $getParentsTitle(
                         $parents['path'],
@@ -486,7 +487,7 @@ class Tree extends Field
             } else {
                 $v_ = [$v, 1];
                 if (!is_null($v)) {
-                    $valArray['e'] = 'Значение не найдено';
+                    $valArray['e'] = $this->translate('Value not found');
                 }
             }
             return $v_;
@@ -504,14 +505,14 @@ class Tree extends Field
                             }
                         } else {
                             $v_ = [$v, 0];
-                            $valArray['e'] = 'Ошибка формата значения';
+                            $valArray['e'] = $this->translate('Value format error');
                         }
                     } else {
                         if (!is_array($v)) {
                             $v_ = $getTreeItem($v);
                         } else {
                             $v_ = [$this->data['errorText'], 1];
-                            $valArray['e'] = 'Мультиселект вместо селекта';
+                            $valArray['e'] = $this->translate('Multiselect instead of select');
                         }
                     }
                     return $v_;

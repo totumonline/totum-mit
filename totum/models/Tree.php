@@ -36,6 +36,7 @@ class Tree extends Model
             $treeVModel = $this->treeVModel ?? $this->treeVModel = (new Model(
                     $this->Sql,
                     Conf::getTableNameByModel(TreeV::class),
+                    $this->Lang,
                     null,
                     true
                 ));

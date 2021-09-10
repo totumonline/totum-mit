@@ -11,6 +11,7 @@ namespace totum\fieldTypes;
 use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 
 class fieldParamsResult extends Field
 {
@@ -44,13 +45,13 @@ class fieldParamsResult extends Field
     public function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
     {
         if (!empty($oldRow['id']) && $oldRow['id'] === 4) {
-            $newVal = ['v' => ["type" => "fieldParamsResult", "showInWeb" => false]];
+            $newVal = ['v' => ['type' => 'fieldParamsResult', 'showInWeb' => false]];
             return;
         }
     }
 
     public function getValueFromCsv($val)
     {
-        throw new errorException('Для работы с полями есть таблица Обновления');
+        throw new errorException($this->translate('Import from csv is not available for [[%s]] field.', 'field setttings'));
     }
 }

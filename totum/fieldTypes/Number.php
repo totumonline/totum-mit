@@ -11,6 +11,7 @@ namespace totum\fieldTypes;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\tableTypes\aTable;
 
 class Number extends Field
@@ -22,9 +23,9 @@ class Number extends Field
         $this->data['dectimalPlaces'] = $this->data['dectimalPlaces'] ?? 0;
     }
 
-    protected static function modifyNumberValue($modifyVal, $oldValue)
+    protected function modifyNumberValue($modifyVal, $oldValue)
     {
-        if (($modifyVal === "" || is_null($modifyVal)) && empty($sign)) {
+        if (($modifyVal === '' || is_null($modifyVal)) && empty($sign)) {
             return $modifyVal;
         }
 
@@ -37,7 +38,8 @@ class Number extends Field
                 $percent = true;
             }
             if (!is_numeric(strval($diffVal))) {
-                throw new errorException('В числовое поле должно идти число, а не [[' . strval($diffVal) . ']]');
+                throw new errorException($this->translate('The value of the %s field must be numeric.',
+                    $this->data['title']));
             }
             if ($percent) {
                 $diffVal = floatval($oldValue) / 100 * floatval($diffVal);
@@ -47,10 +49,10 @@ class Number extends Field
                 $diffVal *= -1;
             }
         } elseif (preg_match(
-            '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
-            $modifyVal,
-            $matches
-        ) || preg_match(
+                '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
+                $modifyVal,
+                $matches
+            ) || preg_match(
                 '/^(\-|\+|\/|:|\*)(\-?[\d]+(\.[\d]+)?)(%?)$/',
                 $modifyVal,
                 $matches
@@ -124,6 +126,10 @@ class Number extends Field
         $modifyVal = $this->modifyNumberValue($modifyVal, $oldVal);
 
         if (!is_null($modifyVal) && $modifyVal !== '') {
+            if (!is_numeric($modifyVal)) {
+                throw new errorException($this->translate('The value of the %s field must be numeric.',
+                    $this->data['title']));
+            }
             $modifyVal = round($modifyVal, $this->data['dectimalPlaces']);
         }
 
@@ -136,24 +142,23 @@ class Number extends Field
             return;
         }
 
-        if (is_string($val)) {
-            if (!is_numeric($val)) {
-                throw new errorException('Поле [[' . $this->data['title'] . ']] должно содержать число, а не [[' . $val . ']]');
-            }
-        } elseif (!is_float($val) && !is_int($val)) {
-            throw new errorException('Поле [[' . $this->data['title'] . ']] должно содержать число, а не [[' . $val . ']]');
+        if (!is_numeric($val)) {
+            throw new errorException($this->translate('The value of the %s field must be numeric.',
+                $this->data['title']));
         }
+
         if (!empty($this->data['regexp']) && !preg_match(
-            "/" . str_replace(
+                "/" . str_replace(
                     '/',
                     '\/',
                     $this->data['regexp']
                 ) . "/",
-            $val
-        )
+                $val
+            )
         ) {
             errorException::criticalException(
-                'Поле ' . $this->data['title'] . ' не соответствует формату "' . $this->data['regexp'] . '"',
+                $this->data['regexpErrorText'] ?? $this->translate('The value of %s field must match the format: %s',
+                    [$this->data['title'], $this->data['regexp']]),
                 $this->table
             );
         }

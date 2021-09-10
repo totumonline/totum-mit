@@ -297,13 +297,13 @@ trait FormsTrait
         $fields = $this->Table->getFields();
 
         if (!($field = $fields[$data['field']] ?? null)) {
-            throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
+            throw new errorException($this->translate('The [[%s]] field was not found. The table structure may have changed. Reload the page.'), $data['field']);
         }
         if (!in_array(
             $field['type'],
             ['select', 'tree']
         )) {
-            throw new errorException('Ошибка - поле не типа select/tree');
+            throw new errorException('Field not of type select/tree');
         }
 
         $this->Table->loadDataRow();

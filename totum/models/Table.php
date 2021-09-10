@@ -10,6 +10,7 @@ namespace totum\models;
 
 use Exception;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\models\traits\WithTotumTrait;
@@ -34,7 +35,19 @@ class Table extends Model
             'users' => [],
             'tree' => [],
             'settings' => [],
-            'table_categories' => []];
+            'auth_log' => [],
+            'crons' => [],
+            'ttm__backups' => [],
+            'ttm__charts' => [],
+            'ttm__forms' => [],
+            'ttm__forms_viewtypes' => [],
+            'ttm__remotes' => [],
+            'ttm__search_catalog' => [],
+            'ttm__search_settings' => [],
+            'ttm__updates' => [],
+            'calcstable_cycle_version' => [],
+            'calcstable_versions' => [],
+        ];
 
     use WithTotumTrait;
 
@@ -45,7 +58,7 @@ class Table extends Model
         $name = json_decode($vars['name'], true)['v'];
 
         if (in_array($name, Model::RESERVED_WORDS)) {
-            throw new errorException('[[' . $name . ']] не может быть названием таблицы');
+            throw new errorException($this->translate('[[%s]] cannot be a table name.', $name));
         }
 
         $id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt);
@@ -57,7 +70,7 @@ class Table extends Model
                 $table->createTable();
             }
         } else {
-            throw new errorException('Ошибка с таблицей');
+            throw new errorException($this->translate('Table creation error.'));
         }
         return $id;
     }
@@ -139,7 +152,7 @@ class Table extends Model
                 $tableType = $tableRow['type'];
 
                 if (key_exists($tableName, static::$systemTables)) {
-                    throw new errorException('Нельзя удалять системные таблицы');
+                    throw new errorException($this->translate('You cannot delete system tables.'));
                 }
 
                 $this->Totum->getNamedModel(TablesFields::class)->delete(['table_id' => $tableRow['id']]);

@@ -1,5 +1,7 @@
 <?php
 
+use totum\common\Lang\RU;
+
 $isCreatorView = $isCreatorView ?? false;
 
 if (empty($tableConfig)) {
@@ -14,7 +16,7 @@ if (empty($tableConfig)) {
                         }
 
                         if (!empty($html)) {
-                            echo '<li><a data-toggle="tab" href="#description">Описание</a></li>';
+                            echo '<li><a data-toggle="tab" href="#description">'.$this->translate('Description').'</a></li>';
                         }
                         ?>
                     </ul>
@@ -67,7 +69,7 @@ HTML;
 
             <div class="panel panel-default">
                 <div class="panel-body">
-                    Выберите таблицу
+                    <?=$this->translate('Choose a table')?>
                 </div>
             </div>
 

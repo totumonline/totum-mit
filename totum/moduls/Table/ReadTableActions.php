@@ -11,6 +11,7 @@ use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FormatParamsForSelectFromTable;
+use totum\common\Lang\RU;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Select;
@@ -29,7 +30,7 @@ class ReadTableActions extends Actions
                 $this->post['type']
             );
         } else {
-            throw new errorException('У вас нет доступа для csv-выкрузки');
+            throw new errorException($this->translate('Csv download of this table is not allowed for your role.'));
         }
     }
 
@@ -96,13 +97,13 @@ class ReadTableActions extends Actions
         $data = json_decode($this->post['data'], true) ?? [];
 
         if (empty($data['fieldName'])) {
-            throw new errorException('Не задано имя поля');
+            throw new errorException($this->translate('The name of the field is not set.'));
         }
         if (empty($field = $this->Table->getVisibleFields('web')[$data['fieldName']])) {
-            throw new errorException('Доступ к полю запрещен');
+            throw new errorException($this->translate('Access to the field is denied'));
         }
         if (empty($data['rowId']) && $field['category'] === 'column') {
-            throw new errorException('Не задана строка');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'rowId'));
         }
 
         if (!empty($data['rowId'])) {
@@ -116,7 +117,7 @@ class ReadTableActions extends Actions
         }
 
         if (!isset($val)) {
-            throw new errorException('Ошибка доступа к полю');
+            throw new errorException('Getting value error');
         }
         if (is_string($val)) {
             $val = json_decode($val, true);
@@ -133,14 +134,14 @@ class ReadTableActions extends Actions
     public function linkJsonClick()
     {
         if (empty($this->post['hash']) || !is_string($this->post['hash'])) {
-            throw new errorException('Ошибка интерфейса');
+            throw new errorException($this->translate('Interface Error'));
         }
 
         /** @var TmpTables $model */
         $model = $this->Totum->getNamedModel(TmpTables::class);
         $data = $model->getByHash(TmpTables::serviceTables['linktodatajson'], $this->User, $this->post['hash'], true);
         if (!$data) {
-            throw new errorException('Время хранения временной таблицы истекло');
+            throw new errorException($this->translate('Temporary table storage time has expired'));
         }
         list($Table, $row) = $this->loadEnvirement($data);
 
@@ -197,10 +198,10 @@ class ReadTableActions extends Actions
                 );
                 return ["ok" => 1];
             } else {
-                throw new errorException('Ошибка интерфейса - выбрана несуществующая кнопка');
+                throw new errorException($this->translate('Interface Error'));
             }
         } else {
-            throw new errorException('Предложенный выбор устарел.');
+            throw new errorException($this->translate('The choice is outdated.'));
         }
     }
 
@@ -255,7 +256,7 @@ class ReadTableActions extends Actions
                 }
             }
         } else {
-            throw new errorException('Предложенный выбор устарел.');
+            throw new errorException($this->translate('The choice is outdated.'));
         }
         return ['ok' => 1];
     }
@@ -302,7 +303,7 @@ class ReadTableActions extends Actions
             );
             $model->delete($key);
         } else {
-            throw new errorException('Код обработки устарел.');
+            throw new errorException($this->translate('The proposed input is outdated.'));
         }
         return ['ok' => 1];
     }
@@ -341,11 +342,11 @@ class ReadTableActions extends Actions
         $fields = $this->Table->getFields();
 
         if (!($field = $fields[$data['field']] ?? null)) {
-            throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
+            throw new errorException($this->translate('Field [[%s]] is not found.', $data['field']));
         }
 
         if (!in_array($field['type'], ['select'])) {
-            throw new errorException('Ошибка - поле не типа select');
+            throw new errorException($this->translate('Field not of type select/tree'));
         }
 
         $this->Table->loadDataRow();
@@ -389,8 +390,7 @@ class ReadTableActions extends Actions
                     $error .= ' <br/> ' . $e->getPathMess();
                     $result['error'] = $error;
                 }
-                $this->Totum->transactionRollback();
-                throw new criticalErrorException($e->getMessage());
+                errorException::criticalException($e, $this->Totum);
             }
         } else {
             $this->Table->reCalculateFilters(
@@ -407,7 +407,7 @@ class ReadTableActions extends Actions
                 $result += ['chdata' => $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'])];
 
                 if (!is_array($this->post) || !key_exists('tree', $this->post)) {
-                    throw new errorException('Индекс дерева не передан. Возможно, по причине таблицы циклов');
+                    throw new errorException($this->translate('The tree index is not passed'));
                 }
                 $treeIndex = json_decode($this->post['tree'], true);
                 $result['chdata'] = array_merge(
@@ -735,8 +735,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if ($this->Totum->getUser()->isCreator()) {
                     $error .= ' <br/> ' . $e->getPathMess();
                 }
-                $this->Totum->transactionRollback();
-                throw new criticalErrorException($e->getMessage());
+                errorException::criticalException($e, $this->Totum);
             }
         } else {
             $this->Table->reCalculateFilters('web', true, $addFilters);
@@ -1060,7 +1059,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $id = (int)($this->post['id'] ?? null);
         if (!$id) {
-            throw new errorException('Ид пуст');
+            throw new errorException($this->translate('ID is empty'));
         }
         $this->Table->loadDataRow();
         if ($this->Table->loadFilteredRows('web', [$id])) {
@@ -1071,7 +1070,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $res['f'] = $this->getTableFormat([]);
             return $res;
         } else {
-            throw new errorException('Строка недоступна для просмотра');
+            throw new errorException($this->translate('Row not found'));
         }
     }
 
@@ -1105,7 +1104,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $click['item']
                 );
                 if (is_null($row)) {
-                    throw new errorException('Строка добавления устрарела');
+                    throw new errorException($this->translate('Add row out of date'));
                 }
                 $this->Table->setInsertRowHash($click['item']);
                 foreach ($row as &$v) {
@@ -1115,7 +1114,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $ids = $this->Table->loadFilteredRows('web', [$click['item']]);
                 if (!$ids || !($row = $this->Table->getTbl()['rows'][$click['item']] ?? null) || !empty($row['is_del'])) {
-                    throw new errorException('Таблица была изменена. Обновите таблицу для проведения изменений');
+                    throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.', ''));
                 }
             }
 
@@ -1123,9 +1122,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $fields = $this->Table->getVisibleFields('web');
                 /* Проверка доступа к нажатию кнопки */
                 if (!key_exists($click['fieldName'], $fields)) {
-                    throw new errorException('Поле недоступно для пользователя');
+                    throw new errorException($this->translate('Access to the field is denied'));
                 } elseif (get_class($this) === ReadTableActions::class && empty($fields[$click['fieldName']]['pressableOnOnlyRead'])) {
-                    throw new errorException('Кнопка недоступна для нажатия в режиме "только для чтения"');
+                    throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
                 }
                 $vars = [];
                 if ($click['checked_ids']) {
@@ -1211,7 +1210,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $fields = $this->Table->getFields();
 
         if (!($field = $fields[$data['field']] ?? null)) {
-            throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
+            throw new errorException($this->translate('Field [[%s]] is not found.', $data['field']));
         }
 
         $this->Table->loadDataRow();
@@ -1248,7 +1247,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $field['type'],
             ['select', 'tree']
         )) {
-            throw new errorException('Ошибка - поле не типа select/tree');
+            throw new errorException($this->translate('Field not of type select/tree'));
         }
 
         /** @var Select $Field */
@@ -1270,7 +1269,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($filters) {
             return $this->editFilters($filters, $data["setValuesToDefaults"] ?? false);
         } elseif (!is_a($this, WriteTableActions::class)) {
-            throw new errorException('Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений');
+            throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
         } else {
             $clearFields = $data["params"] ?? [];
             if ($filters) {
@@ -1355,13 +1354,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $fields = $this->Table->getFields();
         if (empty($fields[$field])) {
-            throw new errorException('Поле [[' . $field . ']] в этой таблице не найдено');
+            throw new errorException($this->translate('Function [[%s]] is not found.', $field));
         }
         if (empty($fields[$field]['showInWeb']) || (!empty($fields[$field]['logRoles']) && !array_intersect(
                     $fields[$field]['logRoles'],
                     $this->User->getRoles()
                 ))) {
-            throw new errorException('Доступ к логам запрещен');
+            throw new errorException($this->translate('Access to the logs is denied'));
         }
 
 
@@ -1372,7 +1371,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $field
         );
 
-        $title = 'Лог ручных изменений по полю "' . $fields[$field]['title'] . '"';
+        $title = $this->translate('Log of manual changes by field "%s"', $fields[$field]['title']);
         if ($id) {
             $title .= ' id ' . $id;
             if ($rowName) {
@@ -1383,7 +1382,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if (empty($logs)) {
             $this->Table->getTotum()->addToInterfaceDatas(
                 'text',
-                ['title' => $title, 'width' => '500', 'text' => 'Ручных изменений по полю не производилось']
+                ['title' => $title, 'width' => '500', 'text' => $this->translate('No manual changes were made in the field')]
             );
         } else {
             $tmp = $this->Totum->getTable('log_structure');
@@ -1564,7 +1563,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $this->Table->getFields()
             ) && (($fieldParams = $this->Table->getFields()[$field])['CodeActionOnClick'] ?? false)) {
             if (!is_a($this, WriteTableActions::class) && empty($fieldParams['clickableOnOnlyRead'])) {
-                throw new errorException('Действие недоступно при просмотре');
+                throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
             }
             if ($id) {
                 if ($this->Table->loadFilteredRows('web', [$id])) {
@@ -2035,7 +2034,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $branchIds
             );
         } else {
-            throw new errorException('Ошибка получения Id ветки');
+            throw new errorException($this->translate('Failed to get branch Id'));
         }
     }
 

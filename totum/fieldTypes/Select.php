@@ -15,6 +15,7 @@ use totum\common\calculates\CalculateSelectValue;
 use totum\common\calculates\CalculateSelectViewValue;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\tableTypes\aTable;
 
 class Select extends Field
@@ -348,13 +349,13 @@ class Select extends Field
             if ($this->data['category'] === 'filter') {
                 $add = [];
                 if (!empty($this->data['selectFilterWithEmpty'])) {
-                    $add[''] = [($this->data['selectFilterWithEmptyText'] ?? 'Пустое'), 0];
+                    $add[''] = [($this->data['selectFilterWithEmptyText'] ?? $this->translate('Empty')), 0];
                 }
                 if (!empty($this->data['selectFilterWithAll'])) {
-                    $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? 'Все'), 0];
+                    $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? $this->translate('All')), 0];
                 }
                 if (!empty($this->data['selectFilterWithNone'])) {
-                    $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? 'Ничего'), 0];
+                    $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
                 }
                 $list = $add + $list;
             }
@@ -447,13 +448,13 @@ class Select extends Field
         if ($this->data['category'] === 'filter') {
             $add = [];
             if (!empty($this->data['selectFilterWithEmpty'])) {
-                $add[''] = [($this->data['selectFilterWithEmptyText'] ?? 'Пустое'), 0];
+                $add[''] = [($this->data['selectFilterWithEmptyText'] ?? $this->translate('Empty')), 0];
             }
             if (!empty($this->data['selectFilterWithAll'])) {
-                $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? 'Все'), 0];
+                $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? $this->translate('All')), 0];
             }
             if (!empty($this->data['selectFilterWithNone'])) {
-                $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? 'Ничего'), 0];
+                $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
             }
             $list = $add + $list;
         }
@@ -616,7 +617,7 @@ class Select extends Field
                                     $valArray['v_'][count($valArray['v_']) - 1]
                                 );
                             } else {
-                                $valArray['v'] = $func('', [count($valArray['v']) . ' элем.', 0]);
+                                $valArray['v'] = $func('', [count($valArray['v']) . $this->translate('  elem.'), 0]);
                             }
                         } else {
                             $valArray['v'] = '';
@@ -731,16 +732,11 @@ class Select extends Field
                 if (empty($oldVal)) {
                     $oldVal = array();
                 }
-                switch ($modifyVal->sign) {
-                    case '-':
-                        $modifyVal = array_diff($oldVal, (array)$modifyVal->val);
-                        break;
-                    case '+':
-                        $modifyVal = array_merge($oldVal, (array)$modifyVal->val);
-                        break;
-                    default:
-                        throw new errorException('Операция [[' . $modifyVal->sign . ']] над листами непредусмотрена');
-                }
+                $modifyVal = match ($modifyVal->sign) {
+                    '-' => array_diff($oldVal, (array)$modifyVal->val),
+                    '+' => array_merge($oldVal, (array)$modifyVal->val),
+                    default => throw new errorException($this->translate('Operation [[%s]] over lists is not supported.', $modifyVal->sign)),
+                };
             } else {
                 $tmpVal = substr($modifyVal, 1);
                 if (empty($oldVal)) {

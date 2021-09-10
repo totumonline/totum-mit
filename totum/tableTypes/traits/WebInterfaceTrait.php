@@ -6,6 +6,7 @@ namespace totum\tableTypes\traits;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 use totum\tableTypes\JsonTables;
@@ -69,7 +70,7 @@ trait WebInterfaceTrait
         return $table;
     }
 
-    public function csvExport($tableData, $idsString, $visibleFields, $type = "full")
+    public function csvExport($tableData, $idsString, $visibleFields, $type = 'full')
     {
         $this->checkTableUpdated($tableData);
 
@@ -95,7 +96,7 @@ trait WebInterfaceTrait
         ob_start();
         $out = fopen('php://output', 'w');
         foreach ($csv as $fields) {
-            fputcsv($out, $fields, ";", '"', '\\');
+            fputcsv($out, $fields, ';', '"', '\\');
         }
         fclose($out);
 
@@ -121,13 +122,11 @@ trait WebInterfaceTrait
         $inVars['modify'] = [];
         $inVars['add'] = [];
         if (!empty($data['add'])) {
-            if ($data['add']==='new cycle') {
+            if ($data['add'] === 'new cycle') {
                 $inVars['add'] = [[]];
-            }
-            elseif(is_array($data['add'])){
+            } elseif (is_array($data['add'])) {
                 $inVars['add'] = [$data['add']];
-            }
-            elseif ($insertRowHash = $data['add']) {
+            } elseif ($insertRowHash = $data['add']) {
                 $this->insertRowSetData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
                     TmpTables::serviceTables['insert_row'],
                     $this->getUser(),
@@ -183,7 +182,7 @@ trait WebInterfaceTrait
         }
         unset($editData);
 
-        $Log = $this->calcLog(["name" => 'RECALC', 'table' => $this, 'inVars' => $inVars]);
+        $Log = $this->calcLog(['name' => 'RECALC', 'table' => $this, 'inVars' => $inVars]);
         $this->reCalculate($inVars);
 
         if (!empty($insertRowHash)) {
@@ -207,7 +206,7 @@ trait WebInterfaceTrait
         $this->reCalculate(['channel' => 'web', 'modify' => [$id => $data], 'setValuesToDefaults' => [$id => $dataSetToDefault], 'isCheck' => true]);
 
         if (empty($this->tbl['rows'][$id])) {
-            throw new errorException('Строка с id ' . $id . ' не найдена');
+            throw new errorException($this->translate('Row not found'));
         }
         return $this->tbl['rows'][$id];
     }
@@ -219,7 +218,7 @@ trait WebInterfaceTrait
         $import['add'] = [];
         $import['remove'] = [];
 
-        $NotCorrectFormat = 'Неверный формат файла: ';
+        $NotCorrectFormat = $this->translate('Wrong format file') . ': ';
         $question = [];
         $checkQuestion = function ($number, $isTrue, $text) use ($answers, &$question) {
             if (!isset($answers[$number]) && $isTrue) {
@@ -242,19 +241,20 @@ trait WebInterfaceTrait
                 $csvString = mb_convert_encoding($csvString, 'utf-8', 'windows-1251');
             }
             if (!mb_check_encoding($csvString, 'utf-8')) {
-                return ['error' => 'Неверная кодировка файла (должно быть utf-8 или windows-1251)'];
+                return ['error' => $this->translate('Incorrect encoding of the file (should be utf-8 or windows-1251)')];
             }
         }
 
 
         $csvString = str_replace("\r\n", PHP_EOL, $csvString);
-        $csvArray = explode(PHP_EOL, $csvString);
+        $csvArray = [];
 
-        foreach ($csvArray as &$row) {
+        foreach (explode(PHP_EOL, $csvString) as $row) {
             $row = str_getcsv(trim($row), ';', '"', '\\');
             foreach ($row as &$c) {
                 $c = trim($c);
             }
+            $csvArray[] = $row;
         }
         unset($row);
 
@@ -276,78 +276,82 @@ trait WebInterfaceTrait
                 if ($checkQuestion(
                     1,
                     $csvArray[$rowNumName][0] !== $this->tableRow['title'],
-                    'Файл таблицы [[' . $csvArray[$rowNumName][0] . ']] вы пытаетесь загрузить в таблицу [[' . $this->tableRow['title'] . ']]'
+                    $this->translate('Loading file of table %s into table [[%s]]',
+                        [$csvArray[$rowNumName][0], $this->tableRow['title']])
                 )) {
                     return $question;
                 }
 
 //Не была ли таблица изменена
                 if (!isset($csvArray[$rowNumCodes][1]) || !preg_match(
-                    '/^code:(\d+)$/',
-                    $csvArray[$rowNumCodes][1],
-                    $matchCode
-                )
+                        '/^code:(\d+)$/',
+                        $csvArray[$rowNumCodes][1],
+                        $matchCode
+                    )
                 ) {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumCodes + 1) . ' отсутствует код изменения таблицы'];
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumCodes + 1) . ' ' . $this->translate('no table change code')];
                 } else {
                     $updated = json_decode($this->updated, true);
-                    if ($checkQuestion(2, $matchCode[1] !== $updated['code'], 'Таблица была изменена')) {
+
+                    if ($checkQuestion(2, $matchCode[1] !== (string)$updated['code'], $this->translate('Table was changed'))) {
                         return $question;
                     }
                 }
 //Не была ли  изменена структура
                 if (!isset($csvArray[$rowNumCodes][2]) || !preg_match(
-                    '/^structureCode:(\d+)$/',
-                    $csvArray[$rowNumCodes][2],
-                    $matchCode
-                )
+                        '/^structureCode:(\d+)$/',
+                        $csvArray[$rowNumCodes][2],
+                        $matchCode
+                    )
                 ) {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumCodes + 1) . ' отсутствует код изменения структуры'];
-                } else {
-                    if ($checkQuestion(
-                        3,
-                        $matchCode[1] !== $this->getStructureUpdatedJSON()['code'],
-                        'Была изменена структура таблицы. Возможно несовпадение порядка полей.'
-                    )) {
-                        return $question;
-                    }
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumCodes + 1) . ' ' . $this->translate('no structure change code')];
+                } elseif ($checkQuestion(
+                    3,
+                    $matchCode[1] !== (string)$this->getStructureUpdatedJSON()['code'],
+                    $this->translate('The structure of the table was changed. Possibly a field order mismatch.')
+                )) {
+                    return $question;
                 }
 
 //Тот ли проект
                 if (!isset($csvArray[$rowNumProject][0]) || !preg_match(
-                    '/^(\d+|Вне циклов)$/',
-                    $csvArray[$rowNumProject][0],
-                    $matchCode
-                )
+                        '/^(\d+|'.$this->translate('Out of cycles').')$/',
+                        $csvArray[$rowNumProject][0],
+                        $matchCode
+                    )
                 ) {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumProject + 1) . ' отсутствует указание на цикл'];
-                } else {
-                    if ($checkQuestion(
-                        4,
-                        strval(isset($this->Cycle) && $this->Cycle->getId() ? $this->Cycle->getId() : 'Вне циклов') !== $matchCode[1],
-                        'Таблица из другого цикла или вне циклов'
-                    )) {
-                        return $question;
-                    }
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumProject + 1) . ' ' . $this->translate('no indication of a cycle')];
+                } elseif ($checkQuestion(
+                    4,
+                    strval(isset($this->Cycle) && $this->Cycle->getId() ? $this->Cycle->getId() : $this->translate('Out of cycles')) !== $matchCode[1],
+                    $this->translate('Table from another cycle or out of cycles')
+                )) {
+                    return $question;
                 }
 
 
 //Ручные значения
-                if (($string = $csvArray[$rowNumSectionHandl][0] ?? '') !== 'Ручные значения') {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumSectionHandl + 1) . ' отсутствует заголовок секции Ручные значения'];
+                if (($string = $csvArray[$rowNumSectionHandl][0] ?? '') !== $this->translate('Manual Values')) {
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumSectionHandl + 1) . ' '.$this->translate('no section header %s', $this->translate('Manual Values'))];
                 }
                 if (!in_array(
                     ($string = strtolower($csvArray[$rowNumSectionHandl + 2][0] ?? '')),
                     [0, 1, 2]
                 )
                 ) {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumSectionHandl + 1) . ' отсутствует 0/1/2 переключатель редактирования'];
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumSectionHandl + 1) . ' '.$this->translate('no 0/1/2 edit switch')];
                 }
                 $import['codedFields'] = $string;
 
 //Хэдер
-                if (($string = $csvArray[$rowNumSectionHeader][0] ?? '') !== 'Хедер') {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumSectionHeader + 1) . ' отсутствует заголовок секции Хедер'];
+                if (($string = $csvArray[$rowNumSectionHeader][0] ?? '') !== $this->translate('Header')) {
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumSectionHeader + 1) . ' '.$this->translate('no section header %s', $this->translate('Header'))];
                 }
                 $headerFields = $csvArray[$rowNumSectionHeader + 2];
 
@@ -366,12 +370,14 @@ trait WebInterfaceTrait
                 }
 
 //Фильтр
-                if (($string = $csvArray[$rowNumFilter][0] ?? '') !== 'Фильтр') {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumFilter + 1) . ' отсутствует заголовок секции Фильтр'];
+                if (($string = $csvArray[$rowNumFilter][0] ?? '') !== $this->translate('Filter')) {
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumFilter + 1). ' '.$this->translate('no section header %s', $this->translate('Filter'))];
                 }
-                if (!empty($sortedVisibleFields["filter"])) {
+                if (!empty($sortedVisibleFields['filter'])) {
                     if (empty($filterData = $csvArray[$rowNumFilter + 1][0])) {
-                        return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumFilter + 2) . ' отсутствуют данные о фильтрах'];
+                        return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                                $rowNumFilter + 2) . ' '.$this->translate('no filter data')];
                     }
                     //Вероятно не нужно. Блокирующие фильтры все равно не пропустят
                     //$this->setFilters($filterData, true);
@@ -379,8 +385,9 @@ trait WebInterfaceTrait
 
 
 //Строчная часть
-                if (($string = $csvArray[$rowNumSectionRows][0] ?? '') !== 'Строчная часть') {
-                    return ['error' => $NotCorrectFormat . 'в строке ' . ($rowNumSectionRows + 1) . ' отсутствует заголовок секции Строчная часть'];
+                if (($string = $csvArray[$rowNumSectionRows][0] ?? '') !== $this->translate('Rows part')) {
+                    return ['error' => $NotCorrectFormat . $this->translate('in row %s',
+                            $rowNumSectionRows + 1). ' '.$this->translate('no section header %s', $this->translate('Rows part'))];
                 }
                 $numRow = $rowNumSectionRows + 3;
                 $rowCount = count($csvArray);
@@ -416,9 +423,9 @@ trait WebInterfaceTrait
                                 continue;
                             }
                             if (($field = ($this->fields[$fieldName] ?? null)) && !in_array(
-                                $field['type'],
-                                ['comments', 'button']
-                            )) {
+                                    $field['type'],
+                                    ['comments', 'button']
+                                )) {
                                 if (!empty($field['code']) && empty($field['codeOnlyInAdd'])) {
                                     if ($import['codedFields'] === '0') {
                                         continue;
@@ -453,9 +460,9 @@ trait WebInterfaceTrait
                             }
                             if ($footerName = ($csvArray[$numRow][$i] ?? null)) {
                                 if (($field = ($this->fields[$footerName] ?? null)) && !in_array(
-                                    $field['type'],
-                                    ['comments', 'button']
-                                )) {
+                                        $field['type'],
+                                        ['comments', 'button']
+                                    )) {
                                     if ($field['category'] === 'footer') {
                                         if ($import['codedFields'] === '0' && !empty($field['code']) && empty($field['codeOnlyInAdd'])) {
                                             continue;
@@ -474,11 +481,11 @@ trait WebInterfaceTrait
 
 //Футер
                 if (is_a($this, JsonTables::class)) {
-                    if (($string = $csvArray[$numRow][0] ?? '') !== 'Футер') {
-                        return ['error' => $NotCorrectFormat . 'в строке через одну после Строчной части отсутствует заголовок секции Футер' . var_export(
-                            $csvArray[$numRow],
-                            1
-                        )];
+                    if (($string = $csvArray[$numRow][0] ?? '') !== $this->translate('Footer')) {
+                        return ['error' => $NotCorrectFormat . $this->translate('on the line one line after the Rows part is missing the header of the Footer section') . var_export(
+                                $csvArray[$numRow],
+                                1
+                            )];
                     }
                     $numRow += 2;
 
@@ -487,9 +494,9 @@ trait WebInterfaceTrait
                             continue;
                         }
                         if (($field = ($this->fields[$fieldName] ?? null)) && !in_array(
-                            $field['type'],
-                            ['comments', 'button']
-                        )) {
+                                $field['type'],
+                                ['comments', 'button']
+                            )) {
                             if ($import['codedFields'] === '0' && !empty($field['code']) && empty($field['codeOnlyInAdd'])) {
                                 continue;
                             }
@@ -525,9 +532,9 @@ trait WebInterfaceTrait
                     $csvRowColumns = [];
                     foreach ($rowFields as $i => $fieldName) {
                         if (($field = ($this->fields[$fieldName] ?? null)) && !in_array(
-                            $field['type'],
-                            ['comments', 'button']
-                        )) {
+                                $field['type'],
+                                ['comments', 'button']
+                            )) {
                             if (!empty($field['code']) && empty($field['codeOnlyInAdd'])) {
                                 continue;
                             }
@@ -541,6 +548,7 @@ trait WebInterfaceTrait
                 }
                 break;
         }
+        return false;
     }
 
     protected function getCsvArray($visibleFields, $type)
@@ -552,22 +560,22 @@ trait WebInterfaceTrait
             $csv[] = [$this->tableRow['title']];
             //Апдейтед
             $updated = json_decode($this->updated, true);
-            $csv[] = ['от ' . date_create($updated['dt'])->format('d.m H:i') . '', 'code:' . $updated['code'] . '', 'structureCode:' . $this->getStructureUpdatedJSON()['code']];
+            $csv[] = ['date: ' . date_create($updated['dt'])->format('d.m H:i') . '', 'code:' . $updated['code'] . '', 'structureCode:' . $this->getStructureUpdatedJSON()['code']];
 
             //id Проекта    Название проекта
             if ($this->tableRow['type'] === 'calcs') {
                 $csv[] = [$this->Cycle->getId(), $this->Cycle->getRowName()];
             } else {
-                $csv[] = ['Вне циклов'];
+                $csv[] = [$this->translate('Out of cycles')];
             }
 
-            $csv[] = ["", "", ""];
+            $csv[] = ['', '', ''];
 
-            $csv[] = ['Ручные значения'];
-            $csv[] = ['[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]'];
+            $csv[] = [$this->translate('Manual Values')];
+            $csv[] = [$this->translate('[0: do not modify calculated fields] [1: change values of calculated fields already set to manual] [2: change calculated fields]')];
             $csv[] = [0];
 
-            $csv[] = ["", "", ""];
+            $csv[] = ['', '', ''];
         };
         $addRowsByCategory = function ($categoriFields, $categoryTitle) use (&$csv, $visibleFields) {
             $csv[] = [$categoryTitle];
@@ -593,16 +601,16 @@ trait WebInterfaceTrait
             $csv[] = $paramTitles;
             $csv[] = $paramNames;
             $csv[] = $paramValues;
-            $csv[] = ["", "", ""];
+            $csv[] = ['', '', ''];
         };
         $addFilter = function ($categoriFields) use (&$csv) {
-            $csv[] = ["Фильтр"];
+            $csv[] = [$this->translate('Filter')];
             $_filters = [];
             foreach ($categoriFields as $field) {
                 $_filters[$field['name']] = $this->tbl['params'][$field['name']]['v'] ?? null;
             }
             $csv[] = [empty($_filters) ? '' : Crypt::getCrypted(json_encode($_filters, JSON_UNESCAPED_UNICODE))];
-            $csv[] = ["", "", ""];
+            $csv[] = ['', '', ''];
         };
         $addFooter = function ($rowParams) use (&$csv, $addRowsByCategory, $visibleFields) {
             /******Футеры колонок - только в json-таблицах******/
@@ -660,14 +668,14 @@ trait WebInterfaceTrait
                     $csv[] = $iFooterCsvVals;
                 }
 
-                $csv[] = ["", "", ""];
-                $addRowsByCategory($withoutColumnsFooters, 'Футер');
+                $csv[] = ['', '', ''];
+                $addRowsByCategory($withoutColumnsFooters, $this->translate('Footer'));
             }
         };
 
 
         /*Определение полей*/
-        $paramTitles = ['Удаление', 'id'];
+        $paramTitles = [$this->translate('Deleting'), 'id'];
         $paramNames = ['', ''];
         $rowParams = [];
         foreach ($this->getVisibleFields('web', true)['column'] as $k => $field) {
@@ -688,12 +696,12 @@ trait WebInterfaceTrait
                 /******Хэдер******/
                 $sortedVisibleFields = $this->getVisibleFields('web', true);
 
-                $addRowsByCategory($sortedVisibleFields['param'], 'Хедер');
+                $addRowsByCategory($sortedVisibleFields['param'], $this->translate('Header'));
                 /******Фильтр******/
                 $addFilter($sortedVisibleFields['filter']);
 
                 /******Строчная часть ******/
-                $csv[] = ['Строчная часть'];
+                $csv[] = [$this->translate('Rows part')];
                 $csv[] = $paramTitles;
                 $csv[] = $paramNames;
 

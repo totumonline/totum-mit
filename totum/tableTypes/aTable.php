@@ -314,7 +314,7 @@ abstract class aTable
             $this->CalculateLog = $Log;
         } else {
             debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-            throw new criticalErrorException('Log пустой');
+            errorException::criticalException($this->translate('Log is empty.'), $this);
         }
 
         return $this->CalculateLog;
@@ -2773,6 +2773,7 @@ CODE;;
         }
         return false;
     }
+
     protected function translate(string $str, array|string $vars = []): string
     {
         return $this->getTotum()->getLangObj()->translate($str, $vars);

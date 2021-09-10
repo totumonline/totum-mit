@@ -58,31 +58,34 @@ use totum\common\controllers\Controller;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\common\Totum;
 use totum\common\User;
 use totum\tableTypes\aTable;
 
 class JsonController extends Controller
 {
-    private static $errors = [
-        1 => 'Json не получен или неверно оформлен',
-        2 => 'Секция auth не найдена',
-        3 => 'Атрибут login секции auth не найден',
-        4 => 'Атрибут password секции auth не найден',
-        5 => 'Пользователь с такими данными не найден. Возможно, ему не включен доступ к xml/json-интерфейсу',
 
-        6 => 'Путь к таблице не верный',
-        7 => 'Доступ к таблице запрещен',
-        8 => 'Доступ к таблице на запись запрещен',
-        9 => 'Секция recalculate должна содержать ограничения в формате [["field":FIELDNAME,"operator":OPERATOR,"value":VALUE]]',
-        10 => 'Поле запрещено для редактирования через api или не существует в указанной категории',
-        11 => 'Поле должно содержать/не содержать множественный селект',
-        12 => 'В секции export укажете "fields":[] - перечисление полей для вывода в экспорт',
-        13 => 'Неверно оформлено where в секции rows-set-where',
-        14 => 'Без указания таблицы в пути работает только секция remotes',
-        15 => 'Remote {var} не существует или не доступен для вас',
-        16 => 'Не задан  name для remote',
-        17 => 'В связи с превышением количества неудачных попыток авторизации ip заблокирован',
+    /* Templates for translate. Don't fix it here*/
+    private static $errors = [
+        1 => 'Json not received or incorrectly formatted',
+        2 => 'No auth section found',
+        3 => 'The login attribute of the auth section was not found',
+        4 => 'The password attribute of the auth section was not found',
+        5 => 'The user with this data was not found. Possibly the xml/json interface is not enabled.',
+
+        6 => 'Wrong path to the table',
+        7 => 'Table access error',
+        8 => 'Write access to the table is denied',
+        9 => 'The recalculate section must contain restrictions in the format [["field":FIELDNAME,"operator":OPERATOR,"value":VALUE]]',
+        10 => 'The field is not allowed to be edited through the api or does not exist in the specified category',
+        11 => 'Multiple/Single value type error',
+        12 => 'In the export section, specify "fields":[] - enumeration of fields to be exported',
+        13 => 'Incorrect where in the rows-set-where section',
+        14 => 'Without a table in the path, only the remotes section works',
+        15 => 'Remote {var} does not exist or is not available to you',
+        16 => 'The name for remote is not set',
+        17 => 'Due to exceeding the number of password attempts, your IP is blocked',
     ];
     private static $translates = ['header' => 'param', 'footer' => 'footer', 'rows' => 'column'];
 
@@ -106,13 +109,13 @@ class JsonController extends Controller
     {
         $this->modulePath = $this->totumPrefix . '/Json/';
         $this->inModuleUri = substr($request->getRequestTarget(), strlen($this->modulePath) - 1);
-        $jsonString =(string)$request->getBody();
+        $jsonString = (string)$request->getBody();
 
         try {
             $this->arrayIn = json_decode($jsonString, true) ?? json_decode(
-                $request->getParsedBody()['data'] ?? "",
-                true
-            );
+                    $request->getParsedBody()['data'] ?? '',
+                    true
+                );
             if (!is_array($this->arrayIn)) {
                 $this->throwError(1);
             }
@@ -153,17 +156,13 @@ class JsonController extends Controller
             }
             $this->Totum->transactionCommit();
         } catch (errorException $e) {
-            $error = $e->getCode() ? $e->getCode() : -1;
+            $error = $e->getCode() ?: -1;
             $errorDescription = $e->getMessage();
-            if ($this->Totum) {
-                $this->Totum->transactionRollBack();
-            }
+            $this->Totum?->transactionRollBack();
         } catch (criticalErrorException $e) {
-            $error = $e->getCode() ? $e->getCode() : -1;
+            $error = $e->getCode() ?: -1;
             $errorDescription = $e->getMessage();
-            if ($this->Totum) {
-                $this->Totum->transactionRollBack();
-            }
+            $this->Totum?->transactionRollback();
         }
 
         $this->sendJson($error ?? 0, $errorDescription ?? '');
@@ -177,9 +176,9 @@ class JsonController extends Controller
             $params = [];
             foreach ($this->arrayIn['recalculate'] as $where) {
                 if (!is_array($where) || count(array_intersect_key(
-                    $where,
-                    ['field' => 1, 'operator' => '', 'value' => '']
-                )) !== 3) {
+                        $where,
+                        ['field' => 1, 'operator' => '', 'value' => '']
+                    )) !== 3) {
                     $this->throwError(9);
                 }
                 $params[] = $where;
@@ -218,7 +217,7 @@ class JsonController extends Controller
                     'field'
                 ));
                 if (!$code) {
-                    $this->throwError(15, ["{var}" => $name]);
+                    $this->throwError(15, ['{var}' => $name]);
                 }
                 $selectedRemotes[$name] = new CalculateAction($code);
             }
@@ -258,7 +257,8 @@ class JsonController extends Controller
                 $field
             ))) {
                 throw new errorException(
-                    'Поле [[' . $field['name'] . ']] запрещено для ' . ($isAdd ? 'добавления' : 'редактирования') . ' через Api',
+                    $this->translate($isAdd ? 'Field [[%s]] is not allowed to be added via Api' : 'Field [[%s]] is not allowed to be edited via Api',
+                        $field['name']),
                     10
                 );
             }
@@ -266,17 +266,15 @@ class JsonController extends Controller
             if (Field::isFieldListValues($field['type'], $field['multiple'] ?? false)) {
                 if (!is_array($v)) {
                     throw new errorException(
-                        'Поле [[' . $field['name'] . ']] должно содержать множественный селект',
+                        $this->translate('The [[%s]] field must contain multiple select', $field['name']),
                         11
                     );
                 }
-            } else {
-                if (is_array($v)) {
-                    throw new errorException(
-                        'Поле [[' . $field['name'] . ']]  должно содержать строку',
-                        11
-                    );
-                }
+            } elseif (is_array($v)) {
+                throw new errorException(
+                    $this->translate('The [[%s]] field must contain a string', $field['name']),
+                    11
+                );
             }
 
             $importPart[$field['name']] = $v;
@@ -289,7 +287,7 @@ class JsonController extends Controller
                 foreach ((array)$itemArray['__clears'] as $k) {
                     if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
                         throw new errorException(
-                            'Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
+                            $this->translate('The %s field in %s of the table does not exist', [$k, $path]),
                             10
                         );
                     } else {
@@ -303,7 +301,7 @@ class JsonController extends Controller
                 foreach ((array)$itemArray['__pins'] as $k) {
                     if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
                         throw new errorException(
-                            'Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
+                            $this->translate('The %s field in %s of the table does not exist', [$k, $path]),
                             10
                         );
                     } else {
@@ -316,21 +314,21 @@ class JsonController extends Controller
             foreach ($itemArray as $k => $v) {
                 if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
                     throw new errorException(
-                        'Поля [[' . $k . ']] в ' . $path . ' таблицы не существует',
+                        $this->translate('The %s field in %s of the table does not exist',[$k, $path]),
                         10
                     );
                 }
                 $addValToImportNoColumn($v, $fields[$k], $importPart, $isAdd);
-            };
+            }
         };
         if (key_exists('rows-set-where', $this->arrayIn['import'])) {
             foreach ($this->arrayIn['import']['rows-set-where'] as $set) {
                 $where = [];
                 foreach ($set['where'] as $_where) {
                     if (count(array_intersect_key(
-                        $_where,
-                        array_flip(['field', 'operator', 'value'])
-                    )) !== 3) {
+                            $_where,
+                            array_flip(['field', 'operator', 'value'])
+                        )) !== 3) {
                         static::throwError(13);
                     }
                     $where[] = $_where;
@@ -412,14 +410,14 @@ class JsonController extends Controller
         $import['channel'] = 'xml';
 
         if ($import['add'] && !$this->Table->isUserCanAction(
-            'insert'
-        )) {
-            throw new errorException('Добавление в эту таблицу вам запрещено');
+                'insert'
+            )) {
+            throw new errorException($this->translate('You are not allowed to add to this table'));
         }
         if ($import['remove'] && !$this->Table->isUserCanAction(
-            'delete'
-        )) {
-            throw new errorException('Удаление из этой таблицы вам запрещено');
+                'delete'
+            )) {
+            throw new errorException($this->translate('You are not allowed to delete from this table'));
         }
 
         $this->Table->reCalculateFromOvers($import);
@@ -578,7 +576,9 @@ class JsonController extends Controller
 
     protected function throwError($code, $datas = [])
     {
-        throw new errorException(str_replace(array_keys($datas), array_values($datas), static::$errors[$code]), $code);
+        throw new errorException(str_replace(array_keys($datas),
+            array_values($datas),
+            $this->translate(static::$errors[$code])), $code);
     }
 
     protected function authUser()
@@ -596,9 +596,13 @@ class JsonController extends Controller
             $this->throwError(4);
         }
 
-        switch (Auth::passwordCheckingAndProtection($Auth['login'], $Auth['password'], $userRow, $this->Config, 'xmljson')) {
+        switch (Auth::passwordCheckingAndProtection($Auth['login'],
+            $Auth['password'],
+            $userRow,
+            $this->Config,
+            'xmljson')) {
             case Auth::$AuthStatuses['OK']:
-                $this->aUser=new User($userRow, $this->Config);
+                $this->aUser = new User($userRow, $this->Config);
                 break;
             case Auth::$AuthStatuses['WRONG_PASSWORD']:
                 $this->throwError(5);

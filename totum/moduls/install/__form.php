@@ -20,19 +20,25 @@
     foreach ($_POST as $k => $val) {
         $post[$k] = strip_tags($val);
     }
+    $post['lang'] = $post['lang'] ?? 'eng';
+    $post['multy'] = $post['multy'] ?? '0';
+    $post['schema_exists'] = $post['schema_exists'] ?? '1';
+
+    $post['db_host'] = $post['db_host'] ?? 'localhost';
     ?>
     <form method="post" id="form" action="/" style="width: 500px; margin: auto; padding-bottom: 100px" data-consol="0">
         <div style="padding-bottom: 40px; padding-top: 10px; font-size: 55px;"><img src="/imgs/365_100_file.png"></div>
 
         <div class="form-group">
-            <select name="lang" class="form-control">
-                <option value="ru" <?= ($post['lang'] ?? 'ru') === 'ru' ? 'selected' : '' ?>>Русский язык</option>
+            <select name="lang" class="form-control" id="langSelect">
+                <option value="ru" <?= ($post['lang']) === 'ru' ? 'selected' : '' ?>>Русский язык</option>
+                <option value="eng" <?= ($post['lang']) === 'eng' ? 'selected' : '' ?>>English</option>
             </select>
         </div>
         <div class="form-group">
             <select id="multy" name="multy" class="form-control">
-                <option value="0" <?= ($post['multy'] ?? '0') === '0' ? 'selected' : '' ?>>Одинарная установка</option>
-                <option value="1" <?= ($post['multy'] ?? '0') === '1' ? 'selected' : '' ?>>Множественная установка
+                <option value="0" <?= ($post['multy']) === '0' ? 'selected' : '' ?>>Одинарная установка</option>
+                <option value="1" <?= ($post['multy']) === '1' ? 'selected' : '' ?>>Множественная установка
                 </option>
             </select>
         </div>
@@ -41,10 +47,10 @@
                                        value="<?= $post['db_schema'] ?? "totum" ?>" required>
             <br>
             <select name="schema_exists" class="form-control">
-                <option value="0" <?= ($post['schema_exists'] ?? '1') === '0' ? 'selected' : '' ?>>Разворачивать только
+                <option value="0" <?= ($post['schema_exists']) === '0' ? 'selected' : '' ?>>Разворачивать только
                     в новой
                 </option>
-                <option value="1" <?= ($post['schema_exists'] ?? '1') === '1' ? 'selected' : '' ?>>Использовать
+                <option value="1" <?= ($post['schema_exists']) === '1' ? 'selected' : '' ?>>Использовать
                     существующую
                 </option>
             </select>
@@ -58,16 +64,16 @@
 
 
         <div class="form-group"><label>host базы</label><input type="text" name="db_host" class="form-control"
-                                                               value="<?= $post['db_host'] ?? "localhost" ?>" required>
+                                                               value="<?= $post['db_host'] ?? 'localhost' ?>" required>
         </div>
         <div class="form-group"><label>Имя базы</label><input type="text" name="db_name" class="form-control"
-                                                              value="<?= $post['db_name'] ?? "" ?>" required></div>
+                                                              value="<?= $post['db_name'] ?? '' ?>" required></div>
 
 
         <div class="form-group"><label>Логин</label><input type="text" name="db_user_login" class="form-control"
-                                                           value="<?= $post['db_user_login'] ?? "" ?>" required></div>
+                                                           value="<?= $post['db_user_login'] ?? '' ?>" required></div>
         <div class="form-group"><label>Пароль</label><input type="text" name="db_user_password" class="form-control"
-                                                            value="<?= $post['db_user_password'] ?? "" ?>" required>
+                                                            value="<?= $post['db_user_password'] ?? '' ?>" required>
         </div>
 
         <div class="form-group">
@@ -81,21 +87,21 @@
         </div>
         <div id="consol-scripts">
             <div class="form-group"><label>pg_dump</label><input type="text" name="pg_dump" class="form-control"
-                                                                 value="<?= $post['pg_dump'] ?? "pg_dump" ?>">
+                                                                 value="<?= $post['pg_dump'] ?? 'pg_dump' ?>">
             </div>
 
             <div class="form-group"><label>psql</label><input type="text" name="psql" class="form-control"
-                                                              value="<?= $post['psql'] ?? "psql" ?>">
+                                                              value="<?= $post['psql'] ?? 'psql' ?>">
             </div>
         </div>
 
 
         <h3>Создать пользователя с полным доступом</h3>
         <div class="form-group"><label>Логин</label><input type="text" name="user_login" class="form-control"
-                                                           value="<?= $post['user_login'] ?? "admin" ?>" required>
+                                                           value="<?= $post['user_login'] ?? 'admin' ?>" required>
         </div>
         <div class="form-group"><label>Пароль</label><input type="text" name="user_pass" class="form-control"
-                                                            value="<?= $post['user_pass'] ?? "" ?>" required></div>
+                                                            value="<?= $post['user_pass'] ?? '' ?>" required></div>
         <div class="form-group"><label>Email для нотификаций крона</label><input type="text" name="admin_email"
                                                                                  class="form-control"
                                                                                  value="<?= $post['admin_email'] ?? "" ?>">
@@ -105,6 +111,8 @@
                     class="btn btn-danger" id="submit"/></div>
     </form>
     <script>
+
+
         $('.page_content:first').addClass('tree-minifyed')
 
         $('#multy').on('change', function () {

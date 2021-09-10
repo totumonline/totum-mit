@@ -11,6 +11,7 @@ namespace totum\fieldTypes;
 use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\tableTypes\aTable;
 
 class Date extends Field
@@ -97,7 +98,7 @@ class Date extends Field
                     $val = $date->format('Y-m-d H:i');
                 }
             } else {
-                throw new errorException('Ошибка формата введенной даты');
+                throw new errorException($this->translate('Date format error: [[%s]].', $val));
             }
         }
     }

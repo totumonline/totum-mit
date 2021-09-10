@@ -5,6 +5,7 @@ namespace totum\moduls\Table;
 
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\models\Table;
 use totum\models\TablesFields;
 
@@ -18,7 +19,7 @@ class AdminTableActions extends WriteTableActions
     public function getChartTypes()
     {
         if (!$this->Totum->getTableRow('ttm__charts')) {
-            throw new errorException('Таблица графиков не надена');
+            throw new errorException($this->translate('Table [[%s]] is not found.', 'ttm__charts'));
         }
         $result['chartTypes'] = [];
         foreach ($this->Totum->getModel('ttm__charts')->executePrepared(
@@ -90,14 +91,15 @@ class AdminTableActions extends WriteTableActions
     public function renameField()
     {
         if (empty($this->post['name'])) {
-            throw new errorException('Нужно выбрать поле');
+            throw new errorException($this->translate('Fill in the %s field', 'FIELD'));
         }
         $name = $this->post['name'];
         if (empty($this->Table->getFields()[$name])) {
-            throw new errorException('Поле в таблице не найдено');
+            throw new errorException($this->translate('Field [[%s]] is not found.', $name));
         }
+        $title=$this->translate('Changing the name of a field');
         $code = <<<CODE
-=: linkToDataTable(table: 'ttm__change_field_name'; title: 'Изменение name поля'; width: 800; height: "80vh"; params:\$#row; refresh: 'strong';)
+=: linkToDataTable(table: 'ttm__change_field_name'; title: '$title'; width: 800; height: "80vh"; params:\$#row; refresh: 'strong';)
 CODE;
 
         $calc = new CalculateAction($code);
@@ -116,10 +118,10 @@ CODE;
     public function addEyeGroupSet()
     {
         if (empty(trim($this->post['name']))) {
-            throw new errorException('Имя сета должно быть не пустым');
+            throw new errorException($this->translate('Fill in title'));
         }
         if (empty($this->post['fields'])) {
-            throw new errorException('Сет не должен быть пустым');
+            throw new errorException($this->translate('Select fields'));
         }
 
         $set = $this->Table->changeFieldsSets(function ($set) {

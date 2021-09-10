@@ -12,6 +12,7 @@ use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\controllers\interfaceController;
+use totum\common\Lang\RU;
 use totum\common\tableSaveException;
 use totum\common\Totum;
 use totum\config\Conf;
@@ -85,7 +86,7 @@ class FormsController extends interfaceController
                 $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);
 
                 if (!$User) {
-                    throw new errorException('Ошибка авторизации пользователя форм');
+                    throw new errorException($this->translate('Forms user authorization error'));
                 }
 
                 try {
@@ -97,7 +98,7 @@ class FormsController extends interfaceController
                         $this->Totum = new Totum($this->Config, $User);
                         $this->answerVars = $this->actions($request);
                     } else {
-                        throw new \Exception('Ошибка одновременного доступа к таблице');
+                        throw new \Exception($this->translate('Conflicts of access to the table error'));
                     }
                 }
             } catch (\Exception $e) {
@@ -121,7 +122,7 @@ class FormsController extends interfaceController
         $parsedRequest = json_decode((string)$request->getBody(), true);
         try {
             if (!($method = $parsedRequest['method'] ?? '')) {
-                throw new errorException('Ошибка. Не указан метод');
+                throw new errorException($this->translate('Method not specified'));
             }
             $Actions = $this->getTableActions($request, $method);
 
@@ -148,9 +149,9 @@ class FormsController extends interfaceController
 
             $this->Totum->transactionCommit();
         } catch (errorException $exception) {
-            $result = ['error' => $exception->getMessage() . ($this->Totum->getUser()->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
+            $result = ['error' => $exception->getMessage() . ($this->Totum->getUser()->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         } catch (criticalErrorException $exception) {
-            $result = ['error' => $exception->getMessage() . ($this->Totum->getUser()->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
+            $result = ['error' => $exception->getMessage() . ($this->Totum->getUser()->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         }
 
         return $result;
@@ -174,12 +175,12 @@ class FormsController extends interfaceController
             );
 
             if (!$tableData) {
-                throw new errorException('Доступ к таблице запрещен');
+                throw new errorException($this->translate('Access to the table is denied.'));
             } else {
                 return $tableData;
             }
         } else {
-            throw new errorException('Неверный путь к таблице');
+            throw new errorException($this->translate('Wrong path to the table'));
         }
     }
 
@@ -187,7 +188,7 @@ class FormsController extends interfaceController
     {
         $tableRow = $this->Totum->getTableRow($tableData['table_name']);
         if (!key_exists($tableRow['id'], $this->Totum->getUser()->getTables())) {
-            throw new errorException('Ошибка настройки формы - пользователю запрещен доступ к таблице');
+            throw new errorException($this->translate('Form configuration error - user denied access to the table'));
         }
 
         $extradata = null;
@@ -263,13 +264,13 @@ class FormsController extends interfaceController
     {
         if (!$this->Table) {
             $Actions = new Actions($request, $this->modulePath, null, $this->Totum);
-            $error = 'Таблица не найдена';
+            $error = $this->translate('Table is not found.');
         } elseif (!$this->onlyRead) {
             $Actions = new WriteTableActionsForms($request, $this->modulePath, $this->Table, null);
-            $error = 'Метод [[' . $method . ']] в этом модуле не определен или имеет админский уровень доступа';
+            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.', $method);
         } else {
             $Actions = new ReadTableActionsForms($request, $this->modulePath, $this->Table, null);
-            $error = 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+            $error = $this->translate('Your access to this table is read-only. Contact administrator to make changes.');
         }
 
         if (!is_callable([$Actions, $method])) {

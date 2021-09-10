@@ -31,16 +31,11 @@ class errorException extends \Exception
     public static function tableUpdatedException(aTable $aTable)
     {
         $aTable->getTotum()->transactionRollback();
-        throw new tableSaveException($aTable->getLangObj()->translate('Table [[%s]] has been changed. Update the table to make the changes.',
+        throw new tableSaveException($aTable->getLangObj()->translate('Table [[%s]] was changed. Update the table to make the changes.',
             $aTable->getTableRow()['title']));
     }
 
-    /**
-     * @param $error
-     * @param aTable|ConfParent|Totum|null $contextObject
-     * @throws criticalErrorException
-     */
-    public static function criticalException($error, $contextObject = null)
+    public static function criticalException(string|\Exception $error, aTable|Totum|ConfParent|Sql $contextObject = null, string $path = null)
     {
         match (true) {
             is_a($contextObject, aTable::class) => $contextObject->getTotum()->transactionRollback(),
@@ -48,6 +43,16 @@ class errorException extends \Exception
             is_a($contextObject, ConfParent::class) => $contextObject->getSql()->transactionRollBack(),
             is_a($contextObject, Sql::class) => $contextObject->transactionRollBack(),
         };
-        throw new criticalErrorException($error);
+        if (!$path && is_object($error) && method_exists($error, 'getPathMess')) {
+            $path = $error->getPathMess();
+            $error = $error->getMessage();
+        }
+        $Error = new criticalErrorException($error);
+
+        if ($path) {
+            $Error->addPath($path);
+        }
+
+        throw $Error;
     }
 }

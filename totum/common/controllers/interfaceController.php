@@ -136,8 +136,4 @@ abstract class interfaceController extends Controller
         }
     }
 
-    protected function translate(string $str, array|string $vars = []): string
-    {
-        return $this->Totum->getLangObj()->translate($str, $vars);
-    }
 }

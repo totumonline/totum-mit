@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\controllers\Controller;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\tableSaveException;
 use totum\common\Totum;
@@ -41,7 +42,7 @@ class RemotesController extends Controller
                             if (++$tries < 5) {
                                 $onceMore = true;
                             } else {
-                                $error = 'Ошибка одновременного доступа к таблице';
+                                $error = $this->translate('Conflicts of access to the table error');
                             }
                         } catch (\Exception $e) {
                             $error = $e->getMessage();
@@ -50,10 +51,10 @@ class RemotesController extends Controller
                     } while ($onceMore);
 
                 } else {
-                    $error = 'Ошибка авторизации пользователя';
+                    $error = $this->translate('Authorization error');
                 }
             } else {
-                $error = 'Remote не подключен к пользователю';
+                $error = $this->translate('Remote is not connected to the user');
             }
 
             switch ($remote['return']) {
@@ -80,7 +81,7 @@ class RemotesController extends Controller
                     echo $data['body'];
             }
         } else {
-            echo $error = 'Remote не активен или не существует';
+            echo $this->translate('Remote is not active or does not exist');
             die;
         }
     }

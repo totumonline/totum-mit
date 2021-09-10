@@ -8,6 +8,7 @@
 
 namespace totum\models;
 
+use totum\common\Lang\RU;
 use totum\common\Model;
 
 class UserV extends Model
@@ -18,8 +19,8 @@ class UserV extends Model
     public function getFio($id)
     {
         if (empty($this->users)) {
-            $this->users = $this->getFieldIndexedById('fio', ['is_del' => false]);
+            $this->users = $this->getFieldIndexedById('fio');
         }
-        return $this->users[$id] ?? 'Не найден';
+        return $this->users[$id] ?? $this->translate('User not found');
     }
 }

@@ -1,3 +1,8 @@
+<?php
+
+use totum\common\Lang\RU;
+
+?>
 <div class="page_content" style=" margin: 15%;">
     <div class="panel" style="
     margin-top: 100px;
@@ -6,11 +11,10 @@
     font-size: 16px;
     display: block;
 ">
-        Conf.php создан успешно. Настроено подключение к базе данных, установлена стартовая схема. Вы авторизованы под
-        указанным логином с ролью Создатель. Перейдите по ссылке или обновите страницу.
+        <?=$this->translate('Conf.php was created successfully. Connection to the database is set up, the start scheme is installed. You are authorized under specified login with the role of Creator. Click the link or refresh the page.')?>
 
         <div style="
     margin-top: 15px;
-"><a href="/">Успешного пользования системой</a></div>
+"><a href="/"><?=$this->translate('Have a successful use of the system')?>></a></div>
     </div>
 </div>

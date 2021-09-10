@@ -4,6 +4,7 @@ namespace totum\common;
 
 use PDO;
 use PDOStatement;
+use totum\common\Lang\LangInterface;
 use totum\common\sql\Sql;
 use totum\common\sql\SqlException;
 use totum\config\Conf;
@@ -32,7 +33,7 @@ class Model
         return in_array($fName, static::serviceFields);
     }
 
-    public function __construct(Sql $Sql, $table, $idField = null, $isService = null)
+    public function __construct(Sql $Sql, $table, protected LangInterface $Lang, $idField = null, $isService = null)
     {
         $this->table = $table;
         $this->Sql = $Sql;
@@ -44,8 +45,11 @@ class Model
             $this->isServiceTable = $isService === true;
         }
     }
+    protected function translate(string $str, array|string $vars = []): string
+    {
+        return $this->Lang->translate($str, $vars);
+    }
 
-    /*TODO delete method if will not use */
     public static function getClearValuesWithExtract($row)
     {
         if ($row) {

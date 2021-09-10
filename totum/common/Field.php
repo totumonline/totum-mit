@@ -105,7 +105,7 @@ class Field
 
                 $this->data['code'] = '=:select(' . $params . ')';
             } else {
-                $this->data['code'] = '=:errorExeption(text: "'.$this->translate('The anchor field settings are incorrect.').'")';
+                $this->data['code'] = '=:errorExeption(text: "' . $this->translate('The anchor field settings are incorrect.') . '")';
             }
             $this->data['codeOnlyInAdd'] = false;
         }
@@ -121,6 +121,7 @@ class Field
             $this->data['errorText'] = $this->translate('ERR!');
         }
     }
+
     protected function translate(string $str, array|string $vars = []): string
     {
         return $this->table->getTotum()->getLangObj()->translate($str, $vars);
@@ -266,10 +267,15 @@ class Field
                     $type,
                     $vars
                 );
-            } catch (errorException $e) {
-                $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->data['name'] , $this->table->getTableRow()['name']]));
+            } catch (\Exception $e) {
+                $row = $oldRow ?? $newRow ?? [];
+                if (method_exists($e, 'addPath')) {
+                    $e->addPath('action '.$this->translate('field [[%s]] of [[%s]] table',
+                            [$this->data['name'], $this->table->getTableRow()['name']]) . (!empty($row['id']) ? ' id ' . $row['id'] : ''));
+                }
                 throw $e;
             }
+
         }
     }
 
@@ -297,7 +303,7 @@ class Field
             case 'inner':
                 return true;
             default:
-                throw new errorException($this->translate('Unsupported channel [[%s]] is specified.' , $action));
+                throw new errorException($this->translate('Unsupported channel [[%s]] is specified.', $action));
         }
     }
 
@@ -315,16 +321,16 @@ class Field
                 if ($insertable = !empty($this->data['insertable'])) {
                     if (!$this->table->getUser()->isCreator() && !empty($this->data['webRoles'])) {
                         if (count(array_intersect(
-                            $this->data['webRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['webRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $insertable = false;
                         }
                     }
                     if ($insertable && !empty($this->data['addRoles']) && count(array_intersect(
-                        $this->data['addRoles'],
-                        $this->table->getUser()->getRoles()
-                    )) === 0) {
+                            $this->data['addRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                         $insertable = false;
                     }
                 }
@@ -336,16 +342,16 @@ class Field
                     //Для фильтров не применять webRoles
                     if (!$this->table->getUser()->isCreator() && $this->data['category'] !== 'filter' && !empty($this->data['webRoles'])) {
                         if (count(array_intersect(
-                            $this->data['webRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['webRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $editable = false;
                         }
                     }
                     if ($editable && !empty($this->data['editRoles']) && count(array_intersect(
-                        $this->data['editRoles'],
-                        $this->table->getUser()->getRoles()
-                    )) === 0) {
+                            $this->data['editRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                         $editable = false;
                     }
                 }
@@ -369,9 +375,9 @@ class Field
                 if ($insertable = !empty($this->data['apiInsertable'])) {
                     if (!empty($this->data['xmlRoles'])) {
                         if (count(array_intersect(
-                            $this->data['xmlRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['xmlRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $insertable = false;
                         }
                     }
@@ -382,15 +388,15 @@ class Field
                 if ($editable = !empty($this->data['apiEditable'])) {
                     if (!$this->table->getTotum()->getUser()->isCreator() && !empty($this->data['xmlRoles'])) {
                         if (count(array_intersect(
-                            $this->data['xmlRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['xmlRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $editable = false;
                         }
                         if ($editable && !empty($this->data['xmlEditRoles']) && count(array_intersect(
-                            $this->data['xmlEditRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['xmlEditRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $editable = false;
                         }
                     }
@@ -422,7 +428,8 @@ class Field
                 $inNewVal = $this->getDefaultValue();
                 $newVal = ['v' => $inNewVal];
             } elseif ($insertable && !empty($this->data['required']) && !$isCheck) {
-                throw new errorException($this->translate('Field [[%s]] of table [[%s]] is required.', [$this->data['title'], $this->table->getTableRow()['title']]));
+                throw new errorException($this->translate('Field [[%s]] of table [[%s]] is required.',
+                    [$this->data['title'], $this->table->getTableRow()['title']]));
             }
         }
 
@@ -451,11 +458,18 @@ class Field
         try {
             $this->checkVal($newVal, $row, $isCheck);
         } catch (errorException $e) {
-            $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->data['name'] , $this->table->getTableRow()['name']]));
+            $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                [$this->data['name'], $this->table->getTableRow()['name']]));
 
             if (!$isCheck) {
                 throw $e;
             }
+        } catch (\Exception $e) {
+            if (method_exists($e, 'addPath')) {
+                $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                    [$this->data['name'], $this->table->getTableRow()['name']]));
+            }
+            throw $e;
         }
 
         if (!empty($newVal['h'])) {
@@ -528,9 +542,11 @@ class Field
         }
         try {
             $this->checkVal($newVal, $row, $isCheck);
-        } catch (errorException $e) {
-            $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->data['name'] , $this->table->getTableRow()['name']]));
-
+        } catch (\Exception $e) {
+            if (method_exists($e, 'addPath')) {
+                $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                        [$this->data['name'], $this->table->getTableRow()['name']]) . (!empty($row['id']) ? ' id ' . $row['id'] : ''));
+            }
             throw $e;
         }
 
@@ -646,7 +662,8 @@ class Field
 
         if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val === null)) {
             errorException::criticalException(
-                $this->translate('Field [[%s]] of table [[%s]] is required.', [ $this->data['title'], ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name'])]),
+                $this->translate('Field [[%s]] of table [[%s]] is required.',
+                    [$this->data['title'], ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name'])]),
                 $this->table
             );
         }

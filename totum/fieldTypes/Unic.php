@@ -11,6 +11,7 @@ namespace totum\fieldTypes;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 
 class Unic extends Field
 {
@@ -28,7 +29,8 @@ class Unic extends Field
                 ['field' => 'id', 'where' => $where]
             )) {
                 errorException::criticalException(
-                    'Значение должно быть уникальным [[[' . $id_duble . '] - [' . $row['id'] . ']]]',
+                    $this->translate('The value must be unique. Duplication in rows: [[%s] - [%s]]',
+                        [$id_duble, $row['id']]),
                     $this->table
                 );
             }

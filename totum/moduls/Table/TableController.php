@@ -10,6 +10,7 @@ use totum\common\Crypt;
 use totum\common\Cycle;
 use totum\common\errorException;
 use totum\common\Auth;
+use totum\common\Lang\RU;
 use totum\common\logs\CalculateLog;
 use totum\common\WithPathMessTrait;
 use totum\common\sql\SqlException;
@@ -102,7 +103,7 @@ class TableController extends interfaceController
 
         try {
             if (!($method = $request->getParsedBody()['method'] ?? '')) {
-                throw new errorException('Ошибка. Не указан метод');
+                throw new errorException($this->translate('Method not specified'));
             }
             $Actions = $this->getTableActions($request, $method);
 
@@ -362,7 +363,7 @@ class TableController extends interfaceController
             }
         } catch (SqlException $e) {
             $this->Config->getLogger('sql')->error($e->getMessage(), $e->getTrace());
-            $this->__addAnswerVar('error', "Ошибка базы данных");
+            $this->__addAnswerVar('error', $this->translate('Database error: [[%s]]', $e->getMessage()));
         }
         parent::outputHtmlTemplate();
     }
@@ -438,7 +439,7 @@ class TableController extends interfaceController
                     $this->answerVars = [];
                     $this->doIt($request, false);
                 } else {
-                    throw new \Exception('Ошибка одновременного доступа к таблице');
+                    throw new \Exception($this->translate('Conflicts of access to the table error'));
                 }
             }
         } catch (\Exception $e) {
@@ -446,11 +447,8 @@ class TableController extends interfaceController
                 static::$contentTemplate = $this->Config->getTemplatesDir() . '/__error.php';
             }
             $message = $e->getMessage();
-            if ($this->User && $this->User->isCreator() && key_exists(
-                    WithPathMessTrait::class,
-                    class_uses(get_class($e))
-                )) {
-                $message .= "<br/>" . $e->getPathMess();
+            if ($this->User && $this->User->isCreator() && method_exists($e, 'getPathMess') && $e->getPathMess()) {
+                $message .= '<br/>' . $e->getPathMess();
             }
             $this->__addAnswerVar('error', $message);
         }
@@ -500,19 +498,22 @@ class TableController extends interfaceController
                 }
             }
         } catch (criticalErrorException $e) {
-            $error = 'Ошибка ' . $e->getMessage();
+            $error = $this->translate('Error: %s', $e->getMessage());
         }
 
 
         /*Основная часть отдачи таблицы*/
         if (empty($error)) {
             try {
-                $Actions = $this->getTableActions($request, "getFullTableData");
+                $Actions = $this->getTableActions($request, 'getFullTableData');
                 $result = $Actions->getFullTableData(true);
             } catch (criticalErrorException $exception) {
                 $this->clearTotum($request);
-                $Actions = $this->getTableActions($request, "getFullTableData");
+                $Actions = $this->getTableActions($request, 'getFullTableData');
                 $error = $exception->getMessage();
+                if ($this->User && $this->User->isCreator() && $exception->getPathMess()) {
+                    $error .= '<br/>' . $exception->getPathMess();
+                }
                 $result = $Actions->getFullTableData(false);
             }
         }
@@ -556,7 +557,7 @@ class TableController extends interfaceController
 
             if (($types = $this->Totum->getCalculateLog()->getTypes())) {
                 if (in_array('flds', $types)) {
-                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => 'Расчет таблицы']];
+                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
                 } else {
                     $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
                     $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
@@ -581,14 +582,14 @@ class TableController extends interfaceController
 
         $checkTreeTable = function ($tableId) use ($request) {
             if (!array_key_exists($tableId, $this->User->getTables())) {
-                throw new errorException('Доступ к таблице запрещен');
+                throw new errorException($this->translate('Access to the table is denied.'));
             } else {
                 $this->onlyRead = $this->User->getTables()[$tableId] === 0;
                 $extradata = null;
                 if ($tableRow = $this->Config->getTableRow($tableId)) {
                     switch ($tableRow['type']) {
                         case 'calcs':
-                            $this->__addAnswerVar('error', 'Неверный путь к таблице. Воспользуйтесь деревом');
+                            $this->__addAnswerVar('error', $this->translate('Wrong path to the table'));
                             return;
                         case 'tmp':
                             $extradata = $request->getParsedBody()['tableData']['sess_hash'] ?? $request->getQueryParams()['sess_hash'] ?? null;
@@ -619,7 +620,7 @@ class TableController extends interfaceController
             if (empty($tableMatches[3])) {
                 $tableRow = $this->Config->getTableRow($tableMatches[2]);
                 if ($tableRow['type'] !== 'calcs') {
-                    throw new errorException('Ошибка строки доступа');
+                    throw new errorException($this->translate('Wrong path to the table'));
                 }
                 $tableId = $tableMatches[2];
                 $tableMatches[2] = $tableMatches[1];
@@ -647,11 +648,11 @@ class TableController extends interfaceController
 
             $this->Cycle = $this->Totum->getCycle($tableMatches[2], $tableMatches[1], $this->Totum);
             if (!$this->Cycle->loadRow()) {
-                throw new errorException('Цикл не найден');
+                throw new errorException($this->translate('Cycle [[%s]] is not found.', ''));
             }
 
             if (!array_key_exists($tableId, $this->User->getTables())) {
-                throw new errorException('Доступ к таблице запрещен');
+                throw new errorException($this->translate('Access to the table is denied.'));
             } else {
                 $this->onlyRead = $this->User->getTables()[$tableId] === 0;
 
@@ -669,15 +670,14 @@ class TableController extends interfaceController
                         if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
                             $this->onlyRead = true;
                         } else {
-                            throw new errorException('Доступ к циклу запрещен');
-                            return;
+                            throw new errorException($this->translate('Access to the cycle is denied.'));
                         }
                     }
                 }
 
                 if ($tableRow = $this->Config->getTableRow($tableId)) {
                     if ($tableRow['type'] !== 'calcs') {
-                        throw new errorException('Это не рассчетная таблица');
+                        throw new errorException($this->translate('Wrong path to the table'));
                     }
                     $this->Table = $this->Cycle->getTable($tableRow);
                 }
@@ -731,16 +731,17 @@ class TableController extends interfaceController
     {
         if (!$this->Table) {
             $Actions = new Actions($request, $this->modulePath, null, $this->Totum);
-            $error = 'Таблица не найдена';
+            $error = $this->translate('Table is not found.');
         } elseif ($this->User->isCreator()) {
             $Actions = new AdminTableActions($request, $this->modulePath, $this->Table, null);
-            $error = 'Метод [[' . $method . ']] в этом модуле не определен';
+            $error = $this->translate('Method [[%s]] in this module is not defined.', $method);
         } elseif (!$this->onlyRead) {
             $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
-            $error = 'Метод [[' . $method . ']] в этом модуле не определен или имеет админский уровень доступа';
+            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.',
+                $method);
         } else {
             $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
-            $error = 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений';
+            $error = $this->translate('Your access to this table is read-only. Contact administrator to make changes.');
         }
 
         if (!is_callable([$Actions, $method])) {

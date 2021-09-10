@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 use totum\common\Field;
+use totum\common\Lang\RU;
 
 class ListRow extends Field
 {
@@ -16,7 +17,7 @@ class ListRow extends Field
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         if ($viewType === 'web' && array_key_exists('c', $valArray)) {
-            $valArray['c'] = 'Изменено';
+            $valArray['c'] = $this->translate('Changed');
         }
 
         switch ($viewType) {

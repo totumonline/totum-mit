@@ -3,12 +3,12 @@
     <script>App = {}</script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/libs.css?v=005a92c">
-    <script src="/js/libs.js?v=f52b4ad"></script>
+          href="/css/libs.css?v=ead40ab">
+    <script src="/js/libs.js?v=5c92d8b"></script>
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=d406eee">
-    <script src="/js/main.js?v=1081558"></script>
+    <script src="/js/main.js?v=0d2783e"></script>
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 

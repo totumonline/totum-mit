@@ -42,6 +42,7 @@ trait TablesModelsTrait
 
     public function getModel($table, $idField = null, $isService = null): Model
     {
+
         $keyStr = $table . ($isService ? '!!!' : '');
 
         if (key_exists($keyStr, $this->models)) {
@@ -49,12 +50,15 @@ trait TablesModelsTrait
         }
         $className = $this->getModelClassName($table);
 
-        return $this->models[$keyStr] = new $className(
+        /** @var Model $model */
+        $model = new $className(
             $this->getSql(),
             $table,
+            $this->getLangObj(),
             $idField,
             $isService
         );
+        return $this->models[$keyStr] = $model;
     }
 
     public static function getTableNameByModel(string $className): string

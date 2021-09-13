@@ -28,12 +28,12 @@ use totum\config\Conf;
          style="width: 300px; ">
         <form method="post"
               id='form'>
-            <div class="form-group"><label><?=$this->translate('Login/Email')?>>:</label><input type="text"
+            <div class="form-group"><label><?=$this->translate('Login/Email')?>:</label><input type="text"
                                                                       name="login"
                                                                       value=""
                                                                       class="form-control"
                 /></div>
-            <div class="form-group"><label><?=$this->translate('Password')?>>:</label><input type="password"
+            <div class="form-group"><label><?=$this->translate('Password')?>:</label><input type="password"
                                                                  name="pass"
                                                                  class="form-control"/></div>
             <div class="form-group"><input type="submit"

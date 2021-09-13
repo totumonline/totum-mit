@@ -36,6 +36,7 @@ class RU implements LangInterface
         'For temporary tables only.' => 'Только для временных таблиц',
         'For simple and cycles tables only.' => 'Только для простых таблиц и таблиц циклов.',
         'The table has no n-sorting.' => 'Таблица не имеет n-сортировки.',
+        'The table [[%s]] has no n-sorting.' => 'Таблица [[%s]] не имеет n-сортировки.',
         'The %s should be here.' => 'Здесь должен быть %s.',
 
         'Parametr [[%s]] is required and should be a number.' => 'Параметр [[%s]] обязателен и должен быть числом.',
@@ -54,6 +55,8 @@ class RU implements LangInterface
         'The value of %s field must match the format: %s' => 'Значение поля %s должно соответствовать формату: %s',
         'The row with %s was not found in table %s.' => 'Строка с %s не найдена в таблице %s.',
         'Row not found' => 'Строка не найдена',
+        'Row %s not found' => 'Строка %s не найдена',
+        'The string %s does not exist or is not available for your role.'=>'Строка %s не существует или недоступна для вашей роли.',
 
 
         'For lists comparisons, only available =, ==, !=.' => 'Для сравнения листов доступны только =, ==, !=.',
@@ -324,7 +327,17 @@ class RU implements LangInterface
         'no section header %s'=>'отсутствует заголовок секции %s',
         'no filter data'=>'отсутствуют данные о фильтрах',
         'on the line one line after the Rows part is missing the header of the Footer section'=>'в строке через одну после Строчной части отсутствует заголовок секции Футер',
-        '[0: do not modify calculated fields] [1: change values of calculated fields already set to manual] [2: change calculated fields]'=>'[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]'
+        '[0: do not modify calculated fields] [1: change values of calculated fields already set to manual] [2: change calculated fields]'=>'[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]',
+
+        'More than 20 nesting levels of table changes. Most likely a recalculation loop'=>'Больше 20 уровней вложенности изменения таблиц. Скорее всего зацикл пересчета',
+        'The field is not configured.'=>'Поле не настроено',
+        'No select field specified'=>'Не указано поле для выборки',
+        'More than one field/sfield is specified'=>'Указано больше одного поля field/sfield',
+        'The %s function is not provided for this type of tables'=>'Функция %s не предусмотрена для этого типа таблиц',
+        'script'=>'скрипт',
+        'Field [[%s]] in table [[%s]] is not a column'=>'Полe [[%s]] в таблице [[%s]] не колонка',
+        'In the where parameter you must use a list by the number of rows to be changed or not a list.'=>'В параметре where необходимо использовать лист по количеству изменяемых строк либо не лист.',
+        'The function is used to change the rows part of the table.'=>'Функция используется для изменения строчной части таблицы.'
 
 
     ];

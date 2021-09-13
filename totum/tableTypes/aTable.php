@@ -22,6 +22,7 @@ use totum\common\logs\CalculateLog;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\common\User;
+use totum\config\totum\tableTypes\traits\ActionsTrait;
 use totum\fieldTypes\File;
 use totum\fieldTypes\Select;
 use totum\models\CalcsTablesVersions;
@@ -32,6 +33,7 @@ use totum\tableTypes\traits\WebInterfaceTrait;
 abstract class aTable
 {
     use WebInterfaceTrait;
+    use ActionsTrait;
 
     protected $isTableAdding = false;
 
@@ -235,19 +237,6 @@ abstract class aTable
         return $this->tbl['rowInserted'];
     }
 
-    public function actionReorder(array $ids, int $after = 0)
-    {
-        if (!$this->tableRow['with_order_field']) {
-            throw new errorException('Таблица [[' . $this->tableRow['name'] . ']] без N-сортировки.');
-        }
-        $this->reCalculateFromOvers(
-            [
-                'reorder' => $ids,
-                'addAfter' => $after
-            ]
-        );
-    }
-
     public function getLangObj(): LangInterface
     {
         return $this->Totum->getLangObj();
@@ -308,7 +297,7 @@ abstract class aTable
         } elseif ($Log === 'parent') {
             if (!($this->CalculateLog = $this->CalculateLog->getParent())) {
                 debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                die('Parent Log пустой - ошибка вложенности');
+                die('Parent Log is empty - nesting error.');
             }
         } elseif (is_object($Log)) {
             $this->CalculateLog = $Log;
@@ -547,7 +536,7 @@ abstract class aTable
                 } else {
                     $fields[$f['name']]['linkFieldError'] = true;
                 }
-                $fields[$f['name']]['code'] = 'Код селекта';
+                $fields[$f['name']]['code'] = 'Select code';
                 if ($fields[$f['name']]['type'] === 'link') {
                     $fields[$f['name']]['type'] = 'string';
                 }
@@ -606,8 +595,8 @@ abstract class aTable
             $getFiltered = $this->loadFilteredRows($channel, $ids, $removed);
             foreach ($ids as $id) {
                 if (!in_array($id, $getFiltered)) {
-                    errorException::criticalException(
-                        'Строка с id ' . $id . ' недоступна вам с текущими настроками фильтров.',
+                    errorException::criticalException($this->translate('The string %s does not exist or is not available for your role.',
+                        (string)$id),
                         $this
                     );
                 }
@@ -722,7 +711,7 @@ abstract class aTable
 
         try {
             if ($level > 20) {
-                throw new errorException('Больше 20 уровней вложенности изменения таблиц. Скорее всего зацикл пересчета');
+                throw new errorException($this->translate('More than 20 nesting levels of table changes. Most likely a recalculation loop'));
             }
             $this->reCalculate($inVars);
             $result = $this->isTblUpdated($level);
@@ -750,7 +739,7 @@ abstract class aTable
 
         $debug = debug_backtrace(0, 3);
         //array_splice($debug, 0, 1);
-        throw new errorException('Запрошено несуществующее свойство [[' . $name . ']]' . print_r($debug, 1));
+        throw new errorException('Requested [[' . $name . ']] property does not exist' . print_r($debug, 1));
     }
 
     abstract public function addField($field);
@@ -770,7 +759,7 @@ CODE;;
                 }
                 $this->fields[$fieldName]['selectTableAction'] = '=: linkToPanel(table: "' . $this->fields[$fieldName]['selectTable'] . '"; id: ' . $param . ')' . $row2;
             } else {
-                throw new errorException('Поле не настроено');
+                throw new errorException($this->translate('The field is not configured.'));
             }
         }
 
@@ -778,7 +767,7 @@ CODE;;
         try {
             $CA->execAction($fieldName, $itemData, $itemData, $this->tbl, $this->tbl, $this, 'exec');
         } catch (errorException $e) {
-            $e->addPath('Таблица [[' . $this->tableRow['name'] . ']]; Поле [[' . $this->fields[$fieldName]['title'] . ']]');
+            $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->fields[$fieldName]['title'], $this->tableRow['name']]));
             throw $e;
         }
     }
@@ -862,7 +851,7 @@ CODE;;
         $modify['params'] = $modify['params'] ?? [];
 
         if (($this->tableRow['deleting'] ?? null) === 'none' && !empty($remove) && $channel !== 'inner') {
-            throw new errorException('Удаление в таблице [[' . $this->tableRow['name'] . ']] запрещено');
+            throw new errorException($this->translate('You are not allowed to delete from this table'));
         }
 
         $oldTbl = $this->tbl;
@@ -1048,11 +1037,11 @@ CODE;;
 
         $Field = $params['field'][0] ?? $params['sfield'][0] ?? null;
         if (empty($Field)) {
-            throw new errorException('Не указано поле для выборки');
+            throw new errorException($this->translate('No select field specified'));
         }
 
         if (in_array($returnType, ['list', 'field']) && count($params['field']) > 1) {
-            throw new errorException('Указано больше одного поля field/sfield');
+            throw new errorException($this->translate('More than one field/sfield is specified'));
         }
 
         $fieldsOrder = $params['fieldOrder'] ?? array_merge($params['field'], $params['sfield'], $params['pfield']);
@@ -1067,7 +1056,7 @@ CODE;;
 
         foreach ($params['field'] as $fName) {
             if (!array_key_exists($fName, $fields) && !in_array($fName, Model::serviceFields)) {
-                throw new errorException('Поля [[' . $fName . ']] в таблице [[' . $this->tableRow['name'] . ']] не существует');
+                throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.', [$fName,  $this->tableRow['name']]));
             }
         }
 
@@ -1080,7 +1069,7 @@ CODE;;
                 )) {
 
                     // debug_print_backtrace(0, 3);
-                    throw new errorException('Поле [[' . $fName . ']] не найдено');
+                    throw new errorException($this->translate('Field [[%s]] is not found.',$fName));
                 }
 
                 //sfield
@@ -1139,7 +1128,7 @@ CODE;;
 
     public function __call($name, $arguments)
     {
-        throw new errorException('Функция ' . $name . ' не предусмотрена для этого типа таблиц');
+        throw new errorException($this->translate($this->translate('The %s function is not provided for this type of tables', $name)));
     }
 
     public function getFields()
@@ -1322,110 +1311,6 @@ CODE;;
             return ['ok' => false];
         } else {
             return ['ok' => true];
-        }
-    }
-
-    /**
-     * @param null|array $data
-     * @param null|array $dataList
-     * @param null|int $after
-     * @return array
-     * @throws errorException
-     */
-    public function actionInsert($data = null, $dataList = null, $after = null)
-    {
-        $added = $this->changeIds['added'];
-        if ($dataList) {
-            $this->reCalculateFromOvers(['add' => $dataList, 'addAfter' => $after]);
-        } elseif (!is_null($data) && is_array($data)) {
-            $this->reCalculateFromOvers(['add' => [$data], 'addAfter' => $after]);
-        }
-        return array_keys(array_diff_key($this->changeIds['added'], $added));
-    }
-
-    public function actionSet($params, $where, $limit = null)
-    {
-        $modify = $this->getModifyForActionSet($params, $where, $limit);
-        if ($modify) {
-            $this->reCalculateFromOvers(
-                [
-                    'modify' => $modify
-                ]
-            );
-        }
-    }
-
-    public function actionDuplicate($fields, $where, $limit = null, $after = null)
-    {
-        $ids = $this->getRemoveForActionDeleteDuplicate($where, $limit);
-        if ($ids) {
-            $replaces = [];
-            foreach ($ids as $id) {
-                $replaces[$id] = $fields;
-            }
-            $duplicate = [
-                'ids' => $ids,
-                'replaces' => $replaces
-            ];
-
-            $added = $this->changeIds['added'];
-            $this->reCalculateFromOvers(
-                [
-                    'duplicate' => $duplicate, 'addAfter' => $after
-                ]
-            );
-            return array_keys(array_diff_key($this->changeIds['added'], $added));
-        }
-        return [];
-    }
-
-    public function actionDelete($where, $limit = null)
-    {
-        $remove = $this->getRemoveForActionDeleteDuplicate($where, $limit);
-        if ($remove) {
-            $this->reCalculateFromOvers(
-                [
-                    'remove' => $remove
-                ]
-            );
-        }
-    }
-
-    public function actionRestore($where, $limit = null)
-    {
-        $where[] = ['field' => 'is_del', 'operator' => '=', 'value' => true];
-        $restore = $this->getRemoveForActionDeleteDuplicate($where, $limit);
-        if ($restore) {
-            $this->reCalculateFromOvers(
-                [
-                    'restore' => $restore
-                ]
-            );
-        }
-    }
-
-    public function actionClear($fields, $where, $limit = null)
-    {
-        $setValuesToDefaults = $this->getModifyForActionClear($fields, $where, $limit);
-        if ($setValuesToDefaults) {
-            $this->reCalculateFromOvers(
-                [
-                    'setValuesToDefaults' => $setValuesToDefaults
-                ]
-            );
-        }
-    }
-
-    public function actionPin($fields, $where, $limit = null)
-    {
-        $setFieldPinned = $this->getModifyForActionClear($fields, $where, $limit);
-
-        if ($setFieldPinned) {
-            $this->reCalculateFromOvers(
-                [
-                    'setValuesToPinned' => $setFieldPinned
-                ]
-            );
         }
     }
 
@@ -2045,7 +1930,7 @@ CODE;;
                             $thisRow[$Field->getName()]['v'],
                             $thisRow,
                             $newTbl
-                        ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null]]
+                        ), $channel === 'inner' ? (is_bool($logIt) ? $this->translate('script') : $logIt) : null]]
                     );
                 }
             }
@@ -2079,7 +1964,7 @@ CODE;;
                             $thisRow[$Field->getName()]['v'],
                             $thisRow,
                             $newTbl
-                        ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null]]
+                        ), $channel === 'inner' ? (is_bool($logIt) ? $this->translate('script') : $logIt) : null]]
                     );
                 } elseif (key_exists($Field->getName(), $setValuesToPinned)) {
                     $this->Totum->totumActionsLogger()->pin(
@@ -2114,7 +1999,7 @@ CODE;;
                                 $newTbl
                             )
                             ,
-                            $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : $Field->getModifiedLogValue($modified[$Field->getName()])]]
+                            $channel === 'inner' ? (is_bool($logIt) ? $this->translate('script') : $logIt) : $Field->getModifiedLogValue($modified[$Field->getName()])]]
                     );
                 } elseif (key_exists(
                     $Field->getName(),
@@ -2130,7 +2015,7 @@ CODE;;
                                     $thisRow[$Field->getName()]['v'],
                                     $thisRow,
                                     $newTbl
-                                ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null
+                                ), $channel === 'inner' ? (is_bool($logIt) ? $this->translate('script') : $logIt) : null
                             ]
                         ]
                     );
@@ -2145,12 +2030,12 @@ CODE;;
     {
         $tableRow = $this->getTableRow();
         if (empty($this->fields[$params['section']])) {
-            throw new errorException('Поля [[' . $params['section'] . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
+            throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.', [$params['section'], $tableRow['name']]));
         }
 
         $sectionField = $this->fields[$params['section']];
         if ($sectionField['category'] !== 'column') {
-            throw new errorException('Полe [[' . $params['section'] . ']] в таблице [[' . $tableRow['name'] . ']] не колонка');
+            throw new errorException($this->translate('Field [[%s]] in table [[%s]] is not a column', [$params['section'], $tableRow['name']]));
         }
         return $sectionField;
     }
@@ -2441,62 +2326,6 @@ CODE;;
         return $remove;
     }
 
-    protected function getModifyForActionSet($params, $where, $limit)
-    {
-        return $this->prepareModify($params, $where, $limit);
-    }
-
-    protected function prepareModify($params, $where, $limit, $clear = false)
-    {
-        $rowParams = [];
-        $pParams = [];
-        if ($clear) {
-            foreach ($params as $f) {
-                if (key_exists($f, $this->fields)) {
-                    if ($this->fields[$f]['category'] === 'column') {
-                        $rowParams[$f] = null;
-                    } else {
-                        $pParams[$f] = null;
-                    }
-                }
-            }
-        } else {
-            foreach ($params as $f => $value) {
-                if (key_exists($f, $this->fields)) {
-                    if ($this->fields[$f]['category'] === 'column') {
-                        $rowParams[$f] = $clear ? null : $value;
-                    } else {
-                        $pParams[$f] = $clear ? null : $value;
-                    }
-                }
-            }
-        }
-
-        $modify = [];
-
-        if (!empty($rowParams)) {
-            $getParams = ['where' => $where, 'field' => 'id'];
-            if ((int)$limit === 1) {
-                if ($id = $this->getByParams($getParams, 'field')) {
-                    $return = [$id];
-                } else {
-                    return false;
-                }
-            } else {
-                $return = $this->getByParams($getParams, 'list');
-            }
-
-            foreach ($return as $id) {
-                $modify[$id] = $rowParams;
-            }
-        }
-        if (!empty($pParams)) {
-            $modify ['params'] = $pParams;
-        }
-
-        return $modify;
-    }
-
     public function getModifyForActionSetExtended($params, $where)
     {
         $modify = [];
@@ -2521,7 +2350,7 @@ CODE;;
                     0,
                     $whereList
                 ) && count($whereList) !== $maxCount) {
-                throw new errorException('В параметре where необходимо использовать лист по количеству изменяемых строк либо не лист');
+                throw new errorException($this->translate('In the where parameter you must use a list by the number of rows to be changed or not a list.'));
             }
 
             if (is_array($whereList) && array_key_exists(0, $whereList)) {
@@ -2536,7 +2365,7 @@ CODE;;
         }
         foreach ($params as $f => $valueList) {
             if ($this->fields[$f]['category'] !== 'column') {
-                throw new errorException('Функция используется для изменения строчной части таблицы');
+                throw new errorException($this->translate('The function is used to change the rows part of the table.'));
             }
 
             if (is_object($valueList)) {
@@ -2579,11 +2408,6 @@ CODE;;
         }
 
         return $modify;
-    }
-
-    protected function getModifyForActionClear($fields, $where, $limit)
-    {
-        return $this->prepareModify($fields, $where, $limit, true);
     }
 
 

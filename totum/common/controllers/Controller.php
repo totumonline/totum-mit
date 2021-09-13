@@ -69,6 +69,6 @@ abstract class Controller
 
     protected function translate(string $str, array|string $vars = []): string
     {
-        return $this->Totum->getLangObj()->translate($str, $vars);
+        return $this->Config->getLangObj()->translate($str, $vars);
     }
 }

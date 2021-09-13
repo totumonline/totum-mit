@@ -185,7 +185,7 @@ abstract class ConfParent
         return $this->tmpTableChangesDirPath;
     }
 
-    public function getSchema($force = true): string
+    public function getSchema($force = true)
     {
         if ($force && empty($this->schemaName)) {
             errorException::criticalException($this->translate('The schema is not connected.'), $this);
@@ -220,7 +220,7 @@ abstract class ConfParent
 
     /********************* MAIL SECTION **************/
 
-    protected function mailBodyAttachments($body, $attachmentsIn = []): array
+    protected function mailBodyAttachments($body, $attachmentsIn = [])
     {
         $attachments = [];
         foreach ($attachmentsIn as $k => $v) {
@@ -447,7 +447,7 @@ abstract class ConfParent
 
     abstract public static function getSchemas();
 
-    public function getSshPostgreConnect($type): string
+    public function getSshPostgreConnect($type)
     {
         $db = $this->getDb(false);
         if (empty($db[$type])) {

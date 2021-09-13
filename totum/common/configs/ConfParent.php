@@ -706,7 +706,7 @@ ON CONFLICT (name) DO UPDATE
     Sql Schema: %s, V %s<br/>.', [$genTime, $mb, $memory_limit, $SchemaName, $version]);
     }
 
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->getLangObj()->translate($str, $vars);
     }

@@ -37,19 +37,19 @@ class cyclesTable extends RealTables
                     , 'name' => 'creator_id'
                     , 'category' => 'column'
                     , 'ord' => '10'
-                    , "title" => "Доступ пользователю"
+                    , 'title' => $this->translate('User access')
                     , 'data_src' => [
-                        "type" => ['Val' => "select", 'isOn' => true]
-                        , "width" => ['Val' => 100, 'isOn' => true]
-                        , "filterable" => ['Val' => true, 'isOn' => true]
-                        , "showInWeb" => ['Val' => true, 'isOn' => true]
-                        , "editable" => ['Val' => false, 'isOn' => true]
-                        , "linkFieldName" => ['Val' => "creator_id", 'isOn' => true]
-                        , "code" => ['Val' => "=: listCreate(item: \$user)\nuser: nowUser()", 'isOn' => true]
-                        , "codeOnlyInAdd" => ['Val' => true, 'isOn' => true]
-                        , "webRoles" => ['Val' => ["1"], 'isOn' => true]
-                        , "codeSelect" => ['Val' => "=:SelectListAssoc(table: 'users';field: 'fio';)", 'isOn' => true]
-                        , "multiple" => ['Val' => true, 'isOn' => true]
+                        'type' => ['Val' => 'select', 'isOn' => true]
+                        , 'width' => ['Val' => 100, 'isOn' => true]
+                        , 'filterable' => ['Val' => true, 'isOn' => true]
+                        , 'showInWeb' => ['Val' => true, 'isOn' => true]
+                        , 'editable' => ['Val' => false, 'isOn' => true]
+                        , 'linkFieldName' => ['Val' => 'creator_id', 'isOn' => true]
+                        , 'code' => ['Val' => "=: listCreate(item: \$user)\nuser: nowUser()", 'isOn' => true]
+                        , 'codeOnlyInAdd' => ['Val' => true, 'isOn' => true]
+                        , 'webRoles' => ['Val' => ['1'], 'isOn' => true]
+                        , 'codeSelect' => ['Val' => "=:SelectListAssoc(table: 'users';field: 'fio';)", 'isOn' => true]
+                        , 'multiple' => ['Val' => true, 'isOn' => true]
                     ]
                 ],
                 2 => [
@@ -57,13 +57,13 @@ class cyclesTable extends RealTables
                     , 'name' => 'button_to_cycle'
                     , 'category' => 'column'
                     , 'ord' => '30'
-                    , "title" => "Кнопка в цикл"
+                    , 'title' => $this->translate('Button to the cycle')
                     , 'data_src' => [
-                        "type" => ['Val' => "button", 'isOn' => true]
-                        , "width" => ['Val' => 100, 'isOn' => true]
-                        , "showInWeb" => ['Val' => true, 'isOn' => true]
-                        , "buttonText" => ['Val' => 'Открыть', 'isOn' => true]
-                        , "codeAction" => ['Val' => "= : linkToTable(table: \$table; cycle: #id; target: 'self' )\n"
+                        'type' => ['Val' => 'button', 'isOn' => true]
+                        , 'width' => ['Val' => 100, 'isOn' => true]
+                        , 'showInWeb' => ['Val' => true, 'isOn' => true]
+                        , 'buttonText' => ['Val' => $this->translate('Open'), 'isOn' => true]
+                        , 'codeAction' => ['Val' => "= : linkToTable(table: \$table; cycle: #id; target: 'self' )\n"
                             . 'table: select(table: \'tables\';  field: \'id\' ; where: \'type\'="calcs"; where: \'tree_node_id\'=$nt; order: \'sort\' )' . "\n"
                             . 'nt: nowTableId()', 'isOn' => true]
                     ]
@@ -80,7 +80,7 @@ class cyclesTable extends RealTables
             try {
                 $this->Totum->deleteCycle($id, $this->tableRow['id']);
             } catch (SqlException $e) {
-                throw new errorException('Сначала нужно удалить таблицу циклов, а потом расчетные таблицы внутри нее');
+                throw new errorException($this->translate('First you have to delete the cycles table, and then the calculation tables inside it'));
             }
         }
     }

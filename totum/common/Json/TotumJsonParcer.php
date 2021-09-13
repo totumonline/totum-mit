@@ -7,9 +7,10 @@ use JsonStreamingParser\Exception\ParsingException;
 use JsonStreamingParser\Listener\ListenerInterface;
 use JsonStreamingParser\Listener\ParserAwareInterface;
 use JsonStreamingParser\Listener\PositionAwareInterface;
+use JsonStreamingParser\Parser;
 use JsonStreamingParser\ParserHelper;
 
-class TotumJsonParcer
+class TotumJsonParcer extends Parser
 {
     const STATE_START_DOCUMENT = 0;
     const STATE_END_DOCUMENT = 14;

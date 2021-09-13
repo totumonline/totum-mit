@@ -13,6 +13,7 @@ use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\fieldTypes\File;
@@ -64,11 +65,6 @@ abstract class JsonTables extends aTable
         parent::reCalculate($inVars);
     }
 
-    public function refresh_rows()
-    {
-        throw new errorException('Для расчетных таблиц не предусмотрено построчное обновление. Они пересчитываются целиком');
-    }
-
     public function addField($field)
     {
     }
@@ -81,7 +77,6 @@ abstract class JsonTables extends aTable
     {
         if ($id) {
             $children = [];
-            //DOTO упростить функцию - выкинуть лишний перебор
             foreach ($this->tbl['rows'] as $row) {
                 if ($bfield === 'id') {
                     $bval = (string)$row['id'];
@@ -153,7 +148,10 @@ abstract class JsonTables extends aTable
                         if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
                             foreach ($row as $k => $v) {
                                 /*key_exists for $oldRow[$k] не использовать!*/
-                                if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v, $this->getLangObj())) {
+                                if ($k !== 'n' && Calculate::compare('!==',
+                                        ($oldRow[$k] ?? null),
+                                        $v,
+                                        $this->getLangObj())) {
                                     $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                     $this->changeIds['changed'][$id][$k] = null;
                                 }
@@ -283,7 +281,7 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($addAfter) {
-                    throw new errorException('Строки с id [[' . $addAfter . ']] не существует');
+                    throw new errorException($this->translate('Row %s not found', $addAfter));
                 }
 
             } elseif (count($SavedRows) === count($reorder)) {
@@ -310,7 +308,7 @@ abstract class JsonTables extends aTable
             $SavedRows = $newRows;
             unset($newRows);
             $this->setIsTableDataChanged(true);
-            $this->changeIds['reordered']=true;
+            $this->changeIds['reordered'] = true;
         }
 
 
@@ -330,10 +328,12 @@ abstract class JsonTables extends aTable
                 );
 
                 if ($insertCalcs->getError()) {
-                    throw new errorException('Ошибка обработки поля insert [[' . $insertCalcs->getError() . ']]');
+                    throw new errorException($this->translate('Error processing field insert: [[%s]]',
+                        $insertCalcs->getError()));
                 }
                 if (!is_array($insertList)) {
-                    throw new errorException('Поле [[insert]] должно возвращать list  - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
+                    throw new errorException($this->translate('The [[insert]] field should return list - Table [[%s]]',
+                        $this->tableRow['title']));
                 }
 
                 $insertList = array_filter(
@@ -352,7 +352,8 @@ abstract class JsonTables extends aTable
                         $insertList,
                         $type
                     )) !== count($insertList)) {
-                    throw new errorException('Поле [[insert]] должно возвращать list с уникальными значениями - Таблица [[' . $this->tableRow['id'] . ' - ' . $this->tableRow['title'] . ']]');
+                    throw new errorException($this->translate('The [[insert]] field should return a list with unique values - Table [[%s]]',
+                        $this->tableRow['title']));
                 }
             } else {
                 unset($insertField);
@@ -409,17 +410,17 @@ abstract class JsonTables extends aTable
                         ) {
                             $this->Totum->totumActionsLogger()->delete(
                                 $this->tableRow['id'],
-                                $this->getCycle() ? $this->getCycle()->getId() : null,
+                                $this->getCycle()?->getId(),
                                 $id,
                                 $this->recalculateWithALog ?
-                                    (is_bool($this->recalculateWithALog) ? 'скрипт' : $this->recalculateWithALog) : null
+                                    (is_bool($this->recalculateWithALog) ? $this->translate('script') : $this->recalculateWithALog) : null
                             );
                         }
                     };
                     switch ($this->tableRow['deleting']) {
                         case 'none':
                             if ($channel !== 'inner') {
-                                throw new errorException('В таблице запрещено удаление');
+                                throw new errorException($this->translate('You are not allowed to delete from this table'));
                             }
                         // no break
                         case 'delete':
@@ -498,7 +499,7 @@ abstract class JsonTables extends aTable
                 $this->changeIds['duplicated'][$id] = $newRow['id'];
                 $this->setIsTableDataChanged(true);
             } else {
-                throw new errorException('id [[' . $id . ']] в таблице не найден');
+                throw new errorException($this->translate('Row %s not found', $id));
             }
         }
 
@@ -509,7 +510,8 @@ abstract class JsonTables extends aTable
                     if ($this->tbl['nextId'] <= $id) {
                         $this->tbl['nextId'] = $id;
                     } elseif (array_key_exists($id, $this->tbl['rows'])) {
-                        throw new errorException('id ' . $id . ' в таблице уже существует. Нельзя добавить повторно');
+                        throw new errorException($this->translate('The row with id %s in the table already exists. Cannot be added again',
+                            $id));
                     }
                 } else {
                     if ($isCheck && $channel === 'web') {
@@ -535,7 +537,7 @@ abstract class JsonTables extends aTable
                         $after,
                         $SavedRows
                     )) {
-                    throw new errorException('Строки с id ' . $after . ' не существует. Возможно, она была удалена');
+                    throw new errorException($this->translate('Row %s not found', $after));
                 }
 
                 foreach (($add ?? []) as $addRow) {
@@ -1101,7 +1103,8 @@ abstract class JsonTables extends aTable
                 $AscDesc = $of['ad'] === 'desc' ? -1 : 1;
 
                 if (!array_key_exists($field, $this->sortedFields['column']) && !Model::isServiceField($field)) {
-                    throw new errorException('Поля [[' . $field . ']] в строчной части таблицы [[' . $this->tableRow['name'] . ']] не существует');
+                    throw new errorException($this->translate('The [[%s]] field in the rows part of table [[%s]] does not exist',
+                        [$field, $this->tableRow['name']]));
                 }
                 $orders[$field] = ['orderNumeric' => $isNumericField($field), 'acsDesc' => $AscDesc];
             }
@@ -1117,7 +1120,10 @@ abstract class JsonTables extends aTable
                         $row2[$k] = $row2[$k] ?? null;
                     }
                     if ($row1[$k] !== $row2[$k]) {
-                        $o = $ord['acsDesc'] * (Calculate::compare('>', $row1[$k], $row2[$k], $this->getLangObj()) ? 1 : -1);
+                        $o = $ord['acsDesc'] * (Calculate::compare('>',
+                                $row1[$k],
+                                $row2[$k],
+                                $this->getLangObj()) ? 1 : -1);
                     }
                     if ($o !== 0) {
                         return $o;
@@ -1169,7 +1175,8 @@ abstract class JsonTables extends aTable
 
                 if (!array_key_exists($field, $this->sortedFields['column']) && !Model::isServiceField($field)
                 ) {
-                    throw new errorException('Поля [[' . $field . ']] в таблице [[' . $this->tableRow['name'] . ']] не существует');
+                    throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
+                        [$field, $this->tableRow['title']]));
                 }
                 $_array = true;
                 if (in_array($field, Model::serviceFields)) {
@@ -1223,14 +1230,14 @@ abstract class JsonTables extends aTable
         } else {
             $offset = ($params['offset']) ?? 0;
             if (!(ctype_digit(strval($offset)))) {
-                throw new errorException('Параметр offset должен быть целым числом');
+                throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
             }
             $offset = (int)$offset;
 
             $limit = ($params['limit']) ?? '';
             if ($limit !== '') {
                 if (!(ctype_digit(strval($limit)))) {
-                    throw new errorException('Параметр limit должен быть целым числом');
+                    throw new errorException($this->translate('The %s parameter must be a number.', 'limit'));
                 }
                 $limit = (int)$limit;
             }

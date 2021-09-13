@@ -413,7 +413,7 @@ class Totum
         return $this->Config->getLangObj();
     }
 
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->getLangObj()->translate($str, $vars);
     }

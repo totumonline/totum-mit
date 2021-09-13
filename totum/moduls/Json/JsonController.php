@@ -543,7 +543,7 @@ class JsonController extends Controller
                 $cycleId = $match[2];
                 $cycleTableId = $match[3];
                 if (!($tableRow = $this->Totum->getTableRow($cycleTableId))) {
-                    throw new errorException('');
+                    throw new errorException($this->translate('Table [[%s]] is not found.', $cycleTableId));
                 }
 
                 $Cycle = $this->Totum->getCycle($cycleId, $cyclesTableId);
@@ -552,7 +552,7 @@ class JsonController extends Controller
                 $tableId = $match[1];
 
                 if (!($tableRow = $this->Totum->getTableRow($tableId))) {
-                    throw new errorException('');
+                    throw new errorException($this->translate('Table [[%s]] is not found.', $tableId));
                 }
 
                 $this->Table = $this->Totum->getTable($tableRow);

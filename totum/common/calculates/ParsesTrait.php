@@ -2,7 +2,7 @@
 
 namespace totum\common\calculates;
 
-use JsonException;
+use \JsonException;
 use totum\common\errorException;
 use totum\common\Json\TotumJson;
 

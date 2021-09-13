@@ -62,7 +62,7 @@ class TotumInstall
         $this->CalculateLog = $CalculateLog ?? $this->Totum->getCalculateLog();
         $this->outputConsole = $outputConsole;
     }
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->Config->getLangObj()->translate($str, $vars);
     }

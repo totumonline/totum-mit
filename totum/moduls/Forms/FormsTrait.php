@@ -303,7 +303,7 @@ trait FormsTrait
             $field['type'],
             ['select', 'tree']
         )) {
-            throw new errorException('Field not of type select/tree');
+            throw new errorException($this->translate('Field not of type select/tree'));
         }
 
         $this->Table->loadDataRow();

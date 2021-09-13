@@ -45,7 +45,7 @@ class Model
             $this->isServiceTable = $isService === true;
         }
     }
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->Lang->translate($str, $vars);
     }
@@ -421,9 +421,9 @@ class Model
                                 $arrayOperator = ' NOT IN ';
                                 $arrayEmpty = ' TRUE ';
                                 if (is_null($v)) {
-                                    $operator = " IS NOT NULL";
+                                    $operator = ' IS NOT NULL';
                                 } else {
-                                    $operator = " != ?";
+                                    $operator = ' != ?';
                                 }
                                 break;
                             default:
@@ -437,9 +437,9 @@ class Model
                         $arrayOperator = ' IN ';
                         $arrayEmpty = ' FALSE ';
                         if (is_null($v)) {
-                            $operator = " IS NULL";
+                            $operator = ' IS NULL';
                         } else {
-                            $operator = " = ?";
+                            $operator = ' = ?';
                         }
                     }
                     $f = self::quoteWhereField($k, $matches[2] ?? 'S');

@@ -470,15 +470,15 @@ class CalculateAction extends Calculate
             if ($toBfl) {
                 if (!empty($soapClient)) {
                     $this->Table->getTotum()->getOutersLogger()->error(
-                        "SOAP" . $e->getMessage(),
+                        'SOAP' . $e->getMessage(),
                         ['xml_request' => $soapClient->__getLastRequest(),
                             'xml_response' => $soapClient->__getLastResponse(),
-                            'data_request' => $params, 'data_response' => $data,
+                            'data_request' => $params, 'data_response' => $data??'',
                             'error' => $e->getMessage()]
                     );
                 } else {
                     $this->Table->getTotum()->getOutersLogger()->error(
-                        "SOAP",
+                        'SOAP',
                         ['xml_request' => null, 'xml_response' => null,
                             'data_request' => $params, 'data_response' => null,
                             'error' => $e->getMessage()]
@@ -767,9 +767,9 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['field']);
         switch ($params['type'] ?? '') {
             case 'text':
-                return $this->funcLinkToDataText($params);
+                $this->funcLinkToDataText($params);
             case 'table':
-                return $this->funcLinkToDataTable($params);
+                $this->funcLinkToDataTable($params);
         }
     }
 
@@ -1067,7 +1067,7 @@ class CalculateAction extends Calculate
 
     protected function funcinsertListExtended($params)
     {
-        return $this->funcInsertListExt($params);
+        $this->funcInsertListExt($params);
     }
 
 
@@ -1213,7 +1213,7 @@ class CalculateAction extends Calculate
 
     protected function funcInsertList($params)
     {
-        return $this->funcInsertListExt($params);
+        $this->funcInsertListExt($params);
     }
 
     protected function __doAction($params, $func, $isFieldSimple = false)

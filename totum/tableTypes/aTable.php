@@ -669,7 +669,7 @@ abstract class aTable
                 return $this->filteredFields[$channel]['simple'];
             default:
                 debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                throw new errorException('Канал не обнаружен');
+                throw new errorException('Incorrect channel');
         }
     }
 
@@ -1975,7 +1975,7 @@ CODE;;
                             $thisRow[$Field->getName()]['v'],
                             $thisRow,
                             $newTbl
-                        ), $channel === 'inner' ? (is_bool($logIt) ? 'скрипт' : $logIt) : null]]
+                        ), $channel === 'inner' ? (is_bool($logIt) ?  $this->translate('script') : $logIt) : null]]
                     );
                 } elseif (key_exists(
                         $Field->getName(),
@@ -2350,7 +2350,7 @@ CODE;;
                     0,
                     $whereList
                 ) && count($whereList) !== $maxCount) {
-                throw new errorException($this->translate('In the where parameter you must use a list by the number of rows to be changed or not a list.'));
+                throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.', 'where'));
             }
 
             if (is_array($whereList) && array_key_exists(0, $whereList)) {
@@ -2374,7 +2374,7 @@ CODE;;
                             0,
                             $valueList->val
                         ) && count($valueList->val) !== $maxCount) {
-                        throw new errorException('В параметре field необходимо использовать лист по количеству изменяемых строк либо не лист');
+                        throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.', 'field'));
                     }
                     foreach ($valueList->val as $ii => $val) {
                         $newObj = new FieldModifyItem($valueList->sign, $val, $valueList->percent);
@@ -2387,7 +2387,7 @@ CODE;;
                     0,
                     $valueList
                 ) && count($valueList) !== $maxCount) {
-                throw new errorException('В параметре field необходимо использовать лист по количеству изменяемых строк либо не лист');
+                throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.', 'field'));
             }
 
             if (is_array($valueList) && array_key_exists(0, $valueList)) {
@@ -2423,7 +2423,7 @@ CODE;;
                 true
             ) != $tableData['updated']
         ) {
-            throw new errorException('Таблица была изменена. Обновите таблицу для проведения изменений');
+            throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.', $this->tableRow['title']));
         }
     }
 
@@ -2462,7 +2462,7 @@ CODE;;
             } elseif (preg_match('/^(\d+)-(\d+)$/', $interval, $matches)) {
                 $intervals[] = [$matches[1], $matches[2]];
             } else {
-                throw new errorException('Некорректный интервал [[' . $interval . ']]');
+                throw new errorException($this->translate('Incorrect interval [[%s]]', $interval));
             }
         }
         return $intervals;
@@ -2571,26 +2571,19 @@ CODE;;
             case 'xml':
                 $visible = ($field['showInXml'] ?? null) && $isUserCreatorOrInRoles($field['xmlRoles'] ?? []);
 
-                switch ($property) {
-                    case 'visible':
-                        return $visible;
-                    case 'insertable':
-                        return $visible && $field['apiInsertable'];
-                    case 'filterable':
-                        return $field['showInXml'];
-                    case 'editable':
-                        return $visible && $field['apiEditable'] && $isUserCreatorOrInRoles($field['xmlEditRoles'] ?? []);
-                    default:
-                        throw new errorException('In channel ' . $channel . ' not supported action ' . $property);
-                }
+                return match ($property) {
+                    'visible' => $visible,
+                    'insertable' => $visible && $field['apiInsertable'],
+                    'filterable' => $field['showInXml'],
+                    'editable' => $visible && $field['apiEditable'] && $isUserCreatorOrInRoles($field['xmlEditRoles'] ?? []),
+                    default => throw new errorException('In channel ' . $channel . ' not supported action ' . $property),
+                };
                 break;
             case 'inner':
-                switch ($property) {
-                    case 'filterable':
-                        return false;
-                    default:
-                        return true;
-                }
+                return match ($property) {
+                    'filterable' => false,
+                    default => true,
+                };
                 break;
             default:
                 throw new errorException('Channel ' . $channel . ' not supported in function isField');
@@ -2598,7 +2591,7 @@ CODE;;
         return false;
     }
 
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->getTotum()->getLangObj()->translate($str, $vars);
     }

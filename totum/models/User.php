@@ -71,7 +71,7 @@ class User extends Model
         if (array_key_exists('add_users', $decoded)) {
             foreach ($decoded['add_users'] as $addId) {
                 if (!$this->checkCanBeBoss($addId, $where['id'])) {
-                    throw new errorException('Нельзя добавить в доступы начальника');
+                    throw new errorException($this->translate('You can\'t make a boss of someone who is in a subordinate'));
                 }
             }
             $this->saveConnectedUsers($where['id']);

@@ -17,9 +17,9 @@
     "ext-soap": "*",
     "ext-zlib": "*",
     "ext-bcmath": "*",
-    "ext-curl": "*"
-
-    },
+    "ext-curl": "*",
+    "ext-gd": "*"
+  },
   "repositories": [
     {
       "type": "github",

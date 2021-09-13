@@ -107,7 +107,7 @@ class Calculate
         return $conditionTest;
     }
 
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->Table->getTotum()->getLangObj()->translate($str, $vars);
     }
@@ -219,7 +219,7 @@ class Calculate
                 $r = !$r;
                 break;
             default:
-                throw new errorException($Lang->translate('For lists comparisons, only available =, ==, !=.'));
+                throw new errorException($Lang->translate('For lists comparisons, only available =, ==, !=, !==.'));
         }
         return $r;
     }
@@ -290,7 +290,7 @@ class Calculate
                     }
                     break;
                 default:
-                    throw new errorException($Lang->translate('For lists comparisons, only available =, ==, !=.'));
+                    throw new errorException($Lang->translate('For lists comparisons, only available =, ==, !=, !==.'));
             }
         } elseif (is_numeric($n) && is_numeric($n2)) {
             $r = match ($n <=> $n2) {

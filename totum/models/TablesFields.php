@@ -208,7 +208,7 @@ class TablesFields extends Model
         }
 
         if ($category === 'footer' && !is_subclass_of(Totum::getTableClass($tableRow), JsonTables::class)) {
-            throw new errorException('Нельзя создать поле [[футера]] [[не для рассчетных]] таблиц');
+            throw new errorException($this->translate('You cannot create a [[footer]] field for [[non-calculated]] tables.'));
         }
     }
 

@@ -10,6 +10,7 @@ namespace totum\tableTypes;
 
 use totum\common\errorException;
 use totum\common\Cycle;
+use totum\common\Lang\RU;
 use totum\common\Totum;
 use totum\models\Table;
 use totum\models\TablesCalcsConnects;
@@ -29,7 +30,7 @@ class calcsTable extends JsonTables
             if($this->CalculateLog){
                 $this->CalculateLog->addParam('backtrace', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
             }
-            throw new errorException('Цикла с id [[' . $Cycle->getId() . ']] в таблице циклов [[' . $Cycle->getCyclesTableId() . ']] не существует');
+            throw new errorException($this->translate('Cycle [[%s]] in table [[%s]] is not found.', [$Cycle->getId(), $this->Totum->getTableRow($Cycle->getCyclesTableId())['title']]));
         }
         parent::__construct($Totum, $tableRow, $Cycle, $light);
     }
@@ -112,10 +113,6 @@ class calcsTable extends JsonTables
 
     public function createTable()
     {
-        /*if (empty($this->tableRow['tree_node_id']) || !($cyclesTableRow = Table::getTableRowById($this->tableRow['tree_node_id'])) || $cyclesTableRow['type'] != 'cycles') {
-            throw new errorException('Необходимо заполнить таблицу циклов');
-        };*/
-
         static::__createTable($this->tableRow['name'], $this->Totum);
     }
 
@@ -144,7 +141,7 @@ class calcsTable extends JsonTables
                 $this->createCalcsTable();
                 $this->loadDataRow();
             } else {
-                throw new errorException('Рассчетная таблица не подключена к этой таблице циклов');
+                throw new errorException($this->translate('The calculation table is not connected to %s cycles table', $this->tableRow['title']));
             }
         }
     }

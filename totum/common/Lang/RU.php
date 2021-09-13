@@ -52,6 +52,9 @@ class RU implements LangInterface
         'The [[%s]] field is not found in the [[%s]] table.' => 'Поле [[%s]] не надено в таблице [[%s]].',
         'The %s field must be numeric.' => 'Поле %s должно быть числовым.',
         'The value of the %s field must be numeric.' => 'Значение поля %s должно быть числовым.',
+        'A number must be passed to select by the numeric field [[%s]]'=>'Для выборки по числовому полю [[%s]] должно быть передано число',
+
+
         'The value of %s field must match the format: %s' => 'Значение поля %s должно соответствовать формату: %s',
         'The row with %s was not found in table %s.' => 'Строка с %s не найдена в таблице %s.',
         'Row not found' => 'Строка не найдена',
@@ -59,7 +62,7 @@ class RU implements LangInterface
         'The string %s does not exist or is not available for your role.'=>'Строка %s не существует или недоступна для вашей роли.',
 
 
-        'For lists comparisons, only available =, ==, !=.' => 'Для сравнения листов доступны только =, ==, !=.',
+        'For lists comparisons, only available =, ==, !=, !==.' => 'Для сравнения листов доступны только =, ==, !=, !==.',
         'There should be a date, not a list.' => 'Должна быть дата, а не список.',
         'There must be only one comparison operator in the string.' => 'В строке должен быть только один оператор сравнения.',
         'TOTUM-code format error [[%s]].' => 'Ошибка формата ТОТУМ-кода [[%s]].',
@@ -87,6 +90,7 @@ class RU implements LangInterface
         'Table is not found.' => 'Таблица не найдена.',
         'File [[%s]] is not found.' => 'Файл [[%s]] не найден.',
         'Cycle [[%s]] is not found.' => 'Цикл [[%s]] не найден.',
+        'Cycle [[%s]] in table [[%s]] is not found.' => 'Цикл [[%s]] в таблице [[%s]] не найден.',
         'TOTUM-code format error: missing operator in expression [[%s]].' => 'Ошибка формата TOTUM-кода: отсутствие оператора в выражении [[%s]].',
 
         'No key %s was found in the data row.' => 'Ключа %s в строке данных не обраружено',
@@ -119,6 +123,8 @@ class RU implements LangInterface
         'The ExecSSH function is disabled. Enable it in Conf.php.' => 'Функция ExecSSH выключена. Подключите ее в Conf.php',
         'The [[%s]] parameter has not been set in this code.' => 'Параметр [[%s]] не был установлен в этом коде.',
         'All list elements must be lists.' => 'Все элементы списка должны быть списками.',
+        'None of the elements of the %s parameter array must be a list.' => 'Ни один из элементов массива параметра %s не должен быть списком.',
+
         'The array element does not fit the filtering conditions - the value is not a list.' => 'Элемент массива не соответствует условиям фильтрации - значение не list.',
         'The array element does not fit the filtering conditions - [[item]] is not found.' => 'Элемент массива не соответствует условиям фильтрации - [[item]] не найден.',
         '[[%s]] is not a multiple parameter.' => '[[%s]] - не множественный параметр.',
@@ -128,6 +134,8 @@ class RU implements LangInterface
         'JSON generation error: [[%s]].' => 'Ошибка формирования JSON: [[%s]].',
         'JSON parsing error: [[%s]].' => 'Ошибка разбора JSON: [[%s]].',
         'The code should return [[%s]].' => 'Код должен возвращать [[%s]].',
+        'The [[insert]] field should return list - Table [[%s]]'=>'Поле [[insert]] должно возвращать list  - Таблица [[%s]]',
+        'The [[insert]] field should return a list with unique values - Table [[%s]]'=>'Поле [[insert]] должно возвращать list с уникальными значениями  - Таблица [[%s]]',
 
 
         'Format sections' => 'Секции форматирования',
@@ -236,6 +244,7 @@ class RU implements LangInterface
         'Write access to the table is denied' => 'Доступ к таблице на запись запрещен',
         'Login/Email' => 'Логин/Email',
         'Log in' => 'Вход',
+        'Logout'=>'Выход',
         'Send new password to email' => 'Отправить новый пароль на email',
         'Service is optimized for desktop browsers Chrome, Safari, Yandex latest versions. It seems that your version of the browser is not supported. Error - for developers: '
         => 'Сервис оптимизирован под десктопные броузеры Chrome, Safari, Yandex последних версий. Похоже, ваша версия броузера не поддерживается. Ошибка - для разработчиков: ',
@@ -336,8 +345,22 @@ class RU implements LangInterface
         'The %s function is not provided for this type of tables'=>'Функция %s не предусмотрена для этого типа таблиц',
         'script'=>'скрипт',
         'Field [[%s]] in table [[%s]] is not a column'=>'Полe [[%s]] в таблице [[%s]] не колонка',
-        'In the where parameter you must use a list by the number of rows to be changed or not a list.'=>'В параметре where необходимо использовать лист по количеству изменяемых строк либо не лист.',
-        'The function is used to change the rows part of the table.'=>'Функция используется для изменения строчной части таблицы.'
+        'In the %s parameter you must use a list by the number of rows to be changed or not a list.'=>'В параметре where необходимо использовать лист по количеству изменяемых строк либо не лист.',
+        'The function is used to change the rows part of the table.'=>'Функция используется для изменения строчной части таблицы.',
+        'Incorrect interval [[%s]]'=>'Некорректный интервал [[%s]]',
+        'The calculation table is not connected to %s cycles table'=>'Рассчетная таблица не подключена к таблице циклов %s',
+        'User access'=>'Доступ пользователю',
+        'Button to the cycle'=>'Кнопка в цикл',
+        'First you have to delete the cycles table, and then the calculation tables inside it'=>'Сначала нужно удалить таблицу циклов, а потом расчетные таблицы внутри нее',
+        'No line-by-line updates are provided for the calculation tables. They are recalculated in whole'=>'Для расчетных таблиц не предусмотрено построчное обновление. Они пересчитываются целиком',
+        'Error processing field insert: [[%s]]'=>'Ошибка обработки поля insert: [[%s]]',
+        'Open'=>'Открыть',
+        'The row with id %s in the table already exists. Cannot be added again'=>'Строка с id %s в таблице уже существует. Нельзя добавить повторно',
+        'The [[%s]] field in the rows part of table [[%s]] does not exist'=>'Поля [[%s]] в строчной части таблицы [[%s]] не существует',
+        'Client side error. Received row instead of id'=>'Ошибка клиентской части. Получена строка вместо id',
+        'Logic error n: %s'=>'Ошибка логики n: %s',
+        'Adding row error'=>'Ошибка добавления строки',
+        'The Parameters field type is valid only for the Tables Fields table'=>'Тип поля Параметры допустим только для таблицы Состав полей'
 
 
     ];

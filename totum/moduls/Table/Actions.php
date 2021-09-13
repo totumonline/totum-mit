@@ -383,7 +383,7 @@ class Actions
             )]);
         die;
     }
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->Totum->getLangObj()->translate($str, $vars);
     }

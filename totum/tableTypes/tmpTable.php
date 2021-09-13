@@ -13,6 +13,7 @@ use totum\common\calculates\Calculate;
 use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\common\User;
@@ -132,7 +133,7 @@ class tmpTable extends JsonTables
     public function checkAndModify($tableData, array $data)
     {
         $this->loadDataRow();
-        return parent::checkAndModify($tableData, $data);
+        parent::checkAndModify($tableData, $data);
     }
 
     public function saveTable()
@@ -197,7 +198,7 @@ class tmpTable extends JsonTables
                 $this->updated = $this->dataRow['updated'];
                 $this->model->update(['touched' => date('Y-m-d H:i')], $this->key);
             } else {
-                throw new errorException('Время жизни таблицы истекло. Повторите запрос данных.');
+                throw new errorException($this->translate('Temporary table storage time has expired'));
             }
         }
     }

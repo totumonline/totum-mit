@@ -122,7 +122,7 @@ class Field
         }
     }
 
-    protected function translate(string $str, array|string $vars = []): string
+    protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->table->getTotum()->getLangObj()->translate($str, $vars);
     }

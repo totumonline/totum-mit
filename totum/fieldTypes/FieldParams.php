@@ -88,7 +88,7 @@ class FieldParams extends Field
     final protected function checkValByType(&$val, $row, $isCheck = false)
     {
         if ($this->table->getTableRow()['id'] !== 2) {
-            throw new errorException('Тип поля Параметры допустим только для таблицы Состав полей');
+            throw new errorException($this->translate('The Parameters field type is valid only for the Tables Fields table'));
         }
         /*$val = json_decode('{"type": {"Val": "fieldParamsResult", "isOn": true}, "width": {"Val": 250, "isOn": true}, "showInWeb": {"Val": false, "isOn": true}}',
             true);*/

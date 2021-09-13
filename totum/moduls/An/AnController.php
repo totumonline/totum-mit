@@ -71,7 +71,7 @@ class AnController extends interfaceController
             $this->__run($action, $request);
         } catch (\Exception $e) {
             if (!$this->isAjax) {
-                static::$contentTemplate = $this->Config::getTemplatesDir() . '/__error.php';
+                static::$contentTemplate = $this->Config->getTemplatesDir() . '/__error.php';
             }
             $message = $e->getMessage();
 

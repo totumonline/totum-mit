@@ -15,6 +15,6 @@ use totum\common\Lang\RU;
 
         <div style="
     margin-top: 15px;
-"><a href="/"><?=$this->translate('Have a successful use of the system')?>></a></div>
+"><a href="/"><?=$this->translate('Have a successful use of the system')?></a></div>
     </div>
 </div>

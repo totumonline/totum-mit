@@ -4,11 +4,13 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=ead40ab">
-    <script src="/js/libs.js?v=5c92d8b"></script>
+    <script src="/js/libs.js?v=c27fdf7"></script>
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=d406eee">
-    <script src="/js/main.js?v=0d2783e"></script>
+    <script src="/js/main.js?v=45b7f26"></script>
+    <script src="/js/<?= $this->Config->getLang() ?>.js?1"></script>
+    <script>App.lang=App.langs["<?= $this->Config->getLang() ?>"]</script>
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 

@@ -552,7 +552,19 @@ abstract class aTable
                         }
                     }
                 }
+                switch ($f['type']) {
+                    case 'number':
+                        if (($f['currency'] ?? false)) {
+                            $f['thousandthSeparator'] = $f['thousandthSeparator'] ?? $this->getTotum()->getConfig()->getSettings('numbers_format')['thousandthSeparator'] ?? ' ';
+                            $f['dectimalSeparator'] = $f['dectimalSeparator'] ?? $this->getTotum()->getConfig()->getSettings('numbers_format')['dectimalSeparator'] ?? ',';
+                        }
+                        break;
+                    case 'date':
+                        $f['dateFormat'] = $f['dateFormat'] ?? $this->getTotum()->getConfig()->getSettings('dates_format') ?? 'd.m.y';
+                        break;
+                }
             }
+            unset($f);
             $this->Totum->setFieldsCaches($tableId, $version, $fields);
         }
 
@@ -767,7 +779,8 @@ CODE;;
         try {
             $CA->execAction($fieldName, $itemData, $itemData, $this->tbl, $this->tbl, $this, 'exec');
         } catch (errorException $e) {
-            $e->addPath($this->translate('field [[%s]] of [[%s]] table', [$this->fields[$fieldName]['title'], $this->tableRow['name']]));
+            $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                [$this->fields[$fieldName]['title'], $this->tableRow['name']]));
             throw $e;
         }
     }
@@ -1056,7 +1069,8 @@ CODE;;
 
         foreach ($params['field'] as $fName) {
             if (!array_key_exists($fName, $fields) && !in_array($fName, Model::serviceFields)) {
-                throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.', [$fName,  $this->tableRow['name']]));
+                throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
+                    [$fName, $this->tableRow['name']]));
             }
         }
 
@@ -1069,7 +1083,7 @@ CODE;;
                 )) {
 
                     // debug_print_backtrace(0, 3);
-                    throw new errorException($this->translate('Field [[%s]] is not found.',$fName));
+                    throw new errorException($this->translate('Field [[%s]] is not found.', $fName));
                 }
 
                 //sfield
@@ -1128,7 +1142,8 @@ CODE;;
 
     public function __call($name, $arguments)
     {
-        throw new errorException($this->translate($this->translate('The %s function is not provided for this type of tables', $name)));
+        throw new errorException($this->translate($this->translate('The %s function is not provided for this type of tables',
+            $name)));
     }
 
     public function getFields()
@@ -1975,7 +1990,7 @@ CODE;;
                             $thisRow[$Field->getName()]['v'],
                             $thisRow,
                             $newTbl
-                        ), $channel === 'inner' ? (is_bool($logIt) ?  $this->translate('script') : $logIt) : null]]
+                        ), $channel === 'inner' ? (is_bool($logIt) ? $this->translate('script') : $logIt) : null]]
                     );
                 } elseif (key_exists(
                         $Field->getName(),
@@ -2030,12 +2045,14 @@ CODE;;
     {
         $tableRow = $this->getTableRow();
         if (empty($this->fields[$params['section']])) {
-            throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.', [$params['section'], $tableRow['name']]));
+            throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
+                [$params['section'], $tableRow['name']]));
         }
 
         $sectionField = $this->fields[$params['section']];
         if ($sectionField['category'] !== 'column') {
-            throw new errorException($this->translate('Field [[%s]] in table [[%s]] is not a column', [$params['section'], $tableRow['name']]));
+            throw new errorException($this->translate('Field [[%s]] in table [[%s]] is not a column',
+                [$params['section'], $tableRow['name']]));
         }
         return $sectionField;
     }
@@ -2350,7 +2367,8 @@ CODE;;
                     0,
                     $whereList
                 ) && count($whereList) !== $maxCount) {
-                throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.', 'where'));
+                throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.',
+                    'where'));
             }
 
             if (is_array($whereList) && array_key_exists(0, $whereList)) {
@@ -2374,7 +2392,8 @@ CODE;;
                             0,
                             $valueList->val
                         ) && count($valueList->val) !== $maxCount) {
-                        throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.', 'field'));
+                        throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.',
+                            'field'));
                     }
                     foreach ($valueList->val as $ii => $val) {
                         $newObj = new FieldModifyItem($valueList->sign, $val, $valueList->percent);
@@ -2387,7 +2406,8 @@ CODE;;
                     0,
                     $valueList
                 ) && count($valueList) !== $maxCount) {
-                throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.', 'field'));
+                throw new errorException($this->translate('In the %s parameter you must use a list by the number of rows to be changed or not a list.',
+                    'field'));
             }
 
             if (is_array($valueList) && array_key_exists(0, $valueList)) {
@@ -2423,7 +2443,8 @@ CODE;;
                 true
             ) != $tableData['updated']
         ) {
-            throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.', $this->tableRow['title']));
+            throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.',
+                $this->tableRow['title']));
         }
     }
 

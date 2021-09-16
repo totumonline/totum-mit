@@ -4,7 +4,7 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=ead40ab">
-    <script src="/js/libs.js?v=5c92d8b"></script>
+    <script src="/js/libs.js?v=c27fdf7"></script>
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=d406eee">
@@ -13,12 +13,14 @@
     if ($isCreatorView ?? null) { ?>
         <script src="/js/functions.js?v=875d509"></script>
         <?php
-           echo '<script>App.functions=App.functions.concat(' . $this->Config->getExtFunctionsTemplates() . ')</script>';
+        echo '<script>App.functions=App.functions.concat(' . $this->Config->getExtFunctionsTemplates() . ')</script>';
         ?>
         <?php
     } ?>
 
-    <script src="/js/main.js?v=0d2783e"></script>
+    <script src="/js/main.js?v=45b7f26"></script>
+    <script src="/js/<?= $this->Config->getLang() ?>.js?1"></script>
+    <script>App.lang=App.langs["<?= $this->Config->getLang() ?>"]</script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
@@ -33,7 +35,7 @@
 <body id="pk"
       class="lock">
 <noscript>
-    <?=$this->translate('To work with the system you need to enable JavaScript in your browser settings')?>
+    <?= $this->translate('To work with the system you need to enable JavaScript in your browser settings') ?>
 </noscript>
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <script>

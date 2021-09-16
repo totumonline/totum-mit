@@ -15,17 +15,24 @@ use totum\common\TotumInstall;
 class installController extends interfaceController
 {
     public static $pageTemplate = 'page_install_template.php';
+    /**
+     * @var mixed|string
+     */
+    protected string $lang = 'eng';
 
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct()
     {
+
     }
 
     public function actionMain(ServerRequestInterface $serverRequest)
     {
         $post = $serverRequest->getParsedBody();
+        $this->lang = $post['lang'] ?? 'eng';
+
         set_time_limit(120);
-        $done=false;
+        $done = false;
         if (!empty($post)) {
             try {
                 $post['schema_exists'] = $post['schema_exists'] === '1';
@@ -34,7 +41,7 @@ class installController extends interfaceController
                 $TotumInstall->install(function ($file) {
                     return dirname(__FILE__) . DIRECTORY_SEPARATOR . $file;
                 });
-                $done=true;
+                $done = true;
             } catch (\Exception $exception) {
                 $this->__addAnswerVar('error', $exception->getMessage() . "\n\n" . $exception->getTraceAsString());
                 if (!empty($Sql)) {
@@ -63,5 +70,14 @@ class installController extends interfaceController
         extract($this->answerVars);
 
         include dirname(__FILE__) . DIRECTORY_SEPARATOR . 'page_install_template.php';
+    }
+
+    protected function translate(string $str, float|int|array|string $vars = []): string
+    {
+        if ($this->Config) {
+            return parent::translate($str, $vars);
+        }
+        $this->LangObj = $this->LangObj ?? new ('totum\\common\\Lang\\' . $this->lang)();
+        return $this->LangObj->translate($str, $vars);
     }
 }

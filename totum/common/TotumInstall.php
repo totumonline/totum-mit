@@ -62,14 +62,17 @@ class TotumInstall
         $this->CalculateLog = $CalculateLog ?? $this->Totum->getCalculateLog();
         $this->outputConsole = $outputConsole;
     }
+
     protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->Config->getLangObj()->translate($str, $vars);
     }
+
     public function createConfig($post, $host)
     {
         $post['db_schema'] = trim($post['db_schema']);
         $post['db_port'] = $post['db_port'] ?? 5432;
+        $post['lang'] = $post['lang'] ?? 'eng';
         $db = [
             'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
             'host' => $post['db_host'],
@@ -87,8 +90,8 @@ class TotumInstall
         } else {
             $multyPhp = <<<CONF
 
-    protected \$hostName="$host";
-    protected \$schemaName="{$post['db_schema']}";
+    protected \$hostName='$host';
+    protected \$schemaName='{$post['db_schema']}';
 CONF;
         }
 
@@ -109,16 +112,16 @@ class Conf extends ConfParent{
     
     public static \$timeLimit = 120;
     
-    const adminEmail="{$post['admin_email']}";
+    const adminEmail='{$post['admin_email']}';
     
-    const ANONYM_ALIAS="An";
+    const ANONYM_ALIAS='An';
     
     const LANG="{$post['lang']}";
     
     /***getSchemas***/
     static function getSchemas()
     {
-        return ["$host"=>"{$post['db_schema']}"];
+        return ['$host'=>'{$post['db_schema']}'];
     }
     /***getSchemasEnd***/
     
@@ -329,8 +332,8 @@ CONF;
             '/((?i:userInRoles))\(([^)]+)\)/',
             function ($matches) use ($funcRoles) {
                 return $matches[1] . '(' . preg_replace_callback(
-                    '/role:\s*(\d+)/',
-                    function ($matches) use ($funcRoles) {
+                        '/role:\s*(\d+)/',
+                        function ($matches) use ($funcRoles) {
                             $roles = '';
                             foreach ($matches[1] as $role) {
                                 if ($roles !== '') {
@@ -340,8 +343,8 @@ CONF;
                             }
                             return $roles;
                         },
-                    $matches[2]
-                ) . ')';
+                        $matches[2]
+                    ) . ')';
             },
             $code
         );
@@ -402,7 +405,8 @@ CONF;
                 $tableId = $selectTableRow['id'];
 
                 if ($selectTableRow['type'] !== $schemaRow['type']) {
-                    throw new errorException($this->translate('The type of the loaded table [[%s]] does not match.', $selectTableRow['name']));
+                    throw new errorException($this->translate('The type of the loaded table [[%s]] does not match.',
+                        $selectTableRow['name']));
                 }
                 unset($schemaRow['settings']['tree_node_id']);
                 unset($schemaRow['settings']['sort']);
@@ -425,7 +429,8 @@ CONF;
 
                 if ($schemaRow['type'] === 'calcs') {
                     if (empty($schemaRow['cycles_table'])) {
-                        throw new errorException($this->translate('The cycles table for the adding calculation table [[%s]] is not set.' , $schemaRow['name']));
+                        throw new errorException($this->translate('The cycles table for the adding calculation table [[%s]] is not set.',
+                            $schemaRow['name']));
                     }
                     $treeNodeId = $this->Totum->getNamedModel(Table::class)->getField(
                         'id',
@@ -433,7 +438,8 @@ CONF;
                     );
 
                     if (empty($treeNodeId)) {
-                        throw new errorException($this->translate('Table [[%s]] is not found.', $schemaRow['cycles_table']));
+                        throw new errorException($this->translate('Table [[%s]] is not found.',
+                            $schemaRow['cycles_table']));
                     }
                 } else {
                     $treeNodeId = $getTreeId($schemaRow['settings']['tree_node_id']);
@@ -858,15 +864,15 @@ CONF;
                                 $selectedRowId = null;
 
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
-                                    'id',
-                                    $row
-                                ) && $schemaRow['key_fields'] = ['id'])) {
+                                            'id',
+                                            $row
+                                        ) && $schemaRow['key_fields'] = ['id'])) {
                                     $keys = [];
                                     foreach ($schemaRow['key_fields'] as $key) {
                                         $keys[$key] = (is_array($row[$key] ?? []) && key_exists(
-                                            'v',
-                                            $row[$key] ?? []
-                                        )) ? $row[$key]['v'] : $row[$key];
+                                                'v',
+                                                $row[$key] ?? []
+                                            )) ? $row[$key]['v'] : $row[$key];
                                         if (is_array($keys[$key])) {
                                             $keys[$key] = json_encode(
                                                 $keys[$key],
@@ -967,9 +973,9 @@ CONF;
                                                                 ['v' => $tName],
                                                                 JSON_UNESCAPED_UNICODE
                                                             ), 'cycles_table' => json_encode(
-                                                                ['v' => $tableId],
-                                                                JSON_UNESCAPED_UNICODE
-                                                            ),]
+                                                            ['v' => $tableId],
+                                                            JSON_UNESCAPED_UNICODE
+                                                        ),]
                                                     );
                                                 }
                                             }
@@ -1145,10 +1151,10 @@ CONF;
                             if (key_exists($row['id'], $addedBranches)) {
                                 if (!key_exists($row['parent_id'], $lastOrdParent)) {
                                     $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField(
-                                        'ord',
-                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
-                                        'ord desc'
-                                    ) ?? 0;
+                                            'ord',
+                                            ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                            'ord desc'
+                                        ) ?? 0;
                                 }
                                 $lastOrdParent[$row['parent_id']] += 10;
                                 $modify[$addedBranches[$row['id']]]['ord'] = $lastOrdParent[$row['parent_id']];
@@ -1189,7 +1195,7 @@ CONF;
                     return $treeMatches[$id];
                 }
             }
-            throw new errorException($this->translate('Branch [[%s]] not found for replacement.',$tree_node_id));
+            throw new errorException($this->translate('Branch [[%s]] not found for replacement.', $tree_node_id));
         };
     }
 

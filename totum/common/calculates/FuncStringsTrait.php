@@ -4,7 +4,6 @@ namespace totum\common\calculates;
 
 use \JsonException;
 use totum\common\errorException;
-use totum\common\Formats;
 use totum\common\Lang\RU;
 
 trait FuncStringsTrait
@@ -333,7 +332,7 @@ trait FuncStringsTrait
         $this->__checkRequiredParams($params, ['str']);
         $this->__checkNotArrayParams($params, ['str']);
 
-        return Formats::translit((string)$params['str']);
+        return $this->getLangObj()->translit((string)$params['str']);
     }
 
     protected function funcTextByTemplate(string $params): string
@@ -487,7 +486,7 @@ trait FuncStringsTrait
             switch ($formatData[0]) {
                 case 'money':
                     if (is_numeric($value)) {
-                        $value = Formats::num2str($value);
+                        $value = $this->getLangObj()->num2str($value);
                     }
                     break;
                 case 'number':
@@ -508,21 +507,7 @@ trait FuncStringsTrait
                 case 'date':
                     if (count($formatData) === 2) {
                         if ($date = date_create($value)) {
-                            if (str_contains($formatData[1], 'F')) {
-                                $formatData[1] = str_replace(
-                                    'F',
-                                    Formats::months[$date->format('n')],
-                                    $formatData[1]
-                                );
-                            }
-                            if (str_contains($formatData[1], 'f')) {
-                                $formatData[1] = str_replace(
-                                    'f',
-                                    Formats::monthRods[$date->format('n')],
-                                    $formatData[1]
-                                );
-                            }
-                            $value = $date->format($formatData[1]);
+                            $value = $this->getLangObj()->dateFormat($date, $formatData[1]);
                         }
                     }
                     break;

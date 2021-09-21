@@ -2,6 +2,8 @@
 
 namespace totum\common\Lang;
 
+use DateTime;
+
 class RU implements LangInterface
 {
     use TranslateTrait;
@@ -52,14 +54,14 @@ class RU implements LangInterface
         'The [[%s]] field is not found in the [[%s]] table.' => 'Поле [[%s]] не надено в таблице [[%s]].',
         'The %s field must be numeric.' => 'Поле %s должно быть числовым.',
         'The value of the %s field must be numeric.' => 'Значение поля %s должно быть числовым.',
-        'A number must be passed to select by the numeric field [[%s]]'=>'Для выборки по числовому полю [[%s]] должно быть передано число',
+        'A number must be passed to select by the numeric field [[%s]]' => 'Для выборки по числовому полю [[%s]] должно быть передано число',
 
 
         'The value of %s field must match the format: %s' => 'Значение поля %s должно соответствовать формату: %s',
         'The row with %s was not found in table %s.' => 'Строка с %s не найдена в таблице %s.',
         'Row not found' => 'Строка не найдена',
         'Row %s not found' => 'Строка %s не найдена',
-        'The string %s does not exist or is not available for your role.'=>'Строка %s не существует или недоступна для вашей роли.',
+        'The string %s does not exist or is not available for your role.' => 'Строка %s не существует или недоступна для вашей роли.',
 
 
         'For lists comparisons, only available =, ==, !=, !==.' => 'Для сравнения листов доступны только =, ==, !=, !==.',
@@ -134,8 +136,8 @@ class RU implements LangInterface
         'JSON generation error: [[%s]].' => 'Ошибка формирования JSON: [[%s]].',
         'JSON parsing error: [[%s]].' => 'Ошибка разбора JSON: [[%s]].',
         'The code should return [[%s]].' => 'Код должен возвращать [[%s]].',
-        'The [[insert]] field should return list - Table [[%s]]'=>'Поле [[insert]] должно возвращать list  - Таблица [[%s]]',
-        'The [[insert]] field should return a list with unique values - Table [[%s]]'=>'Поле [[insert]] должно возвращать list с уникальными значениями  - Таблица [[%s]]',
+        'The [[insert]] field should return list - Table [[%s]]' => 'Поле [[insert]] должно возвращать list  - Таблица [[%s]]',
+        'The [[insert]] field should return a list with unique values - Table [[%s]]' => 'Поле [[insert]] должно возвращать list с уникальными значениями  - Таблица [[%s]]',
 
 
         'Format sections' => 'Секции форматирования',
@@ -191,7 +193,7 @@ class RU implements LangInterface
         'A nonexistent [[%s]] property was requested.' => 'Запрошено несуществующее свойство [[%s]].',
         'Import from csv is not available for [[%s]] field.' => 'Импорт из csv недоступен для поля [[%s]].',
         'Export via csv is not available for [[%s]] field.' => 'Экспорт через csv недоступен для поля [[%s]].',
-        'You do not have access to csv-import in this table'=>'У вас нет доступа для csv-импорта в этой таблице',
+        'You do not have access to csv-import in this table' => 'У вас нет доступа для csv-импорта в этой таблице',
 
 
         'Date format error: [[%s]].' => 'Формат даты неверен: [[%s]].',
@@ -244,7 +246,7 @@ class RU implements LangInterface
         'Write access to the table is denied' => 'Доступ к таблице на запись запрещен',
         'Login/Email' => 'Логин/Email',
         'Log in' => 'Вход',
-        'Logout'=>'Выход',
+        'Logout' => 'Выход',
         'Send new password to email' => 'Отправить новый пароль на email',
         'Service is optimized for desktop browsers Chrome, Safari, Yandex latest versions. It seems that your version of the browser is not supported. Error - for developers: '
         => 'Сервис оптимизирован под десктопные броузеры Chrome, Safari, Yandex последних версий. Похоже, ваша версия броузера не поддерживается. Ошибка - для разработчиков: ',
@@ -319,49 +321,263 @@ class RU implements LangInterface
         'Add row out of date' => 'Строка добавления устрарела',
         'Log of manual changes by field "%s"' => 'Лог ручных изменений по полю "%s"',
         'Calculating the table' => 'Расчет таблицы',
-        'Table is empty'=>'Таблица пуста',
-        'Table %s. DUPLICATION CODE'=>'Таблица %s. КОД ПРИ ДУБЛИРОВАНИИ',
-        'Incorrect encoding of the file (should be utf-8 or windows-1251)'=>'Неверная кодировка файла (должно быть utf-8 или windows-1251)',
-        'Loading file of table %s into table [[%s]]'=>'Загрузка файла таблицы %s в таблицу [[%s]]',
-        'in row %s'=>'в строке %s',
-        'no table change code'=>'отсутствует код изменения таблицы',
-        'no structure change code'=>'отсутствует код изменения структуры',
-        'The structure of the table was changed. Possibly a field order mismatch.'=>'Была изменена структура таблицы. Возможно несовпадение порядка полей.',
-        'no indication of a cycle'=>'отсутствует указание на цикл',
-        'Table from another cycle or out of cycles'=>'Таблица из другого цикла или вне циклов',
-        'Out of cycles'=>'Вне циклов',
-        'Manual Values'=>'Ручные значения',
-        'there is no Manual Values section header'=>'отсутствует заголовок секции Ручные значения',
-        'no 0/1/2 edit switch'=>'отсутствует 0/1/2 переключатель редактирования',
-        'no section header %s'=>'отсутствует заголовок секции %s',
-        'no filter data'=>'отсутствуют данные о фильтрах',
-        'on the line one line after the Rows part is missing the header of the Footer section'=>'в строке через одну после Строчной части отсутствует заголовок секции Футер',
-        '[0: do not modify calculated fields] [1: change values of calculated fields already set to manual] [2: change calculated fields]'=>'[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]',
+        'Table is empty' => 'Таблица пуста',
+        'Table %s. DUPLICATION CODE' => 'Таблица %s. КОД ПРИ ДУБЛИРОВАНИИ',
+        'Incorrect encoding of the file (should be utf-8 or windows-1251)' => 'Неверная кодировка файла (должно быть utf-8 или windows-1251)',
+        'Loading file of table %s into table [[%s]]' => 'Загрузка файла таблицы %s в таблицу [[%s]]',
+        'in row %s' => 'в строке %s',
+        'no table change code' => 'отсутствует код изменения таблицы',
+        'no structure change code' => 'отсутствует код изменения структуры',
+        'The structure of the table was changed. Possibly a field order mismatch.' => 'Была изменена структура таблицы. Возможно несовпадение порядка полей.',
+        'no indication of a cycle' => 'отсутствует указание на цикл',
+        'Table from another cycle or out of cycles' => 'Таблица из другого цикла или вне циклов',
+        'Out of cycles' => 'Вне циклов',
+        'Manual Values' => 'Ручные значения',
+        'there is no Manual Values section header' => 'отсутствует заголовок секции Ручные значения',
+        'no 0/1/2 edit switch' => 'отсутствует 0/1/2 переключатель редактирования',
+        'no section header %s' => 'отсутствует заголовок секции %s',
+        'no filter data' => 'отсутствуют данные о фильтрах',
+        'on the line one line after the Rows part is missing the header of the Footer section' => 'в строке через одну после Строчной части отсутствует заголовок секции Футер',
+        '[0: do not modify calculated fields] [1: change values of calculated fields already set to manual] [2: change calculated fields]' => '[0: рассчитываемые поля не обрабатываем] [1: меняем значения рассчитываемых полей уже выставленных в ручное] [2: меняем рассчитываемые поля]',
 
-        'More than 20 nesting levels of table changes. Most likely a recalculation loop'=>'Больше 20 уровней вложенности изменения таблиц. Скорее всего зацикл пересчета',
-        'The field is not configured.'=>'Поле не настроено',
-        'No select field specified'=>'Не указано поле для выборки',
-        'More than one field/sfield is specified'=>'Указано больше одного поля field/sfield',
-        'The %s function is not provided for this type of tables'=>'Функция %s не предусмотрена для этого типа таблиц',
-        'script'=>'скрипт',
-        'Field [[%s]] in table [[%s]] is not a column'=>'Полe [[%s]] в таблице [[%s]] не колонка',
-        'In the %s parameter you must use a list by the number of rows to be changed or not a list.'=>'В параметре where необходимо использовать лист по количеству изменяемых строк либо не лист.',
-        'The function is used to change the rows part of the table.'=>'Функция используется для изменения строчной части таблицы.',
-        'Incorrect interval [[%s]]'=>'Некорректный интервал [[%s]]',
-        'The calculation table is not connected to %s cycles table'=>'Рассчетная таблица не подключена к таблице циклов %s',
-        'User access'=>'Доступ пользователю',
-        'Button to the cycle'=>'Кнопка в цикл',
-        'First you have to delete the cycles table, and then the calculation tables inside it'=>'Сначала нужно удалить таблицу циклов, а потом расчетные таблицы внутри нее',
-        'No line-by-line updates are provided for the calculation tables. They are recalculated in whole'=>'Для расчетных таблиц не предусмотрено построчное обновление. Они пересчитываются целиком',
-        'Error processing field insert: [[%s]]'=>'Ошибка обработки поля insert: [[%s]]',
-        'Open'=>'Открыть',
-        'The row with id %s in the table already exists. Cannot be added again'=>'Строка с id %s в таблице уже существует. Нельзя добавить повторно',
-        'The [[%s]] field in the rows part of table [[%s]] does not exist'=>'Поля [[%s]] в строчной части таблицы [[%s]] не существует',
-        'Client side error. Received row instead of id'=>'Ошибка клиентской части. Получена строка вместо id',
-        'Logic error n: %s'=>'Ошибка логики n: %s',
-        'Adding row error'=>'Ошибка добавления строки',
-        'The Parameters field type is valid only for the Tables Fields table'=>'Тип поля Параметры допустим только для таблицы Состав полей'
+        'More than 20 nesting levels of table changes. Most likely a recalculation loop' => 'Больше 20 уровней вложенности изменения таблиц. Скорее всего зацикл пересчета',
+        'The field is not configured.' => 'Поле не настроено',
+        'No select field specified' => 'Не указано поле для выборки',
+        'More than one field/sfield is specified' => 'Указано больше одного поля field/sfield',
+        'The %s function is not provided for this type of tables' => 'Функция %s не предусмотрена для этого типа таблиц',
+        'script' => 'скрипт',
+        'Field [[%s]] in table [[%s]] is not a column' => 'Полe [[%s]] в таблице [[%s]] не колонка',
+        'In the %s parameter you must use a list by the number of rows to be changed or not a list.' => 'В параметре where необходимо использовать лист по количеству изменяемых строк либо не лист.',
+        'The function is used to change the rows part of the table.' => 'Функция используется для изменения строчной части таблицы.',
+        'Incorrect interval [[%s]]' => 'Некорректный интервал [[%s]]',
+        'The calculation table is not connected to %s cycles table' => 'Рассчетная таблица не подключена к таблице циклов %s',
+        'User access' => 'Доступ пользователю',
+        'Button to the cycle' => 'Кнопка в цикл',
+        'First you have to delete the cycles table, and then the calculation tables inside it' => 'Сначала нужно удалить таблицу циклов, а потом расчетные таблицы внутри нее',
+        'No line-by-line updates are provided for the calculation tables. They are recalculated in whole' => 'Для расчетных таблиц не предусмотрено построчное обновление. Они пересчитываются целиком',
+        'Error processing field insert: [[%s]]' => 'Ошибка обработки поля insert: [[%s]]',
+        'Open' => 'Открыть',
+        'The row with id %s in the table already exists. Cannot be added again' => 'Строка с id %s в таблице уже существует. Нельзя добавить повторно',
+        'The [[%s]] field in the rows part of table [[%s]] does not exist' => 'Поля [[%s]] в строчной части таблицы [[%s]] не существует',
+        'Client side error. Received row instead of id' => 'Ошибка клиентской части. Получена строка вместо id',
+        'Logic error n: %s' => 'Ошибка логики n: %s',
+        'Adding row error' => 'Ошибка добавления строки',
+        'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей'
 
 
     ];
+    protected const monthRods = [
+        1 => 'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря'
+    ];
+    protected const months = [
+        1 => 'январь',
+        'февраль',
+        'март',
+        'апрель',
+        'май',
+        'июнь',
+        'июль',
+        'август',
+        'сентябрь',
+        'октябрь',
+        'ноябрь',
+        'декабрь'
+    ];
+    protected const monthsShort = [
+        1 => 'янв',
+        'фев',
+        'мар',
+        'апр',
+        'май',
+        'июн',
+        'июл',
+        'авг',
+        'сент',
+        'окт',
+        'ноя',
+        'дек'
+    ];
+    protected const weekDays = [
+        1 => 'Понедельник',
+        'Вторник',
+        'Среда',
+        'Четверг',
+        'Пятница',
+        'Суббота',
+        'Воскресенье'
+    ];
+    protected const weekDaysShort = [
+        1 => 'Пн',
+        'Вт',
+        'Ср',
+        'Чт',
+        'Пт',
+        'Сб',
+        'Вс'
+    ];
+
+    /**
+     * Возвращает сумму прописью
+     * @author runcore
+     * @uses morph(...)
+     */
+    public function num2str($num): string
+    {
+        $nul = 'ноль';
+        $ten = array(
+            array('', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'),
+            array('', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'),
+        );
+        $a20 = array('десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать');
+        $tens = array(2 => 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто');
+        $hundred = array('', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот');
+        $unit = array( // Units
+            array('копейка', 'копейки', 'копеек', 1),
+            array('рубль', 'рубля', 'рублей', 0),
+            array('тысяча', 'тысячи', 'тысяч', 1),
+            array('миллион', 'миллиона', 'миллионов', 0),
+            array('миллиард', 'милиарда', 'миллиардов', 0),
+        );
+        //
+        list($rub, $kop) = explode('.', sprintf("%015.2f", floatval($num)));
+        $out = array();
+        if (intval($rub) > 0) {
+            foreach (str_split($rub, 3) as $uk => $v) { // by 3 symbols
+                if (!intval($v)) {
+                    continue;
+                }
+                $uk = sizeof($unit) - $uk - 1; // unit key
+                $gender = $unit[$uk][3];
+                list($i1, $i2, $i3) = array_map('intval', str_split($v, 1));
+                // mega-logic
+                $out[] = $hundred[$i1]; # 1xx-9xx
+                if ($i2 > 1) {
+                    $out[] = $tens[$i2] . ' ' . $ten[$gender][$i3];
+                } # 20-99
+                else {
+                    $out[] = $i2 > 0 ? $a20[$i3] : $ten[$gender][$i3];
+                } # 10-19 | 1-9
+                // units without rub & kop
+                if ($uk > 1) {
+                    $out[] = static::morph($v, $unit[$uk][0], $unit[$uk][1], $unit[$uk][2]);
+                }
+            } //foreach
+        } else {
+            $out[] = $nul;
+        }
+        $out[] = static::morph(intval($rub), $unit[1][0], $unit[1][1], $unit[1][2]); // rub
+        $out[] = $kop . ' ' . static::morph($kop, $unit[0][0], $unit[0][1], $unit[0][2]); // kop
+        return trim(preg_replace('/ {2,}/', ' ', join(' ', $out)));
+    }
+
+    public function translit($s): string
+    {
+        $s = (string)$s;
+        $s = strip_tags($s);
+        $s = str_replace(array("\n", "\r"), ' ', $s);
+        $s = preg_replace('/\s+/', ' ', $s);
+        $s = trim($s);
+        $s = mb_strtolower($s);
+        $s = strtr(
+            $s,
+            array('а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '')
+        );
+        $s = preg_replace('/[^0-9a-z_ ]/i', '', $s);
+        $s = str_replace(' ', '_', $s);
+        return $s;
+    }
+
+    /**
+     * Склоняем словоформу
+     * @ author runcore
+     */
+    protected static function morph($n, $f1, $f2, $f5)
+    {
+        $n = abs(intval($n)) % 100;
+        if ($n > 10 && $n < 20) {
+            return $f5;
+        }
+        $n = $n % 10;
+        if ($n > 1 && $n < 5) {
+            return $f2;
+        }
+        if ($n === 1) {
+            return $f1;
+        }
+        return $f5;
+    }
+
+    public function dateFormat(DateTime $date, $fStr): string
+    {
+        $result = '';
+        foreach (preg_split(
+                     '/([DlFfM])/',
+                     $fStr,
+                     -1,
+                     PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
+                 ) as $split) {
+            $var = null;
+            switch ($split) {
+                case 'D':
+                    $var = 'weekDaysShort';
+                // no break
+                case 'l':
+                    $var = $var ?? 'weekDays';
+                    $result .= $this->getConstant($var)[$date->format('N')];
+                    break;
+                case 'F':
+                    $var = 'months';
+                // no break
+                case 'f':
+                    $var = $var ?? 'monthRods';
+                // no break
+                case 'M':
+                    $var = $var ?? 'monthsShort';
+                    $result .= $this->getConstant($var)[$date->format('n')];
+                    break;
+                default:
+                    $result .= $date->format($split);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @param int $number
+     * @param array $ImRodRoded ['день', 'дней', 'дня']
+     * @return string
+     */
+    public function numbersRusPadegRod(int $number, array $ImRodRoded)
+    {
+        $ostDel = $number % 10;
+        if ($number > 5 && $number < 21 || in_array($ostDel, [5, 6, 7, 8, 9, 0])) {
+            return $ImRodRoded[1];
+        } elseif ($ostDel === 1) {
+            return $ImRodRoded[0];
+        } elseif (in_array($ostDel, [2, 3, 4])) {
+            return $ImRodRoded[2];
+        }
+    }
+
+    protected function getConstant($name): array
+    {
+        return match ($name) {
+            'monthsShort' => static::monthsShort,
+            'months' => static::months,
+            'weekDays' => static::weekDays,
+            'weekDaysShort' => static::weekDaysShort,
+            'monthRods' => static::monthRods,
+        };
+    }
 }

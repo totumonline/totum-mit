@@ -5,46 +5,18 @@ namespace totum\common\calculates;
 
 use DateTime;
 use totum\common\errorException;
-use totum\common\Formats;
 
 trait FuncDatesTrait
 {
     protected function dateFormat(DateTime $date, $fStr, $lang = null): string
     {
-        switch ($lang) {
-            case 'ru':
-                $result = '';
-                $format = new Formats();
-                foreach (preg_split(
-                             '/([DlMF])/',
-                             $fStr,
-                             -1,
-                             PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
-                         ) as $split) {
-                    $var = null;
-                    switch ($split) {
-                        case 'D':
-                            $var = 'weekDaysShort';
-                        // no break
-                        case 'l':
-                            $var = $var ?? 'weekDays';
-                            $result .= $format->getConstant($var)[$date->format('N')];
-                            break;
-                        case 'F':
-                            $var = 'months';
-                        // no break
-                        case 'M':
-                            $var = $var ?? 'monthsShort';
-                            $result .= $format->getConstant($var)[$date->format('n')];
-                            break;
-                        default:
-                            $result .= $date->format($split);
-                    }
-                }
-                return $result;
-            default:
-                return $date->format($fStr);
+        if (empty($lang)) {
+            $lang = $this->getLangObj();
+        } else {
+            $lang = new ('totum\\common\\Lang\\' . $lang)();
         }
+
+        return $lang->dateFormat($date, $fStr);
     }
 
     protected function funcDateAdd(string $params): ?string
@@ -101,8 +73,8 @@ trait FuncDatesTrait
 
         return match ($params['format'] ?? null) {
             'number' => $date->format('N'),
-            'short' => Formats::weekDaysShort[$date->format('N')],
-            'full' => Formats::weekDays[$date->format('N')],
+            'short' => $this->getLangObj()->dateFormat($date, 'D'),
+            'full' => $this->getLangObj()->dateFormat($date, 'l'),
             default => throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'format')),
         };
 

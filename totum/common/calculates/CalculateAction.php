@@ -11,7 +11,6 @@ namespace totum\common\calculates;
 use SoapClient;
 use totum\common\Crypt;
 use totum\common\errorException;
-use totum\common\Formats;
 use totum\common\Lang\RU;
 use totum\common\TotumInstall;
 use totum\models\TmpTables;
@@ -683,7 +682,7 @@ class CalculateAction extends Calculate
                                 switch ($formatData[0]) {
                                     case 'money':
                                         if (is_numeric($value)) {
-                                            $value = Formats::num2str($value);
+                                            $value = $this->getLangObj()->num2str($value);
                                         }
                                         break;
                                     case 'number':
@@ -706,21 +705,7 @@ class CalculateAction extends Calculate
                                     case 'date':
                                         if (count($formatData) === 2) {
                                             if ($date = date_create($value)) {
-                                                if (strpos($formatData[1], 'F') !== false) {
-                                                    $formatData[1] = str_replace(
-                                                        'F',
-                                                        Formats::months[$date->format('n')],
-                                                        $formatData[1]
-                                                    );
-                                                }
-                                                if (strpos($formatData[1], 'f') !== false) {
-                                                    $formatData[1] = str_replace(
-                                                        'f',
-                                                        Formats::monthRods[$date->format('n')],
-                                                        $formatData[1]
-                                                    );
-                                                }
-                                                $value = $date->format($formatData[1]);
+                                                $value = $this->getLangObj()->dateFormat($date, $formatData[1]);
                                             }
                                         }
                                         break;

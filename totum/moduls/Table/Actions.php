@@ -200,7 +200,7 @@ class Actions
             }
 
 
-            if ($this->Table->getFields()[$data['code']] ?? false) {
+            if ($Table->getFields()[$data['code']] ?? false) {
                 $CA = new CalculateAction($this->Table->getFields()[$data['code']]['codeAction']);
             } else {
                 $CA = new CalculateAction($data['code']);

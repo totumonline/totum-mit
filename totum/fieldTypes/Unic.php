@@ -29,7 +29,7 @@ class Unic extends Field
                 ['field' => 'id', 'where' => $where]
             )) {
                 errorException::criticalException(
-                    $this->translate('The value must be unique. Duplication in rows: [[%s] - [%s]]',
+                    $this->translate('The value must be unique. Duplication in rows: [[%s - %s]]',
                         [$id_duble, $row['id']]),
                     $this->table
                 );

@@ -222,7 +222,7 @@ class RU implements LangInterface
         'Value not found' => 'Значение не найдено',
         'Value format error' => 'Ошибка формата значения',
         'Multiselect instead of select' => 'Мультиселект вместо селекта',
-        'The value must be unique. Duplication in rows: [[%s] - [%s]]' => 'Значение должно быть уникальным. Дублирование в строках: [[%s] - [%s]]',
+        'The value must be unique. Duplication in rows: [[%s - %s]]' => 'Значение должно быть уникальным. Дублирование в строках: [[%s - %s]]',
         'There is no default version for table %s.' => 'Нет версии по-умолчанию для таблицы %s.',
         '[[%s]] cannot be a table name.' => '[[%s]] не может быть названием таблицы.',
         '[[%s]] cannot be a field name. Choose another name.' => '[[%s]] не может быть name поля. Выберите другой name.',

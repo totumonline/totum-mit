@@ -1393,6 +1393,7 @@ class Calculate
         $env['cycle_id'] = match ($this->Table->getTableRow()['type']) {
             'calcs' => $this->Table->getCycle()->getId(),
             'tmp' => $this->Table->getTableRow()['sess_hash'],
+            default => null
         };
 
         if (!empty($this->row['id'])) {
@@ -1446,7 +1447,8 @@ class Calculate
                 $e->addPath('[[' . $funcName . ']] field [[' . $this->getReadCodeForLog($f) . ']]');
                 throw $e;
             } catch (\Exception $e) {
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].', $this->getReadCodeForLog($f)));
+                throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                    $this->getReadCodeForLog($f)));
             }
 
             $fields[$fieldName] = $fieldValue;

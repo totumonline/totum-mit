@@ -42,6 +42,8 @@ class Actions
 
     protected $modulePath;
 
+    public $withLog = true;
+
     public function __construct(ServerRequestInterface $Request, string $modulePath, aTable $Table = null, Totum $Totum = null)
     {
         if ($this->Table = $Table) {
@@ -117,7 +119,7 @@ class Actions
             '(sort->>\'v\')::numeric'
         ) as $table) {
             if ($checkWords($table['name']) || $checkWords(mb_strtolower($table['title'], 'UTF-8'))) {
-                $tables[] = ['id' => $table['id'], 'title' => $table['title'], 'top' => $branchesCombine[$table['tree_node_id']], 'icon' => $table['icon'] ?? null, 'type'=>$table['type']];
+                $tables[] = ['id' => $table['id'], 'title' => $table['title'], 'top' => $branchesCombine[$table['tree_node_id']], 'icon' => $table['icon'] ?? null, 'type' => $table['type']];
             }
         }
 
@@ -132,7 +134,7 @@ class Actions
 
     public function getNotificationsTable()
     {
-        $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "'.$this->translate('Notifications').'"; width: 800; height: "80vh"; refresh: false; header: true; footer: true)');
+        $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "' . $this->translate('Notifications') . '"; width: 800; height: "80vh"; refresh: false; header: true; footer: true)');
         $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'), 'exec');
     }
 
@@ -383,6 +385,7 @@ class Actions
             )]);
         die;
     }
+
     protected function translate(string $str, array|string|int|float $vars = []): string
     {
         return $this->Totum->getLangObj()->translate($str, $vars);

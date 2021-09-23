@@ -1357,6 +1357,16 @@ class Calculate
 
         switch ($tableRow['type']) {
             case 'calcs':
+                if (empty($params['cycle'])) {
+                    if ($tableRow['id'] === $this->Table->getTableRow()['id'] ||
+                        ($this->Table->getTableRow()['type'] === 'calcs' &&
+                            $tableRow['tree_node_id'] === $this->Table->getTableRow()['tree_node_id'])) {
+                        $params['cycle'] = $this->Table->getCycle()?->getId();
+                    } elseif ((int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id']) {
+                        $params['cycle'] = $this->row['id'] ?? null;
+                    }
+                }
+
                 $this->__checkNotEmptyParams($params, 'cycle');
 
                 $Cycle = $this->Table->getTotum()->getCycle($params['cycle'], $tableRow['tree_node_id']);

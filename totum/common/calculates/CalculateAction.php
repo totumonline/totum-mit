@@ -184,7 +184,11 @@ class CalculateAction extends Calculate
             $params['cycle'] = $params['cycle'] ?? null;
 
             if (!is_array($params['cycle']) && empty($params['cycle'])) {
-                throw new errorException($this->translate('Fill in the parameter [[%s]].', 'cycle'));
+                if ($this->Table->getTableRow()['id'] === $tableRow['id']) {
+                    $params['cycle'] = $this->row['id'] ?? null;
+                } else {
+                    throw new errorException($this->translate('Fill in the parameter [[%s]].', 'cycle'));
+                }
             }
 
             $Cycles = (array)$params['cycle'];
@@ -472,7 +476,7 @@ class CalculateAction extends Calculate
                         'SOAP' . $e->getMessage(),
                         ['xml_request' => $soapClient->__getLastRequest(),
                             'xml_response' => $soapClient->__getLastResponse(),
-                            'data_request' => $params, 'data_response' => $data??'',
+                            'data_request' => $params, 'data_response' => $data ?? '',
                             'error' => $e->getMessage()]
                     );
                 } else {
@@ -1013,9 +1017,6 @@ class CalculateAction extends Calculate
     protected function funcInsert($params)
     {
         if ($params = $this->getParamsArray($params, ['field', 'cycle'], ['field'])) {
-            if (empty($params['cycle']) && $this->Table->getCycle()) {
-                $params['cycle'] = [$this->Table->getCycle()->getId()];
-            }
             $addedIds = [];
             $funcSet = function ($params) use (&$addedIds) {
                 $table = $this->getSourceTable($params);
@@ -1162,11 +1163,7 @@ class CalculateAction extends Calculate
         }
 
         if (($rowList)) {
-            if ($tableRow['type'] === 'calcs') {
-                if (empty($params['cycle']) && $this->Table->getTableRow()['type'] === 'calcs') {
-                    $params['cycle'] = [$this->Table->getCycle()->getId()];
-                }
-            } else {
+            if ($tableRow['type'] !== 'calcs') {
                 unset($params['cycle']);
             }
 
@@ -1206,9 +1203,6 @@ class CalculateAction extends Calculate
         $notPrepareParams = $isFieldSimple ? [] : ['field'];
 
         if ($params = $this->getParamsArray($params, ['field'], $notPrepareParams)) {
-            if (empty($params['cycle']) && $this->Table->getTableRow()['type'] === 'calcs') {
-                $params['cycle'] = [$this->Table->getCycle()->getId()];
-            }
 
             if (!empty($params['cycle'])) {
                 foreach ((array)$params['cycle'] as $cycle) {
@@ -1227,7 +1221,7 @@ class CalculateAction extends Calculate
         $this->__doAction(
             $params,
             function ($params) {
-                if (!empty($params['hash']) && strpos($params['hash'], 'i-') === 0) {
+                if (!empty($params['hash']) && str_starts_with($params['hash'], 'i-')) {
                     $hashData = TmpTables::init($this->Table->getTotum()->getConfig())->getByHash(
                         TmpTables::serviceTables['insert_row'],
                         $this->Table->getUser(),

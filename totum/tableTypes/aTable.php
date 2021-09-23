@@ -1032,7 +1032,7 @@ CODE;;
         $updated = json_decode($this->getLastUpdated(true), true);
 
         if ((string)$updated['code'] !== $code) {
-            return ['username' => $this->Totum->getNamedModel(UserV::class)->getById($updated['user'])['fio'], 'dt' => $updated['dt'], 'code' => $updated['code']];
+            return ['username' => $this->Totum->getNamedModel(UserV::class)->getFio($updated['user'], true), 'dt' => $updated['dt'], 'code' => $updated['code']];
         } else {
             return ['no' => true];
         }

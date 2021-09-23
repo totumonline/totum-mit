@@ -19,6 +19,7 @@ use totum\common\Totum;
 use totum\config\Conf;
 use totum\models\Table;
 use totum\models\Tree;
+use totum\models\UserV;
 use totum\tableTypes\aTable;
 
 class TableController extends interfaceController
@@ -101,6 +102,15 @@ class TableController extends interfaceController
     {
         $this->checkTableByUri($request);
 
+        $tableChanged = false;
+        if ((($request->getParsedBody()['tableData']['updated']['code'] ?? null)) &&
+            ($oldUpdated = json_decode($this->Table->getUpdated(),
+                true))['code'] != $request->getParsedBody()['tableData']['updated']['code']) {
+            $tableChanged = $oldUpdated;
+        }
+
+        $Actions = null;
+
         try {
             if (!($method = $request->getParsedBody()['method'] ?? '')) {
                 throw new errorException($this->translate('Method not specified'));
@@ -123,14 +133,16 @@ class TableController extends interfaceController
             if ($links = $this->Totum->getInterfaceDatas()) {
                 $result['interfaceDatas'] = $links;
             }
+            if ($tableChanged) {
+                $tableChanged['username'] = $this->Totum->getNamedModel(UserV::class)->getFio($tableChanged['user'], true);
+                $result['tableChanged'] = $tableChanged;
+            }
             $this->Totum->transactionCommit();
-        } catch (errorException $exception) {
-            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
-        } catch (criticalErrorException $exception) {
-            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? "<br/>" . $exception->getPathMess() : '')];
+        } catch (errorException | criticalErrorException $exception) {
+            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         }
 
-        if ($this->User->isCreator() && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
+        if ($this->User->isCreator() && $Actions?->withLog && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
             $this->CalculateLog->addParam('result', 'done');
 
             if (in_array('flds', $types)) {
@@ -138,9 +150,11 @@ class TableController extends interfaceController
             } else {
                 $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
                 //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
-                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
+                $result['FullLOGS'] = [$this->CalculateLog->getLogsForJsTree($this->Totum->getLangObj())];
             }
         }
+
+
         return $result;
     }
 

@@ -955,6 +955,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($_SERVER['HTTP_HOST'] === 'localhost:8080') {
             die('test');
         }
+        $this->withLog = false;
 
         $table_id = (int)$this->post['table_id'];
         $cycle_id = ($this->post['cycle_id'] ?? $this->post['tableData']['sess_hash'] ?? 0);
@@ -1114,7 +1115,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $ids = $this->Table->loadFilteredRows('web', [$click['item']]);
                 if (!$ids || !($row = $this->Table->getTbl()['rows'][$click['item']] ?? null) || !empty($row['is_del'])) {
-                    throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.', ''));
+                    throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.',
+                        ''));
                 }
             }
 

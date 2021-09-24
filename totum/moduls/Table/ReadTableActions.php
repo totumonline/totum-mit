@@ -451,7 +451,7 @@ class ReadTableActions extends Actions
         $result['updated'] = $this->Table->getUpdated();
         $result['refresh'] = true;
 
-        if ($this->post['getList'] !== 'true') {
+        if (($this->post['getList'] ?? false) !== 'true') {
             $result['chdata']['rows'] = array_combine(
                 array_column($result['chdata']['rows'], 'id'),
                 $result['chdata']['rows']

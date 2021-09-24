@@ -310,7 +310,7 @@ class ReadTableActions extends Actions
 
     public function loadPage()
     {
-        if (key_exists('offset', $this->post) && !is_null($this->post['offset']) && $this->post['offset'] !== "") {
+        if (key_exists('offset', $this->post) && !is_null($this->post['offset']) && $this->post['offset'] !== '') {
             $lastId = ['offset' => $this->post['offset']];
         } else {
             $lastId = $this->post['lastId'] ?? 0;
@@ -428,8 +428,13 @@ class ReadTableActions extends Actions
                 $result['chdata']['f'] = $this->getTableFormat(array_column($result['chdata']['rows'] ?? [], 'id'));
                 break;
             default:
+
                 $result += ['chdata' => $this->getTableClientData(
-                    !empty($this->post['withoutIds']) ? null : json_decode($this->post['ids'], true),
+                    match ($this->post['withoutIds'] ?? null) {
+                        null => json_decode($this->post['ids'], true),
+                        'page' => ['offset' => $this->post['offset'] ?? 0],
+                        default => (int)$this->post['withoutIds']
+                    },
                     $this->post['onPage'] ?? null,
                     false
                 )];
@@ -446,10 +451,12 @@ class ReadTableActions extends Actions
         $result['updated'] = $this->Table->getUpdated();
         $result['refresh'] = true;
 
-        $result['chdata']['rows'] = array_combine(
-            array_column($result['chdata']['rows'], 'id'),
-            $result['chdata']['rows']
-        );
+        if ($this->post['getList'] !== 'true') {
+            $result['chdata']['rows'] = array_combine(
+                array_column($result['chdata']['rows'], 'id'),
+                $result['chdata']['rows']
+            );
+        }
         if ($this->Table->getTableRow()['new_row_in_sort'] || $this->Table->getChangeIds()['reordered']) {
             $result['chdata']['order'] = array_column($result['chdata']['rows'], 'id');
         }
@@ -895,14 +902,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             );
         }
         $data = [];
-        $data['rows'] = [];
 
         if (method_exists($this->Table, 'withoutNotLoaded')) {
             $this->Table->withoutNotLoaded();
         }
 
         if (is_null($onPage)) {
-            $data['rows'] = $this->Table->getSortedFilteredRows(
+            $data = $this->Table->getSortedFilteredRows(
                 'web',
                 'web',
                 [],
@@ -910,22 +916,23 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 null,
                 null,
                 $onlyFields
-            )['rows'];
+            );
         } elseif ($onPage > 0) {
-            $data['rows'] = $this->Table->getSortedFilteredRows(
+            $data = $this->Table->getSortedFilteredRows(
                 'web',
                 'web',
                 [],
-                $pageIds,
-                0,
-                $onPage,
-                $onlyFields
-            )['rows'];
+                lastId: is_array($pageIds) || $pageIds >= 0 ? $pageIds : 0,
+                prevLastId: $pageIds < 0 ? $pageIds : 0,
+                onPage: $onPage,
+                onlyFields: $onlyFields
+            );
         }
 
         $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params']);
         $result['f'] = $this->getTableFormat(array_column($data['rows'] ?? [], 'id'));
         $result['rows'] = $data['rows'];
+        $result['offset'] = $data['offset'];
 
         $result['filtersString'] = $this->getFiltersString();
         return $result;

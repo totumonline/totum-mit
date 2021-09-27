@@ -22,12 +22,9 @@ class Select extends Field
 {
     const loadItemsCount = 50;
     protected $commonSelectList;
-    protected $commonSelectValueList;
     protected $commonSelectViewList;
-    protected $commonSelectListWithPreviews;
     protected $CalculateCodeViewSelect;
     protected $CalculateCodePreviews;
-    protected $columnVals;
 
     protected function __construct($fieldData, aTable $table)
     {
@@ -129,9 +126,9 @@ class Select extends Field
         return ['list' => $listMain, 'indexed' => $objMain, 'sliced' => $isSliced, 'previewdata' => $previewdata];
     }
 
-    public function getPreviewHtml($val, $row, $tbl, $withNames = false)
+    public function getPreviewHtml(array $val, $row, $tbl, $withNames = false)
     {
-        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "previewHtml", 'field' => $this->data['name']]);
+        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'previewHtml', 'field' => $this->data['name']]);
 
         if (!$this->CalculateCodePreviews) {
             $this->CalculateCodePreviews = new CalculateSelectPreview($this->data['codeSelect']);
@@ -143,14 +140,14 @@ class Select extends Field
             if ($row['previewscode'] ?? null) {
                 $CalcPreview = new Calculate($row['previewscode']);
                 $data = $CalcPreview->exec(
-                    ['name' => "CALC PREVIEW"],
+                    ['name' => 'CALC PREVIEW'],
                     [],
                     [],
                     $this->table->getTbl()['params'],
                     [],
                     $this->table->getTbl(),
                     $this->table,
-                    ['val' => $val]
+                    ['val' => $val['v']]
                 );
                 foreach ($data as $_row) {
                     $title = $_row['title'] ?? '';
@@ -167,7 +164,7 @@ class Select extends Field
             foreach ($row['__fields'] ?? [] as $name => $field) {
                 $format = 'string';
                 $elseData = [];
-                $val = $row[$name] ?? [];
+                $_val = $row[$name] ?? [];
 
                 if ($name === 'id') {
                     $field = ['title' => 'id', 'type' => 'number'];
@@ -198,10 +195,10 @@ class Select extends Field
                 }
                 if ($withNames) {
                     if (!key_exists($name, $htmls)) {
-                        $htmls[$name] = [$field['title'], $val, $format, $elseData ?? []];
+                        $htmls[$name] = [$field['title'], $_val, $format, $elseData ?? []];
                     }
                 } else {
-                    $htmls[] = [$field['title'], $val, $format, $elseData ?? []];
+                    $htmls[] = [$field['title'], $_val, $format, $elseData ?? []];
                 }
                 //string, url, currency, css, xml, text, html, json, totum, javascript
             }
@@ -214,14 +211,8 @@ class Select extends Field
         return $htmls;
     }
 
-    protected function calculateSelectValueList($val, $row, $tbl = [])
+    protected function calculateSelectValueList(array $val, $row, $tbl = [])
     {
-        if (empty($this->data['codeSelectIndividual'])) {
-            if (!is_null($this->commonSelectValueList)) {
-                return $this->commonSelectValueList;
-            }
-        }
-
         if (!empty($this->data['values'])) {
             $list = [];
             foreach ($this->data['values'] ?? [] as $k => $v) {
@@ -305,7 +296,7 @@ class Select extends Field
         return $this->getSelectValue($val, $row, $tbl);
     }
 
-    public function calculateSelectList(&$val, $row, $tbl = [])
+    public function calculateSelectList(array &$val, $row, $tbl = [])
     {
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectList)) {
@@ -370,7 +361,7 @@ class Select extends Field
         return $this->commonSelectList = $list;
     }
 
-    public function calculateSelectListWithPreviews(&$val, $row, $tbl = [])
+    public function calculateSelectListWithPreviews(array &$val, $row, $tbl = [])
     {
         $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "viewWithPreviews", 'field' => $this->data['name']]);
 
@@ -379,8 +370,8 @@ class Select extends Field
 
             if ($list['previewdata']) {
                 unset($list['previewdata']);
-                foreach ($list as $val => &$l) {
-                    $l[] = $this->getPreviewHtml($val, $row, $tbl, true);
+                foreach ($list as $_v => &$l) {
+                    $l[] = $this->getPreviewHtml(['v' => $_v], $row, $tbl, true);
                 }
             } else {
                 unset($list['previewdata']);
@@ -396,7 +387,7 @@ class Select extends Field
         return $list;
     }
 
-    protected function calculateSelectViewList(&$val, $row, $tbl = [])
+    protected function calculateSelectViewList(array &$val, $row, $tbl = [])
     {
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectViewList)) {

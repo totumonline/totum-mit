@@ -8,13 +8,10 @@
 
 namespace totum\tableTypes;
 
-use totum\common\Auth;
 use totum\common\calculates\Calculate;
-use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
 use totum\common\Lang\RU;
-use totum\common\Model;
 use totum\common\Totum;
 use totum\common\User;
 

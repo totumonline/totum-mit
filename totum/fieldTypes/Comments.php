@@ -138,7 +138,7 @@ class Comments extends Field
         foreach ($val as &$comment) {
             $comment = $this->prepareComment($comment, false, $n);
         }
-        if ($comment[1] !== $this->table->getUser()->getId()) {
+        if (!empty($comment) && $comment[1] !== $this->table->getUser()->getId()) {
             $this->setViewed(count($val), $rowId);
         }
         unset($comment);

@@ -17,7 +17,6 @@ use totum\models\traits\WithTotumTrait;
 use totum\tableTypes\aTable;
 use totum\tableTypes\calcsTable;
 use totum\tableTypes\RealTables;
-use totum\tableTypes\tableTypes;
 
 class Table extends Model
 {

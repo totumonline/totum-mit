@@ -319,7 +319,7 @@ abstract class JsonTables extends aTable
                 $insertCalcs = new Calculate($insertField['code']);
                 $insertList = $insertCalcs->exec(
                     $insertField,
-                    null,
+                    ['v' => null],
                     [],
                     [],
                     $this->savedTbl,

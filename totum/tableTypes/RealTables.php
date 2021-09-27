@@ -1391,7 +1391,7 @@ abstract class RealTables extends aTable
                 $withoutDeleted = false;
             } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
                 foreach ((array)$value as $v) {
-                    if ($v !== '' && !is_null($v) && !is_numeric((string)$v)) {
+                    if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
                         throw new errorException($this->translate('A number must be passed to select by the numeric field [[%s]]', $fieldName));
                     }
                 }

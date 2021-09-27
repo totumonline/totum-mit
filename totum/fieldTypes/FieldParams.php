@@ -19,7 +19,6 @@ use totum\common\Totum;
 use totum\models\Table;
 use totum\models\TablesFields;
 use totum\tableTypes\JsonTables;
-use totum\tableTypes\tableTypes;
 
 class FieldParams extends Field
 {

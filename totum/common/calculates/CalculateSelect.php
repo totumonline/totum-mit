@@ -24,12 +24,14 @@ class CalculateSelect extends Calculate
     protected $parentName;
     protected $columnVals;
 
-    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
+    public function exec($fieldData, array $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
         try {
             if (key_exists('columnVals', $newVal)) {
                 $this->columnVals = $newVal['columnVals'];
             }
+
+            unset($newVal['columnVals']);
 
             $r = parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
             if (!$this->error && !is_array($r)) {

@@ -60,7 +60,7 @@ class Tree extends Field
             try {
                 $list = $this->CalculateCodeSelectValue->exec(
                     $this->data,
-                    $val,
+                    ['v' => $val],
                     [],
                     $row,
                     [],
@@ -89,10 +89,10 @@ class Tree extends Field
     public function getSelectValue($val, $row, $tbl = [])
     {
         $list = $this->calculateSelectValueList($val, $row, $tbl);
+        $return = '';
         if (!is_null($list)) {
             if (is_array($list)) {
                 if (!empty($this->data['multiple'])) {
-                    $return = '';
                     if ($val !== $this->data['errorText']) {
                         foreach ($val ?? [] as $v) {
                             if (!empty($return)) {
@@ -134,7 +134,8 @@ class Tree extends Field
             }
         }
 
-        $list = $this->calculateSelectList($val, $row, $tbl);
+        $arrayVal = ['v' => $val];
+        $list = $this->calculateSelectList($arrayVal, $row, $tbl);
 
         $calcLevel = function ($v, $level = 0) use (&$calcLevel) {
             return key_exists('path', $v) ? $calcLevel($v['path'], $level + 1) : $level;
@@ -149,7 +150,7 @@ class Tree extends Field
                             if (empty($list[$v])) {
                                 $return[] = 0;
                             } else {
-                                $return [] = $calcLevel($list[$v]);
+                                $return[] = $calcLevel($list[$v]);
                             }
                         }
                     } else {
@@ -167,7 +168,7 @@ class Tree extends Field
             }
         }
 
-        return $return;
+        return $return ?? null;
     }
 
     public function getLogValue($val, $row, $tbl = [])
@@ -175,7 +176,7 @@ class Tree extends Field
         return $this->getSelectValue($val, $row, $tbl);
     }
 
-    public function calculateSelectList(&$val, $row, $tbl = [])
+    public function calculateSelectList(array &$val, $row, $tbl = [])
     {
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectList)) {

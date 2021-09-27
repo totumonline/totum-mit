@@ -51,17 +51,6 @@ class TablesCalcsConnects extends Model
             ) . ') AND cycle_id=' . $cycleBaseId . ')');
     }
 
-
-    public function getSourceTables($table_id, $cycle_id/*=0*/, $cycles_table_id/*=0*/)
-    {
-        //TODO недоделано
-        return Model::initService(static::VIEW_NAME)->getAllIndexedByField(
-            ['table_id' => $table_id, 'cycle_id' => $cycle_id, 'cycles_table_id' => $cycles_table_id],
-            'source_table_id',
-            'source_table_id'
-        );
-    }
-
     public function getReceiverTables($table_id, $cycle_id/*=0*/, $cycles_table_id/*=0*/)
     {
         return $this->getColumn(

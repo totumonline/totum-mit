@@ -203,11 +203,11 @@ class CalculateAction extends Calculate
     public function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, $table, string $type, $var = [])
     {
         $var['tpa'] = $type;
-        $r = $this->exec(['name' => $varName], null, $oldRow, $newRow, $oldTbl, $newTbl, $table, $var);
+        $r = $this->exec(['name' => $varName], ['v'=> null], $oldRow, $newRow, $oldTbl, $newTbl, $table, $var);
         return $r;
     }
 
-    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
+    public function exec($fieldData, array $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
         switch ($vars['tpa'] ?? null) {
             case 'add':

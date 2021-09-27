@@ -42,7 +42,7 @@ class fieldParamsResult extends Field
     }
 
     /*TODO check and remove Легаси для старых баз*/
-    public function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
+    public function calculate(array &$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
     {
         if (!empty($oldRow['id']) && $oldRow['id'] === 4) {
             $newVal = ['v' => ['type' => 'fieldParamsResult', 'showInWeb' => false]];

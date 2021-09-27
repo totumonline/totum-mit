@@ -461,7 +461,7 @@ class Calculate
         return $this->error;
     }
 
-    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
+    public function exec($fieldData, array $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
         $this->error = null;
 

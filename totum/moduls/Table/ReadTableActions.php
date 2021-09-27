@@ -371,7 +371,7 @@ class ReadTableActions extends Actions
         /** @var Select $Field */
         $Field = Field::init($field, $this->Table);
 
-        return ['previews' => $Field->getPreviewHtml($data['val'], $row, $this->Table->getTbl())];
+        return ['previews' => $Field->getPreviewHtml(['v' => $data['val']], $row, $this->Table->getTbl())];
     }
 
     public function refresh()
@@ -766,6 +766,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $fields[] = $panelViewSettings['kanban'];
                     }
                     $result['kanban'] = [];
+
+                    $val = [];
                     $results = Field::init($kanban, $this->Table)->calculateSelectList(
                         $val,
                         [],

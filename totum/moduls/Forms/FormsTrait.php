@@ -236,7 +236,7 @@ trait FormsTrait
                             case 'viewimage':
                                 $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
                                 $fileData = $Field->getPreviewHtml(
-                                    $data['params'][$fName]['v'],
+                                    $data['params'][$fName],
                                     $this->Table->getTbl()['params'],
                                     $this->Table->getTbl(),
                                     true
@@ -297,7 +297,8 @@ trait FormsTrait
         $fields = $this->Table->getFields();
 
         if (!($field = $fields[$data['field']] ?? null)) {
-            throw new errorException($this->translate('The [[%s]] field was not found. The table structure may have changed. Reload the page.'), $data['field']);
+            throw new errorException($this->translate('The [[%s]] field was not found. The table structure may have changed. Reload the page.'),
+                $data['field']);
         }
         if (!in_array(
             $field['type'],
@@ -393,7 +394,7 @@ trait FormsTrait
         if ($this->CalcSectionStatuses) {
             $sectionFormats = $this->CalcSectionStatuses->exec(
                 ['name' => 'SECTION FORMATS'],
-                null,
+                ['v' => null],
                 [],
                 $this->Table->getTbl()['params'],
                 [],

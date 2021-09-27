@@ -619,13 +619,13 @@ class Field
     }
 
     /**
-     * @param $val
+     * @param array $val
      * @param $row
      * @param array $tbl
      * @return array $list
      * @throws errorException
      */
-    public function calculateSelectList(&$val, $row, $tbl = [])
+    public function calculateSelectList(array &$val, $row, $tbl = [])
     {
         throw new errorException('This is not select field');
     }
@@ -675,7 +675,7 @@ class Field
         }
     }
 
-    protected function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
+    protected function calculate(array &$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
     {
 
         //Поле инсерта расчетных таблиц

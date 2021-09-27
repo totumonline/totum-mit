@@ -243,7 +243,7 @@ trait FormsTrait
                                 );
                                 $data['params'][$fName]['v_'] = $this->getHttpFilePath() . ($fileData[$formats['p'][$fName]['viewdata']['picture_name'] ?? ''][1][0]['file'] ?? '');
                                 break 2;
-                            case "":
+                            case '':
                                 Field::init($field, $this->Table)->addViewValues(
                                     'edit',
                                     $value,

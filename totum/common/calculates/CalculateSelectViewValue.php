@@ -27,6 +27,19 @@ class CalculateSelectViewValue extends CalculateSelect
 
         unset($params['section']);
         unset($params['preview']);
+        unset($params['previewscode']);
+
+        $val = $this->newVal['v'];
+        if ($this->columnVals) {
+            $val = ($this->columnVals)();
+        }
+
+        $params['where'][] = [
+            'field' => $params['bfield'] ?? 'id',
+            'operator' => '=',
+            'value' => $val
+        ];
+
 
         return parent::funcSelectListAssoc($params);
     }

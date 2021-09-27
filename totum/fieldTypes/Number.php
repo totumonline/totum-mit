@@ -148,11 +148,11 @@ class Number extends Field
         }
 
         if (!empty($this->data['regexp']) && !preg_match(
-                "/" . str_replace(
+                '/' . str_replace(
                     '/',
                     '\/',
                     $this->data['regexp']
-                ) . "/",
+                ) . '/',
                 $val
             )
         ) {
@@ -164,17 +164,11 @@ class Number extends Field
         }
 
 
-        $func = 'round';
-        if (!empty($this->data['round'])) {
-            switch ($this->data['round']) {
-                case 'up':
-                    $func = 'ceil';
-                    break;
-                case 'down':
-                    $func = 'floor';
-                    break;
-            }
-        }
+        $func = match ($this->data['round'] ?? null) {
+            'up' => 'ceil',
+            'down' => 'floor',
+            default => 'round',
+        };
         $fig = (int)str_pad('1', $this->data['dectimalPlaces'] + 1, '0');
 
         $step = 1;
@@ -188,6 +182,6 @@ class Number extends Field
         }
 
         $val = $func($val * $fig) / $fig * $step;
-        $val = bcadd($val, 0, $this->data['dectimalPlaces']);
+        $val = bcadd(number_format($val, 15, '.', ''), 0, $this->data['dectimalPlaces']);
     }
 }

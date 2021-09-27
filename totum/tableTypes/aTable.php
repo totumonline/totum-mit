@@ -1032,7 +1032,8 @@ CODE;;
         $updated = json_decode($this->getLastUpdated(true), true);
 
         if ((string)$updated['code'] !== $code) {
-            return ['username' => $this->Totum->getNamedModel(UserV::class)->getFio($updated['user'], true), 'dt' => $updated['dt'], 'code' => $updated['code']];
+            return ['username' => $this->Totum->getNamedModel(UserV::class)->getFio($updated['user'],
+                true), 'dt' => $updated['dt'], 'code' => $updated['code']];
         } else {
             return ['no' => true];
         }
@@ -1163,16 +1164,16 @@ CODE;;
      * @return mixed
      * @throws errorException
      */
-    public function getValuesAndFormatsForClient($data, $viewType = 'web', array $fieldNames = null)
+    public function getValuesAndFormatsForClient($data, string $viewType = 'web', array $fieldNames = null)
     {
         $isWebViewType = in_array($viewType, ['web', 'edit', 'csv', 'print']);
         $isWithList = in_array($viewType, ['web', 'edit']);
         $isWithFormat = in_array($viewType, ['web', 'edit']);
 
         if ($isWebViewType) {
-            $visibleFields = $this->getVisibleFields("web");
+            $visibleFields = $this->getVisibleFields('web');
         } elseif ($viewType === 'xml') {
-            $visibleFields = $this->getVisibleFields("xml");
+            $visibleFields = $this->getVisibleFields('xml');
         } else {
             $visibleFields = $this->fields;
         }
@@ -1187,7 +1188,24 @@ CODE;;
         }
         $data['rows'] = ($data['rows'] ?? []);
         /*TODO вынести это наружу*/
-        $ids = array_unique(array_merge($this->webIdInterval, array_column($data['rows'], "id")));
+        $ids = array_unique(array_merge($this->webIdInterval, array_column($data['rows'], 'id')));
+
+
+        $savedColumnVals = [];
+        $getColumnVals = function ($fName) use ($data, &$savedColumnVals) {
+            if (!key_exists($fName, $savedColumnVals)) {
+                $savedColumnVals[$fName]=[];
+                foreach ($data['rows'] as $row){
+                    if(!in_array($row[$fName]['v'], $savedColumnVals[$fName])){
+                        $savedColumnVals[$fName][]=$row[$fName]['v'];
+                    }
+                    if(key_exists('c', $row[$fName]) && !in_array($row[$fName]['c'], $savedColumnVals[$fName])){
+                        $savedColumnVals[$fName][]=$row[$fName]['c'];
+                    }
+                }
+            }
+            return $savedColumnVals[$fName];
+        };
 
         foreach ($data['rows'] as $i => $row) {
 
@@ -1237,6 +1255,11 @@ CODE;;
                 }
 
                 $newRow[$f['name']] = $row[$f['name']];
+                if ($f['type'] === 'select') {
+                    $newRow[$f['name']]['columnVals'] = function () use ($f, $getColumnVals) {
+                        return $getColumnVals($f['name']);
+                    };
+                }
 
                 Field::init($f, $this)->addViewValues(
                     $viewType,

@@ -55,7 +55,7 @@ class Tree extends Field
                 $this->CalculateCodeSelectValue = new CalculateSelectValue($this->data['codeSelect']);
             }
 
-            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "treeList", 'field' => $this->data['name']]);
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'treeList', 'field' => $this->data['name']]);
 
             try {
                 $list = $this->CalculateCodeSelectValue->exec(

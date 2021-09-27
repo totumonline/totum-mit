@@ -765,7 +765,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     if (!in_array($panelViewSettings['kanban'], $fields)) {
                         $fields[] = $panelViewSettings['kanban'];
                     }
-                    $result["kanban"] = [];
+                    $result['kanban'] = [];
                     $results = Field::init($kanban, $this->Table)->calculateSelectList(
                         $val,
                         [],
@@ -774,12 +774,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     unset($results['previewdata']);
 
                     if ($kanban['withEmptyVal'] ?? false) {
-                        $result["kanban"][] = ["", $kanban['withEmptyVal']];
+                        $result['kanban'][] = ['', $kanban['withEmptyVal']];
                     }
 
                     foreach ($results as $k => $v) {
                         if (!$v[1]) {
-                            $result["kanban"][] = [$k, $v[0]];
+                            $result['kanban'][] = [$k, $v[0]];
                         }
                     }
                 }
@@ -931,8 +931,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params']);
         $result['f'] = $this->getTableFormat(array_column($data['rows'] ?? [], 'id'));
-        $result['rows'] = $data['rows'];
-        $result['offset'] = $data['offset'];
+        $result['rows'] = $data['rows'] ?? [];
+        $result['offset'] = $data['offset'] ?? null;
 
         $result['filtersString'] = $this->getFiltersString();
         return $result;

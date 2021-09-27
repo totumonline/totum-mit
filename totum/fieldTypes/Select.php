@@ -27,6 +27,7 @@ class Select extends Field
     protected $commonSelectListWithPreviews;
     protected $CalculateCodeViewSelect;
     protected $CalculateCodePreviews;
+    protected $columnVals;
 
     protected function __construct($fieldData, aTable $table)
     {
@@ -237,7 +238,6 @@ class Select extends Field
             if (is_null($this->CalculateCodeSelectValue)) {
                 $this->CalculateCodeSelectValue = new CalculateSelectValue($this->data['codeSelect']);
             }
-
             $list = $this->CalculateCodeSelectValue->exec(
                 $this->data,
                 $val,
@@ -263,7 +263,7 @@ class Select extends Field
      */
     public function getSelectValue($val, $row, $tbl = [])
     {
-        $list = $this->calculateSelectValueList($val, $row, $tbl);
+        $list = $this->calculateSelectValueList(['v' => $val], $row, $tbl);
 
         if (!is_null($list)) {
             if (is_array($list)) {
@@ -735,7 +735,8 @@ class Select extends Field
                 $modifyVal = match ($modifyVal->sign) {
                     '-' => array_diff($oldVal, (array)$modifyVal->val),
                     '+' => array_merge($oldVal, (array)$modifyVal->val),
-                    default => throw new errorException($this->translate('Operation [[%s]] over lists is not supported.', $modifyVal->sign)),
+                    default => throw new errorException($this->translate('Operation [[%s]] over lists is not supported.',
+                        $modifyVal->sign)),
                 };
             } else {
                 $tmpVal = substr($modifyVal, 1);

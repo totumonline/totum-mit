@@ -22,10 +22,15 @@ class CalculateSelect extends Calculate
      * @var mixed
      */
     protected $parentName;
+    protected $columnVals;
 
     public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
         try {
+            if (key_exists('columnVals', $newVal)) {
+                $this->columnVals = $newVal['columnVals'];
+            }
+
             $r = parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
             if (!$this->error && !is_array($r)) {
                 throw new errorException($this->translate('The code should return [[%s]].', 'rowList'));

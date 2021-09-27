@@ -1023,6 +1023,7 @@ class Calculate
                                         $this->tbl
                                     ),
                                 };
+
                             }
                         }
                     } elseif (preg_match('/^prv\./i', $nameVar)) {

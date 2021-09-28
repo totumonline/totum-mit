@@ -436,19 +436,7 @@ class Select extends Field
             }
         }
 
-        if ($this->data['category'] === 'filter') {
-            $add = [];
-            if (!empty($this->data['selectFilterWithEmpty'])) {
-                $add[''] = [($this->data['selectFilterWithEmptyText'] ?? $this->translate('Empty')), 0];
-            }
-            if (!empty($this->data['selectFilterWithAll'])) {
-                $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? $this->translate('All')), 0];
-            }
-            if (!empty($this->data['selectFilterWithNone'])) {
-                $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
-            }
-            $list = $add + $list;
-        }
+
         return $this->commonSelectViewList = $list;
     }
 
@@ -521,9 +509,6 @@ class Select extends Field
         }
 
         parent::addViewValues($viewType, $valArray, $row, $tbl);
-
-        $list = $this->calculateSelectViewList($valArray, $row, $tbl);
-
         $getSelectData = function ($v, $list) {
             if (!is_null($list)) {
                 if (is_array($list)) {
@@ -557,6 +542,41 @@ class Select extends Field
                 }
             }
         };
+
+        $add = [];
+        $_valArray = $valArray;
+        $list = [];
+        if ($this->data['category'] === 'filter') {
+
+            if (!empty($this->data['selectFilterWithAll'])) {
+                $add['*ALL*'] = [($this->data['selectFilterWithAllText'] ?? $this->translate('All')), 0];
+            }
+            if (!empty($this->data['selectFilterWithNone'])) {
+                $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
+            }
+
+            foreach ((array)$_valArray['v'] as $k => $v) {
+                if ($v === '*NONE*') {
+                    $list = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
+                } elseif ($v === '*ALL*') {
+                    $list = [($this->data['selectFilterWithAllText'] ?? $this->translate('All')), 0];
+                }
+                if (!empty($this->data['selectFilterWithEmpty'])) {
+                    $add[''] = [($this->data['selectFilterWithEmptyText'] ?? $this->translate('Empty')), 0];
+                    unset($_valArray[$k]);
+                }
+            }
+        }
+
+        if (empty($list)) {
+            $list = $this->calculateSelectViewList($_valArray, $row, $tbl);
+        }
+        $list = $add + $list;
+
+        if (!empty($_valArray['e'])) {
+            $valArray['e'] = $_valArray['e'];
+        }
+
 
         if (!is_null($list)) {
             if (is_array($list)) {

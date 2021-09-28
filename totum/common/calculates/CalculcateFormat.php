@@ -245,7 +245,7 @@ class CalculcateFormat extends Calculate
                             if (key_exists('type', $r) && in_array($r['type'], ['text', 'html', 'buttons', 'img'])) {
                                 $result[] = ['type' => $r['type'], 'value' => $r['value']];
                             }
-                        } else {
+                        } elseif (!empty($r)) {
                             $result[] = ['type' => 'text', 'value' => $r];
                         }
                     }
@@ -316,7 +316,8 @@ class CalculcateFormat extends Calculate
                                     $_strSplit = preg_split('/\s*=\s*/', $_str);
 
                                     if (count($_strSplit) !== 2) {
-                                        throw new errorException($this->translate('The [[%s]] parameter must contain 2 elements.', 'hide'));
+                                        throw new errorException($this->translate('The [[%s]] parameter must contain 2 elements.',
+                                            'hide'));
                                     }
                                     $this->formatArray[$format][$this->__getValue($this->getCodes($_strSplit[0])[0])] = $this->__getValue($this->getCodes($_strSplit[1])[0]);
                                 }
@@ -345,7 +346,8 @@ class CalculcateFormat extends Calculate
                             foreach ($params[$format] as $fieldparam) {
                                 $fieldparam = $this->getCodes($fieldparam);
                                 if (count($fieldparam) !== 3 || $fieldparam['comparison'] !== '=') {
-                                    throw new errorException($this->translate('TOTUM-code format error [[%s]].', $fieldparam));
+                                    throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                                        $fieldparam));
                                 }
                                 $fieldname = $this->__getValue($fieldparam[0]);
                                 $fieldvalue = $this->__getValue($fieldparam[1]);
@@ -401,7 +403,8 @@ class CalculcateFormat extends Calculate
                 '/^[a-z_0-9]+$/',
                 $params['section']
             )) {
-                throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].', ['section', 'string - [a-z_0-9]+']));
+                throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].',
+                    ['section', 'string - [a-z_0-9]+']));
             }
 
             if ($this->getConditionsResult($params)) {

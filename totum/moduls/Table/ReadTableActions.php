@@ -1533,9 +1533,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $fields = array_merge(
                 $fields,
                 [
-                    'name', 'sort', 'actual'
+                    'name', 'sort', 'actual', 'default_action', 'on_duplicate', 'row_format', 'table_format'
                 ]
             );
+
         } else {
             $tableRow['description'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $tableRow['description']);
         }

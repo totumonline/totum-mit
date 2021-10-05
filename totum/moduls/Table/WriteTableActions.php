@@ -145,7 +145,7 @@ class WriteTableActions extends ReadTableActions
 
         $row = $this->Table->checkEditRow($data, $dataSetToDefault, $this->post['tableData'] ?? []);
         $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]],
-            !empty($this->post['panel']) ? 'editPanel' : 'edit')['rows'][0];
+             'edit')['rows'][0];
         $res['f'] = $this->getTableFormat([]);
         return $res;
     }

@@ -412,7 +412,7 @@ class Select extends Field
                 $this->CalculateCodeViewSelect = new CalculateSelectViewValue($this->data['codeSelect']);
             }
 
-            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "selectViewList", 'field' => $this->data['name']]);
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'selectViewList', 'field' => $this->data['name']]);
 
             try {
                 $list = $this->CalculateCodeViewSelect->exec(

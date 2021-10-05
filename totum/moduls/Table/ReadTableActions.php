@@ -1071,7 +1071,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($this->Table->loadFilteredRows('web', [$id])) {
             $res['row'] = $this->Table->getValuesAndFormatsForClient(
                 ['rows' => [$this->Table->getTbl()['rows'][$id]]],
-                'editPanel'
+                'edit'
             )['rows'][0];
             $res['f'] = $this->getTableFormat([]);
             return $res;

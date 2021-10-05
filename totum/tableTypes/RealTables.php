@@ -1392,7 +1392,6 @@ abstract class RealTables extends aTable
             } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
                 foreach ((array)$value as $v) {
                     if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
-
                         throw new errorException($this->translate('A number must be passed to select by the numeric field [[%s]]', $fieldName));
                     }
                 }
@@ -1412,7 +1411,7 @@ abstract class RealTables extends aTable
                     $fields[$wI['field']]['type'],
                     $fields[$wI['field']]['multiple'] ?? false
                 )) {
-                $trueFalse = "TRUE";
+                $trueFalse = 'TRUE';
 
                 switch ($operator) {
                     case '!==':

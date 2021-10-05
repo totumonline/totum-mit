@@ -1167,18 +1167,9 @@ CODE;;
     public function getValuesAndFormatsForClient($data, string $viewType = 'web', array $fieldNames = null)
     {
 
-        list($viewType, $isWithPanelFormat, $isWebViewType) = match ($viewType) {
-            'webPanel' => ['web', true, true],
-            'editPanel' => ['edit', true, true],
-            'web', 'edit', 'csv', 'print' => [$viewType, false, true],
-            default => [$viewType, false, false]
-        };
-
-        if (in_array($viewType, ['web', 'edit'])) {
-            $isWithList = $isWithFormat = true;
-        } else {
-            $isWithList = $isWithFormat = false;
-        }
+        $isWebViewType = in_array($viewType, ['web', 'edit', 'csv', 'print']);
+        $isWithList = in_array($viewType, ['web', 'edit']);
+        $isWithFormat = in_array($viewType, ['web', 'edit']);
 
         if ($isWebViewType) {
             $visibleFields = $this->getVisibleFields('web');
@@ -1205,14 +1196,35 @@ CODE;;
         $getColumnVals = function ($fName) use ($data, &$savedColumnVals) {
             if (!key_exists($fName, $savedColumnVals)) {
                 $savedColumnVals[$fName] = [];
-                foreach ($data['rows'] as $row) {
-                    if (!in_array($row[$fName]['v'], $savedColumnVals[$fName])) {
-                        $savedColumnVals[$fName][] = $row[$fName]['v'];
+                $indexedVals = [];
+                if (!empty($this->fields[$fName]['multiple'])) {
+                    foreach ($data['rows'] as $row) {
+                        foreach ($row[$fName]['v'] as $v) {
+                            if (!key_exists($v, $indexedVals)) {
+                                $indexedVals[$v] = 1;
+                            }
+                        }
+                        if (key_exists('c', $row[$fName])) {
+                            foreach ($row[$fName]['c'] as $v) {
+                                if (!key_exists($v, $indexedVals)) {
+                                    $indexedVals[$v] = 1;
+                                }
+                            }
+                        }
                     }
-                    if (key_exists('c', $row[$fName]) && !in_array($row[$fName]['c'], $savedColumnVals[$fName])) {
-                        $savedColumnVals[$fName][] = $row[$fName]['c'];
+                } else {
+                    foreach ($data['rows'] as $row) {
+                        if (!key_exists($row[$fName]['v'], $indexedVals)) {
+                            $indexedVals[$row[$fName]['v']] = 1;
+                        }
+                        if (key_exists('c', $row[$fName])) {
+                            if (!key_exists($row[$fName]['c'], $indexedVals)) {
+                                $indexedVals[$row[$fName]['c']] = 1;
+                            }
+                        }
                     }
                 }
+                $savedColumnVals[$fName] = array_keys($indexedVals);
             }
             return $savedColumnVals[$fName];
         };
@@ -1284,13 +1296,6 @@ CODE;;
                         $rowIn,
                         $this->tbl
                     );
-                    if ($isWithPanelFormat) {
-                        $pFormat = Field::init($f, $this)->getPanelFormat($rowIn,
-                            $this->tbl);
-                        if (!is_null($pFormat) && !empty($pFormat['rows'])) {
-                            $newRow[$f['name']]['p'] = $pFormat;
-                        }
-                    }
                 }
             }
 

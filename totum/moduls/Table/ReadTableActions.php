@@ -77,10 +77,12 @@ class ReadTableActions extends Actions
 
             $tbl = $this->Table->getTbl();
             $item = $tbl['params'];
+
             if ($field['category'] === 'column') {
                 $this->Table->checkIsUserCanViewIds('web', [$this->post['id']]);
                 $item = $this->Table->getTbl()['rows'][$this->post['id']];
             }
+
             $Field = Field::init($field, $this->Table);
             $result = $Field->getPanelFormat($item,
                 $tbl);
@@ -232,7 +234,7 @@ class ReadTableActions extends Actions
                     }
                     $CA = new CalculateAction($row['code']);
                     if ($row['id']) {
-                        $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
+                            $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
                         $item = $this->Table->getTbl()["rows"][$row['id']];
                     } else {
                         $item = $this->Table->getTbl()['params'];
@@ -351,6 +353,7 @@ class ReadTableActions extends Actions
         if ($field['category'] === 'column' && !isset($row['id'])) {
             $row['id'] = null;
         }
+
         foreach ($row as $k => &$v) {
             if (key_exists($k, $fields)) {
                 if ($fields[$k]['type'] === 'date' && $v && $v = Calculate::getDateObject($v,

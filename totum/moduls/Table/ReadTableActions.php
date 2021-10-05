@@ -74,20 +74,16 @@ class ReadTableActions extends Actions
                 ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
             );
 
-            $clc = new CalculcateFormat($field['format']);
+
             $tbl = $this->Table->getTbl();
             $item = $tbl['params'];
             if ($field['category'] === 'column') {
                 $this->Table->checkIsUserCanViewIds('web', [$this->post['id']]);
-                $item = $this->Table->getTbl()["rows"][$this->post['id']];
+                $item = $this->Table->getTbl()['rows'][$this->post['id']];
             }
-
-            $result = $clc->getPanelFormat(
-                $field['name'],
-                $item,
-                $tbl,
-                $this->Table
-            );
+            $Field = Field::init($field, $this->Table);
+            $result = $Field->getPanelFormat($item,
+                $tbl);
         }
         return ['panelFormats' => $result];
     }
@@ -1075,7 +1071,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($this->Table->loadFilteredRows('web', [$id])) {
             $res['row'] = $this->Table->getValuesAndFormatsForClient(
                 ['rows' => [$this->Table->getTbl()['rows'][$id]]],
-                'edit'
+                'editPanel'
             )['rows'][0];
             $res['f'] = $this->getTableFormat([]);
             return $res;

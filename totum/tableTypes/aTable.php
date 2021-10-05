@@ -1166,9 +1166,19 @@ CODE;;
      */
     public function getValuesAndFormatsForClient($data, string $viewType = 'web', array $fieldNames = null)
     {
-        $isWebViewType = in_array($viewType, ['web', 'edit', 'csv', 'print']);
-        $isWithList = in_array($viewType, ['web', 'edit']);
-        $isWithFormat = in_array($viewType, ['web', 'edit']);
+
+        list($viewType, $isWithPanelFormat, $isWebViewType) = match ($viewType) {
+            'webPanel' => ['web', true, true],
+            'editPanel' => ['edit', true, true],
+            'web', 'edit', 'csv', 'print' => [$viewType, false, true],
+            default => [$viewType, false, false]
+        };
+
+        if (in_array($viewType, ['web', 'edit'])) {
+            $isWithList = $isWithFormat = true;
+        } else {
+            $isWithList = $isWithFormat = false;
+        }
 
         if ($isWebViewType) {
             $visibleFields = $this->getVisibleFields('web');
@@ -1194,13 +1204,13 @@ CODE;;
         $savedColumnVals = [];
         $getColumnVals = function ($fName) use ($data, &$savedColumnVals) {
             if (!key_exists($fName, $savedColumnVals)) {
-                $savedColumnVals[$fName]=[];
-                foreach ($data['rows'] as $row){
-                    if(!in_array($row[$fName]['v'], $savedColumnVals[$fName])){
-                        $savedColumnVals[$fName][]=$row[$fName]['v'];
+                $savedColumnVals[$fName] = [];
+                foreach ($data['rows'] as $row) {
+                    if (!in_array($row[$fName]['v'], $savedColumnVals[$fName])) {
+                        $savedColumnVals[$fName][] = $row[$fName]['v'];
                     }
-                    if(key_exists('c', $row[$fName]) && !in_array($row[$fName]['c'], $savedColumnVals[$fName])){
-                        $savedColumnVals[$fName][]=$row[$fName]['c'];
+                    if (key_exists('c', $row[$fName]) && !in_array($row[$fName]['c'], $savedColumnVals[$fName])) {
+                        $savedColumnVals[$fName][] = $row[$fName]['c'];
                     }
                 }
             }
@@ -1274,11 +1284,18 @@ CODE;;
                         $rowIn,
                         $this->tbl
                     );
+                    if ($isWithPanelFormat) {
+                        $pFormat = Field::init($f, $this)->getPanelFormat($rowIn,
+                            $this->tbl);
+                        if (!is_null($pFormat) && !empty($pFormat['rows'])) {
+                            $newRow[$f['name']]['p'] = $pFormat;
+                        }
+                    }
                 }
             }
 
             if ($isWithFormat && !empty($RowFormatCalculate)) {
-                $Log = $this->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "format", 'name' => 'row']);
+                $Log = $this->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'name' => 'row']);
 
                 $newRow['f'] = $RowFormatCalculate->getFormat(
                     'ROW',

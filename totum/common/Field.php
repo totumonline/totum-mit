@@ -49,7 +49,7 @@ class Field
     protected $CalculateCode;
     protected $CalculateCodeSelect;
     protected $CalculateCodeSelectValue;
-    protected $CalculateFormat;
+    protected bool|null|CalculcateFormat $CalculateFormat = null;
     protected $log;
     /**
      * @var string
@@ -114,9 +114,6 @@ class Field
             $this->CalculateCode = new Calculate($this->data['code']);
         }
 
-        if (!empty($this->data['format']) && $this->data['format'] !== 'f1=:') {
-            $this->CalculateFormat = new CalculcateFormat($this->data['format']);
-        }
         if (empty($this->data['errorText'])) {
             $this->data['errorText'] = $this->translate('ERR!');
         }
@@ -210,16 +207,41 @@ class Field
     }
 
 
+    protected function checkFormatObject()
+    {
+        if (is_null($this->CalculateFormat)) {
+            if (!empty($this->data['format']) && $this->data['format'] !== 'f1=:') {
+                $this->CalculateFormat = new CalculcateFormat($this->data['format']);
+            } else {
+                $this->CalculateFormat = false;
+            }
+        }
+
+        return !!$this->CalculateFormat;
+    }
+
     public function addFormat(&$valArray, $row, $tbl)
     {
-        if ($this->CalculateFormat) {
-            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "format", 'field' => $this->data['name']]);
+        if ($this->checkFormatObject()) {
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
 
             if ($format = $this->CalculateFormat->getFormat($this->data['name'], $row, $tbl, $this->table)) {
                 $valArray['f'] = $format;
             }
             $this->table->calcLog($Log, 'result', $format);
         }
+    }
+
+    public function getPanelFormat($row, $tbl)
+    {
+        if ($this->checkFormatObject()) {
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
+            $result = $this->CalculateFormat->getPanelFormat($this->data['name'], $row, $tbl, $this->table);
+            $this->table->calcLog($Log, 'result', $result);
+        } else {
+            $result = null;
+        }
+        return $result;
     }
 
     public function __destruct()
@@ -270,7 +292,7 @@ class Field
             } catch (\Exception $e) {
                 $row = $oldRow ?? $newRow ?? [];
                 if (method_exists($e, 'addPath')) {
-                    $e->addPath('action '.$this->translate('field [[%s]] of [[%s]] table',
+                    $e->addPath('action ' . $this->translate('field [[%s]] of [[%s]] table',
                             [$this->data['name'], $this->table->getTableRow()['name']]) . (!empty($row['id']) ? ' id ' . $row['id'] : ''));
                 }
                 throw $e;

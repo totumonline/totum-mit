@@ -706,12 +706,12 @@ class Select extends Field
                 } else {
                     $val = strval($val[0]);
                 }
-            } else {
+            } else {var_dump($val);
                 $val = strval($val);
             }
         }
 
-        if ($val === "" && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] === true)) {
+        if ($val === '' && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] === true)) {
             $val = null;
         }
     }
@@ -736,6 +736,10 @@ class Select extends Field
     {
         if (empty($modifyVal)) {
             return $modifyVal;
+        }
+
+        if (is_object($modifyVal) && empty($this->data['multiple'])) {
+            throw new errorException($this->translate('Operation [[%s]] over not mupliple select is not supported.', $modifyVal->sign));
         }
 
         if (!empty($this->data['multiple']) && !is_array($modifyVal)) {

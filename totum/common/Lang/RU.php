@@ -216,6 +216,7 @@ class RU implements LangInterface
         'Nothing' => 'Ничего',
         ' elem.' => ' элем.',
         'Operation [[%s]] over lists is not supported.' => 'Операция [[%s]] над листами непредусмотрена.',
+        'Operation [[%s]] over not mupliple select is not supported.' => 'Операция [[%s]] над немульти селектом непредусмотрена.',
         'Text modified' => 'Текст изменен',
         'Text unchanged' => 'Текст соответствует',
         'The looped tree' => 'Зацикленное дерево',

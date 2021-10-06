@@ -234,7 +234,7 @@ class ReadTableActions extends Actions
                     }
                     $CA = new CalculateAction($row['code']);
                     if ($row['id']) {
-                            $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
+                        $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
                         $item = $this->Table->getTbl()["rows"][$row['id']];
                     } else {
                         $item = $this->Table->getTbl()['params'];
@@ -1456,6 +1456,15 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 }
             }
 
+            if ($field['type'] === 'select') {
+                foreach ($field['codeSelect'] ?? [] as $code) {
+                    if (is_string($code) && preg_match('/selectRowListForSelect\([^)]*preview\s*:/i', $code)) {
+                        $field['withPreview'] = true;
+                        break;
+                    }
+                }
+            }
+
             foreach (Totum::FIELD_CODE_PARAMS as $param) {
                 if (!empty($field[$param])) {
                     $field[$param] = true;
@@ -1491,6 +1500,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 }
             }
             $field['help'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $field['help'] ?? '');
+
+
         }
         if ($this->Table->getTableRow()['name'] === 'tables_fields') {
             if ($this->Totum->getUser()->isCreator()) {

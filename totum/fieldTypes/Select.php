@@ -706,7 +706,7 @@ class Select extends Field
                 } else {
                     $val = strval($val[0]);
                 }
-            } else {var_dump($val);
+            } else {
                 $val = strval($val);
             }
         }

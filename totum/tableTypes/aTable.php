@@ -1199,13 +1199,13 @@ CODE;;
                 $indexedVals = [];
                 if (!empty($this->fields[$fName]['multiple'])) {
                     foreach ($data['rows'] as $row) {
-                        foreach ($row[$fName]['v'] as $v) {
+                        foreach ((array)$row[$fName]['v'] as $v) {
                             if (!key_exists($v, $indexedVals)) {
                                 $indexedVals[$v] = 1;
                             }
                         }
                         if (key_exists('c', $row[$fName])) {
-                            foreach ($row[$fName]['c'] as $v) {
+                            foreach ((array)$row[$fName]['c'] as $v) {
                                 if (!key_exists($v, $indexedVals)) {
                                     $indexedVals[$v] = 1;
                                 }

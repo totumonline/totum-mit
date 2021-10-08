@@ -393,7 +393,7 @@ trait FormsTrait
 
         if ($this->CalcSectionStatuses) {
             $sectionFormats = $this->CalcSectionStatuses->exec(
-                ['name' => 'SECTION FORMATS'],
+                ['name' => 'CALC SECTION FORMATS'],
                 ['v' => null],
                 [],
                 $this->Table->getTbl()['params'],

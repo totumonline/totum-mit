@@ -81,8 +81,53 @@ trait ParsesTrait
             );
         };
 
+
+        $isInCodeNamed = null;
+        $codeType = null;
+        $codeContent = '';
         foreach (preg_split('/[\r\n]+/', trim($code)) as $row) {
+
+            if ($isInCodeNamed) {
+                /*codeBlockEnd*/
+                if ($row === '```') {
+                    $isInCodeNamed = $codeType = null;
+                    $lineName = trim($matches['1']);
+                    if (str_starts_with($lineName, '~')) {
+                        $lineName = substr($lineName, 1);
+                        $fixes[] = $lineName;
+                    }
+
+                    /*Сразу сохраняем в строки*/
+
+                    $stringNum = count($strings);
+                    $strings[] = '"' . $codeContent;
+                    $c[$lineName] = '"' . $stringNum . '"';
+
+                    $codeContent = '';
+                } else {
+                    if ($codeType === 'totum') {
+                        $row = trim($row);
+                        /*Для кода Тотум убираем комментарии и пустые строки*/
+                        if (empty($row) || str_starts_with($row, '//')) {
+                            continue;
+                        }
+                    }
+                    if ($codeContent) {
+                        $codeContent .= "\n";
+                    }
+                    $codeContent .= $row;
+                }
+                continue;
+            }
             $row = trim($row);
+            //checkCodeBlock
+            if (preg_match('/^```(?<codeName>~?[a-zA-Z0-9_]+):(?<codeType>[a-z]+)$/', $row, $matches)) {
+                $isInCodeNamed = $matches['codeName'];
+                $codeType = $matches['codeType'];
+                continue;
+            }
+
+
             /*Убрать комментарии*/
             if (str_starts_with($row, '//')) {
                 continue;
@@ -327,18 +372,18 @@ trait ParsesTrait
         try {
             return json_decode($str, true, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException) {
-                $TJ = new TotumJson($str);
-                $TJ->setTotumCalculate(function ($param) {
-                    return $this->execSubCode($param, 'paramFromJson');
-                });
-                $TJ->setStringCalculate(function ($str) {
-                    if (key_exists($str, $this->CodeStrings)) {
-                        return substr($this->CodeStrings[$str], 1);
-                    } else {
-                        return $str;
-                    }
-                });
-                $TJ->parse();
+            $TJ = new TotumJson($str);
+            $TJ->setTotumCalculate(function ($param) {
+                return $this->execSubCode($param, 'paramFromJson');
+            });
+            $TJ->setStringCalculate(function ($str) {
+                if (key_exists($str, $this->CodeStrings)) {
+                    return substr($this->CodeStrings[$str], 1);
+                } else {
+                    return $str;
+                }
+            });
+            $TJ->parse();
             return $TJ->getJson();
         }
     }

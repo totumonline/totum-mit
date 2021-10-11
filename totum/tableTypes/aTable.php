@@ -1290,6 +1290,8 @@ CODE;;
                     $this->tbl
                 );
 
+                unset($newRow[$f['name']]['columnVals']);
+
                 if ($isWithFormat) {
                     Field::init($f, $this)->addFormat(
                         $newRow[$f['name']],

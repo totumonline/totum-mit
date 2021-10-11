@@ -1695,6 +1695,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
 
             $pageIds = json_decode($this->post['ids'], true);
+            if ($pageIds) {
+                $pageIds = $this->Table->loadFilteredRows('web', $pageIds ?? []);
+            }
 
             $return['chdata']['rows'] = [];
 
@@ -1715,60 +1718,46 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $return['chdata']['deleted'] = array_keys($changedIds['restored']);
             }
 
+            //Отправка на клиент изменений, селектов и форматов
+            {
+                if (!empty($pageIds)) {
 
-            $modify = $data['modify'] ?? [];
-            unset($modify['params']);
-            $sortedVisibleFields = $this->Table->getVisibleFields('web', true);
-
-
-            if ($changedIds['changed'] += ($modify ?? [])) {
-                //Подумать - а не дублируется ли с тем блоком, что ниже
-                $selectOrFormatColumns = [];
-                foreach ($sortedVisibleFields['column'] as $k => $v) {
-                    if ((($v['type'] === 'select' || $v['type'] === 'tree') && !empty($v['codeSelectIndividual'])) || !empty($v['format'])) {
-                        $selectOrFormatColumns[$k] = true;
-                    }
-                }
-                $tbl = $this->Table->getTbl();
-                foreach ($changedIds['changed'] as $id => $changes) {
-                    if (empty($tbl['rows'][$id]) || !in_array($id, $pageIds)) {
-                        continue;
-                    }
-
-                    if (empty($changes)) {
-                        $return['chdata']['rows'][$id] = $tbl['rows'][$id];
-                        continue;
-                    }
-                    $return['chdata']['rows'][$id] = ($return['chdata']['rows'][$id] ?? []) + array_intersect_key(
-                            $tbl['rows'][$id],
-                            $changes
-                        ) + array_intersect_key($tbl['rows'][$id], $selectOrFormatColumns);
-                    foreach ($changes as $k => $null) {
-                        if (is_array($return['chdata']['rows'][$id][$k])) {
-                            $return['chdata']['rows'][$id][$k]['changed'] = true;
+                    $sortedVisibleFields = $this->Table->getVisibleFields('web', true);
+                    $selectOrFormatColumns = [];
+                    foreach ($sortedVisibleFields['column'] as $k => $v) {
+                        if ((($v['type'] === 'select' || $v['type'] === 'tree') && !empty($v['codeSelectIndividual'])) || !empty($v['format'])) {
+                            $selectOrFormatColumns[$k] = true;
                         }
                     }
-                }
-            }
 
 
-            //Отправка на клиент селектов и форматов
-            {
-                $selectOrFormatColumns = [];
-                foreach ($sortedVisibleFields['column'] as $k => $v) {
-                    if (in_array($v['type'], ['select', 'tree']) || !empty($v['format'])) {
-                        $selectOrFormatColumns[] = $k;
-                    }
-                }
-                if ($selectOrFormatColumns && !empty($pageIds)) {
-                    $selectOrFormatColumns[] = 'id';
-                    $selectOrFormatColumns = array_flip($selectOrFormatColumns);
-
-                    $pageIds = $this->Table->loadFilteredRows('web', $pageIds ?? []);
+                    $modify = $data['modify'] ?? [];
+                    unset($modify['params']);
+                    $changedIds['changed'] += ($modify ?? []);
+                    $selectOrFormatColumns['id'] = true;
 
                     $rows = $this->Table->getTbl()['rows'];
                     foreach ($pageIds as $id) {
                         if (!empty($rows[$id])) {
+
+                            if (key_exists($id, $changedIds['changed'])) {
+                                $changes = $changedIds['changed'][$id];
+                                if (empty($changes)) {
+                                    $return['chdata']['rows'][$id] = $rows[$id];
+                                    continue;
+                                } else {
+                                    $return['chdata']['rows'][$id] = ($return['chdata']['rows'][$id] ?? []) + array_intersect_key(
+                                            $rows[$id],
+                                            $changes
+                                        );
+                                    foreach ($changes as $k => $_) {
+                                        if (is_array($return['chdata']['rows'][$id][$k])) {
+                                            $return['chdata']['rows'][$id][$k]['changed'] = true;
+                                        }
+                                    }
+                                }
+                            }
+
                             $return['chdata']['rows'][$id] = ($return['chdata']['rows'][$id] ?? []) + array_intersect_key(
                                     $rows[$id],
                                     $selectOrFormatColumns
@@ -1776,40 +1765,30 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         }
                     }
                 }
-            }
 
+                if ($this->Table->getChangeIds()['reordered']) {
+                    $return['chdata']['order'] = array_column($return['chdata']['rows'], 'id');
+                }
+            }
             if ($this->getPageViewType() === 'tree' && $this->Table->getFields()['tree']['treeViewType'] === 'self') {
                 $return['chdata']['tree'] = $this->getResultTree(
                     function ($k, $v) {
                         return 'child';
                     },
-                    [""],
+                    [''],
                     true
                 )['tree'];
             }
 
             $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
-            $return['chdata']['params'] = $this->Table->getTbl()['params'];
+
+            $return['chdata']['params'] = $this->Table->getTbl()['params'] ?? [];
             $return['chdata']['f'] = $this->getTableFormat($pageIds ?: []);
-
-            if (!empty($return['chdata']['rows'])) {
-                foreach ($return['chdata']['rows'] as $id => &$row) {
-                    $row['id'] = $id;
-                }
-                unset($row);
-            }
-
-            $return['chdata']['params'] = $return['chdata']['params'] ?? [];
-
             $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web');
-            if ($this->Table->getChangeIds()['reordered']) {
-                $return['chdata']['order'] = array_column($return['chdata']['rows'], 'id');
-            }
 
             if (empty($return['chdata']['params'])) {
                 unset($return['chdata']['params']);
             }
-
 
             if ($this->Table->getTableRow()['pagination'] && $this->Table->getTableRow()['pagination'] !== '0/0') {
                 $params = $this->Table->filtersParamsForLoadRows('web');
@@ -1830,7 +1809,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
      * @return array
      * @throws errorException
      */
-    protected function getPermittedFilters($filtersString)
+    protected function getPermittedFilters($filtersString): array
     {
         $permittedFilters = [];
         $deCryptFilters = $this->deCryptFilters($filtersString);

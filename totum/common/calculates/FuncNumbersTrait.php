@@ -13,20 +13,20 @@ trait FuncNumbersTrait
         return abs((float)$params['num']);
     }
 
-    protected function funcNumFormat(string $params):string
+    protected function funcNumFormat(string $params): string
     {
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['num']);
         $this->__checkNotArrayParams($params, ['num', 'dectimals', 'decsep', 'thousandssep', 'unittype']);
         $this->__checkNumericParam($params['num'], 'num');
 
-            return number_format(
-                    (float)$params['num'],
-                    (int) $params['dectimals'] ?? 0,
-                    (string)$params['decsep'] ?? ',',
+        return number_format(
+                (float)$params['num'],
+                (int)$params['dectimals'] ?? 0,
+                (string)$params['decsep'] ?? ',',
                 (string)$params['thousandssep'] ?? ''
-                )
-                . ((string)($params['unittype'] ?? ''));
+            )
+            . ((string)($params['unittype'] ?? ''));
     }
 
     protected function funcNumRand(string $params): int
@@ -55,6 +55,7 @@ trait FuncNumbersTrait
             $func = match ($params['type']) {
                 'up' => 'ceil',
                 'down' => 'floor',
+                default => 'round'
             };
         }
 

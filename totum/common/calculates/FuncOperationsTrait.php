@@ -285,6 +285,12 @@ trait FuncOperationsTrait
         return $this->vars[$params['name']];
     }
 
+    protected function funcSleep(string $params)
+    {
+        $params = $this->getParamsArray($params, [], []);
+        sleep($params['sec'] ?? 0);
+    }
+
     protected function funcGlobVar(string $params)
     {
         $params = $this->getParamsArray($params, [], []);

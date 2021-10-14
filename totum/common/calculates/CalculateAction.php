@@ -383,7 +383,7 @@ class CalculateAction extends Calculate
             );
 
             if ($toBfl) {
-                $this->Table->getTotum()->getOutersLogger()->debug("email", $params);
+                $this->Table->getTotum()->getOutersLogger()->debug('email', $params);
             }
             return $r;
         } catch (Exception $e) {

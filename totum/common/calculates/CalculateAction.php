@@ -353,6 +353,11 @@ class CalculateAction extends Calculate
         );
     }
 
+    protected function funcSleep(string $params)
+    {
+        $params = $this->getParamsArray($params, [], []);
+        sleep($params['sec'] ?? 0);
+    }
 
     protected function funcEmailSend($params)
     {

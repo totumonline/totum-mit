@@ -357,7 +357,7 @@ class Calculate
                     '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
                     '|(?<bool>false|true)' .   //10
                     '|(?<param>(?<param_name>(?:\$@|@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
-                    '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',
+                    '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?:\.(?<dog_field2>[a-zA-Z0-9_]{2,}))?(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',
                     //dog,dog_table, dog_field,dog_items
 
                     function ($matches) use ($string, &$done, &$code) {
@@ -427,6 +427,7 @@ class Calculate
                                     'param' => $param,
                                     'table' => $matches['dog_table'],
                                     'field' => $matches['dog_field'],
+                                    'field2' => $matches['dog_field2'],
                                     'items' => $matches['dog_items']
                                 ];
                             }
@@ -845,12 +846,58 @@ class Calculate
                     $paramName = substr($param, 2);
                     $r = $this->Table->getTotum()->getConfig()->globVar($paramName);
                 } else {
-                    $r = $this->Table->getSelectByParams(
-                        ['table' => $paramArray['table'], 'field' => $paramArray['field']],
-                        'field',
-                        $this->row['id'] ?? null,
-                        get_class($this) === Calculate::class
-                    );
+                    /*Ищем по другому полю*/
+
+                    $processHardSelect = function ($WhereFieldName) use (&$paramArray) {
+                        if (empty($paramArray['items'])) {
+                            throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                                '@' . $paramArray['table'] . '....'));
+                        }
+                        $this->__processParamItems($paramArray['items'],
+                            function ($item, $isSection, $_itemFull) use ($WhereFieldName, &$paramArray, &$r) {
+                                if ($isSection) {
+                                    $r = $this->Table->getSelectByParams(
+                                        ['table' => $paramArray['table'],
+                                            'field' => $paramArray['field'],
+                                            'order' => [['field' => 'id', 'ad' => 'asc']],
+                                            'where' => [
+                                                ['field' => $WhereFieldName, 'operator' => '=', 'value' => $item]
+                                            ]],
+                                        'list',
+                                        $this->row['id'] ?? null,
+                                        get_class($this) === Calculate::class
+                                    );
+                                } else {
+                                    $r = $this->Table->getSelectByParams(
+                                        ['table' => $paramArray['table'],
+                                            'field' => $paramArray['field'],
+                                            'order' => [['field' => 'id', 'ad' => 'asc']],
+                                            'where' => [
+                                                ['field' => $WhereFieldName, 'operator' => '=', 'value' => $item]
+                                            ]],
+                                        'field',
+                                        $this->row['id'] ?? null,
+                                        get_class($this) === Calculate::class
+                                    );
+                                }
+                                $paramArray['items'] = substr($paramArray['items'], mb_strlen($_itemFull));
+                                return true;
+                            });
+                        return $r;
+                    };
+
+                    if (!empty($paramArray['field2'])) {
+                        $r = $processHardSelect($paramArray['field2']);
+                    } elseif (($this->Table->getTotum()->getTable($paramArray['table'])->getFields()[$paramArray['field']] ?? null)['category'] === 'column') {
+                        $r = $processHardSelect('id');
+                    } else {
+                        $r = $this->Table->getSelectByParams(
+                            ['table' => $paramArray['table'], 'field' => $paramArray['field']],
+                            'field',
+                            $this->row['id'] ?? null,
+                            get_class($this) === Calculate::class
+                        );
+                    }
                 }
                 $isHashtag = true;
                 break;
@@ -1113,21 +1160,13 @@ class Calculate
 
         $paramName = $param;
         if (!empty($paramArray['items'])) {
+
+
             $itemsNames = '';
 
-            if (preg_match_all('/\[(.*?)(?:\]\]|\])/', $paramArray['items'], $items)) {
-                foreach ($items[0] as $_item) {
-                    $_item = substr($_item, 1, -1);
-                    $isSection = $_item[0] === '[' && substr($_item, -1, 1) === ']';
-                    if ($isSection) {
-                        $_item = substr($_item, 1, -1);
-                    }
-                    $item = $this->getParam($_item, ['type' => 'param', 'param' => $_item]);
+            $this->__processParamItems($paramArray['items'],
+                function ($item, $isSection) use (&$r, &$itemsNames) {
                     $itemsNames .= "[$item]";
-
-                    if (is_numeric($item)) {
-                        $item = (string)$item;
-                    }
 
                     if ($isSection) {
                         if (is_array($r)) {
@@ -1147,17 +1186,16 @@ class Calculate
                         } else {
                             $itemsNames .= '...';
                             $r = null;
-                            break;
+                            return true;
                         }
                     } elseif (is_array($r) && array_key_exists($item, $r)) {
                         $r = $r[$item];
                     } else {
                         $itemsNames .= '...';
                         $r = null;
-                        break;
+                        return true;
                     }
-                }
-            }
+                });
             $paramName = $param . $itemsNames;
             $isHashtag = true;
         }
@@ -1168,6 +1206,26 @@ class Calculate
         return $r;
     }
 
+    protected function __processParamItems($itemsString, $callback)
+    {
+        if (preg_match_all('/\[(.*?)(?:\]\]|\])/', $itemsString, $items)) {
+            foreach ($items[0] as $_itemFull) {
+                $_item = substr($_itemFull, 1, -1);
+                $isSection = $_item[0] === '[' && substr($_item, -1, 1) === ']';
+                if ($isSection) {
+                    $_item = substr($_item, 1, -1);
+                }
+                $item = $this->getParam($_item, ['type' => 'param', 'param' => $_item]);
+                if (is_numeric($item)) {
+                    $item = (string)$item;
+                }
+                if ($callback($item, $isSection, $_itemFull)) {
+                    break;
+                }
+
+            }
+        }
+    }
 
     protected function __checkGetDate($dateFromParams, $paramName, $funcName)
     {

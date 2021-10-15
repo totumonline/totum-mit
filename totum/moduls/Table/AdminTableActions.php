@@ -44,22 +44,21 @@ class AdminTableActions extends WriteTableActions
 
         foreach (Table::init($this->Totum->getConfig())->getAll(
             ['is_del' => false],
-            'name, id, title'
+            'name, id, title, type'
         ) as $tRow) {
             $tFields = [];
-            $fieldsForSobaka = [];
             foreach ($fields as $v) {
                 if ((int)$v['table_id'] === $tRow['id']) {
-                    $tFields[$v['name']] = $v['title'];
-                    if (!in_array($v['category'], ['filter', 'column']) && json_decode(
-                            $v['data'],
-                            true
-                        )['type'] !== 'button') {
-                        $fieldsForSobaka[] = $v['name'];
-                    }
+                    $data = json_decode(
+                        $v['data'],
+                        true
+                    );
+                    $tFields[$v['name']] = [$v['title'], substr($data['type'],
+                        0,
+                        3), $v['category'][0] . ($v['category'][0] === 'f' ? $v['category'][1] : '')];
                 }
             }
-            $tables[$tRow['name']] = ['t' => $tRow['title'], 'f' => $tFields, '@' => $fieldsForSobaka];
+            $tables[$tRow['name']] = ['t' => $tRow['title'], 'f' => $tFields];
         }
 
         return ['tables' => $tables];
@@ -97,7 +96,7 @@ class AdminTableActions extends WriteTableActions
         if (empty($this->Table->getFields()[$name])) {
             throw new errorException($this->translate('Field [[%s]] is not found.', $name));
         }
-        $title=$this->translate('Changing the name of a field');
+        $title = $this->translate('Changing the name of a field');
         $code = <<<CODE
 =: linkToDataTable(table: 'ttm__change_field_name'; title: '$title'; width: 800; height: "80vh"; params:\$#row; refresh: 'strong';)
 CODE;

@@ -185,8 +185,9 @@ SQL;
 
             $Cycles = (array)$params['cycle'];
             foreach ($Cycles as $cycleId) {
-                if (empty($cycleId))
+                if (empty($cycleId)){
                     continue;
+                }
                 $params['cycle'] = $cycleId;
                 $Cycle = $this->Table->getTotum()->getCycle($params['cycle'], $tableRow['tree_node_id']);
                 /** @var calcsTable $table */

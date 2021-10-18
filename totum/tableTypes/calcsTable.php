@@ -30,7 +30,7 @@ class calcsTable extends JsonTables
             if($this->CalculateLog){
                 $this->CalculateLog->addParam('backtrace', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
             }
-            throw new errorException($this->translate('Cycle [[%s]] in table [[%s]] is not found.', [$Cycle->getId(), $this->Totum->getTableRow($Cycle->getCyclesTableId())['title']]));
+            throw new errorException($this->translate('Cycle [[%s]] in table [[%s]] is not found.', [$Cycle->getId(), $this->getTotum()->getTableRow($Cycle->getCyclesTableId())['title']]));
         }
         parent::__construct($Totum, $tableRow, $Cycle, $light);
     }

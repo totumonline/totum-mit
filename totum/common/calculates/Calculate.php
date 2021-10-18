@@ -896,7 +896,7 @@ class Calculate
 
                     if (!empty($paramArray['field2'])) {
                         $r = $processHardSelect($paramArray['field2']);
-                    } elseif (($this->Table->getTotum()->getTable($paramArray['table'])->getFields()[$paramArray['field']] ?? null)['category'] === 'column') {
+                    } elseif ($paramArray['field']==='id' || $paramArray['field']==='n' || ($this->Table->getTotum()->getTable($paramArray['table'])->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
                         $r = $processHardSelect('id');
                     } else {
                         $r = $this->Table->getSelectByParams(

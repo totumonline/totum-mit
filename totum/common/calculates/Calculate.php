@@ -850,39 +850,47 @@ class Calculate
 
                     $processHardSelect = function ($WhereFieldName) use (&$paramArray) {
                         if (empty($paramArray['items'])) {
-                            throw new errorException($this->translate('TOTUM-code format error [[%s]].',
-                                '@' . $paramArray['table'] . '....'));
+                            $r = $this->Table->getSelectByParams(
+                                ['table' => $paramArray['table'],
+                                    'field' => $paramArray['field'],
+                                    'order' => [['field' => 'id', 'ad' => 'asc']],
+                                ],
+                                'list',
+                                $this->row['id'] ?? null,
+                                get_class($this) === Calculate::class
+                            );
+                        } else {
+                            $this->__processParamItems($paramArray['items'],
+                                function ($item, $isSection, $_itemFull) use ($WhereFieldName, &$paramArray, &$r) {
+                                    if ($isSection) {
+                                        $r = $this->Table->getSelectByParams(
+                                            ['table' => $paramArray['table'],
+                                                'field' => $paramArray['field'],
+                                                'order' => [['field' => 'id', 'ad' => 'asc']],
+                                                'where' => [
+                                                    ['field' => $WhereFieldName, 'operator' => '=', 'value' => $item]
+                                                ]],
+                                            'list',
+                                            $this->row['id'] ?? null,
+                                            get_class($this) === Calculate::class
+                                        );
+                                    } else {
+                                        $r = $this->Table->getSelectByParams(
+                                            ['table' => $paramArray['table'],
+                                                'field' => $paramArray['field'],
+                                                'order' => [['field' => 'id', 'ad' => 'asc']],
+                                                'where' => [
+                                                    ['field' => $WhereFieldName, 'operator' => '=', 'value' => $item]
+                                                ]],
+                                            'field',
+                                            $this->row['id'] ?? null,
+                                            get_class($this) === Calculate::class
+                                        );
+                                    }
+                                    $paramArray['items'] = substr($paramArray['items'], mb_strlen($_itemFull));
+                                    return true;
+                                });
                         }
-                        $this->__processParamItems($paramArray['items'],
-                            function ($item, $isSection, $_itemFull) use ($WhereFieldName, &$paramArray, &$r) {
-                                if ($isSection) {
-                                    $r = $this->Table->getSelectByParams(
-                                        ['table' => $paramArray['table'],
-                                            'field' => $paramArray['field'],
-                                            'order' => [['field' => 'id', 'ad' => 'asc']],
-                                            'where' => [
-                                                ['field' => $WhereFieldName, 'operator' => '=', 'value' => $item]
-                                            ]],
-                                        'list',
-                                        $this->row['id'] ?? null,
-                                        get_class($this) === Calculate::class
-                                    );
-                                } else {
-                                    $r = $this->Table->getSelectByParams(
-                                        ['table' => $paramArray['table'],
-                                            'field' => $paramArray['field'],
-                                            'order' => [['field' => 'id', 'ad' => 'asc']],
-                                            'where' => [
-                                                ['field' => $WhereFieldName, 'operator' => '=', 'value' => $item]
-                                            ]],
-                                        'field',
-                                        $this->row['id'] ?? null,
-                                        get_class($this) === Calculate::class
-                                    );
-                                }
-                                $paramArray['items'] = substr($paramArray['items'], mb_strlen($_itemFull));
-                                return true;
-                            });
                         return $r;
                     };
 

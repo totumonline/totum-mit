@@ -242,7 +242,7 @@ trait FuncStringsTrait
         $this->__checkRequiredParams($params, ['template', 'str']);
         $this->__checkNotArrayParams($params, ['template', 'matches', 'str', 'flags']);
 
-        if ($r = preg_match(
+        if ($r = @preg_match(
             '/' . str_replace('/', '\/', (string)$params['template']) . '/'
             . ($params['flags'] ?? 'u'),
             (string)$params['str'],

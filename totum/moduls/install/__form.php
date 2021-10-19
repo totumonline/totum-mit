@@ -46,6 +46,8 @@
         const form = $('#form');
         <?='let post = ' . json_encode($post, JSON_UNESCAPED_UNICODE) ?>;
 
+
+
         const params = [
             {
                 type: 'select', id: "langSelect", name: 'lang', label: "", vals: [
@@ -88,63 +90,79 @@
 
         ];
 
-        $(() => {
-            const formForm = function () {
-                let mark = $('#mark');
-                while (mark.next().length && mark.next().attr('id') != 'submit_div') {
-                    mark.next().remove();
-                }
-                mark = $('#mark');
-
-                params.forEach((param) => {
-                    let div;
-                    switch (param.type) {
-                        case 'select':
-                            div = $('<div class="form-group">').insertAfter(mark);
-                            if (param.label) {
-                                $('<label>').text(App.translate(param.label)).appendTo(div);
-                            }
-                            let select = $('<select>').attr('name', param.name).addClass('form-control').appendTo(div);
-                            param.vals.forEach((o) => {
-                                let option = $('<option>').text(App.translate(o.name)).attr('value', o.val);
-                                select.append(option)
-                                if (o.val == post[param.name]) {
-                                    option.prop('selected', true)
-                                }
-                            })
-                            if (param.id) {
-                                select.attr('id', param.id)
-                            }
-                            break;
-                        case 'h3':
-                            div = $('<h3>').text(App.translate(param.label)).insertAfter(mark);
-                            break;
-                        case 'input':
-                            div = $('<div class="form-group">').insertAfter(mark);
-                            if (param.label) {
-                                $('<label>').text(App.translate(param.label)).appendTo(div);
-                            }
-                            let input = $('<input>').attr('name', param.name).addClass('form-control').val(post[param.name] || '').appendTo(div);
-                            if (param.required) {
-                                input.prop('required', true);
-                            }
-                            if (param.id) {
-                                input.attr('id', param.id)
-                            }
-                            if (param.errorid) {
-                                $('<div class="error">').attr('id', param.errorid).insertAfter(input)
-                            }
-                            break;
-                    }
-                    mark = div;
-                })
+        const formForm = function () {
+            let mark = $('#mark');
+            while (mark.next().length && mark.next().attr('id') != 'submit_div') {
+                mark.next().remove();
             }
+            mark = $('#mark');
+
+            params.forEach((param) => {
+                let div;
+                switch (param.type) {
+                    case 'select':
+                        div = $('<div class="form-group">').insertAfter(mark);
+                        if (param.label) {
+                            $('<label>').text(App.translate(param.label)).appendTo(div);
+                        }
+                        let select = $('<select>').attr('name', param.name).addClass('form-control').appendTo(div);
+                        param.vals.forEach((o) => {
+                            let option = $('<option>').text(App.translate(o.name)).attr('value', o.val);
+                            select.append(option)
+                            if (o.val == post[param.name]) {
+                                option.prop('selected', true)
+                            }
+                        })
+                        if (param.id) {
+                            select.attr('id', param.id)
+                        }
+                        break;
+                    case 'h3':
+                        div = $('<h3>').text(App.translate(param.label)).insertAfter(mark);
+                        break;
+                    case 'input':
+                        div = $('<div class="form-group">').insertAfter(mark);
+                        if (param.label) {
+                            $('<label>').text(App.translate(param.label)).appendTo(div);
+                        }
+                        let input = $('<input>').attr('name', param.name).addClass('form-control').val(post[param.name] || '').appendTo(div);
+                        if (param.required) {
+                            input.prop('required', true);
+                        }
+                        if (param.id) {
+                            input.attr('id', param.id)
+                        }
+                        if (param.errorid) {
+                            $('<div class="error">').attr('id', param.errorid).insertAfter(input)
+                        }
+                        break;
+                }
+                mark = div;
+            })
+        }
+
+        const SetLang = function (lang) {
+            const setLang = () => {
+                App.lang = App.langs[lang];
+                setTimeout(formForm, 20);
+            }
+            if (!App.langs || !App.langs[lang]) {
+                $.getScript('/js/i18n/' + lang + '.js', setLang)
+            } else {
+                setLang();
+            }
+        }
+        SetLang(post.lang)
+
+        $(() => {
+
             formForm();
 
-            $('#form').on('change', '#langSelect', function () {
-                App.lang = App.langs[$(this).val()];
-                setTimeout(formForm, 20);
-            })
+
+
+            $('#form').on('change', '#langSelect', function (){
+               SetLang($(this).val())
+            });
             $('#form').on('change', 'input,select', function () {
                 let self = $(this)
                 post[self.attr('name')] = self.val();

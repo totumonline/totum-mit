@@ -11,8 +11,8 @@ use totum\common\Lang\RU;
           href="/css/libs.css">
     <script src="/js/libs.js"></script>
     <script>App = {}</script>
+
     <script src="/js/main.js"></script>
-    <script src="/js/ru.js"></script>
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css">

@@ -13,7 +13,7 @@ trait FuncDatesTrait
         if (empty($lang)) {
             $lang = $this->getLangObj();
         } else {
-            $lang = new ('totum\\common\\Lang\\' . $lang)();
+            $lang = new ('totum\\common\\Lang\\' . strtoupper($lang))();
         }
 
         return $lang->dateFormat($date, $fStr);

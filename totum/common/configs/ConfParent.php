@@ -99,7 +99,7 @@ abstract class ConfParent
         if (!class_exists('totum\\common\\Lang\\' . strtoupper(static::LANG))) {
             throw new \Exception('Specified ' . static::LANG . ' language is not supported');
         }
-        $this->Lang = new ('totum\\common\\Lang\\' . static::LANG)();
+        $this->Lang = new ('totum\\common\\Lang\\' . strtoupper(static::LANG))();
 
     }
 

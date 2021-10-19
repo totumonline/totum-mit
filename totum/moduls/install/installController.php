@@ -77,7 +77,7 @@ class installController extends interfaceController
         if ($this->Config) {
             return parent::translate($str, $vars);
         }
-        $this->LangObj = $this->LangObj ?? new ('totum\\common\\Lang\\' . $this->lang)();
+        $this->LangObj = $this->LangObj ?? new ('totum\\common\\Lang\\' . strtoupper($this->lang))();
         return $this->LangObj->translate($str, $vars);
     }
 }

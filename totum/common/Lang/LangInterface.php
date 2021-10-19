@@ -12,5 +12,5 @@ interface LangInterface
 
     public function num2str($num): string;
 
-    public function translit($s): string;
+    public function smallTranslit($s): string;
 }

@@ -482,21 +482,12 @@ class RU implements LangInterface
         return trim(preg_replace('/ {2,}/', ' ', join(' ', $out)));
     }
 
-    public function translit($s): string
+    public function smallTranslit($s): string
     {
-        $s = (string)$s;
-        $s = strip_tags($s);
-        $s = str_replace(array("\n", "\r"), ' ', $s);
-        $s = preg_replace('/\s+/', ' ', $s);
-        $s = trim($s);
-        $s = mb_strtolower($s);
-        $s = strtr(
+        return strtr(
             $s,
-            array('а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '')
+            ['а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
         );
-        $s = preg_replace('/[^0-9a-z_ ]/i', '', $s);
-        $s = str_replace(' ', '_', $s);
-        return $s;
     }
 
     /**

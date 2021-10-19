@@ -332,7 +332,19 @@ trait FuncStringsTrait
         $this->__checkRequiredParams($params, ['str']);
         $this->__checkNotArrayParams($params, ['str']);
 
-        return $this->getLangObj()->translit((string)$params['str']);
+        $s = (string)$params['str'];
+        $s = strip_tags($s);
+        $s = str_replace(["\n", "\r"], ' ', $s);
+        $s = preg_replace('/\s+/', ' ', $s);
+        $s = trim($s);
+        $s = mb_strtolower($s);
+
+        $s= $this->getLangObj()->smallTranslit($s);
+
+        $s = preg_replace('/[^0-9a-z_ ]/i', '', $s);
+        $s = str_replace(' ', '_', $s);
+
+        return $s;
     }
 
     protected function funcTextByTemplate(string $params): string

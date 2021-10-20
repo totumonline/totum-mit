@@ -72,7 +72,7 @@ class TotumInstall
     {
         $post['db_schema'] = trim($post['db_schema']);
         $post['db_port'] = $post['db_port'] ?? 5432;
-        $post['lang'] = $post['lang'] ?? 'eng';
+        $post['lang'] = $post['lang'] ?? 'en';
         $db = [
             'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
             'host' => $post['db_host'],
@@ -260,7 +260,7 @@ CONF;
         $this->consoleLog('Upload start sql');
         $this->applySql($getFilePath('start.sql'));
 
-        $data = $this->getDataFromFile($getFilePath('start_' . $this->Totum->getConfig()->getLang() . '.json.gz.ttm'));
+        $data = $this->getDataFromFile($getFilePath('start_' . strtolower($this->Totum->getConfig()->getLang()) . '.json.gz.ttm'));
 
         $this->consoleLog('Install base tables');
         $baseTablesIds = $this->installBaseTables($data);

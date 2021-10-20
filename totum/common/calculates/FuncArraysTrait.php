@@ -102,93 +102,111 @@ trait FuncArraysTrait
 
     protected function funcListFilter(string $params): array
     {
-        $params = $this->getParamsArray($params, []);
+        $params = $this->getParamsArray($params, ['key']);
         $this->__checkListParam($params['list'], 'list');
+
         $this->__checkNotEmptyParams($params, ['key']);
-        $isGerExp = $params['regexp'] ?? false;
 
-        if ($isGerExp) {
+        if ($isGerExp = $params['regexp'] ?? false) {
             $regExpFlags = $params['regexp'] !== true && $params['regexp'] !== 'true' ? $params['regexp'] : 'u';
-
-            if (!in_array($params['key']['operator'], ['=', '!=', '!==', '==='])) {
-                throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].',
-                    ['key operator', '=, != (for regexp)']));
-            } else {
-                $operator = in_array($params['key']['operator'], ['=', '===']);
-            }
-            $pattern = '/' . str_replace('/', '\/', $params['key']['value']) . '/' . $regExpFlags;
-            $matches = [];
-
-            $getCompare = function ($v) use ($operator, $pattern, &$matches) {
-                if (preg_match($pattern, $v, $_matches)) {
-                    $matches[] = $_matches;
-                    return $operator;
-                }
-                return !$operator;
-            };
         } else {
-            $operator = $params['key']['operator'];
-            $value = $params['key']['value'];
-            $getCompare = function ($v) use ($operator, $value) {
-                return Calculate::compare($operator, $v, $value, $this->getLangObj());
-            };
+            $regExpFlags = null;
         }
+        $matches = null;
 
-        switch ($params['key']['field']) {
-            case 'value':
-                $filter = function ($k, $v) use ($getCompare) {
-                    return $getCompare($v);
-                };
-                break;
-            case 'key':
-                $filter = function ($k, $v) use ($getCompare) {
-                    return $getCompare($k);
-                };
-                break;
-            default:
 
-                if ($params['key']['field'] === 'item') {
-                    $this->__checkRequiredParams($params, ['item']);
+        $filterIt = function ($list, $key) use ($params, $regExpFlags, $isGerExp, &$matches) {
+            if ($isGerExp) {
+                if (!in_array($key['operator'], ['=', '!=', '!==', '==='])) {
+                    throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].',
+                        ['key operator', '=, != (for regexp)']));
                 } else {
-                    $params['item'] = $params['key']['field'];
+                    $operator = in_array($key['operator'], ['=', '===']);
                 }
+                $pattern = '/' . str_replace('/', '\/', $key['value']) . '/' . $regExpFlags;
+                $matches = [];
 
-                $skip = $params['skip'] ?? false;
-
-                $filter = function ($k, $v) use ($params, $skip, $getCompare) {
-                    if (!is_array($v)) {
-                        if (!$skip) {
-                            throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
-                        }
-                        return false;
-                    } elseif (!array_key_exists(
-                        $params['item'],
-                        $v
-                    )) {
-                        if (!$skip) {
-                            throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
-                        }
-                        return false;
+                $getCompare = function ($v) use ($operator, $pattern, &$matches) {
+                    if (preg_match($pattern, $v, $_matches)) {
+                        $matches[] = $_matches;
+                        return $operator;
                     }
-                    return $getCompare($v[$params['item']]);
+                    return !$operator;
                 };
-                break;
-        }
+            } else {
+                $operator = $key['operator'];
+                $value = $key['value'];
+                $getCompare = function ($v) use ($operator, $value) {
+                    return Calculate::compare($operator, $v, $value, $this->getLangObj());
+                };
+            }
 
-        $filtered = [];
-        $nIsRow = false;
-        if ((array_keys($params['list']) !== range(0, count($params['list']) - 1))) {
-            $nIsRow = true;
-        }
-        foreach ($params['list'] as $k => $v) {
-            if ($filter($k, $v)) {
-                if ($nIsRow) {
-                    $filtered[$k] = $v;
-                } else {
-                    $filtered[] = $v;
+            switch ($key['field']) {
+                case 'value':
+                    $filter = function ($k, $v) use ($getCompare) {
+                        return $getCompare($v);
+                    };
+                    break;
+                case 'key':
+                    $filter = function ($k, $v) use ($getCompare) {
+                        return $getCompare($k);
+                    };
+                    break;
+                default:
+
+                    if ($key['field'] === 'item') {
+                        $this->__checkRequiredParams($params, ['item']);
+                        $item = $params['item'];
+                    } else {
+                        $item = $key['field'];
+                    }
+
+                    $skip = $params['skip'] ?? false;
+
+                    $filter = function ($k, $v) use ($item, $params, $skip, $getCompare) {
+                        if (!is_array($v)) {
+                            if (!$skip) {
+                                throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
+                            }
+                            return false;
+                        } elseif (!array_key_exists(
+                            $item,
+                            $v
+                        )) {
+                            if (!$skip) {
+                                throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
+                            }
+                            return false;
+                        }
+                        return $getCompare($v[$item]);
+                    };
+                    break;
+            }
+
+            $filtered = [];
+            $nIsRow = false;
+
+            if ((array_keys($list) !== range(0, count($list) - 1))) {
+                $nIsRow = true;
+            }
+            foreach ($list as $k => $v) {
+                if ($filter($k, $v)) {
+                    if ($nIsRow) {
+                        $filtered[$k] = $v;
+                    } else {
+                        $filtered[] = $v;
+                    }
                 }
             }
+            return $filtered;
+        };
+
+        $filtered=$params['list'];
+        foreach ($params['key'] as $key) {
+            $filtered = $filterIt($filtered, $key);
         }
+
+
         if ($isGerExp && ($params['matches'] ?? null)) {
             $this->vars[$params['matches']] = $matches;
         }

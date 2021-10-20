@@ -18,7 +18,7 @@ class installController extends interfaceController
     /**
      * @var mixed|string
      */
-    protected string $lang = 'eng';
+    protected string $lang = 'en';
 
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct()
@@ -29,7 +29,7 @@ class installController extends interfaceController
     public function actionMain(ServerRequestInterface $serverRequest)
     {
         $post = $serverRequest->getParsedBody();
-        $this->lang = $post['lang'] ?? 'eng';
+        $this->lang = $post['lang'] ?? 'en';
 
         set_time_limit(120);
         $done = false;

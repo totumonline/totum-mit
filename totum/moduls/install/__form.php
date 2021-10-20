@@ -20,7 +20,7 @@
     foreach ($_POST as $k => $val) {
         $post[$k] = strip_tags($val);
     }
-    $post['lang'] = $post['lang'] ?? 'eng';
+    $post['lang'] = $post['lang'] ?? 'en';
     $post['multy'] = $post['multy'] ?? '0';
     $post['schema_exists'] = $post['schema_exists'] ?? '1';
     $post['psql'] = $post['psql'] ?? 'psql';
@@ -52,7 +52,7 @@
             {
                 type: 'select', id: "langSelect", name: 'lang', label: "", vals: [
                     {name: "Русский язык", val: 'ru'},
-                    {name: "English", val: 'eng'},
+                    {name: "English", val: 'en'},
                 ]
             },
             {

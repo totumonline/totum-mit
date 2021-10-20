@@ -42,7 +42,7 @@ if (class_exists($controllerClass)) {
     if ($Config) {
         $Lang=$Config->getLangObj();
     }else{
-        $Lang=(new \totum\common\Lang\ENG());
+        $Lang=(new \totum\common\Lang\EN());
     }
     echo $Lang->translate('Not found: %s', [htmlspecialchars($controllerClass)]);
 }

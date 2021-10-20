@@ -4,7 +4,7 @@ namespace totum\common\Lang;
 
 use DateTime;
 
-class ENG implements LangInterface
+class EN implements LangInterface
 {
 
     use TranslateTrait;

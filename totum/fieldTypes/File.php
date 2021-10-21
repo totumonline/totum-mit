@@ -182,12 +182,24 @@ class File extends Field
 
     protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
-        if (is_object($modifyVal)) {
-            $modifyVal = $modifyVal->val;
+        if (is_object($modifyVal) && empty($this->data['multiple'])) {
+            throw new errorException($this->translate('Operation [[%s]] over not mupliple select is not supported.',
+                $modifyVal->sign));
         }
+
+
         if (!$isCheck) {
             $deletedFiles = [];
-            if (!empty($oldVal) && is_array($oldVal)) {
+            if (is_object($modifyVal)) {
+                if (empty($oldVal)) {
+                    $oldVal = array();
+                }
+                $modifyVal = match ($modifyVal->sign) {
+                    '+' => array_merge($oldVal, [$modifyVal->val]),
+                    default => throw new errorException($this->translate('Operation [[%s]] over files is not supported.',
+                        $modifyVal->sign)),
+                };
+            } elseif (!empty($oldVal) && is_array($oldVal)) {
                 foreach ($oldVal as $fOld) {
                     foreach ($modifyVal as $file) {
                         if ($fOld['file'] === ($file['file'] ?? null)) {

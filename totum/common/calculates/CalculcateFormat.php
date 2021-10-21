@@ -69,6 +69,10 @@ class CalculcateFormat extends Calculate
             if ($this->getConditionsResult($params)) {
                 if (key_exists('ids', $params) && is_array($params['ids'] = $this->execSubCode($params['ids'],
                         'ids'))) {
+                    foreach ($params['ids'] as &$id) {
+                        $id = (int)$id;
+                    }
+                    unset($id);
                     $this->formatArray['order'] = $params['ids'];
                 }
             }

@@ -201,7 +201,7 @@ trait FuncArraysTrait
             return $filtered;
         };
 
-        $filtered=$params['list'];
+        $filtered = $params['list'];
         foreach ($params['key'] as $key) {
             $filtered = $filterIt($filtered, $key);
         }
@@ -516,73 +516,90 @@ trait FuncArraysTrait
 
     protected function funcListSort(string $params): array
     {
-        $params = $this->getParamsArray($params, [], [], []);
+        $params = $this->getParamsArray($params, ['key'], ['key'], []);
         $this->__checkListParam($params['list'], 'list');
 
-        $flags = 0;
         $params['type'] = $params['type'] ?? 'regular';
-        $this->__checkNotArrayParams($params, ['type', 'key', 'item', 'direction']);
+        $this->__checkNotArrayParams($params, ['type', 'item', 'direction']);
 
-        $flags = match ($params['type']) {
-            'number' => $flags | SORT_NUMERIC,
-            'string' => $flags | SORT_STRING,
-            default => $flags | SORT_REGULAR,
+        $flag = match ($params['type']) {
+            'number' => SORT_NUMERIC,
+            'string' => SORT_STRING,
+            'nat' => SORT_NATURAL,
+            default => SORT_REGULAR
         };
 
-        switch ($params['key'] = $params['key'] ?? 'value') {
-            case 'key':
-                if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    $isAssoc = (array_keys($params['list']) !== range(
-                                0,
-                                count($params['list']) - 1
-                            )) && count($params['list']) > 0;
+        $isAssoc = (array_keys($params['list']) !== range(
+                    0,
+                    count($params['list']) - 1
+                )) && count($params['list']) > 0;
 
-                    if ($isAssoc) {
-                        krsort($params['list'], $flags);
-                    } else {
-                        $params['list'] = array_reverse($params['list'], false);
-                    }
+
+        if (empty($params['key'])) {
+            $keys = [['value', 1]];
+        } else {
+            $keys = [];
+            foreach ($params['key'] as $i => $key) {
+
+                if (preg_match(
+                    '/^(.*?)(?i:(asc|desc))$/',
+                    $key,
+                    $matches
+                )) {
+                    $order = $matches[2];
+                    $key = $matches[1];
                 } else {
-                    ksort($params['list'], $flags);
+                    $order = ($params['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                 }
-
-                break;
-
-            case 'value':
-                $isAssoc = (array_keys($params['list']) !== range(
-                            0,
-                            count($params['list']) - 1
-                        )) && count($params['list']) > 0;
-                if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    if ($isAssoc) {
-                        arsort($params['list'], $flags);
-                    } else {
-                        rsort($params['list'], $flags);
-                    }
-                } elseif ($isAssoc) {
-                    asort($params['list'], $flags);
-                } else {
-                    sort($params['list'], $flags);
+                $key = $this->execSubCode($key, 'key');
+                if ($key === 'item') {
+                    $this->__checkRequiredParams($params, 'item');
+                    $this->__checkNotArrayParams($params, ['item']);
+                    $key = $params['item'];
+                } elseif (is_array($key)) {
+                    throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.',
+                        'key' . ($i + 1)));
                 }
-
-                break;
-            default:
-                if ($params['key'] === 'item') {
-                    $this->__checkRequiredParams($params, ['item']);
-                } else {
-                    $params['item'] = $params['key'];
-                }
-
-                if (!empty($params['direction']) && $params['direction'] === 'desc') {
-                    $sort = SORT_DESC;
-                } else {
-                    $sort = SORT_ASC;
-                }
-                $column = array_column($params['list'], $params['item']);
-                array_multisort($column, $flags, $sort, $params['list']);
+                $keys[] = [$key, $order === 'desc' ? -1 : 1];
+            }
         }
 
-        return $params['list'];
+
+        $list = $params['list'];
+
+        uksort($list, function ($a, $b) use ($flag, $list, $keys) {
+            foreach ($keys as $key) {
+                list($key, $dir) = $key;
+                switch ($key) {
+                    case 'key':
+                        $A =$a;
+                        $B =$b;
+                        break;
+                    case 'value':
+                        $A = $list[$a];
+                        $B = $list[$b];
+                        break;
+                    default:
+                        $A = $list[$a][$key] ?? null;
+                        $B = $list[$b][$key] ?? null;
+                }
+                if ($A === $B) {
+                    continue;
+                }
+                $arr = [$A, $B];
+
+                @asort($arr, $flag);
+
+                $r = array_key_first($arr) === 0 ? -1 : 1;
+                break;
+            }
+            $r = $r ?? 0;
+            return $dir * $r;
+        });
+        if (!$isAssoc) {
+            $list = array_values($list);
+        }
+        return $list;
     }
 
     protected function funcListSum(string $params): float

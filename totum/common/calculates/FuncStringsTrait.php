@@ -270,6 +270,7 @@ trait FuncStringsTrait
     {
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['str', 'from', 'to'], 'strRepeat');
+        $this->__checkNotArrayParams($params, ['str'], 'strRepeat');
 
         return str_replace($params['from'], $params['to'], $params['str']);
     }

@@ -813,7 +813,7 @@ class Calculate
             throw new errorException($this->translate('TOTUM-code format error [[%s]].', $paramVal));
         }
 
-        if (count($codes) < 2) {
+        if (count($codes) < 2 || !key_exists(1, $codes)) {
             throw new errorException($this->translate('The [[%s]] parameter must contain 2 elements.', $paramsName));
         }
 
@@ -896,7 +896,7 @@ class Calculate
 
                     if (!empty($paramArray['field2'])) {
                         $r = $processHardSelect($paramArray['field2']);
-                    } elseif ($paramArray['field']==='id' || $paramArray['field']==='n' || ($this->Table->getTotum()->getTable($paramArray['table'])->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
+                    } elseif ($paramArray['field'] === 'id' || $paramArray['field'] === 'n' || ($this->Table->getTotum()->getTable($paramArray['table'])->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
                         $r = $processHardSelect('id');
                     } else {
                         $r = $this->Table->getSelectByParams(

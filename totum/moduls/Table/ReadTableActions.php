@@ -447,7 +447,7 @@ class ReadTableActions extends Actions
         }
 
 
-        $result['updated'] = $this->Table->getUpdated();
+        $result['updated'] = $this->Table->getSavedUpdated();
         $result['refresh'] = true;
 
         if (($this->post['getList'] ?? false) !== 'true') {

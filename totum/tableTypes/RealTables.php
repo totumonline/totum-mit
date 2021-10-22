@@ -1252,7 +1252,8 @@ abstract class RealTables extends aTable
 
         if ($addWithId && ($id = (int)($addData['id'] ?? 0)) > 0) {
             if ($this->model->getPrepared(['id' => $id], 'id')) {
-                throw new errorException($this->translate('The row with id %s in the table already exists. Cannot be added again', $id));
+                throw new errorException($this->translate('The row with id %s in the table already exists. Cannot be added again',
+                    $id));
             }
             $changedData['id'] = $id;
         }
@@ -1374,7 +1375,8 @@ abstract class RealTables extends aTable
             }
 
             if (!array_key_exists($fieldName, $fields) && !Model::isServiceField($fieldName)) {
-                throw new errorException($this->translate('The %s field in %s of the table does not exist', [$fieldName, $this->tableRow['name']]));
+                throw new errorException($this->translate('The %s field in %s of the table does not exist',
+                    [$fieldName, $this->tableRow['name']]));
             }
 
 
@@ -1390,9 +1392,15 @@ abstract class RealTables extends aTable
             if ($fieldName === 'is_del') {
                 $withoutDeleted = false;
             } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
-                foreach ((array)$value as $v) {
+                $value = (array)$value;
+                foreach ($value as $i => $v) {
                     if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
-                        throw new errorException($this->translate('A number must be passed to select by the numeric field [[%s]]', $fieldName));
+                        if (!empty($wI['filterNumbersIfNumeric'])) {
+                            unset($value[$i]);
+                            continue;
+                        }
+                        throw new errorException($this->translate('For selecting by numeric field [[%s]] you must pass numeric values',
+                            $fieldName));
                     }
                 }
 
@@ -1558,7 +1566,8 @@ abstract class RealTables extends aTable
                 $checkIsArrayInArray = function () use ($fieldName, $value) {
                     foreach ($value as $v) {
                         if (is_array($v)) {
-                            throw new errorException($this->translate('None of the elements of the %s parameter array must be a list.', $fieldName));
+                            throw new errorException($this->translate('None of the elements of the %s parameter array must be a list.',
+                                $fieldName));
                         }
                     }
                 };

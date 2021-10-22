@@ -34,10 +34,16 @@ class CalculateSelectViewValue extends CalculateSelect
             $val = ($this->columnVals)();
         }
 
+        $bField=$params['bfield'] ?? 'id';
+
+
+
+
         $params['where'][] = [
-            'field' => $params['bfield'] ?? 'id',
+            'field' => $bField,
             'operator' => '=',
-            'value' => $val
+            'value' => $val,
+            'filterNumbersIfNumeric' => true
         ];
 
 

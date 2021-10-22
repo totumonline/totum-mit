@@ -54,7 +54,7 @@ class RU implements LangInterface
         'The [[%s]] field is not found in the [[%s]] table.' => 'Поле [[%s]] не надено в таблице [[%s]].',
         'The %s field must be numeric.' => 'Поле %s должно быть числовым.',
         'The value of the %s field must be numeric.' => 'Значение поля %s должно быть числовым.',
-        'A number must be passed to select by the numeric field [[%s]]' => 'Для выборки по числовому полю [[%s]] должно быть передано число',
+        'For selecting by numeric field [[%s]] you must pass numeric values' => 'Для выборки по числовому полю [[%s]] должно быть передано число',
 
 
         'The value of %s field must match the format: %s' => 'Значение поля %s должно соответствовать формату: %s',

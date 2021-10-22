@@ -27,7 +27,7 @@ use totum\tableTypes\tmpTable;
  */
 class Totum
 {
-    public const VERSION = '1.2.30';
+    public const VERSION = '2.3.31';
 
 
     public const TABLE_CODE_PARAMS = ['row_format', 'table_format'];
@@ -43,11 +43,8 @@ class Totum
         'order_roles',
         'read_roles',
         'tree_off_roles'];
-    const LANGUAGES = ["ru"];
 
     protected $interfaceData = [];
-
-
     /**
      * @var Conf
      */

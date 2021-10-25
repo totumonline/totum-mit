@@ -177,11 +177,14 @@ class Number extends Field
             $val /= $step;
         }
 
+
+
         if (fmod($val * $fig, 1) < 0.000000000001) {
             $func = 'round';
         }
 
         $val = $func($val * $fig) / $fig * $step;
-        $val = bcadd(number_format($val, 15, '.', ''), 0, $this->data['dectimalPlaces']);
+        $val = bcadd($val, 0, $this->data['dectimalPlaces']);
+
     }
 }

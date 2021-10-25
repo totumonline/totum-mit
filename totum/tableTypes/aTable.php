@@ -2618,38 +2618,38 @@ CODE;;
     {
         $User = $this->Totum->getUser();
         $userRoles = $User->getRoles();
-        $isUserCreatorOrInRoles = function ($roles) use ($User, $userRoles) {
-            return ($User->isCreator() || empty($roles) || array_intersect($roles, $userRoles));
+        $isInRoles = function ($roles) use ($User, $userRoles) {
+            return (empty($roles) || array_intersect($roles, $userRoles));
         };
 
         switch ($channel) {
             case 'web':
-                $visible = $field['showInWeb'] && $isUserCreatorOrInRoles($field['webRoles'] ?? []);
+                $visible = $field['showInWeb'] && ($User->isCreator() || $isInRoles($field['webRoles'] ?? []));
                 switch ($property) {
                     case 'visible':
                         return $visible;
                     case 'filterable':
                         return $field['showInWeb'];
                     case 'editFilterByUser':
-                        return $field['showInWeb'] && ($field['editable'] ?? false) && $isUserCreatorOrInRoles($field['webRoles'] ?? []) && $isUserCreatorOrInRoles($field['editRoles'] ?? []);
+                        return $field['showInWeb'] && ($field['editable'] ?? false) && $isInRoles($field['webRoles'] ?? []) && $isInRoles($field['editRoles'] ?? []);
                     case 'insertable':
-                        return $visible && ($field['insertable'] ?? false) && $isUserCreatorOrInRoles($field['addRoles'] ?? []);
+                        return $visible && ($field['insertable'] ?? false) && $isInRoles($field['addRoles'] ?? []);
                     case 'editable':
                         /*Для фильтра ограничения видимости по ролям не отключают редактирование*/
                         if ($field['category'] === 'filter') {
-                            return ($field['showInWeb'] ?? false) && ($field['editable'] ?? false) && $isUserCreatorOrInRoles($field['editRoles'] ?? []);
+                            return ($field['showInWeb'] ?? false) && ($field['editable'] ?? false) && $isInRoles($field['editRoles'] ?? []);
                         }
-                        return $visible && ($field['editable'] ?? false) && $isUserCreatorOrInRoles($field['editRoles'] ?? []);
+                        return $visible && ($field['editable'] ?? false) && $isInRoles($field['editRoles'] ?? []);
                 }
                 break;
             case 'xml':
-                $visible = ($field['showInXml'] ?? null) && $isUserCreatorOrInRoles($field['xmlRoles'] ?? []);
+                $visible = ($field['showInXml'] ?? null) && $isInRoles($field['xmlRoles'] ?? []);
 
                 return match ($property) {
                     'visible' => $visible,
                     'insertable' => $visible && $field['apiInsertable'],
                     'filterable' => $field['showInXml'],
-                    'editable' => $visible && $field['apiEditable'] && $isUserCreatorOrInRoles($field['xmlEditRoles'] ?? []),
+                    'editable' => $visible && $field['apiEditable'] && $isInRoles($field['xmlEditRoles'] ?? []),
                     default => throw new errorException('In channel ' . $channel . ' not supported action ' . $property),
                 };
                 break;

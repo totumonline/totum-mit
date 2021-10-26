@@ -560,11 +560,11 @@ abstract class aTable
                         }
                         break;
                     case 'date':
-                        if (empty($f['date_format'])) {
-                            $f['date_format'] = $this->getTotum()->getConfig()->getSettings('dates_format') ?? 'd.m.y';
+                        if (empty($f['dateFormat'])) {
+                            $f['dateFormat'] = $this->getTotum()->getConfig()->getSettings('dates_format') ?? 'd.m.y';
 
                             if (!empty($f['dateTime'])) {
-                                $f['date_format'] .= ' H:i';
+                                $f['dateFormat'] .= ' H:i';
                             }
                         }
                         break;

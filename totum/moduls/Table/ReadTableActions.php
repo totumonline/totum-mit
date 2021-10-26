@@ -1137,14 +1137,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
                 }
                 $vars = [];
-                if ($click['checked_ids']) {
+                if ($click['checked_ids'] ?? null) {
                     $vars['ids'] = function () use ($click) {
                         return $this->Table->checkFilteredIds('web', $click['checked_ids']);
                     };
                 } else {
                     $vars['ids'] = [];
                 }
-                if ($ids = json_decode($this->post['ids'], true)) {
+                if ($ids = json_decode($this->post['ids'] ?? '[]', true)) {
 
                     $vars['rows'] = function () use ($ids) {
                         $ids = $this->Table->loadFilteredRows('web', $ids);

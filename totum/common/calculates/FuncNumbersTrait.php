@@ -22,9 +22,9 @@ trait FuncNumbersTrait
 
         return number_format(
                 (float)$params['num'],
-                (int)$params['dectimals'] ?? 0,
-                (string)$params['decsep'] ?? ',',
-                (string)$params['thousandssep'] ?? ''
+                (int)($params['dectimals'] ?? 0),
+                (string)($params['decsep'] ?? ','),
+                (string)($params['thousandssep'] ?? '')
             )
             . ((string)($params['unittype'] ?? ''));
     }

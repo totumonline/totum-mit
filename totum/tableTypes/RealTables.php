@@ -1291,7 +1291,7 @@ abstract class RealTables extends aTable
                 )) {
                 $_channel = 'inner';
                 $newVal = $this->insertRowSetData[$v['name']];
-                unset($this->insertRowSetData[$v['name']]);
+
             }
 
             $changedData[$v['name']] = $field->add(
@@ -1336,11 +1336,11 @@ abstract class RealTables extends aTable
                 foreach ($changedData as $k => $v) {
                     if (key_exists($k, $this->fields)) {
                         $Field = Field::init($this->fields[$k], $this);
-                        $this->addToALogAdd($Field, $channel, $this->tbl, $row, $addData);
+                        $this->addToALogAdd($Field, $channel, $this->tbl, $row, $this->insertRowSetData ?? $addData);
                     }
                 }
                 /******aLog*****/
-
+                $this->insertRowSetData = null;
                 return $row;
             }
         } else {

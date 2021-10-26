@@ -653,6 +653,7 @@ abstract class JsonTables extends aTable
             $Field = Field::init($column, $this);
 
             $newVal = $modify[$thisRow['id']][$column['name']] ?? null;
+            $_channel = $channel;
 
             if (!key_exists(
                     $column['name'],
@@ -661,12 +662,12 @@ abstract class JsonTables extends aTable
                     $column['name'],
                     $this->insertRowSetData
                 )) {
-                $channel = 'inner';
+                $_channel = 'inner';
                 $newVal = $this->insertRowSetData[$column['name']];
-                unset($this->insertRowSetData[$column['name']]);
             }
+
             $thisRow[$column['name']] = $Field->add(
-                $channel,
+                $_channel,
                 $newVal,
                 $thisRow,
                 $this->savedTbl,
@@ -675,8 +676,13 @@ abstract class JsonTables extends aTable
                 ['duplicatedId' => $duplicatedIds[$thisRow['id']] ?? 0]
             );
             if (!$isCheck) {
-                $this->addToALogAdd($Field, $channel, $this->tbl, $thisRow, $modify[$thisRow['id']] ?? []);
+                $this->addToALogAdd($Field,
+                    $channel,
+                    $this->tbl,
+                    $thisRow,
+                    $this->insertRowSetData ?? $modify[$thisRow['id']] ?? []);
             }
+            unset($this->insertRowSetData[$column['name']]);
         };
 
         $calculateRowFooterField = function ($footerField) use ($modify, $isTableAdding, $channel, $modifyCalculated, $isCheck, $setValuesToDefaults, $setValuesToPinned) {

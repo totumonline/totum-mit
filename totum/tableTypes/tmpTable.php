@@ -79,7 +79,7 @@ class tmpTable extends JsonTables
         return new static($Totum, $tableRow, $extraData, $light, $hash);
     }
 
-    public function createTable()
+    public function createTable(int $duplicatedId)
     {
     }
 

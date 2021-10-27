@@ -717,7 +717,7 @@ abstract class aTable
         return $this->savedUpdated;
     }
 
-    abstract public function createTable();
+    abstract public function createTable(int $duplicatedId);
 
     public function reCalculateFromOvers($inVars = [], $Log = null, $level = 0)
     {

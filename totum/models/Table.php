@@ -48,6 +48,20 @@ class Table extends Model
             'calcstable_versions' => [],
         ];
 
+    public function createTableAfterPrepared($id, int $duplicatedId): void
+    {
+        if ($id && ($row = $this->Totum->getTableRow($id))) {
+            if ($row['type'] === 'calcs') {
+                calcsTable::__createTable($row['name'], $this->Totum);
+            } else {
+                $table = $this->Totum->getTable($row);
+                $table->createTable($duplicatedId);
+            }
+        } else {
+            throw new errorException($this->translate('Table creation error.'));
+        }
+    }
+
     use WithTotumTrait;
 
     public function insertPrepared($vars, $returning = 'idFieldName', $ignore = false, $cacheIt = true)
@@ -61,16 +75,7 @@ class Table extends Model
         }
 
         $id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt);
-        if ($id && ($row = $this->Totum->getTableRow($id))) {
-            if ($row['type'] === 'calcs') {
-                calcsTable::__createTable($row['name'], $this->Totum);
-            } else {
-                $table = $this->Totum->getTable($row);
-                $table->createTable();
-            }
-        } else {
-            throw new errorException($this->translate('Table creation error.'));
-        }
+
         return $id;
     }
 

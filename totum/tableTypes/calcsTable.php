@@ -111,7 +111,7 @@ class calcsTable extends JsonTables
         ]);
     }
 
-    public function createTable()
+    public function createTable(int $duplicatedId)
     {
         static::__createTable($this->tableRow['name'], $this->Totum);
     }

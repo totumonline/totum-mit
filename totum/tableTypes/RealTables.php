@@ -55,7 +55,7 @@ abstract class RealTables extends aTable
         return $this->model->childrenIdsRecursive($id, $parentField, $bfield);
     }
 
-    public function createTable()
+    public function createTable(int $duplicatedId)
     {
         $fields = [];
         $fields[] = 'id SERIAL PRIMARY KEY NOT NULL';
@@ -1328,6 +1328,10 @@ abstract class RealTables extends aTable
             $this->setIsTableDataChanged(true);
 
             if ($resultId = $this->model->insertPrepared($changedSaveData)) {
+                if(is_a($this->model, Table::class)){
+                    $this->model->createTableAfterPrepared($resultId, $duplicatedId);
+                }
+
                 $row = static::decodeRow($this->model->getById($resultId));
                 $this->rowChanged([], $row, 'Add');
 

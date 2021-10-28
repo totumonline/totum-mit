@@ -216,7 +216,7 @@ class TableController extends interfaceController
         if ($branchIds) {
             foreach (Table::init($this->Config)->getAll(
                 ['tree_node_id' => ($branchIds), 'id' => array_keys($this->User->getTreeTables())],
-                'id, title, type, tree_node_id, sort, icon',
+                'id, title, type, tree_node_id, sort, icon, name',
                 '(sort->>\'v\')::numeric'
             ) as $t) {
                 $tree[] = [
@@ -224,6 +224,7 @@ class TableController extends interfaceController
                     , 'href' => $t['id']
                     , 'text' => $t['title']
                     , 'type' => 'table_' . $t['type']
+                    , 'name' => $t['name']
                     , 'icon' => ($t['icon'] ?? null)
                     , 'parent' => 'tree' . $t['tree_node_id']
                     , 'ord' => (int)$t['sort']
@@ -323,6 +324,7 @@ class TableController extends interfaceController
                     , 'href' => $this->modulePath . $t['top'] . '/' . $t['id']
                     , 'text' => $t['title']
                     , 'type' => 'table_' . $t['type']
+                    , 'name' => $t['name']
                     , 'icon' => ($t['icon'] ?? null)
                     , 'parent' => '#'
                 ];

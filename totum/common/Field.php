@@ -220,12 +220,12 @@ class Field
         return !!$this->CalculateFormat;
     }
 
-    public function addFormat(&$valArray, $row, $tbl)
+    public function addFormat(&$valArray, $row, $tbl, $pageIds)
     {
         if ($this->checkFormatObject()) {
             $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
 
-            if ($format = $this->CalculateFormat->getFormat($this->data['name'], $row, $tbl, $this->table)) {
+            if ($format = $this->CalculateFormat->getFormat($this->data['name'], $row, $tbl, $this->table, ['rows'=>$this->table->getRowsForFormat($pageIds)])) {
                 $valArray['f'] = $format;
             }
             $this->table->calcLog($Log, 'result', $format);

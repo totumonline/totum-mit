@@ -33,12 +33,12 @@ class Chart extends NoValueField
         return ["v" => null];
     }
 
-    public function addFormat(&$valArray, $row, $tbl)
+    public function addFormat(&$valArray, $row, $tbl, $pageIds)
     {
-        parent::addFormat($valArray, $row, $tbl);
+        parent::addFormat($valArray, $row, $tbl, $pageIds);
         if ($this->chartFormat) {
             $Log = $this->table->calcLog(['field' => $this->data['name'], 'cType' => 'format', 'itemId' => $row['id'] ?? null]);
-            if ($format = $this->chartFormat->exec($this->data, [], $row, $row, $tbl, $tbl, $this->table, [])) {
+            if ($format = $this->chartFormat->exec($this->data, [], $row, $row, $tbl, $tbl, $this->table, ['rows'=>$this->table->getRowsForFormat($pageIds)])) {
                 $valArray['ch'] = $format;
             }
             $this->table->calcLog($Log, 'result', $valArray['ch']);

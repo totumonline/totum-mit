@@ -326,7 +326,7 @@ class ReadTableActions extends Actions
         }
 
         $data = $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
-        $data['f'] = $this->getTableFormat(array_column($data['rows'], 'id'));
+        $data['f'] = $this->Table->getTableFormat(array_column($data['rows'], 'id'));
 
 
         return $data;
@@ -403,7 +403,7 @@ class ReadTableActions extends Actions
 
         switch ($pageViewType = $this->getPageViewType()) {
             case 'tree':
-                $result += ['chdata' => $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'])];
+                $result += ['chdata' => []];
 
                 if (!is_array($this->post) || !key_exists('tree', $this->post)) {
                     throw new errorException($this->translate('The tree index is not passed'));
@@ -424,7 +424,11 @@ class ReadTableActions extends Actions
                         ['']
                     )
                 );
-                $result['chdata']['f'] = $this->getTableFormat(array_column($result['chdata']['rows'] ?? [], 'id'));
+
+                $pageIds = array_column($result['chdata']['rows'] ?? [], 'id');
+                $result['chdata']['params'] = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'],
+                    $pageIds)['params'];
+                $result['chdata']['f'] = $this->Table->getTableFormat($pageIds);
                 break;
             default:
 
@@ -519,7 +523,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $data['rows'][$id] = $this->Table->getTbl()['rows'][$id];
             }
         }
-        $result = $this->Table->getValuesAndFormatsForClient($data, 'print', $fieldNames);
+        $result = $this->Table->getValuesAndFormatsForClient($data, 'print', array_keys($data['rows']), $fieldNames);
 
 
         $getTdTitle = function ($field, $withWidth = true) {
@@ -881,11 +885,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return 'common';
     }
 
-    protected function addValuesAndFormatsOfParams($params)
+    protected function addValuesAndFormatsOfParams($params, array $rowIds)
     {
         $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS OF OTHER NON-ROWS PARTS']);
         {
-            $params = $this->Table->getValuesAndFormatsForClient(['params' => $params], 'web');
+            $params = $this->Table->getValuesAndFormatsForClient(['params' => $params], 'web', $rowIds);
         }
         $this->Table->calcLog($Log, 'result', 'done');
 
@@ -930,8 +934,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             );
         }
 
-        $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params']);
-        $result['f'] = $this->getTableFormat(array_column($data['rows'] ?? [], 'id'));
+        $pageIds = array_column($data['rows'] ?? [], 'id');
+        $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'], $pageIds);
+        $result['f'] = $this->Table->getTableFormat($pageIds);
         $result['rows'] = $data['rows'] ?? [];
         $result['offset'] = $data['offset'] ?? null;
 
@@ -1074,9 +1079,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($this->Table->loadFilteredRows('web', [$id])) {
             $res['row'] = $this->Table->getValuesAndFormatsForClient(
                 ['rows' => [$this->Table->getTbl()['rows'][$id]]],
-                'edit'
+                'edit', []
             )['rows'][0];
-            $res['f'] = $this->getTableFormat([]);
+            $res['f'] = $this->Table->getTableFormat([]);
             return $res;
         } else {
             throw new errorException($this->translate('Row not found'));
@@ -1347,7 +1352,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $filters['params'][$fName] = $params[$fName];
         }
         $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS OF FILTERS']);
-        $changedData = $this->Table->getValuesAndFormatsForClient($filters, 'web');
+        $changedData = $this->Table->getValuesAndFormatsForClient($filters, 'web', []);
 
         $this->Table->calcLog($Log, 'result', $changedData);
 
@@ -1625,49 +1630,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $this->getTableClientChangedData([]);
     }
 
-    protected function getTableFormat(array $rowIds)
-    {
-        $tFormat = [];
-        if ($this->Table->getTableRow()['table_format'] && $this->Table->getTableRow()['table_format'] != 'f1=:') {
-            $Log = $this->Table->calcLog(['name' => 'Table format']);
-
-            $rowsFunc = function () use ($rowIds): array {
-                $rows = [];
-                if ($rowIds) {
-                    $rowIds = $this->Table->loadFilteredRows('web', $rowIds);
-                    foreach ($rowIds as $id) {
-                        $row = $this->Table->getTbl()['rows'][$id];
-                        unset($row['_E']);
-                        foreach ($row as $k => $v) {
-                            $row[$k] = match ($k) {
-                                'id' => $v,
-                                default => $v['v'] ?? null
-                            };
-                        }
-                        $rows[] = $row;
-                    }
-                }
-                return $rows;
-            };
-
-
-            $calc = new CalculcateFormat($this->Table->getTableRow()['table_format']);
-            $tFormat = $calc->getFormat(
-                'TABLE',
-                [],
-                $this->Table->getTbl(),
-                $this->Table,
-                ['rows' => $rowsFunc]
-            );
-            $this->Table->calcLog($Log, 'result', $tFormat);
-        }
-        if ($this->Table->getChangeIds()['reordered']) {
-            $tFormat['refreshOrder'] = true;
-        }
-
-        return $tFormat;
-    }
-
     protected function modify($data)
     {
         $tableData = $this->post['tableData'] ?? [];
@@ -1783,8 +1745,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
 
             $return['chdata']['params'] = $this->Table->getTbl()['params'] ?? [];
-            $return['chdata']['f'] = $this->getTableFormat($pageIds ?: []);
-            $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web');
+            $return['chdata']['f'] = $this->Table->getTableFormat($pageIds ?: []);
+            $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web', $pageIds ?: []);
 
             if (empty($return['chdata']['params'])) {
                 unset($return['chdata']['params']);
@@ -1829,26 +1791,26 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     protected function getTreeTopLevel($load, $open)
     {
-        $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params']);
 
-        $result = array_merge(
-            $result,
-            $this->getResultTree(
-                function ($k, $v) use ($load, $open) {
-                    if ($v[3] === null || $load || $open) {
-                        if (!$open) {
-                            return 'closed';
-                        }
-                        return 'this';
-                    } elseif (is_null($v['path'][3])) {
-                        return 'child';
+
+        $result = $this->getResultTree(
+            function ($k, $v) use ($load, $open) {
+                if ($v[3] === null || $load || $open) {
+                    if (!$open) {
+                        return 'closed';
                     }
-                },
-                null
-            )
+                    return 'this';
+                } elseif (is_null($v['path'][3])) {
+                    return 'child';
+                }
+            },
+            null
         );
+
+        $pageIds = array_column($result['rows'] ?? [], 'id');
+        $result['params'] = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'], $pageIds)['params'];
         $result['filtersString'] = $this->getFiltersString();
-        $result['f'] = $this->getTableFormat(array_column($result['rows'] ?? [], 'id'));
+        $result['f'] = $this->Table->getTableFormat($pageIds);
         return $result;
     }
 

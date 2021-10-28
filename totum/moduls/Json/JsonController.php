@@ -454,8 +454,6 @@ class JsonController extends Controller
         $withTitles = false;
         $withCalcs = false;
 
-        $data = $this->Table->getValuesAndFormatsForClient($data, 'xml');
-
         $addToXmlOut = function (&$addTo, $field, $valArray) use ($withTitles, $withCalcs) {
             $v = $valArray['v'] ?? null;
             if ($withTitles || $withCalcs) {

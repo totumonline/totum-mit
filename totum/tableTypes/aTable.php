@@ -1011,26 +1011,6 @@ CODE;;
     }
 
 
-    /*Устаревшая*/
-    public function getDataForXml()
-    {
-        $table = $this->tableRow;
-
-        $this->reCalculate(['calculate' => aTable::CALC_INTERVAL_TYPES['changed'], 'channel' => 'xml']);
-
-        $this->isTblUpdated();
-        $data['rows'] = $this->getSortedFilteredRows('xml', 'xml');
-        $data['params'] = $this->getTbl()['params'];
-
-
-        $data = $this->getValuesAndFormatsForClient($data, 'xml');
-
-        $table['params'] = $data['params'];
-        $table['fields'] = $this->getVisibleFields('xml', true);
-        $table['updated'] = $this->updated;
-        return $table;
-    }
-
     abstract public function saveTable();
 
     public function getChangedString($code)
@@ -1163,6 +1143,30 @@ CODE;;
         return $this->sortedFields;
     }
 
+
+    public function getRowsForFormat($rowIds)
+    {
+        return function () use ($rowIds): array {
+            $rows = [];
+            if ($rowIds) {
+                $rowIds = $this->loadFilteredRows('web', $rowIds);
+                foreach ($rowIds as $id) {
+                    $row = $this->getTbl()['rows'][$id];
+                    unset($row['_E']);
+                    foreach ($row as $k => $v) {
+                        $row[$k] = match ($k) {
+                            'id' => $v,
+                            default => $v['v'] ?? null
+                        };
+                    }
+                    $rows[] = $row;
+                }
+            }
+            return $rows;
+        };
+    }
+
+
     /**
      * @param $data
      * @param string $viewType
@@ -1170,7 +1174,7 @@ CODE;;
      * @return mixed
      * @throws errorException
      */
-    public function getValuesAndFormatsForClient($data, string $viewType = 'web', array $fieldNames = null)
+    public function getValuesAndFormatsForClient($data, string $viewType, array $pageIds, array $fieldNames = null)
     {
 
         $isWebViewType = in_array($viewType, ['web', 'edit', 'csv', 'print']);
@@ -1308,7 +1312,8 @@ CODE;;
                     Field::init($f, $this)->addFormat(
                         $newRow[$f['name']],
                         $rowIn,
-                        $this->tbl
+                        $this->tbl,
+                        $pageIds
                     );
                 }
             }
@@ -1342,7 +1347,8 @@ CODE;;
                         $Field->addFormat(
                             $data['params'][$f['name']],
                             $this->tbl['params'],
-                            $this->tbl
+                            $this->tbl,
+                            $pageIds
                         );
                     }
 
@@ -2263,12 +2269,16 @@ CODE;;
                             $this->fields[$orderFN]['type'],
                             ['tree', 'select']
                         )) {
-                        $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
+                        $rows = $this->getValuesAndFormatsForClient(['rows' => $rows],
+                            $viewType,
+                            array_column($rows, 'id'))['rows'];
                         $this->sortRowsBydefault($rows);
                         $offset = $slice($rows, $onPage);
                     } else {
                         $offset = $slice($rows, $onPage);
-                        $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
+                        $rows = $this->getValuesAndFormatsForClient(['rows' => $rows],
+                            $viewType,
+                            array_column($rows, 'id'))['rows'];
                     }
                 } else {
                     $allCount = $this->countByParams($params);
@@ -2323,7 +2333,9 @@ CODE;;
                         $filteredIds = $this->loadRowsByParams($params, $this->orderParamsForLoadRows());
                         $rows = $getRows($filteredIds);
                     }
-                    $rows = $this->getValuesAndFormatsForClient(['rows' => $rows], $viewType)['rows'];
+                    $rows = $this->getValuesAndFormatsForClient(['rows' => $rows],
+                        $viewType,
+                        array_column($rows, 'id'))['rows'];
                 }
 
                 $result = ['rows' => $rows, 'offset' => (int)$offset, 'allCount' => $allCount];
@@ -2345,8 +2357,10 @@ CODE;;
                 }
 
                 $filteredIds = $this->loadRowsByParams($params, $this->orderParamsForLoadRows());
-                $rows = $getRows($filteredIds);
-                $rows = $this->getValuesAndFormatsForClient(['rows' => $cropFieldsInRows($rows)], $viewType)['rows'];
+                $rows = $cropFieldsInRows($getRows($filteredIds));
+                $rows = $this->getValuesAndFormatsForClient(['rows' => $rows],
+                    $viewType,
+                    array_column($rows, 'id'))['rows'];
                 $this->sortRowsBydefault($rows);
 
                 $result = ['rows' => $rows, 'offset' => 0, 'allCount' => count($filteredIds)];

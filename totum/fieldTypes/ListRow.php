@@ -36,9 +36,6 @@ class ListRow extends Field
             case 'csv':
                 $valArray['v'] = base64_encode(json_encode($valArray['v'], JSON_UNESCAPED_UNICODE));
                 break;
-            case 'xml':
-                $valArray['v'] = json_encode($valArray['v'], JSON_UNESCAPED_UNICODE);
-                break;
         }
     }
 

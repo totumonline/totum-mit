@@ -579,6 +579,7 @@ abstract class RealTables extends aTable
         return $this->nTailLength;
     }
 
+
     protected function onSaveTable($tbl, $loadedTbl)
     {
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
@@ -592,8 +593,7 @@ abstract class RealTables extends aTable
             $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
 
             if ($codeAction) {
-                $Code = new CalculateAction($codeAction);
-                $Code->execAction('DEFAULT ACTION', [], [], $loadedTbl, $tbl, $this, 'exec');
+                $this->execDefaultTableAction($codeAction, $loadedTbl, $tbl);
             }
 
             while ($func = array_shift($this->changeIds['rowOperationsPre'])) {
@@ -740,7 +740,11 @@ abstract class RealTables extends aTable
                     }
                     $this->model->updatePrepared(true, ['n' => $nextN], ['id' => [$rId]]);
                     $addAfterN = $nextN;
+
+                    $this->changeIds['reorderedIds'][$rId] = 1;
                 }
+
+
                 $this->setIsTableDataChanged(true);
                 $this->changeIds['reordered'] = true;
             } else {
@@ -779,6 +783,7 @@ abstract class RealTables extends aTable
                     /*Проставляем n у сортируемых из старых N*/
                     foreach ($reorder as $i => $rId) {
                         $this->model->updatePrepared(true, ['n' => $old_order_arrays[$i]], ['id' => [$rId]]);
+                        $this->changeIds['reorderedIds'][$rId] = 1;
                     }
                     $this->tbl['rows'] = [];
                     $this->setIsTableDataChanged(true);
@@ -1328,7 +1333,7 @@ abstract class RealTables extends aTable
             $this->setIsTableDataChanged(true);
 
             if ($resultId = $this->model->insertPrepared($changedSaveData)) {
-                if(is_a($this->model, Table::class)){
+                if (is_a($this->model, Table::class)) {
                     $this->model->createTableAfterPrepared($resultId, $duplicatedId);
                 }
 

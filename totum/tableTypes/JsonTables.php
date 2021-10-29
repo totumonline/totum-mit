@@ -131,14 +131,6 @@ abstract class JsonTables extends aTable
 
                 $this->isOnSaving = true;
 
-                if ($this->Cycle) {
-                    $this->Cycle->saveTables();
-                    $this->updateReceiverTables($level);
-                } else {
-                    $this->saveTable();
-                }
-
-
                 foreach ($this->tbl['rows'] as $id => $row) {
                     $oldRow = ($this->loadedTbl['rows'][$id] ?? []);
                     if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
@@ -159,6 +151,14 @@ abstract class JsonTables extends aTable
                         }
                     }
                 }
+
+                if ($this->Cycle) {
+                    $this->Cycle->saveTables();
+                    $this->updateReceiverTables($level);
+                } else {
+                    $this->saveTable();
+                }
+
                 $this->loadedTbl['rows'] = $this->loadedTbl['rows'] ?? [];
                 $this->changeIds['deleted'] = $this->changeIds['deleted']
                     + array_flip(array_keys(array_diff_key(
@@ -272,6 +272,7 @@ abstract class JsonTables extends aTable
                         foreach ($reorderIds as $_id => $_) {
                             if (!key_exists($_id, $SavedRows)) continue;
                             $newRows[$_id] = $SavedRows[$_id];
+                            $this->changeIds['reorderedIds'][$_id] = 1;
                         }
                         $addAfter = null;
                     } else {
@@ -288,9 +289,19 @@ abstract class JsonTables extends aTable
                 $old_order = array_intersect(array_keys($SavedRows), $reorder);
                 $reorders = array_combine($old_order, $reorder);
                 $newRows = [];
+                /*Удаляем несортируемые с начала и с конца*/
+                while (array_key_first($reorders) === $reorders[array_key_first($reorders)]) {
+                    unset($reorders[array_key_first($reorders)]);
+                }
+                while (array_key_last($reorders) === $reorders[array_key_last($reorders)]) {
+                    unset($reorders[array_key_last($reorders)]);
+                }
+
+
                 foreach ($SavedRows as $id => $row) {
                     if (key_exists($id, $reorders)) {
                         $id = $reorders[$id];
+                        $this->changeIds['reorderedIds'][$id] = 1;
                     }
                     $newRows[$id] = $SavedRows[$id];
                 }
@@ -300,6 +311,7 @@ abstract class JsonTables extends aTable
                 foreach ($SavedRows as $id => $row) {
                     if (key_exists($id, $reorderIds)) {
                         $id = array_shift($reorder);
+                        $this->changeIds['reorderedIds'][$id] = 1;
                     }
                     $newRows[$id] = $SavedRows[$id];
                 }
@@ -424,11 +436,12 @@ abstract class JsonTables extends aTable
                             }
                         // no break
                         case 'delete':
-                            $this->changeIds['changed'][$row['id']] = null;
                             $aLogDelete($row['id']);
+                            $this->changeIds['deleted'][$row['id']] = null;
                             continue 2;
                         case 'hide':
                             $newRow['is_del'] = true;
+                            $this->changeIds['deleted'][$row['id']] = null;
                             $aLogDelete($row['id']);
                             break;
                     }
@@ -946,8 +959,7 @@ abstract class JsonTables extends aTable
 
             $codeAction = $this->tableRow['default_action'] ?? null;
             if ($codeAction && !preg_match('/^\s*=\s*:\s*$/', $codeAction)) {
-                $Code = new CalculateAction($codeAction);
-                $Code->execAction('DEFAULT ACTION', [], [], $loadedTbl, $tbl, $this, 'exec');
+                $this->execDefaultTableAction($codeAction, $loadedTbl, $tbl);
             }
 
 

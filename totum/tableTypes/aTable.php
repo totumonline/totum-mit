@@ -98,6 +98,7 @@ abstract class aTable
         'restored' => [],
         'added' => [],
         'changed' => [],
+        'reorderedIds' => [],
         'rowOperations' => [],
         'rowOperationsPre' => [],
         'reordered' => false,
@@ -240,6 +241,27 @@ abstract class aTable
     public function getLangObj(): LangInterface
     {
         return $this->Totum->getLangObj();
+    }
+
+    protected function execDefaultTableAction(mixed $codeAction, $loadedTbl, $tbl): void
+    {
+        $Code = new CalculateAction($codeAction);
+        $changes = [];
+        foreach (['deleted',
+                     'restored',
+                     'added',
+                     'changed',
+                     'reorderedIds'] as $cat) {
+            $changes[$cat] = match ($cat) {
+                'deleted', 'added', 'reorderedIds', 'restored' => array_keys($this->changeIds[$cat]),
+                'changed' => array_map(function ($v) {
+                    return $v ? array_keys($v) : [];
+                }, $this->changeIds[$cat])
+            };
+        }
+        $Code->execAction('DEFAULT ACTION', [], [], $loadedTbl, $tbl, $this, 'exec',
+            ['changes' => $changes]
+        );
     }
 
 

@@ -8,6 +8,7 @@
 
 namespace totum\fieldTypes;
 
+use totum\common\calculates\Calculate;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
@@ -44,5 +45,10 @@ class StringF extends Field
                 $this->table
             );
         }
+
+        if (is_numeric($val)) {
+            $val = Calculate::rtrimZeros(bcadd($val, 1, 10));
+        }
+
     }
 }

@@ -8,6 +8,7 @@
 
 namespace totum\fieldTypes;
 
+use totum\common\calculates\Calculate;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
@@ -130,7 +131,7 @@ class Number extends Field
                 throw new errorException($this->translate('The value of the %s field must be numeric.',
                     $this->data['title']));
             }
-            $modifyVal = round($modifyVal, $this->data['dectimalPlaces']);
+            $modifyVal = bcadd($modifyVal, 0, $this->data['dectimalPlaces']);
         }
 
         return $modifyVal;
@@ -163,28 +164,11 @@ class Number extends Field
             );
         }
 
+        $val = Calculate::bcRoundNumber($val,
+            $this->data['step'] ?? 0,
+            $this->data['dectimalPlaces'] ?? 0,
+            $this->data['round'] ?? null);
 
-        $func = match ($this->data['round'] ?? null) {
-            'up' => 'ceil',
-            'down' => 'floor',
-            default => 'round',
-        };
-        $fig = (int)str_pad('1', $this->data['dectimalPlaces'] + 1, '0');
-
-        $step = 1;
-        if (!empty($this->data['step'])) {
-            $step = $this->data['step'] * $fig;
-            $val /= $step;
-        }
-
-
-
-        if (fmod($val * $fig, 1) < 0.000000000001) {
-            $func = 'round';
-        }
-
-        $val = $func($val * $fig) / $fig * $step;
-        $val = bcadd($val, 0, $this->data['dectimalPlaces']);
-
+        $val = bcadd($val, 0, $this->data['dectimalPlaces'] ?? 0);
     }
 }

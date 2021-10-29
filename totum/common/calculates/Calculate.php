@@ -131,7 +131,7 @@ class Calculate
             case 'double':
             case 'string':
                 if (is_numeric($n)) {
-                    return (float)$n;
+                    return bcadd($n, 0, 10);
                 }
                 return $n;
             case 'array':
@@ -382,9 +382,8 @@ class Calculate
                                 if (substr($number, -1, 1) === '%') {
                                     $cn['percent'] = true;
                                     $cn['string'] = trim(substr($number, 0, -1));
-                                } elseif (is_numeric($cn['string'])) {
-                                    $cn['string'] = ctype_digit($cn['string']) ? (int)$cn['string'] : (float)$cn['string'];
                                 }
+
                                 //$code[] = $number;
                                 $code[] = $cn;
                             } elseif ($operator = $matches['operator']) {
@@ -576,37 +575,17 @@ class Calculate
         if ($right != 0) {
             $this->__checkNumericParam($right, $this->translate('right element'));
         }
-        $left = floatval($left);
-        $right = floatval($right);
+        $func = match ($operator) {
+            '+' => 'bcadd',
+            '-' => 'bcsub',
+            '*' => 'bcmul',
+            '^' => 'bcpow',
+            '/' => bccomp($right, 0) === 0 ? throw new errorException($this->translate('Division by zero.')) : 'bcdiv',
+            default => throw new errorException($this->translate('Unknown operator [[%s]].')),
+        };
 
-        switch ($operator) {
-            case '+':
-                $result = $left + $right;
-                break;
-            case '-':
-                $result = $left - $right;
-                break;
-            case '*':
-                $result = $left * $right;
-                break;
-            case '^':
-                $result = pow($left, $right);
-                break;
-            case '/':
-                if ((float)$right === 0.0) {
-                    throw new errorException($this->translate('Division by zero.'));
-                }
-                $result = $left / $right;
-                break;
-            default:
-                throw new errorException($this->translate('Unknown operator [[%s]].'));
-        }
-
-        $result = (float)(string)round($result, 10);
-        /* $this->addInLogVar('Вычисление сравнения',
-             ['left' => $left, 'operator' => $operator, 'right' => $right, 'result' => $result]);*/
-
-        return $result;
+        $res = $func($left, $right, 10);
+        return Calculate::rtrimZeros($res);
     }
 
     public function getReadCodeForLog($code)
@@ -1158,8 +1137,6 @@ class Calculate
             default:
                 if (in_array($param, ['true', 'false'])) {
                     $r = $param === 'true';
-                } elseif (is_numeric($param)) {
-                    $r = ctype_digit($param) ? (int)$param : (float)$param;
                 } else {
                     $r = $param;
                 }

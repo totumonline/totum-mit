@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 namespace totum\common\calculates;
 
@@ -245,22 +244,22 @@ trait FuncArraysTrait
 
         $func = match ($params['operator'] ?? '') {
             '+' => function ($l, $num) {
-                return round($l + $num, 10);
+                return bcadd($l, $num, 10);
             },
             '-' => function ($l, $num) {
-                return round($l - $num, 10);
+                return bcsub($l, $num, 10);
             },
             '*' => function ($l, $num) {
-                return round($l * $num, 10);
+                return bcmul($l, $num, 10);
             },
             '^' => function ($l, $num) {
-                return pow($l, $num);
+                return bcpow($l, $num, 10);
             },
             '/' => function ($l, $num) {
                 if ((float)$num === 0.0) {
                     throw new errorException($this->translate('Division by zero.'));
                 }
-                return round($l / $num, 10);
+                return bcdiv($l, $num, 10);
             },
             default => throw new errorException($this->translate('The [[%s]] parameter must be set to one of the following values: %s',
                 ['operator', '+,-,/,*'])),
@@ -290,6 +289,7 @@ trait FuncArraysTrait
                 }
 
                 $l = $func($l, $list2[$k]);
+                $l = Calculate::rtrimZeros($l);
             }
             unset($l);
         }
@@ -306,6 +306,7 @@ trait FuncArraysTrait
                     throw new errorException($this->translate('Non-numeric parameter in the list %s', ''));
                 }
                 $l = $func($l, $num);
+                $l = Calculate::rtrimZeros($l);
             }
             unset($l);
         }
@@ -326,7 +327,7 @@ trait FuncArraysTrait
                 continue;
             }
             if (is_numeric($l) && is_numeric($max)) {
-                if (floatval($max) < floatval($l)) {
+                if (bccomp($l, $max, 10) === 1) {
                     $max = $l;
                 }
             } elseif ($l > $max) {
@@ -356,7 +357,7 @@ trait FuncArraysTrait
                 continue;
             }
             if (is_numeric($l) && is_numeric($min)) {
-                if (floatval($min) > floatval($l)) {
+                if (bccomp($min, $l) === 1) {
                     $min = $l;
                 }
             } elseif ($l < $min) {
@@ -572,8 +573,8 @@ trait FuncArraysTrait
                 list($key, $dir) = $key;
                 switch ($key) {
                     case 'key':
-                        $A =$a;
-                        $B =$b;
+                        $A = $a;
+                        $B = $b;
                         break;
                     case 'value':
                         $A = $list[$a];
@@ -602,17 +603,19 @@ trait FuncArraysTrait
         return $list;
     }
 
-    protected function funcListSum(string $params): float
+    protected function funcListSum(string $params)
     {
         $params = $this->getParamsArray($params);
         $this->__checkListParam($params['list'], 'list');
 
         $sum = 0;
         foreach ($params['list'] as $l) {
-            $sum += floatval($l);
+            $sum = bcadd($sum, $l, 10);
         }
 
-        return round($sum, 10);
+        $sum = Calculate::rtrimZeros($sum);
+
+        return $sum;
     }
 
     protected function funcListTrain(string $params): array

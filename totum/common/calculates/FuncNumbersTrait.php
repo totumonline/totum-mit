@@ -14,31 +14,31 @@ trait FuncNumbersTrait
         return $num;
     }
 
-    public static function bcRoundNumber($val, $step, $dectimal, $type): string
+    public static function bcRoundNumber($val, $step, $dectimal, $type, $logData = []): string
     {
         $VAL = $val;
-        $func = function ($val, $dectimal) use ($type) {
+        $func = function ($val, $dectimal) use ($logData, $type) {
             $mod = bcmod($val, 1, 10);
-
-            if (strlen($mod) > $dectimal + 2) {
-                if ($val > 0) {
+            if ($val > 0) {
+                if (strlen($mod) > $dectimal + 2) {
                     if ($type === 'up' || ($type != 'down' && $mod[$dectimal + 2] >= 5)) {
                         $val = bcadd($val, 1 / (10 ** $dectimal), $dectimal);
                     } else {
                         $val = bcadd($val, 0, $dectimal);
                     }
+                }
+            } elseif (strlen($mod) > $dectimal + 3) {
+                if ($type === 'down' || ($type !== 'up' && $mod[$dectimal + 3] >= 5)) {
+                    $val = bcsub($val, 1 / (10 ** $dectimal), $dectimal);
                 } else {
-                    if ($type === 'down' || ($type != 'up' && $mod[$dectimal + 2]!== '0' && $mod[$dectimal + 2] < 5)) {
-                        $val = bcsub($val, bcdiv(1, bcpow(10, $dectimal, 15), 15), $dectimal);
-                    } else {
-                        $val = bcadd($val, 0, $dectimal);
-                    }
+                    $val = bcadd($val, 0, $dectimal);
                 }
             }
             return $val;
         };
 
-        if (!empty($step)) {
+        if (bccomp($val, 0, 10) === 0) {
+        } elseif (!empty($step)) {
             $fig = 10 ** $dectimal;
             $stepMul = bcmul($step, $fig, 10);
 
@@ -108,6 +108,6 @@ trait FuncNumbersTrait
             $params['step'] ?? 0,
             $params['dectimal'] ?? 0,
             $params['type'] ?? null,
-            true);
+            $this->varData);
     }
 }

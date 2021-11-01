@@ -167,7 +167,9 @@ class Number extends Field
         $val = Calculate::bcRoundNumber($val,
             $this->data['step'] ?? 0,
             $this->data['dectimalPlaces'] ?? 0,
-            $this->data['round'] ?? null);
+            $this->data['round'] ?? null,
+            $this->data
+        );
 
         $val = bcadd($val, 0, $this->data['dectimalPlaces'] ?? 0);
     }

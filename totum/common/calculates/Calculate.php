@@ -580,7 +580,7 @@ class Calculate
             '-' => 'bcsub',
             '*' => 'bcmul',
             '^' => 'bcpow',
-            '/' => bccomp($right, 0) === 0 ? throw new errorException($this->translate('Division by zero.')) : 'bcdiv',
+            '/' => bccomp($right, 0, 10) === 0 ? throw new errorException($this->translate('Division by zero.')) : 'bcdiv',
             default => throw new errorException($this->translate('Unknown operator [[%s]].')),
         };
 

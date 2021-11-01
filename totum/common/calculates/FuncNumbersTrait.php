@@ -16,34 +16,32 @@ trait FuncNumbersTrait
 
     public static function bcRoundNumber($val, $step, $dectimal, $type, $logData = []): string
     {
-        $VAL = $val;
         $func = function ($val, $dectimal) use ($logData, $type) {
             $mod = bcmod($val, 1, 10);
             if ($val > 0) {
-                if (strlen($mod) > $dectimal + 2) {
-                    if ($type === 'up' || ($type != 'down' && $mod[$dectimal + 2] >= 5)) {
+                if ($nextDigit = ($mod[$dectimal + 2] ?? 0)) {
+                    if ($type === 'up' || ($type != 'down' && $nextDigit >= 5)) {
                         $val = bcadd($val, 1 / (10 ** $dectimal), $dectimal);
-                    } else {
-                        $val = bcadd($val, 0, $dectimal);
                     }
                 }
-            } elseif (strlen($mod) > $dectimal + 3) {
-                if ($type === 'down' || ($type !== 'up' && $mod[$dectimal + 3] >= 5)) {
+            } elseif ($val < 0 && ($nextDigit = ($mod[$dectimal + 3] ?? 0))) {
+                if ($type === 'down' || ($type !== 'up' && $nextDigit >= 5)) {
                     $val = bcsub($val, 1 / (10 ** $dectimal), $dectimal);
-                } else {
-                    $val = bcadd($val, 0, $dectimal);
                 }
             }
-            return $val;
+
+            return bcadd($val, 0, $dectimal);
         };
 
         if (bccomp($val, 0, 10) === 0) {
         } elseif (!empty($step)) {
+
             $fig = 10 ** $dectimal;
             $stepMul = bcmul($step, $fig, 10);
 
             $val = bcmul($val, $fig, 10);
             $val = bcdiv($val, $stepMul, 10);
+
 
             $val = $func($val, 0);
 

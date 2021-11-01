@@ -357,7 +357,7 @@ trait FuncArraysTrait
                 continue;
             }
             if (is_numeric($l) && is_numeric($min)) {
-                if (bccomp($min, $l) === 1) {
+                if (bccomp($min, $l, 10) === 1) {
                     $min = $l;
                 }
             } elseif ($l < $min) {

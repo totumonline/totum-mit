@@ -514,7 +514,8 @@ class Field
         $oldVal = $oldRow[$this->data['name']] ?? null;
 
         if ($changeFlag === Field::CHANGED_FLAGS['inAddRecalc']) {
-            $this->calculate($newVal, $oldRow, $row, $oldTbl, $tbl, [], "modify");
+            $newVal = ['v' => null];
+            $this->calculate($newVal, $oldRow, $row, $oldTbl, $tbl, [], 'modify');
         } else {
             $editable = $this->isChannelChangeable('modify', $channel);
 

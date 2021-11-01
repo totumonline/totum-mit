@@ -28,7 +28,7 @@ trait FuncNumbersTrait
                         $val = bcadd($val, 0, $dectimal);
                     }
                 } else {
-                    if ($type === 'down' || ($type != 'up' && $mod[$dectimal + 2] >= 5)) {
+                    if ($type === 'down' || ($type != 'up' && $mod[$dectimal + 2]!== '0' && $mod[$dectimal + 2] < 5)) {
                         $val = bcsub($val, bcdiv(1, bcpow(10, $dectimal, 15), 15), $dectimal);
                     } else {
                         $val = bcadd($val, 0, $dectimal);
@@ -63,7 +63,9 @@ trait FuncNumbersTrait
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['num']);
         $this->__checkNotArrayParams($params, ['num']);
-        return Calculate::rtrimZeros(bccomp($params['num'], 0, 10) === 1 ? $params['num'] : bcmul($params['num'], -1, 10));
+        return Calculate::rtrimZeros(bccomp($params['num'], 0, 10) === 1 ? $params['num'] : bcmul($params['num'],
+            -1,
+            10));
     }
 
     protected function funcNumFormat(string $params): string

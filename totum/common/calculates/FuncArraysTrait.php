@@ -609,7 +609,10 @@ trait FuncArraysTrait
         $this->__checkListParam($params['list'], 'list');
 
         $sum = 0;
-        foreach ($params['list'] as $l) {
+        foreach ($params['list'] as $i => $l) {
+            if (!is_numeric($l)) {
+                throw new errorException($this->translate('The value of key %s is not a number.', $i));
+            }
             $sum = bcadd($sum, $l, 10);
         }
 

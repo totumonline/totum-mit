@@ -70,10 +70,10 @@ trait FuncNumbersTrait
     {
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['num']);
-        $this->__checkNotArrayParams($params, ['num', 'dectimals', 'decsep', 'thousandssep', 'unittype']);
+        $this->__checkNotArrayParams($params, ['num', 'dectimals', 'decsep', 'thousandssep', 'unittype', 'prefix']);
         $this->__checkNumericParam($params['num'], 'num');
 
-        return number_format(
+        return ((string)($params['prefix'] ?? '')) . number_format(
                 (float)$params['num'],
                 (int)($params['dectimals'] ?? 0),
                 (string)($params['decsep'] ?? ','),

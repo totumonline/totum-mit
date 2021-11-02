@@ -610,6 +610,9 @@ trait FuncArraysTrait
 
         $sum = 0;
         foreach ($params['list'] as $i => $l) {
+            if (empty($l)) {
+                continue;
+            }
             if (!is_numeric($l)) {
                 throw new errorException($this->translate('The value of key %s is not a number.', $i));
             }

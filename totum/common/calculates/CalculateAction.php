@@ -193,7 +193,7 @@ class CalculateAction extends Calculate
 
             $Cycles = (array)$params['cycle'];
             foreach ($Cycles as $cycleId) {
-                if (empty($cycleId)){
+                if (empty($cycleId)) {
                     continue;
                 }
                 $params['cycle'] = $cycleId;
@@ -206,7 +206,7 @@ class CalculateAction extends Calculate
     public function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, $table, string $type, $var = [])
     {
         $var['tpa'] = $type;
-        $r = $this->exec(['name' => $varName], ['v'=> null], $oldRow, $newRow, $oldTbl, $newTbl, $table, $var);
+        $r = $this->exec(['name' => $varName], ['v' => null], $oldRow, $newRow, $oldTbl, $newTbl, $table, $var);
         return $r;
     }
 
@@ -927,11 +927,9 @@ class CalculateAction extends Calculate
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
                 if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
-                }
-                elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
+                } elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
                     $Cycle_id = $this->row['id'];
-                }
-                else {
+                } else {
                     $this->__checkNumericParam($params['cycle'], 'cycle');
                     $Cycle_id = $params['cycle'];
                 }
@@ -1042,6 +1040,7 @@ class CalculateAction extends Calculate
                     $table->setWithALogTrue($params['log']);
                 }
 
+                $fields = $this->clearNONEFields($fields);
                 $addedIds += $table->actionInsert($fields, null, $params['after'] ?? null);
             };
 
@@ -1140,6 +1139,9 @@ class CalculateAction extends Calculate
         $rows = $MainList;
         foreach (($params['field'] ?? []) as $f) {
             $f = $this->getExecParamVal($f, 'field');
+            if ($f[array_key_first($f)] === '*NONE*') {
+                continue;
+            }
             $rows = array_replace($rows, $f);
         }
 
@@ -1247,6 +1249,7 @@ class CalculateAction extends Calculate
 
                     $table = $this->getSourceTable($params);
                     $fields = $this->__getActionFields($params['field'], 'Set');
+                    $fields = $this->clearNONEFields($fields);
                     $table->checkInsertRow(null, [], $hashData, $fields);
                 } else {
                     $table = $this->getSourceTable($params);
@@ -1254,6 +1257,7 @@ class CalculateAction extends Calculate
                         $table->setWithALogTrue($params['log']);
                     }
                     $fields = $this->__getActionFields($params['field'], 'Set');
+                    $fields = $this->clearNONEFields($fields);
                     $where = $params['where'] ?? [];
                     $table->actionSet($fields, $where, 1);
                 }
@@ -1408,6 +1412,7 @@ class CalculateAction extends Calculate
                     $table->setWithALogTrue($params['log']);
                 }
                 $where = $params['where'] ?? [];
+
                 $table->actionPin($params['field'], $where, null);
             },
             true
@@ -1421,6 +1426,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->getSourceTable($params);
                 $fields = $this->__getActionFields($params['field'], 'SetList');
+                $fields = $this->clearNONEFields($fields);
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
                 }
@@ -1509,6 +1515,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 $table = $this->getSourceTable($params);
                 $fields = $this->__getActionFields($params['field'], 'SetListExtended');
+                $fields = $this->clearNONEFields($fields);
 
                 $where = $params['where'] ?? [];
                 $modify = $table->getModifyForActionSetExtended($fields, $where);
@@ -1557,4 +1564,5 @@ class CalculateAction extends Calculate
             true
         );
     }
+
 }

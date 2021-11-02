@@ -86,6 +86,18 @@ class Calculate
         $this->formStartSections();
     }
 
+    protected function clearNONEFields(bool|array $fields): bool|array
+    {
+        if ($fields) {
+            foreach ($fields as $k => $v) {
+                if ($v === '*NONE*') {
+                    unset($fields[$k]);
+                }
+            }
+        }
+        return $fields;
+    }
+
     protected function getConditionsResult(array $params): bool
     {
         $conditionTest = true;

@@ -113,10 +113,10 @@ class CalculateLog
                 break;
             case 'SELECTS AND FORMATS':
             case 'SELECTS AND FORMATS ROWS':
+            case 'SELECTS AND FORMATS OF OTHER NON-ROWS PARTS':
                 $section = 'views';
                 break;
         }
-
 
         $logTypes = $this->topParent->getTypes();
         if (!$logTypes) {

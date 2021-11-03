@@ -273,12 +273,12 @@ class Sql
         if ($exec) {
             $r = $this->getPDO()->exec($query_string);
             if ($this->PDO->errorInfo()[0] !== '00000') {
-                $this->errorHandler($query_string);
+                $this->errorHandler($this->PDO->errorCode(), $query_string);
             }
         } else {
             $r = $this->getPDO()->query($query_string);
             if (!$r) {
-                $this->errorHandler($query_string);
+                $this->errorHandler($this->getPDO()->errorCode(), $query_string);
             }
         }
 
@@ -297,7 +297,7 @@ class Sql
      * @param null $data
      * @throws \totum\common\sql\SqlException
      */
-    public function errorHandler($query_string, $error = null, $data = null)
+    public function errorHandler(string $errorCode, $query_string, $error = null, $data = null)
     {
         $error = $error ?? $this->PDO->errorInfo();
         $error = $error[2] ?? $this->Lang->translate('Database error: [[%s]]', 'CODE ' . $error[0]);
@@ -309,7 +309,7 @@ class Sql
             );
             $this->lastQuery['error'] = $error;
 
-            if ($this->PDO->errorCode() === '40P01'){
+            if ($errorCode === '40P01'){
                 $exp = new tableSaveOrDeadLockException($error);
             }else {
                 $exp = new SqlException($error);
@@ -327,7 +327,7 @@ class Sql
         $stmt = $this->getPDO()->prepare($query_string, $driver_options);
 
         if (!$stmt) {
-            $this->errorHandler($query_string);
+            $this->errorHandler($this->getPDO()->errorCode(), $query_string);
         }
 
         $query_time_pad = str_pad(round(microtime(1) - $microTime, 3), 5, '0', STR_PAD_LEFT);
@@ -360,12 +360,12 @@ class Sql
             if (!$r || $statement->errorCode() !== "00000") {
                 $info = $statement->errorInfo();
                 $info[2] = "(prep{$statement->num}) {$info[2]}";
-                $this->errorHandler($statement->queryString, $info, $listOfParams);
+                $this->errorHandler($statement->errorCode(), $statement->queryString, $info, $listOfParams);
             }
         } catch (\PDOException $exception) {
             $info = $statement->errorInfo();
             $info[2] = "(prep{$statement->num}) {$info[2]}";
-            $this->errorHandler($statement->queryString, $info, $listOfParams);
+            $this->errorHandler($statement->errorCode(), $statement->queryString, $info, $listOfParams);
         }
 
 

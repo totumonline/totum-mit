@@ -1252,7 +1252,7 @@ CODE;;
                         if (!key_exists($fName, $row)) {
                             continue;
                         }
-                        if (!key_exists($row[$fName]['v'], $indexedVals)) {
+                        if (!is_array($row[$fName]['v']) && !key_exists($row[$fName]['v'], $indexedVals)) {
                             $indexedVals[$row[$fName]['v']] = 1;
                         }
                         if (key_exists('c', $row[$fName])) {

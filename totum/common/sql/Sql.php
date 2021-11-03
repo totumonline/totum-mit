@@ -310,6 +310,7 @@ class Sql
             $this->lastQuery['error'] = $error;
 
             if ($errorCode === '40P01'){
+                sleep(3);
                 $exp = new tableSaveOrDeadLockException($error);
             }else {
                 $exp = new SqlException($error);

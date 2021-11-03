@@ -8,6 +8,7 @@ use PDOStatement;
 use Psr\Log\LoggerInterface;
 use totum\common\Lang\LangInterface;
 use totum\common\Lang\RU;
+use totum\common\tableSaveOrDeadLockException;
 
 class Sql
 {
@@ -27,10 +28,10 @@ class Sql
     protected $preparedCount;
 
 
-    public function __construct(array $settings, LoggerInterface $Log, $withSchema, protected LangInterface $Lang)
+    public function __construct(array $settings, LoggerInterface $Log, $withSchema, protected LangInterface $Lang, int $sessionTimeout = 0)
     {
         $this->Log = $Log;
-        $this->PDO = static::getNewConnection($settings, $withSchema);
+        $this->PDO = static::getNewConnection($settings, $withSchema, $sessionTimeout);
     }
 
     /**
@@ -308,16 +309,20 @@ class Sql
             );
             $this->lastQuery['error'] = $error;
 
-            $exp = new SqlException($error);
-            $exp->addPath($query_string);
-            $exp->addPath(json_encode($data, JSON_UNESCAPED_UNICODE));
+            if ($this->PDO->errorCode() === '40P01'){
+                $exp = new tableSaveOrDeadLockException($error);
+            }else {
+                $exp = new SqlException($error);
+                $exp->addPath($query_string);
+                $exp->addPath(json_encode($data, JSON_UNESCAPED_UNICODE));
+            }
             throw $exp;
         }
     }
 
     public function getPrepared($query_string, $driver_options = []): PDOStatement
     {
-        $this->lastQuery = ['str' => $query_string, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options'=>$driver_options];
+        $this->lastQuery = ['str' => $query_string, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options' => $driver_options];
         $microTime = microtime(1);
         $stmt = $this->getPDO()->prepare($query_string, $driver_options);
 
@@ -340,7 +345,7 @@ class Sql
 
     public function executePrepared(PDOStatement $statement, array $listOfParams)
     {
-        $this->lastQuery = ['str' => $statement->queryString, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options'=>$listOfParams];
+        $this->lastQuery = ['str' => $statement->queryString, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options' => $listOfParams];
 
         $microTime = microtime(true);
         foreach ($listOfParams as &$param) {
@@ -350,14 +355,14 @@ class Sql
         }
         unset($param);
 
-        try{
+        try {
             $r = $statement->execute($listOfParams);
             if (!$r || $statement->errorCode() !== "00000") {
                 $info = $statement->errorInfo();
                 $info[2] = "(prep{$statement->num}) {$info[2]}";
                 $this->errorHandler($statement->queryString, $info, $listOfParams);
             }
-        }catch (\PDOException $exception){
+        } catch (\PDOException $exception) {
             $info = $statement->errorInfo();
             $info[2] = "(prep{$statement->num}) {$info[2]}";
             $this->errorHandler($statement->queryString, $info, $listOfParams);
@@ -375,7 +380,7 @@ class Sql
         return $rowCount;
     }
 
-    protected function getNewConnection($conf, $withSchema = true)
+    protected function getNewConnection($conf, $withSchema = true, int $sessionTimeout = 0)
     {
         try {
             $PDO = new PDO($conf['dsn'], $conf['username'], $conf['password'], [PDO::ATTR_EMULATE_PREPARES => false]);
@@ -393,8 +398,18 @@ class Sql
                     throw new Exception($PDO->errorInfo()[2]);
                 }
             }
+
+            if ($sessionTimeout) {
+                try {
+                    $PDO->exec('SET idle_in_transaction_session_timeout TO \'' . ($sessionTimeout) . '\'');
+                } catch (\Exception) {
+                    /*ups, old version of postgres*/
+                }
+            }
+
         } catch (Exception $e) {
-            throw new SqlException($this->Lang->translate('Database connect error. Try later. [[%s]]', $e->getMessage()), 0, $e);
+            throw new SqlException($this->Lang->translate('Database connect error. Try later. [[%s]]',
+                $e->getMessage()), 0, $e);
         }
         return $PDO;
     }

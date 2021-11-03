@@ -12,7 +12,7 @@ use totum\common\calculates\CalculateAction;
 use totum\common\configs\MultiTrait;
 use totum\common\errorException;
 use totum\common\Model;
-use totum\common\tableSaveException;
+use totum\common\tableSaveOrDeadLockException;
 use totum\common\Totum;
 use totum\config\Conf;
 
@@ -75,7 +75,7 @@ class SchemaCron extends Command
                     $Conf->cronErrorActions($cronRow, $User, $e);
                 }
                 break;
-            } catch (tableSaveException $exception) {
+            } catch (tableSaveOrDeadLockException $exception) {
                 $Conf = $Conf->getClearConf();
             }
         }

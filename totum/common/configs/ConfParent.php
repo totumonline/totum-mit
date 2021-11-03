@@ -1,4 +1,5 @@
-<?php /** @noinspection PhpMissingReturnTypeInspection */
+<?php
+/** @noinspection PhpMissingReturnTypeInspection */
 
 /**
  * Created by PhpStorm.
@@ -33,6 +34,7 @@ abstract class ConfParent
 
     public static $MaxFileSizeMb = 10;
     public static $timeLimit = 30;
+
 
     protected $execSSHOn = false;
 
@@ -135,15 +137,14 @@ abstract class ConfParent
 
     public function cronErrorActions($cronRow, $User, $exception)
     {
-        $errTitle=$this->translate('Cron error');
+        $errTitle = $this->translate('Cron error');
 
         try {
             $Totum = new Totum($this, $User);
             $Table = $Totum->getTable('settings');
 
 
-
-            $Cacl = new CalculateAction('=: insert(table: "notifications"; field: \'user_id\'=1; field: \'active\'=true; field: \'title\'="'.$errTitle.'"; field: \'code\'="admin_text"; field: "vars"=$#vars)');
+            $Cacl = new CalculateAction('=: insert(table: "notifications"; field: \'user_id\'=1; field: \'active\'=true; field: \'title\'="' . $errTitle . '"; field: \'code\'="admin_text"; field: "vars"=$#vars)');
             $Cacl->execAction(
                 'kod',
                 $cronRow,
@@ -152,14 +153,14 @@ abstract class ConfParent
                 $Table->getTbl(),
                 $Table,
                 'exec',
-                ['vars' => ['text' => $errTitle.': <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]
+                ['vars' => ['text' => $errTitle . ': <b>' . ($cronRow['descr'] ?? $cronRow['id']) . '</b>:<br>' . $exception->getMessage()]]
             );
         } catch (\Exception) {
         }
 
         $this->sendMail(
             static::adminEmail,
-            $errTitle.' ' . $this->getSchema() . ' ' . ($cronRow['descr'] ?? $cronRow['id']),
+            $errTitle . ' ' . $this->getSchema() . ' ' . ($cronRow['descr'] ?? $cronRow['id']),
             $exception->getMessage()
         );
     }
@@ -482,7 +483,12 @@ abstract class ConfParent
     public function getSql($mainInstance = true, $withSchema = true, $Logger = null)
     {
         $getSql = function () use ($withSchema, $Logger) {
-            return new Sql($this->getDb($withSchema), $Logger ?? $this->getLogger('sql'), $withSchema, $this->getLangObj());
+            return new Sql($this->getDb($withSchema),
+                $Logger ?? $this->getLogger('sql'),
+                $withSchema,
+                $this->getLangObj(),
+                (static::$timeLimit + 5) * 1000
+            );
         };
         if ($mainInstance) {
             return $this->Sql ?? $this->Sql = $getSql();
@@ -703,7 +709,8 @@ ON CONFLICT (name) DO UPDATE
 
         return $this->translate('Page processing time: %s sec.<br/>
     RAM: %sM. of %s.<br/>
-    Sql Schema: %s, V %s<br/>.', [$genTime, $mb, $memory_limit, $SchemaName, $version]);
+    Sql Schema: %s, V %s<br/>.',
+            [$genTime, $mb, $memory_limit, $SchemaName, $version]);
     }
 
     protected function translate(string $str, array|string|int|float $vars = []): string

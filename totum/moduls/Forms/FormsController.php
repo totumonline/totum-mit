@@ -13,7 +13,7 @@ use totum\common\errorException;
 use totum\common\Field;
 use totum\common\controllers\interfaceController;
 use totum\common\Lang\RU;
-use totum\common\tableSaveException;
+use totum\common\tableSaveOrDeadLockException;
 use totum\common\Totum;
 use totum\config\Conf;
 use totum\config\totum\moduls\Forms\ReadTableActionsForms;
@@ -92,7 +92,7 @@ class FormsController extends interfaceController
                 try {
                     $this->Totum = new Totum($this->Config, $User);
                     $this->answerVars = $this->actions($request);
-                } catch (tableSaveException $exception) {
+                } catch (tableSaveOrDeadLockException $exception) {
                     if (++$this->totumTries < 5) {
                         $this->Config = $this->Config->getClearConf();
                         $this->Totum = new Totum($this->Config, $User);

@@ -31,7 +31,7 @@ class errorException extends \Exception
     public static function tableUpdatedException(aTable $aTable)
     {
         $aTable->getTotum()->transactionRollback();
-        throw new tableSaveException($aTable->getLangObj()->translate('Table [[%s]] was changed. Update the table to make the changes.',
+        throw new tableSaveOrDeadLockException($aTable->getLangObj()->translate('Table [[%s]] was changed. Update the table to make the changes.',
             $aTable->getTableRow()['title']));
     }
 

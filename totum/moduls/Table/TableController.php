@@ -14,7 +14,7 @@ use totum\common\Lang\RU;
 use totum\common\logs\CalculateLog;
 use totum\common\WithPathMessTrait;
 use totum\common\sql\SqlException;
-use totum\common\tableSaveException;
+use totum\common\tableSaveOrDeadLockException;
 use totum\common\Totum;
 use totum\config\Conf;
 use totum\models\Table;
@@ -449,7 +449,7 @@ class TableController extends interfaceController
                     $action = 'Ajax' . $action;
                 }
                 $this->__run($action, $request);
-            } catch (tableSaveException $exception) {
+            } catch (tableSaveOrDeadLockException $exception) {
                 if (++$this->totumTries < 5) {
                     $this->Config = $this->Config->getClearConf();
                     $this->answerVars = [];

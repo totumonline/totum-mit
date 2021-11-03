@@ -9,7 +9,7 @@ use totum\common\calculates\CalculateAction;
 use totum\common\controllers\Controller;
 use totum\common\Lang\RU;
 use totum\common\Model;
-use totum\common\tableSaveException;
+use totum\common\tableSaveOrDeadLockException;
 use totum\common\Totum;
 use totum\tableTypes\RealTables;
 
@@ -37,7 +37,7 @@ class RemotesController extends Controller
                         $onceMore = false;
                         try {
                             $data = $this->action($User, $remote, $remote_row, $request);
-                        } catch (tableSaveException $exception) {
+                        } catch (tableSaveOrDeadLockException $exception) {
                             $this->Config = $this->Config->getClearConf();
                             if (++$tries < 5) {
                                 $onceMore = true;

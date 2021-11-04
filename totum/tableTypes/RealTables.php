@@ -1294,7 +1294,7 @@ abstract class RealTables extends aTable
                     $v['name'],
                     $this->insertRowSetData
                 )) {
-                $_channel = 'inner';
+                $_channel = 'webInsertRow';
                 $newVal = $this->insertRowSetData[$v['name']];
 
             }

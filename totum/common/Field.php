@@ -225,7 +225,11 @@ class Field
         if ($this->checkFormatObject()) {
             $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
 
-            if ($format = $this->CalculateFormat->getFormat($this->data['name'], $row, $tbl, $this->table, ['rows'=>$this->table->getRowsForFormat($pageIds)])) {
+            if ($format = $this->CalculateFormat->getFormat($this->data['name'],
+                $row,
+                $tbl,
+                $this->table,
+                ['rows' => $this->table->getRowsForFormat($pageIds)])) {
                 $valArray['f'] = $format;
             }
             $this->table->calcLog($Log, 'result', $format);
@@ -430,6 +434,10 @@ class Field
 
     public function add($channel, $inNewVal, $row = [], $oldTbl = [], $tbl = [], $isCheck = false, $vars = [])
     {
+        if ($channel === 'webInsertRow') {
+            $channel = 'inner';
+        }
+
         $insertable = match ($channel) {
             'inner' => true,
             'web' => $this->isWebChangeable('insert'),
@@ -440,13 +448,13 @@ class Field
         $newVal = ['v' => null];
 
 
-        if (empty($this->data['code']) && (!$insertable || $inNewVal === '' || is_null($inNewVal) || $inNewVal === $this->data['errorText'])) {
+        if (empty($this->data['code']) && (!$insertable || ($inNewVal ?? '') === '' || $inNewVal === [] || $inNewVal === $this->data['errorText'])) {
             if ($this->data['category'] === 'filter') {
                 if (is_null($inNewVal)) {
                     $inNewVal = $this->getDefaultValue();
                 }
                 $newVal = ['v' => $inNewVal];
-            } elseif (array_key_exists('default', $this->data) && $this->data['default'] !== '') {
+            } elseif ($inNewVal !== [] && array_key_exists('default', $this->data) && $this->data['default'] !== '') {
                 $inNewVal = $this->getDefaultValue();
                 $newVal = ['v' => $inNewVal];
             } elseif ($insertable && !empty($this->data['required']) && !$isCheck) {
@@ -683,7 +691,7 @@ class Field
 
         $val = &$newVal['v'];
 
-        if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val === null)) {
+        if (!$isCheck && !empty($this->data['required']) && (($val ?? '') === '' || $val === [])) {
             errorException::criticalException(
                 $this->translate('Field [[%s]] of table [[%s]] is required.',
                     [$this->data['title'], ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name'])]),

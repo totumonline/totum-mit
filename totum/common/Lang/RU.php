@@ -139,7 +139,7 @@ class RU implements LangInterface
         'The code should return [[%s]].' => 'Код должен возвращать [[%s]].',
         'The [[insert]] field should return list - Table [[%s]]' => 'Поле [[insert]] должно возвращать list  - Таблица [[%s]]',
         'The [[insert]] field should return a list with unique values - Table [[%s]]' => 'Поле [[insert]] должно возвращать list с уникальными значениями  - Таблица [[%s]]',
-
+        'This value is not available for entry in field %s.'=>'Это значение не доступно для ввода в поле %s.',
 
         'Format sections' => 'Секции форматирования',
 

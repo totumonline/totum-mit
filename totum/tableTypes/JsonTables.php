@@ -675,7 +675,7 @@ abstract class JsonTables extends aTable
                     $column['name'],
                     $this->insertRowSetData
                 )) {
-                $_channel = 'inner';
+                $_channel = 'webInsertRow';
                 $newVal = $this->insertRowSetData[$column['name']];
             }
 

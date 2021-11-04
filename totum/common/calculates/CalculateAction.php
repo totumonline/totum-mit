@@ -571,9 +571,10 @@ class CalculateAction extends Calculate
 
     protected function funcLinkToPanel($params)
     {
-        $params = $this->getParamsArray($params, ['field'], ['field']);
+        $params = $this->getParamsArray($params, ['field'], ['field'], ['bfield']);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
         $link = '/Table/';
+
 
         if ($tableRow['type'] === 'calcs') {
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
@@ -585,13 +586,36 @@ class CalculateAction extends Calculate
                 }
 
                 $link .= $topTableRow['top'] . '/' . $topTableRow['id'] . '/' . $Cycle_id . '/' . $tableRow['id'] . '/';
+                if (!empty($params['bfield'])) {
+                    $Table = $this->Table->getTotum()->getCycle($Cycle_id,
+                        $topTableRow['top'])->getTable($tableRow['id']);
+                }
+
             } else {
                 throw new errorException($this->translate('The cycles table is specified incorrectly.'));
             }
         } else {
             $link .= $tableRow ['top'] . '/' . $tableRow['id'] . '/';
+            $Table = $this->Table->getTotum()->getTable($tableRow['id']);
         }
-        if (!empty($params['id'])) {
+
+        if (!empty($params['bfield'])) {
+            foreach ((array)$params['bfield']['value'] as $bfieldValue) {
+                $id = $Table->getByParams(['field' => 'id', 'where' => [
+                    ['field' => $params['bfield']['field'], 'operator' => '=', 'value' => $bfieldValue]
+                ]], 'field');
+                if (!$id) {
+                    throw new errorException($this->translate('Value not found'));
+                }
+                $this->Table->getTotum()->addLinkPanel(
+                    $link,
+                    $id,
+                    [],
+                    $params['refresh'] ?? false
+                );
+            }
+        }
+        elseif (!empty($params['id'])) {
             $ids = (array)$params['id'];
             foreach ($ids as $id) {
                 $this->Table->getTotum()->addLinkPanel(

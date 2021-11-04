@@ -1401,8 +1401,8 @@ abstract class RealTables extends aTable
             if ($fieldName === 'is_del') {
                 $withoutDeleted = false;
             } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
-                $value = (array)$value;
-                foreach ($value as $i => $v) {
+                $valueCheck = (array)$value;
+                foreach ($valueCheck as $i => $v) {
                     if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
                         if (!empty($wI['filterNumbersIfNumeric'])) {
                             unset($value[$i]);

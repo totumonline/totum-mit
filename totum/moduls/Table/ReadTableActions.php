@@ -1279,10 +1279,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $data = is_string($this->post['data']) ? json_decode($this->post['data'], true) : $this->post['data'];
 
         $filterFields = $this->Table->getVisibleFields('web', true)['filter'] ?? [];
-        $filters = array_intersect_key($data["params"] ?? [], $filterFields);
+        $filters = array_intersect_key($data['params'] ?? [], $filterFields);
 
         if ($filters) {
-            return $this->editFilters($filters, $data["setValuesToDefaults"] ?? false);
+            return $this->editFilters($filters, $data['setValuesToDefaults'] ?? false);
         } elseif (!is_a($this, WriteTableActions::class)) {
             throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
         } else {
@@ -1292,7 +1292,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
             $data["params"] = $clearFields;
 
-            return $this->modify(['modify' => $data, "setValuesToDefaults" => $data["setValuesToDefaults"] ?? false]);
+            return $this->modify(['modify' => $data, 'setValuesToDefaults' => $data['setValuesToDefaults'] ?? false]);
         }
     }
 
@@ -1639,7 +1639,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         );
         $this->Table->checkAndModify($tableData, $data);
 
-        return $this->getTableClientChangedData($data);
+        return $this->getTableClientChangedData($data, true);
     }
 
     protected function getTableClientChangedData($data, $force = false)

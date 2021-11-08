@@ -555,18 +555,10 @@ class Select extends Field
             if (!empty($this->data['selectFilterWithNone'])) {
                 $add['*NONE*'] = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
             }
-
-            foreach ((array)$_valArray['v'] as $k => $v) {
-                if ($v === '*NONE*') {
-                    $list = [($this->data['selectFilterWithNoneText'] ?? $this->translate('Nothing')), 0];
-                } elseif ($v === '*ALL*') {
-                    $list = [($this->data['selectFilterWithAllText'] ?? $this->translate('All')), 0];
-                }
-                if (!empty($this->data['selectFilterWithEmpty'])) {
-                    $add[''] = [($this->data['selectFilterWithEmptyText'] ?? $this->translate('Empty')), 0];
-                    unset($_valArray[$k]);
-                }
+            if (!empty($this->data['selectFilterWithEmpty'])) {
+                $add[''] = [($this->data['selectFilterWithEmptyText'] ?? $this->translate('Empty')), 0];
             }
+
         }
 
         if (empty($list)) {

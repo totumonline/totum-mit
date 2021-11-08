@@ -1478,7 +1478,7 @@ class CalculateAction extends Calculate
         $field = $table->getFields()[$params['field']];
 
         $CA = new CalculateAction($field['codeAction']);
-        if ($field['category'] === "column") {
+        if ($field['category'] === 'column') {
             $params['field'] = ['__all__'];
             $rows = $table->getByParams($params, 'rows');
             foreach ($rows as $row) {

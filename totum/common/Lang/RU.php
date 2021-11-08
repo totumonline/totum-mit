@@ -362,6 +362,7 @@ class RU implements LangInterface
         'The row with id %s in the table already exists. Cannot be added again' => 'Строка с id %s в таблице уже существует. Нельзя добавить повторно',
         'The [[%s]] field in the rows part of table [[%s]] does not exist' => 'Поля [[%s]] в строчной части таблицы [[%s]] не существует',
         'Client side error. Received row instead of id' => 'Ошибка клиентской части. Получена строка вместо id',
+        'Client side error' => 'Ошибка клиентской части',
         'Logic error n: %s' => 'Ошибка логики n: %s',
         'Adding row error' => 'Ошибка добавления строки',
         'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей'

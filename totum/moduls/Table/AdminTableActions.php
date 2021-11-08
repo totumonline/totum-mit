@@ -160,6 +160,19 @@ CODE;
         return $data;
     }
 
+    public function getIdByFieldValue()
+    {
+        $data = [];
+        foreach (json_decode($this->post['data'], true) as $k => $v) {
+            $data[] = ['field' => $k, 'operator' => '==', 'value' => $v];
+        }
+        if (empty($data)) {
+            throw new errorException($this->translate('Client side error'));
+        }
+
+        return ['value' => $this->Table->getByParams(['field' => 'id', 'where' => $data])];
+    }
+
     public function calcFieldsLog()
     {
         $CA = new CalculateAction('= : linkToDataTable(title:$#title; table: \'calc_fields_log\'; width: 1000; height: "80vh"; params: $#row; refresh: false; header: true; footer: true)');

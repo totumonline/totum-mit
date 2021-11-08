@@ -121,6 +121,10 @@ abstract class aTable
      * @var array|null
      */
     protected $insertRowSetData;
+    /**
+     * @var array|bool|int[]|mixed|string|string[]
+     */
+    protected mixed $lastFiltersChannel;
 
 
     protected function __construct(Totum $Totum, $tableRow, $extraData = null, $light = false, $hash = null)
@@ -1941,11 +1945,11 @@ CODE;;
             default:
                 throw new errorException('Channel ' . $channel . ' not defined in reCalculateFilters');
         }
-        if (!$forse && key_exists($channel, $this->calculatedFilters ?? [])) {
+
+        if (!$forse && key_exists($channel, $this->calculatedFilters ?? []) && $this->lastFiltersChannel === $channel) {
             $this->tbl['params'] = array_merge($this->calculatedFilters[$channel], $this->tbl['params']);
         } else {
             $this->calculatedFilters[$channel] = [];
-
 
             foreach ($this->sortedFields['filter'] as $fName => $field) {
                 if (!($field[$channelParam] ?? false)) {
@@ -1999,6 +2003,8 @@ CODE;;
                 $this->calculatedFilters[$channel][$field['name']] = $this->tbl['params'][$field['name']] ?? null;
             }
         }
+
+        $this->lastFiltersChannel = $channel;
     }
 
 

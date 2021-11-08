@@ -235,7 +235,7 @@ class ReadTableActions extends Actions
                     $CA = new CalculateAction($row['code']);
                     if ($row['id']) {
                         $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
-                        $item = $this->Table->getTbl()["rows"][$row['id']];
+                        $item = $this->Table->getTbl()['rows'][$row['id']];
                     } else {
                         $item = $this->Table->getTbl()['params'];
                     }
@@ -376,12 +376,15 @@ class ReadTableActions extends Actions
     public function refresh()
     {
         $result = [];
+        $filterParams = ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')];
+
         if ($this->post['recalculate'] ?? false) {
             try {
                 $inVars = ['calculate' => aTable::CALC_INTERVAL_TYPES['changed'], 'channel' => 'web',
-                    'modify' => ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]];
+                    'modify' => $filterParams];
                 $this->Totum->transactionStart();
                 $this->Table->reCalculateFromOvers($inVars);
+                $this->Table->reCalculateFilters('web', false, $filterParams);
                 $this->Totum->transactionCommit();
             } catch (errorException $e) {
                 $error = $e->getMessage();
@@ -396,7 +399,7 @@ class ReadTableActions extends Actions
                 'web',
                 false,
                 false,
-                ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+                $filterParams
             );
         }
 
@@ -737,9 +740,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($withRecalculate) {
             try {
                 $inVars = ['calculate' => aTable::CALC_INTERVAL_TYPES['changed'], 'channel' => 'web', 'addFilters' => $addFilters];
+
                 $this->Totum->transactionStart();
                 $this->Table->reCalculateFromOvers($inVars);
+                $this->Table->reCalculateFilters('web', false, $addFilters);
                 $this->Totum->transactionCommit();
+
             } catch (errorException $e) {
                 $error = $e->getMessage();
                 if ($this->Totum->getUser()->isCreator()) {

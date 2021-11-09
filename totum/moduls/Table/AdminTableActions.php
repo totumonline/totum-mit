@@ -6,6 +6,8 @@ namespace totum\moduls\Table;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Lang\RU;
+use totum\models\CalcsTableCycleVersion;
+use totum\models\CalcsTablesVersions;
 use totum\models\Table;
 use totum\models\TablesFields;
 
@@ -163,12 +165,33 @@ CODE;
     public function getIdByFieldValue()
     {
         $data = [];
-        foreach (json_decode($this->post['data'], true) as $k => $v) {
+        $post = json_decode($this->post['data'], true);
+
+        if ($this->Table->getTableRow()['id'] === 2) {
+            $tableRow = $this->Totum->getTableRow($post['table_name']);
+            if ($tableRow['type'] === 'calcs') {
+                if (!empty($post['__cycle_id'])) {
+                    $Cycle = $this->Totum->getCycle($post['__cycle_id'], $tableRow['tree_node_id']);
+                    $Table = $Cycle->getTable($tableRow);
+                    $data[] = ['field' => 'version', 'operator' => '=', 'value' => $Table->getTableRow()['__version']];
+                } else {
+
+                    $version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($tableRow['table_name'],
+                        false);
+                    $data[] = ['field' => 'version', 'operator' => '=', 'value' => $version];
+
+                }
+            }
+            unset($post['__cycle_id']);
+        }
+
+        foreach ($post as $k => $v) {
             $data[] = ['field' => $k, 'operator' => '==', 'value' => $v];
         }
         if (empty($data)) {
             throw new errorException($this->translate('Client side error'));
         }
+
 
         return ['value' => $this->Table->getByParams(['field' => 'id', 'where' => $data])];
     }

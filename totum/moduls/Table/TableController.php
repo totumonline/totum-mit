@@ -133,8 +133,9 @@ class TableController extends interfaceController
             if ($links = $this->Totum->getInterfaceDatas()) {
                 $result['interfaceDatas'] = $links;
             }
-            if ($tableChanged && $method!=='refresh') {
-                $tableChanged['username'] = $this->Totum->getNamedModel(UserV::class)->getFio($tableChanged['user'], true);
+            if ($tableChanged && $method !== 'refresh') {
+                $tableChanged['username'] = $this->Totum->getNamedModel(UserV::class)->getFio($tableChanged['user'],
+                    true);
                 $result['tableChanged'] = $tableChanged;
             }
             $this->Totum->transactionCommit();
@@ -629,7 +630,7 @@ class TableController extends interfaceController
 
 
         if ($tableUri && (preg_match(
-                    '/^(\d+)\/(\d+)\/(\d+)/',
+                    '/^(\d+)\/(\d+)\/(\d+|[a-z][a-z_0-9]+)/',
                     $tableUri,
                     $tableMatches
                 ) || preg_match('/^(\d+)\/(\d+)/', $tableUri, $tableMatches))) {
@@ -658,9 +659,19 @@ class TableController extends interfaceController
                         break;
                 }
             } else {
-                $tableId = $tableMatches[3];
-            }
 
+                $tableId = $tableMatches[3];
+                if (!is_numeric($tableId)) {
+                    $calcsTableRow = $this->Totum->getTableRow($tableId);
+                    $tableId = $calcsTableRow['id'];
+                }
+                if (!is_numeric($tableMatches[1])) {
+                    $tableMatches[1] = $this->Totum->getTableRow($tableMatches[1])['id'];
+                } elseif ($tableMatches[1] === '0') {
+                    $tableMatches[1] = ($calcsTableRow ?? $this->Totum->getTableRow($tableId))['tree_node_id'];
+                }
+
+            }
 
             $this->Cycle = $this->Totum->getCycle($tableMatches[2], $tableMatches[1], $this->Totum);
             if (!$this->Cycle->loadRow()) {

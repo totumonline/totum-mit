@@ -614,8 +614,7 @@ class CalculateAction extends Calculate
                     $params['refresh'] ?? false
                 );
             }
-        }
-        elseif (!empty($params['id'])) {
+        } elseif (!empty($params['id'])) {
             $ids = (array)$params['id'];
             foreach ($ids as $id) {
                 $this->Table->getTotum()->addLinkPanel(
@@ -1353,7 +1352,7 @@ class CalculateAction extends Calculate
                 }
 
                 $where = $params['where'] ?? [];
-                $addedIds = $table->actionDuplicate($fields, $where, null, $params['after']);
+                $addedIds = $table->actionDuplicate($fields, $where, null, $params['after'] ?? null);
                 if (!empty($params['inserts']) && !is_array($params['inserts'])) {
                     $this->vars[$params['inserts']] = $addedIds;
                 }

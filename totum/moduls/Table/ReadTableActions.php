@@ -97,7 +97,7 @@ class ReadTableActions extends Actions
         if (empty($data['fieldName'])) {
             throw new errorException($this->translate('The name of the field is not set.'));
         }
-        if (empty($field = $this->Table->getVisibleFields('web')[$data['fieldName']])) {
+        if (empty($field = ($this->Table->getVisibleFields('web')[$data['fieldName']] ?? null))) {
             throw new errorException($this->translate('Access to the field is denied'));
         }
         if (empty($data['rowId']) && $field['category'] === 'column') {

@@ -44,7 +44,6 @@ if (is_null($isCreatorView ?? null)) {
 
                 <li class="navbar-text"
                     id="UserFio"><?= $UserName ?></li>
-                <li><a href="/Auth/logout/"><?=$this->translate('Logout')?></a></li>
             </ul>
                 <script>
                     (function () {

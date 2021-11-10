@@ -179,6 +179,7 @@ class RU implements LangInterface
         'Field [[%s]] of table [[%s]] is required.' => 'Поле [[%s]] таблицы [[%s]] обязательно для заполнения.',
         'Authorization lost.' => 'Потеряна авторизация.',
         'Scheme file not found.' => 'Файл схемы не найден.',
+        'Scheme not found.' => 'Схема не найдена.',
         'Wrong format scheme file.' => 'Файл схемы неверного формата.',
         'Wrong format file' => 'Файл неверного формата',
 

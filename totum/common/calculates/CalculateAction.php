@@ -599,7 +599,7 @@ class CalculateAction extends Calculate
             $Table = $this->Table->getTotum()->getTable($tableRow['id']);
         }
 
-        if (!empty($params['bfield'])) {
+        if (!empty($params['bfield']) && !empty($params['bfield']['value'])) {
             foreach ((array)$params['bfield']['value'] as $bfieldValue) {
                 $id = $Table->getByParams(['field' => 'id', 'where' => [
                     ['field' => $params['bfield']['field'], 'operator' => '=', 'value' => $bfieldValue]

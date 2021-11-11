@@ -815,6 +815,7 @@ CODE;;
                 [$this->fields[$fieldName]['title'], $this->tableRow['name']]));
             throw $e;
         }
+
     }
 
     public function getTotum()

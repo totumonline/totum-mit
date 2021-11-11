@@ -679,7 +679,6 @@ class Calculate
         $Log = $this->Table->calcLog(['name' => $codeName, 'code' => function () use ($code) {
             return $this->getReadCodeForLog($code);
         }]);
-
         try {
             $pastVals = $this->inVarsApply($inVars);
 

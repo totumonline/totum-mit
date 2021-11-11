@@ -251,6 +251,7 @@ SQL;
     protected function funcSelectRowList(string $params)
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
+
         if (!empty($params['fields'])) {
             $params['field'] = array_merge($params['field'] ?? [], $params['fields']);
         }

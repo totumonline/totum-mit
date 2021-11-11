@@ -242,5 +242,6 @@ class WriteTableActions extends ReadTableActions
             $this->post['field_name'],
             json_decode($this->post['data'], true) ?? []
         );
+        return ['ok' => true];
     }
 }

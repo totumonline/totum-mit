@@ -46,9 +46,8 @@ class StringF extends Field
             );
         }
 
-        if (is_numeric($val)) {
-            $val = Calculate::rtrimZeros(bcadd($val, 0, 10));
+        if (is_numeric($val) && !is_string($val)) {
+            $val = strval($val);
         }
-
     }
 }

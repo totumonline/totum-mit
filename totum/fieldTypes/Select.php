@@ -178,12 +178,12 @@ class Select extends Field
                         }
                         break;
                     case 'number':
-                        if ($field['unitType'] ?? false) {
-                            $elseData['unitType'] = $field['unitType'];
+                        foreach (['unitType', 'before', 'currency', 'prefix', 'postfix', 'thousandthSeparator', 'dectimalSeparator', 'dectimalPlaces'] as $key) {
+                            if ($field[$key] ?? false) {
+                                $elseData[$key] = $field[$key];
+                            }
                         }
-                        if ($field['currency'] ?? false) {
-                            $format = 'currency';
-                        }
+                        $format = 'number';
                         break;
                     case 'text':
                         $format = $field['textType'];

@@ -25,12 +25,12 @@ class Chart extends NoValueField
 
     public function modify($channel, $changeFlag, $newVal, $oldRow, $row = [], $oldTbl = [], $tbl = [], $isCheck = false)
     {
-        return ["v" => null];
+        return ['v' => null];
     }
 
     public function add($channel, $inNewVal, $row = [], $oldTbl = [], $tbl = [], $isCheck = false, $vars = [])
     {
-        return ["v" => null];
+        return ['v' => null];
     }
 
     public function addFormat(&$valArray, $row, $tbl, $pageIds)

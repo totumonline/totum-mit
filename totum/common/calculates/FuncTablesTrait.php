@@ -229,7 +229,7 @@ SQL;
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
         if (!empty($params['fields'])) {
-            $params['field'] = array_merge($params['field'] ?? [], $params['fields']);
+            $params['field'] = array_merge($params['field'] ?? [], (array)$params['fields']);
         }
         if (!empty($params['sfields'])) {
             $params['sfield'] = array_merge($params['sfield'] ?? [], $params['sfields']);
@@ -253,7 +253,7 @@ SQL;
         $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
 
         if (!empty($params['fields'])) {
-            $params['field'] = array_merge($params['field'] ?? [], $params['fields']);
+            $params['field'] = array_merge($params['field'] ?? [], (array)$params['fields']);
         }
         if (!empty($params['sfields'])) {
             $params['sfield'] = array_merge($params['sfield'] ?? [], $params['sfields']);

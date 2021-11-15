@@ -1062,6 +1062,26 @@ CODE;;
         $params['sfield'] = (array)($params['sfield'] ?? []);
         $params['pfield'] = (array)($params['pfield'] ?? []);
 
+        foreach ($params['field'] ?? [] as $i => $fName) {
+            switch ($fName) {
+                case '*ALL*':
+                    unset($params['field'][$i]);
+                    $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['column']));
+                    $params['field'] = array_unique($params['field']);
+                    break;
+                case '*HEADER*':
+                    unset($params['field'][$i]);
+                    $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['param']));
+                    $params['field'] = array_unique($params['field']);
+                    break;
+                case '*FOOTER*':
+                    unset($params['field'][$i]);
+                    $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['footer']));
+                    $params['field'] = array_unique($params['field']);
+                    break;
+            }
+        }
+
         $Field = $params['field'][0] ?? $params['sfield'][0] ?? null;
         if (empty($Field)) {
             throw new errorException($this->translate('No select field specified'));
@@ -1070,6 +1090,7 @@ CODE;;
         if (in_array($returnType, ['list', 'field']) && count($params['field']) > 1) {
             throw new errorException($this->translate('More than one field/sfield is specified'));
         }
+
 
         $fieldsOrder = $params['fieldOrder'] ?? array_merge($params['field'], $params['sfield'], $params['pfield']);
         $params['fieldOrder'] = $fieldsOrder;

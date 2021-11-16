@@ -20,6 +20,8 @@ use totum\tableTypes\aTable;
 
 class ReadTableActions extends Actions
 {
+    protected bool $creatorCommonView = false;
+
     public function csvExport()
     {
         if ($this->Table->isUserCanAction('csv')) {
@@ -851,6 +853,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     protected function getPageViewType(): string
     {
+        if ($this->User->isCreator() && ($this->Cookies['ttm__commonTableView'] ?? false)) {
+            $this->creatorCommonView = true;
+            return 'common';
+        }
+
         if ($this->Request->getQueryParams()['iframe'] ?? false) ; elseif (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null))
         ) {
             if (($this->post['panelsView'] ?? false) === 'true') {
@@ -1519,7 +1526,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     'title->>\'v\''
                 );
                 $fields['data_src']['jsonFields']['fieldSettings']['selectTable']['values'] = $this->Totum->getModel('tables')->getFieldIndexedByField(
-                    ['is_del' => false, 'type'=>['globcalcs', 'simple', 'cycles']],
+                    ['is_del' => false, 'type' => ['globcalcs', 'simple', 'cycles']],
                     'name',
                     'title',
                     'title->>\'v\''

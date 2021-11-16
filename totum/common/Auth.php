@@ -9,9 +9,9 @@ class Auth
 {
     public static $shadowRoles = [1, -2];
     public static $AuthStatuses = [
-        "OK" => 0,
-        "WRONG_PASSWORD" => 1,
-        "BLOCKED_BY_CRACKING_PROTECTION" => 2,
+        'OK' => 0,
+        'WRONG_PASSWORD' => 1,
+        'BLOCKED_BY_CRACKING_PROTECTION' => 2,
     ];
     public static $userManageRoles = [-1];
     public static $userManageTables = ['users', 'auth_log', 'ttm__user_log', 'ttm__users_online'];
@@ -74,7 +74,7 @@ class Auth
 
     public static function getUsersForShadow(Conf $Config, User $User, $id = null): array
     {
-        $_id = $id ? "id = " . (int)$id : 'true';
+        $_id = $id ? 'id = ' . (int)$id : 'true';
         $_roles = 'true';
         if (Auth::getShadowRole($User) !== 1) {
             $_roles = "(roles->'v' @> '[\"1\"]'::jsonb) = FALSE";

@@ -43,6 +43,7 @@ class Actions
     protected $modulePath;
 
     public $withLog = true;
+    protected array $Cookies = [];
 
     public function __construct(ServerRequestInterface $Request, string $modulePath, aTable $Table = null, Totum $Totum = null)
     {
@@ -54,6 +55,8 @@ class Actions
         $this->User = $this->Totum->getUser();
         $this->Request = $Request;
         $this->post = $Request->getParsedBody();
+
+        $this->Cookies = $Request->getCookieParams();
 
         if (!empty($this->post['restoreView'])) {
             $this->Table->setRestoreView(true);

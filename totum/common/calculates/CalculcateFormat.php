@@ -162,6 +162,25 @@ class CalculcateFormat extends Calculate
         return null;
     }
 
+    protected function funcPanelButton(string $paramsIn): ?array
+    {
+        if ($params = $this->getParamsArray($paramsIn,
+            [],
+            ['text', 'code', 'icon', 'background', 'vars', 'refresh', 'condition'])) {
+            if ($this->getConditionsResult($params)) {
+                $params = $this->getParamsArray($paramsIn, [], ['condition']);
+
+                $this->__checkNotEmptyParams($params, ['code']);
+                $this->__checkNotArrayParams($params, ['text', 'code', 'icon', 'background', 'refresh']);
+
+                $values = [array_intersect_key($params,
+                    array_flip(['text', 'code', 'icon', 'background', 'vars', 'refresh']))];
+                return ['type' => 'buttons', 'value' => $values];
+            }
+        }
+        return null;
+    }
+
     public function getPanelFormat($fieldName, $row, $tbl, aTable $table, $Vars = []): array
     {
         $result = $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, 'p');

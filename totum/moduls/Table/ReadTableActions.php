@@ -1036,16 +1036,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         }
 
                         $fields[$f['name']]['selectTableId'] = $table['id'];
-
-                        if ($table['type'] !== 'calcs') {
-                            $fields[$f['name']]['linkToSelectTable'] = ['link' => $this->modulePath . $table['top'] . '/' . $table['id'], 'title' => $table['title']];
-                        } else {
-                            $topTable = $this->Totum->getTableRow($table['tree_node_id']);
-                            $fields[$f['name']]['linkToSelectTable'] =
-                                ['link' => $this->modulePath . $topTable['top'] . '/' . $topTable['id'] . '/' . $this->Table->getCycle()->getId() . '/' . $table['id']
-                                    , 'title' => $table['title']
-                                ];
-                        }
+                        $fields[$f['name']]['linkToSelectTable'] = ['link' => $this->modulePath . $table['top'] . '/' . $table['id'], 'title' => $table['title']];
                     }
                 }
             }
@@ -1528,7 +1519,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     'title->>\'v\''
                 );
                 $fields['data_src']['jsonFields']['fieldSettings']['selectTable']['values'] = $this->Totum->getModel('tables')->getFieldIndexedByField(
-                    ['is_del' => false],
+                    ['is_del' => false, 'type'=>['globcalcs', 'simple', 'cycles']],
                     'name',
                     'title',
                     'title->>\'v\''

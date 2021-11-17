@@ -385,9 +385,7 @@ CONF;
 
     protected function calcTableSettings(&$schemaRow, &$tablesChanges, $funcRoles, $getTreeId, $funcCategories)
     {
-        if (empty($schemaRow['settings'])) {
-            return;
-        }
+
 
 
         $schemaRow['name'] = $schemaRow['name'] ?? $schemaRow['table'];
@@ -405,6 +403,10 @@ CONF;
         unset($schemaRow['settings']['top']);
 
         $schemaRow['tableReNamed'] = false;
+
+        if (empty($schemaRow['settings'])) {
+            return;
+        }
 
         foreach ($schemaRow['settings'] as $setting => &$val) {
             if (in_array($setting, Totum::TABLE_ROLES_PARAMS)) {

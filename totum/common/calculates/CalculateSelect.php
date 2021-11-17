@@ -50,7 +50,8 @@ class CalculateSelect extends Calculate
         }
 
         if ($this->error) {
-            $this->error .= ' ('.$this->translate('field [[%s]] of [[%s]] table', [$this->varName, $this->Table->getTableRow()['name']]).')';
+            $this->error .= ' (' . $this->translate('field [[%s]] of [[%s]] table',
+                    [$this->varName, $this->Table->getTableRow()['name']]) . ')';
         }
 
         return $r ?? $this->error;
@@ -150,7 +151,8 @@ class CalculateSelect extends Calculate
             $sourceTable = $this->getSourceTable($params);
             $ParentField = Field::init($sourceTable->getFields()[$params['parent']], $sourceTable);
             if ($ParentField->getData('codeSelectIndividual')) {
-                throw new errorException($this->translate('The [[%s]] parameter must [[not]] be [[%s]].', [$params['parent'], 'codeSelectIndividual']));
+                throw new errorException($this->translate('The [[%s]] parameter must [[not]] be [[%s]].',
+                    [$params['parent'], 'codeSelectIndividual']));
             } else {
                 $treeListPrep = 'PP/';
 
@@ -278,6 +280,9 @@ class CalculateSelect extends Calculate
             unset($rows['previewdata']);
 
             foreach ($rows as $row) {
+                if (!is_array($row) || !key_exists('value', $row)) {
+                    continue;
+                }
                 $selectList[$row['value']] = [$row['title']];                   //0
                 $selectList[$row['value']][] = !empty($row['is_del']) ? 1 : 0;  //1
                 $selectList[$row['value']][] = $row['section'] ?? null;         //2

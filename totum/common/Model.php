@@ -637,6 +637,11 @@ class Model
         $stmt = $this->executePrepared(true, $where, $fields, $order_by, '0,1');
         return $stmt->fetch() ?? [];
     }
+    public function getAllPrepared($where = [], string $fields = '*', $order_by = null)
+    {
+        $stmt = $this->executePrepared(true, $where, $fields, $order_by);
+        return $stmt->fetchAll() ?? [];
+    }
 
     public function get($where = [], string $fields = "*", $order_by = null)
     {

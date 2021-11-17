@@ -206,14 +206,12 @@ class Actions
 
             $model = $this->Totum->getModel('notifications');
             if ($ids === 'ALL_ACTIVE') {
-                $rows = $model->getAll(['<active_dt_from' => date('Y-m-d H:i:s', time() - 120),
+                $rows = $model->getAllPrepared(['<=active_dt_from' => date('Y-m-d H:i:s', time() - 120),
                     'user_id' => $this->User->getId(),
                     'active' => 'true']);
             } else {
                 $rows = $model->getAll(['id' => $ids, 'user_id' => $this->User->getId()]);
             }
-
-
             if ($rows) {
                 $upd = [];
                 switch ($this->post['type']) {
@@ -238,6 +236,7 @@ class Actions
                 foreach ($rows as $row) {
                     $md[$row['id']] = $upd;
                 }
+
                 $this->Totum->getTable('notifications')->reCalculateFromOvers(['modify' => $md]);
             }
         }

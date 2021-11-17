@@ -86,12 +86,28 @@ class TotumInstall
         $dbExport = var_export($db, true);
 
         if ($post['multy'] === '1') {
-            $multyPhp = ' use MultiTrait;';
-        } else {
-            $multyPhp = <<<CONF
+            $multyPhp=<<<CONF
 
+/***** multi start ***/
+    use MultiTrait;
+/***** multi stop ***/
+
+/***** no-multi start ***
     protected \$hostName='$host';
     protected \$schemaName='{$post['db_schema']}';
+/***** no-multi stop ***/   
+CONF;
+        } else {
+            $multyPhp=<<<CONF
+
+/***** multi start ***
+    use MultiTrait;
+/***** multi stop ***/
+
+/***** no-multi start ***/
+    protected \$hostName='$host';
+    protected \$schemaName='{$post['db_schema']}';
+/***** no-multi stop ***/   
 CONF;
         }
 
@@ -106,7 +122,10 @@ use totum\common\configs\MultiTrait;
 
 class Conf extends ConfParent{
     use WithPhpMailerTrait;
+    
     $multyPhp
+    
+    
     
     const db=$dbExport;
     

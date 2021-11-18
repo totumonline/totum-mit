@@ -76,7 +76,8 @@ class SchemaBackup extends Command
                 $exclude .= " --exclude-table-data='$tName'";
             }
         }
+        $gz=($gz ? '| gzip' : '');
 
-        `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' ` . ($gz ? '| gzip' : '') . ` > "{$path}"`;
+        `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' $gz > "{$path}"`;
     }
 }

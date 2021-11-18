@@ -86,7 +86,7 @@ class TotumInstall
         $dbExport = var_export($db, true);
 
         if ($post['multy'] === '1') {
-            $multyPhp=<<<CONF
+            $multyPhp = <<<CONF
 
 /***** multi start ***/
     use MultiTrait;
@@ -98,7 +98,7 @@ class TotumInstall
 /***** no-multi stop ***/   
 CONF;
         } else {
-            $multyPhp=<<<CONF
+            $multyPhp = <<<CONF
 
 /***** multi start ***
     use MultiTrait;
@@ -295,7 +295,7 @@ CONF;
                 break;
             }
         }
-        $data = static::applyMatches($data, []);
+        $data = $this->applyMatches($data, []);
 
         unset($data['tables_settings']['settings']);
         unset($data['fields_settings']);
@@ -385,7 +385,6 @@ CONF;
 
     protected function calcTableSettings(&$schemaRow, &$tablesChanges, $funcRoles, $getTreeId, $funcCategories)
     {
-
 
 
         $schemaRow['name'] = $schemaRow['name'] ?? $schemaRow['table'];
@@ -481,12 +480,19 @@ CONF;
         $schemaRow['tableId'] = $tableId;
     }
 
-    public static function applyMatches($schemaData, $matches)
+    public function applyMatches($schemaData, $matches)
     {
+        if ($schemaData['match_existings'] ?? false) {
+            foreach (['tree' => 'tree', 'categories' => 'table_categories', 'roles' => 'roles'] as $type => $table) {
+                $existings[$type] = $this->Totum->getModel($table)->getAllIds();
+                $existings[$type] = array_combine($existings[$type], $existings[$type]);
+            }
+        }
+
         foreach (['tree', 'categories', 'roles'] as $type) {
             foreach ($schemaData[$type] as &$row) {
                 if (!key_exists('out_id', $row)) {
-                    $row['out_id'] = $matches[$type][$row['id']] ?? '';
+                    $row['out_id'] = $existings[$type][$row['id']] ?? $matches[$type][$row['id']] ?? '';
                 }
             }
             unset($row);

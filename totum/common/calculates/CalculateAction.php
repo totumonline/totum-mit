@@ -249,7 +249,7 @@ class CalculateAction extends Calculate
             $this->Table->getCalculateLog()
         );
 
-        $params['schema'] = TotumInstall::applyMatches($params['schema'], $params);
+        $params['schema'] = $TotumInstall->applyMatches($params['schema'], $params);
         if (empty($params['matches_name'])) {
             throw new errorException($this->translate('Scheme source not defined.'));
         }

@@ -82,7 +82,7 @@ class SchemaUpdate extends Command
         } else {
             $matches = $TotumInstall->getTotum()->getTable('ttm__updates')->getTbl()['params']['h_matches']['v'][$sourceName] ?? [];
         }
-        $cont = TotumInstall::applyMatches($cont, $matches);
+        $cont = $TotumInstall->applyMatches($cont, $matches);
 
         $TotumInstall->updateSchema($cont, true, $sourceName);
     }

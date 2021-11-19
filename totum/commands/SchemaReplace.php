@@ -24,10 +24,10 @@ class SchemaReplace extends Command
             'Path to schema sql file');
         if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
             $this->addArgument('schema',
-                InputOption::VALUE_REQUIRED,
+                InputArgument::REQUIRED,
                 'Enter add/replace schema name (Latin letters, numbers and "_-" symbols.)');
             $this->addArgument('host',
-                InputOption::VALUE_OPTIONAL,
+                InputArgument::OPTIONAL,
                 'Enter host if schema is new');
         }
         $this->addOption('with-active-crons',
@@ -55,15 +55,20 @@ class SchemaReplace extends Command
             }
 
             if (!($host = $input->getArgument('host'))) {
+                $exists = false;
                 foreach ($Conf::getSchemas() as $h => $s) {
                     if ($s === $schemaName) {
-                        $helper = $this->getHelper('question');
-                        $question = new Question('Please enter the name of the bundle');
+                        $exists = true;
+                        break;
+                    }
+                }
+                if(!$exists){
+                    $helper = $this->getHelper('question');
+                    $question = new Question('Please enter the name of the new host: ');
 
-                        if (!($host = $helper->ask($input, $output, $question))) {
-                            $output->write('Host is required');
-                            return;
-                        }
+                    if (!($host = $helper->ask($input, $output, $question))) {
+                        $output->writeln('Host is required');
+                        return;
                     }
                 }
             }
@@ -143,18 +148,17 @@ class SchemaReplace extends Command
         $output->writeln('sql data loaded' . ($result ? ':' . $result : ''));
 
         unlink($tmpFileName);
+
         if (!empty($host)) {
             $ConfFile = (new \ReflectionClass(Conf::class))->getFileName();
             $ConfFileContent = file_get_contents($ConfFile);
 
             if (preg_match(
-                '~\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return([^$]*)\}[^$]*/\*\*\*getSchemasEnd\*\*\*/~',
+                '~(\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return\s*)([^$]*)(\}[^$]*/\*\*\*getSchemasEnd\*\*\*/)~',
                 $ConfFileContent,
                 $matches
             )) {
-                $output->writeln('save Conf.php');
-
-                eval("\$schemas={$matches[1]}");
+                eval("\$schemas={$matches[2]}");
                 $schemas[$host] = $schemaName;
                 $ConfFileContent = preg_replace(
                     '~(\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return\s*)([^$]*)(\}[^$]*/\*\*\*getSchemasEnd\*\*\*/)~',

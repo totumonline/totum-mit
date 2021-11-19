@@ -141,7 +141,7 @@ class SchemaReplace extends Command
         $output->writeln('sql data loaded' . ($result ? ':' . $result : ''));
 
         unlink($tmpFileName);
-        if ($host) {
+        if (!empty($host)) {
             $ConfFile = (new \ReflectionClass(Conf::class))->getFileName();
             $ConfFileContent = file_get_contents($ConfFile);
 

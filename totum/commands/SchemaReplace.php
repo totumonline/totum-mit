@@ -54,14 +54,16 @@ class SchemaReplace extends Command
                 throw new errorException('Schema must contain only Latin letters, numbers and "_-" symbols.');
             }
 
-            foreach ($Conf::getSchemas() as $h => $s) {
-                if ($s === $schemaName) {
-                    $helper = $this->getHelper('question');
-                    $question = new Question('Please enter the name of the bundle');
+            if (!($host = $input->getArgument('host'))) {
+                foreach ($Conf::getSchemas() as $h => $s) {
+                    if ($s === $schemaName) {
+                        $helper = $this->getHelper('question');
+                        $question = new Question('Please enter the name of the bundle');
 
-                    if (!($host = $helper->ask($input, $output, $question))) {
-                        $output->write('Host is required');
-                        return;
+                        if (!($host = $helper->ask($input, $output, $question))) {
+                            $output->write('Host is required');
+                            return;
+                        }
                     }
                 }
             }

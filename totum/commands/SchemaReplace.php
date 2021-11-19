@@ -105,7 +105,7 @@ class SchemaReplace extends Command
             if (!$is_schema_replaced && preg_match('/^CREATE SCHEMA ["\']?([a-z_0-9\-]+)["\']?/',
                     $buffer,
                     $schemaMatch)) {
-                $dropSchema = 'DROP SCHEMA [ IF EXISTS ] "' . $schemaName . '" CASCADE;' . "\n";
+                $dropSchema = 'DROP SCHEMA IF EXISTS "' . $schemaName . '" CASCADE;' . "\n";
                 $addedSchemaName = $schemaMatch[1];
                 if ($checkschemaExists($addedSchemaName)) {
                     do {

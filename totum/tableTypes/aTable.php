@@ -1495,6 +1495,10 @@ CODE;;
                 }
             }
 
+            if (is_array($params['cycle'])) {
+                $params['cycle'] = array_shift($params['cycle']);
+            }
+
             if (in_array($returnType, ['list', 'rows']) && is_array($params['cycle'])) {
                 $list = [];
                 foreach ($params['cycle'] as $cycle) {

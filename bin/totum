@@ -12,6 +12,7 @@ use totum\commands\SchemaCrons;
 use totum\commands\Install;
 use totum\commands\SchemaDuplicate;
 use totum\commands\SchemaPasswd;
+use totum\commands\SchemaReplace;
 use totum\commands\SchemasCrons;
 use totum\commands\SchemasList;
 use totum\commands\SchemasUpdates;
@@ -39,6 +40,7 @@ if (class_exists(Conf::class)) {
     $app->add(new Vacuum());
     $app->add(new GitUpdate());
     $app->add(new SchemaBackup());
+    $app->add(new SchemaReplace());
 
     if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
         $app->add(new SchemasCrons());

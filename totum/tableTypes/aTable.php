@@ -1495,10 +1495,6 @@ CODE;;
                 }
             }
 
-            if (is_array($params['cycle'])) {
-                $params['cycle'] = array_shift($params['cycle']);
-            }
-
             if (in_array($returnType, ['list', 'rows']) && is_array($params['cycle'])) {
                 $list = [];
                 foreach ($params['cycle'] as $cycle) {
@@ -1507,11 +1503,16 @@ CODE;;
                     $list = array_merge($list, $SourceTable->getByParamsCached($params, $returnType, $this));
                 }
                 return $list;
-            } elseif (!ctype_digit(strval($params['cycle']))) {
-                throw new errorException($this->translate('The %s parameter must be a number.', 'cycle'));
             } else {
-                $SourceCycle = $this->Totum->getCycle($params['cycle'], $sourceTableRow['tree_node_id']);
-                $SourceTable = $SourceCycle->getTable($sourceTableRow);
+                if (is_array($params['cycle'])) {
+                    $params['cycle'] = array_shift($params['cycle']);
+                }
+                if (!ctype_digit(strval($params['cycle']))) {
+                    throw new errorException($this->translate('The %s parameter must be a number.', 'cycle'));
+                } else {
+                    $SourceCycle = $this->Totum->getCycle($params['cycle'], $sourceTableRow['tree_node_id']);
+                    $SourceTable = $SourceCycle->getTable($sourceTableRow);
+                }
             }
         } else {
             $SourceTable = $this->Totum->getTable($sourceTableRow);

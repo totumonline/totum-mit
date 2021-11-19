@@ -47,7 +47,7 @@ class SchemaReplace extends Command
             $schemaName = $Conf->getSchema();
         } else {
             $schemaName = $input->getArgument('schema');
-            if (!empty($schemaName)) {
+            if (empty($schemaName)) {
                 throw new errorException('Schema cann\'t be empty');
             }
             if (!preg_match('/^[a-z_0-9\-]+$/', $schemaName)) {
@@ -76,7 +76,7 @@ class SchemaReplace extends Command
 
         if ($checkschemaExists($schemaName)) {
             $helper = $this->getHelper('question');
-            $question = new ConfirmationQuestion('Schema ' . $schemaName . ' will be recreated of this file. Do you really want this?',
+            $question = new ConfirmationQuestion('Schema ' . $schemaName . ' will be recreated from this file. Do you really want this?',
                 false);
 
             if (!$helper->ask($input, $output, $question)) {

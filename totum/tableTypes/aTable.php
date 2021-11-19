@@ -1487,7 +1487,11 @@ CODE;;
                 if ($this->tableRow['type'] === 'cycles' && (int)$sourceTableRow['tree_node_id'] === $this->tableRow['id'] && $rowId) {
                     $params['cycle'] = $rowId;
                 } else {
-                    throw new errorException($this->translate('Fill in the parameter [[%s]].', 'cycle'));
+                    if ($returnType === 'field') {
+                        return null;
+                    } else {
+                        return [];
+                    }
                 }
             }
 

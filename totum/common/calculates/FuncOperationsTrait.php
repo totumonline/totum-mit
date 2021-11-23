@@ -104,6 +104,11 @@ trait FuncOperationsTrait
         }
     }
 
+    protected function funcErrorException(string $params)
+    {
+        $this->funcErrorExeption($params);
+    }
+
     protected function funcExec(string $params): mixed
     {
         $params = $this->getParamsArray($params, ['var'], ['var']);

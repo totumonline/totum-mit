@@ -42,8 +42,7 @@ class CalculateSelectViewValue extends CalculateSelect
         $params['where'][] = [
             'field' => $bField,
             'operator' => '=',
-            'value' => $val,
-            'filterNumbersIfNumeric' => true
+            'value' => $val
         ];
 
 

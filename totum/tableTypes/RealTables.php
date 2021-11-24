@@ -1404,16 +1404,11 @@ abstract class RealTables extends aTable
                 $valueCheck = (array)$value;
                 foreach ($valueCheck as $i => $v) {
                     if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
-                        if (!empty($wI['filterNumbersIfNumeric'])) {
-                            if (is_array($value)) {
-                                unset($value[$i]);
-                            } else {
-                                continue 2;
-                            }
-                            continue;
+                        if (is_array($value)) {
+                            unset($value[$i]);
+                        } else {
+                            continue 2;
                         }
-                        throw new errorException($this->translate('For selecting by numeric field [[%s]] you must pass numeric values',
-                            $fieldName));
                     }
                 }
 
@@ -1641,7 +1636,8 @@ abstract class RealTables extends aTable
                                 if ((array_keys($value) === range(0, count($value) - 1))) {
                                     array_push($params, ...$value);
                                 } else {
-                                    throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row', $wI['field']));
+                                    throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row',
+                                        $wI['field']));
                                 }
 
 

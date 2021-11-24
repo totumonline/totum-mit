@@ -743,6 +743,7 @@ class Calculate
                             $rTmp = match ($spec) {
                                 'math' => $this->parseTotumMath(substr($this->CodeStrings[$r['string']], 4)),
                                 'json' => $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4)),
+                                'jsot' => $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4), true),
                                 'cond' => $this->parseTotumCond(substr($this->CodeStrings[$r['string']], 4)),
                                 default => match (substr($this->CodeStrings[$r['string']], 0, 3)) {
                                     'str' => $this->parseTotumStr(substr($this->CodeStrings[$r['string']], 3)),
@@ -1295,6 +1296,7 @@ class Calculate
             'stringParam' => match ($spec = substr($this->CodeStrings[$paramArray['string']], 0, 4)) {
                 'math' => $this->parseTotumMath(substr($this->CodeStrings[$paramArray['string']], 4)),
                 'json' => $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4)),
+                'jsot' => $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4), true),
                 'cond' => $this->parseTotumCond($str = substr($this->CodeStrings[$paramArray['string']], 4)),
                 default => match (substr($spec, 0, 3)) {
                     'str' => $this->parseTotumStr(substr($this->CodeStrings[$paramArray['string']], 3)),

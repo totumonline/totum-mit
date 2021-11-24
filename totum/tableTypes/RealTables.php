@@ -1369,6 +1369,8 @@ abstract class RealTables extends aTable
             $withoutDeleted = false;
         }
 
+        $ReturnFalse = false;
+
         foreach ($paramsWhere as $wI) {
             if (!is_array($wI)) {
                 $where[] = $wI;
@@ -1402,14 +1404,20 @@ abstract class RealTables extends aTable
                 $withoutDeleted = false;
             } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
                 $valueCheck = (array)$value;
+                $isRemovedValues = false;
                 foreach ($valueCheck as $i => $v) {
                     if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
                         if (is_array($value)) {
                             unset($value[$i]);
+                            $isRemovedValues = true;
                         } else {
-                            continue 2;
+                            $ReturnFalse = true;
+                            break 2;
                         }
                     }
+                }
+                if($isRemovedValues && is_array($value)){
+                    $value = array_values($value);
                 }
 
                 if ($fieldName === 'id') {
@@ -1721,14 +1729,22 @@ abstract class RealTables extends aTable
             }
         }
 
-        if ($withoutDeleted) {
-            $where[] = 'is_del = false';
-        }
+        if ($ReturnFalse) {
 
-        if (empty($where)) {
-            $whereStr = "TRUE";
+            $whereStr = 'FALSE';
+
         } else {
-            $whereStr = '(' . implode(') AND (', $where) . ')';
+
+            if ($withoutDeleted) {
+                $where[] = 'is_del = false';
+            }
+
+            if (empty($where)) {
+                $whereStr = 'TRUE';
+            } else {
+                $whereStr = '(' . implode(') AND (', $where) . ')';
+            }
+
         }
 
         return [$whereStr, $params];

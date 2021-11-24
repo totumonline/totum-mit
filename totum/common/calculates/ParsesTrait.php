@@ -58,11 +58,13 @@ trait ParsesTrait
                     if ($matches[1] === '') {
                         return '""';
                     }
+                    $type = $matches[1];
                     switch ($matches[1]) {
                         case 'json':
                             if (!json_decode($matches[2]) && json_last_error()) {
                                 $matches[2] = $replace_strings($matches[2]);
                                 $usedHashParams($matches[2]);
+                                $type = 'jsot';
                             }
                             break;
                         case 'math':
@@ -74,7 +76,7 @@ trait ParsesTrait
                             break;
                     }
                     $stringNum = count($strings);
-                    $strings[] = $matches[1] . $matches[2];
+                    $strings[] = $type . $matches[2];
                     return '"' . $stringNum . '"';
                 },
                 $line
@@ -367,11 +369,9 @@ trait ParsesTrait
         return $calcIt($pack_Sc($actions));
     }
 
-    protected function parseTotumJson(string $str)
+    protected function parseTotumJson(string $str, $isSureTotum = false)
     {
-        try {
-            return json_decode($str, true, flags: JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
+        $processJson = function ($str) {
             $TJ = new TotumJson($str);
             $TJ->setTotumCalculate(function ($param) {
                 return $this->execSubCode($param, 'paramFromJson');
@@ -385,6 +385,15 @@ trait ParsesTrait
             });
             $TJ->parse();
             return $TJ->getJson();
+        };
+        if ($isSureTotum) {
+            return $processJson($str);
+        }
+
+        try {
+            return json_decode($str, true, flags: JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return $processJson($str);
         }
     }
 

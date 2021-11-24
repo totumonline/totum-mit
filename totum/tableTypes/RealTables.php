@@ -1402,7 +1402,7 @@ abstract class RealTables extends aTable
             $isNumeric = false;
             if ($fieldName === 'is_del') {
                 $withoutDeleted = false;
-            } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
+            } elseif ($fieldName === 'id' || $fieldName === 'n') {
                 $valueCheck = (array)$value;
                 $isRemovedValues = false;
                 foreach ($valueCheck as $i => $v) {

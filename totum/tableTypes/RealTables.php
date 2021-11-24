@@ -1638,7 +1638,7 @@ abstract class RealTables extends aTable
 
 
                                 /*if it's list*/
-                                if ((array_keys($value) !== range(0, count($value) - 1))) {
+                                if ((array_keys($value) === range(0, count($value) - 1))) {
                                     array_push($params, ...$value);
                                 } else {
                                     throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row', $wI['field']));

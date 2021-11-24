@@ -1407,7 +1407,7 @@ abstract class RealTables extends aTable
                         if (!empty($wI['filterNumbersIfNumeric'])) {
                             if (is_array($value)) {
                                 unset($value[$i]);
-                            }else{
+                            } else {
                                 continue 2;
                             }
                             continue;
@@ -1635,7 +1635,16 @@ abstract class RealTables extends aTable
                                         ',?',
                                         count($value) - 1
                                     ) . ')';
-                                array_push($params, ...$value);
+
+
+                                /*if it's list*/
+                                if ((array_keys($value) !== range(0, count($value) - 1))) {
+                                    array_push($params, ...$value);
+                                } else {
+                                    throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row', $wI['field']));
+                                }
+
+
                             }
                             $where[] = "($q)";
                         }

@@ -332,6 +332,10 @@ class Calculate
         }
         $dateFromParams = strval($dateFromParams);
         if ($dateFromParams !== '') {
+            if(is_numeric($dateFromParams)){
+                $dt = new \DateTime();
+                return $dt->setTimestamp((int)$dateFromParams);
+            }
             foreach (['Y-m-d', 'd.m.y', 'd.m.Y', 'Y-m-d H:i', 'd.m.y H:i', 'd.m.Y H:i', 'Y-m-d H:i:s'] as $format) {
                 if ($date = date_create_from_format($format, $dateFromParams)) {
                     if (!strpos($format, 'H')) {

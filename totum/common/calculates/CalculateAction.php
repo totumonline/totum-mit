@@ -1002,7 +1002,7 @@ class CalculateAction extends Calculate
         }
 
         if ($q_params) {
-            $link .= '?' . http_build_query($q_params, "", "&", PHP_QUERY_RFC1738);
+            $link .= '?' . http_build_query($q_params, '', '&', PHP_QUERY_RFC1738);
         }
 
 

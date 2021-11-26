@@ -93,25 +93,57 @@ SQL;
             } else {
                 $width = $params['width'];
             }
-            $table = [
-                'title' => $params['title'] ?? $tableRow['title'],
-                'table_id' => $tableRow['id'],
-                'sess_hash' => $tmp->getTableRow()['sess_hash'],
-                'width' => $width,
-                'height' => $params['height'] ?? '80vh'
-            ];
-            $this->Table->getTotum()->addToInterfaceDatas(
-                'table',
-                $table,
-                $params['refresh'] ?? false,
-                ['header' => $params['header'] ?? true,
-                    'footer' => $params['footer'] ?? true]
-            );
+
+
+            if (!empty($params['target'])) {
+                $params['target'] = $params['target'] ?? 'self';
+
+                if ($params['target'] === 'iframe' || $params['target'] === 'top-iframe') {
+                    $q_params['iframe'] = true;
+                }
+                $q_params['sess_hash'] = $tmp->getTableRow()['sess_hash'];
+
+                $link = '/Table/';
+                $link .= ($tableRow['top'] ?: 0) . '/' . $tableRow['id'];
+
+                if ($q_params) {
+                    $link .= '?' . http_build_query($q_params, '', '&', PHP_QUERY_RFC1738);
+                }
+
+
+                $this->Table->getTotum()->addToInterfaceLink(
+                    $link,
+                    $params['target'],
+                    $params['title'] ?? $tableRow['title'],
+                    null,
+                    $params['width'] ?? null,
+                    $params['refresh'] ?? false,
+                    ['header' => $params['header'] ?? true,
+                        'footer' => $params['footer'] ?? true]
+                );
+            } else {
+                $table = [
+                    'title' => $params['title'] ?? $tableRow['title'],
+                    'table_id' => $tableRow['id'],
+                    'sess_hash' => $tmp->getTableRow()['sess_hash'],
+                    'width' => $width,
+                    'height' => $params['height'] ?? '80vh'
+                ];
+                $this->Table->getTotum()->addToInterfaceDatas(
+                    'table',
+                    $table,
+                    $params['refresh'] ?? false,
+                    ['header' => $params['header'] ?? true,
+                        'footer' => $params['footer'] ?? true]
+                );
+            }
         }
         return $tmp->getTableRow()['sess_hash'];
+
     }
 
-    protected function funcLogRowList(string $params): array
+    protected
+    function funcLogRowList(string $params): array
     {
         $params = $this->getParamsArray($params);
         $where = [];
@@ -164,7 +196,8 @@ SQL;
         throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'params'));
     }
 
-    protected function funcReCalculate(string $params)
+    protected
+    function funcReCalculate(string $params)
     {
         $params = $this->getParamsArray($params, ['field']);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
@@ -185,7 +218,7 @@ SQL;
 
             $Cycles = (array)$params['cycle'];
             foreach ($Cycles as $cycleId) {
-                if (empty($cycleId)){
+                if (empty($cycleId)) {
                     continue;
                 }
                 $params['cycle'] = $cycleId;
@@ -215,17 +248,20 @@ SQL;
         }
     }
 
-    protected function funcSelect(string $params)
+    protected
+    function funcSelect(string $params)
     {
         return $this->select($params, 'field');
     }
 
-    protected function funcSelectList(string $params): array
+    protected
+    function funcSelectList(string $params): array
     {
         return $this->select($params, 'list');
     }
 
-    protected function funcSelectRow(string $params)
+    protected
+    function funcSelectRow(string $params)
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
         if (!empty($params['fields'])) {
@@ -248,7 +284,8 @@ SQL;
         return $row;
     }
 
-    protected function funcSelectRowList(string $params)
+    protected
+    function funcSelectRowList(string $params)
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
 
@@ -268,12 +305,14 @@ SQL;
         );
     }
 
-    protected function funcSelectTreeChildren(string $params)
+    protected
+    function funcSelectTreeChildren(string $params)
     {
         return $this->select($this->getParamsArray($params), 'treeChildren');
     }
 
-    protected function funcTableLogSelect(string $params): array
+    protected
+    function funcTableLogSelect(string $params): array
     {
         $params = $this->getParamsArray($params);
         $this->__checkListParam($params['users'], 'users');
@@ -365,7 +404,8 @@ SQL;
         return $data;
     }
 
-    protected function select($params, $mode, $withOutSection = false)
+    protected
+    function select($params, $mode, $withOutSection = false)
     {
         $params = $this->getParamsArray($params, ['where', 'order', 'sfield']);
 

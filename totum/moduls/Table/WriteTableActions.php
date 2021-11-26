@@ -167,7 +167,7 @@ class WriteTableActions extends ReadTableActions
             );
 
             if (is_array($r) && ($r['ok'] ?? false)) {
-                $this->Totum->addToInterfaceLink($this->Request->getServerParams()['REQUEST_URI'], 'self', 'reload');
+                return ['ok'=>1];
             }
             return $r;
         } else {

@@ -340,7 +340,7 @@ trait FuncStringsTrait
         $s = trim($s);
         $s = mb_strtolower($s);
 
-        $s= $this->getLangObj()->smallTranslit($s);
+        $s = $this->getLangObj()->smallTranslit($s);
 
         $s = preg_replace('/[^0-9a-z_ ]/i', '', $s);
         $s = str_replace(' ', '_', $s);
@@ -378,83 +378,21 @@ trait FuncStringsTrait
 
         $usedStyles = [];
 
-        $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $getTemplate, &$style, &$usedStyles) {
-            return preg_replace_callback(
-                '/{(([a-z_0-9]+)(\["[a-z_0-9]+"\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
-                function ($matches) use ($data, $getTemplate, &$funcReplaceTemplates, &$style, &$usedStyles) {
-                    if (!key_exists($matches[2], $data)) {
-                        return '';
-                    }
-                    if (is_array($data[$matches[2]])) {
-                        if (!empty($matches[3])) {
-                            $matches[3] = substr($matches[3], 2, -2);
-                            if (!array_key_exists(
-                                $matches[3],
-                                $data[$matches[2]]
-                            )) {
-                                throw new errorException($this->translate('There is no [[%s]] key in the [[%s]] list.',
-                                    [$matches[3], $matches[2]]));
-                            }
-                            $value = $data[$matches[2]][$matches[3]];
-                        } else {
-                            if (!empty($data[$matches[2]]['template'])) {
-                                $template = $getTemplate($data[$matches[2]]['template']);
-                                if (!$template) {
-                                    throw new errorException($this->translate('Not found template [[%s]] for parameter [[%s]].',
-                                        [$data[$matches[2]]['template'], $matches[2]]));
-                                }
-
-                                if (!in_array($template['name'], $usedStyles)) {
-                                    $style .= $template['styles'];
-                                    $usedStyles[] = $template['name'];
-                                }
-                            } elseif (key_exists('text', $data[$matches[2]])) {
-                                $template = ['html' => $data[$matches[2]]['text']];
-                            } else {
-                                throw new errorException($this->translate('No template is specified for [[%s]].',
-                                    $matches[2]));
-                            }
-
-                            $html = '';
-
-
-                            if (array_key_exists(0, $data[$matches[2]]['data'])) {
-                                foreach ($data[$matches[2]]['data'] ?? [] as $_data) {
-                                    $html .= $funcReplaceTemplates($template['html'], $_data);
-                                }
-                            } else {
-                                $html .= $funcReplaceTemplates(
-                                    $template['html'],
-                                    (array)$data[$matches[2]]['data']
-                                );
-                            }
-
-                            return $html;
-                        }
-                    } else {
-                        /*$data[$matches[2]] - не массив*/
-                        $value = $data[$matches[2]];
-                    }
-
-                    if (!empty($matches[4])) {
-                        $value = $this->getFormattedValue($matches[4], (string)$value);
-                    }
-
-                    return $value;
-
-                },
-                $html
-            );
-        };
-
 
         if ($style) {
-            return '<style>' . $style . '</style><body>' . $funcReplaceTemplates(
+            return '<style>' . $style . '</style><body>' . $this->replaceTemplates(
                     $mainTemplate,
-                    $params['data'] ?? []
+                    $params['data'] ?? [],
+                    $getTemplate,
+                    $style,
+                    $usedStyles
                 ) . '</body>';
         } else {
-            return $funcReplaceTemplates($mainTemplate, $params['data'] ?? []) ?? '';
+            return $this->replaceTemplates($mainTemplate,
+                    $params['data'] ?? [],
+                    $getTemplate,
+                    $style,
+                    $usedStyles) ?? '';
         }
     }
 
@@ -492,8 +430,88 @@ trait FuncStringsTrait
         throw new errorException($this->translate('XML Format Error.'));
     }
 
+    protected function replaceTemplates($html, $data, callable $getTemplate, &$style, &$usedStyles): string|null
+    {
+        return preg_replace_callback(
+            '/{(([a-z_0-9]+)((?:\["?[a-z_0-9]+"?\])*)(?:,([a-z]+(?::[^}]+)?))?)}/',
+            function ($matches) use ($data, $getTemplate, &$style, &$usedStyles) {
+                if (!key_exists($matches[2], $data)) {
+                    return '';
+                }
+                if (is_array($data[$matches[2]])) {
+                    if (!empty($matches[3])) {
+                        if (preg_match_all('/\["?(.*?)"?\]/', $matches[3], $_matches)) {
+                            $value = $data[$matches[2]];
+                            foreach ($_matches[1] as $_match) {
+                                if (is_array($value) && key_exists($_match, $value)) {
+                                    $value = $value[$_match];
+                                } else {
+                                    $value = null;
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        if (!empty($data[$matches[2]]['template'])) {
+                            $template = $getTemplate($data[$matches[2]]['template']);
+                            if (!$template) {
+                                throw new errorException($this->translate('Not found template [[%s]] for parameter [[%s]].',
+                                    [$data[$matches[2]]['template'], $matches[2]]));
+                            }
 
-    private function getFormattedValue(string $formatString, mixed $value): mixed
+                            if (!in_array($template['name'], $usedStyles)) {
+                                $style .= $template['styles'];
+                                $usedStyles[] = $template['name'];
+                            }
+                        } elseif (key_exists('text', $data[$matches[2]])) {
+                            $template = ['html' => $data[$matches[2]]['text']];
+                        } else {
+                            throw new errorException($this->translate('No template is specified for [[%s]].',
+                                $matches[2]));
+                        }
+
+                        $html = '';
+                        if ($data[$matches[2]]['data'] = $data[$matches[2]]['data'] ?? []) {
+                            if (array_key_exists(0, $data[$matches[2]]['data'])) {
+                                foreach ($data[$matches[2]]['data'] ?? [] as $_data) {
+                                    $html .= $this->replaceTemplates($template['html'],
+                                        $_data,
+                                        $getTemplate,
+                                        $style,
+                                        $usedStyles);
+                                }
+                            } else {
+                                $html .= $this->replaceTemplates(
+                                    $template['html'],
+                                    $data[$matches[2]]['data'],
+                                    $getTemplate,
+                                    $style,
+                                    $usedStyles
+                                );
+                            }
+                        }
+                        return $html;
+                    }
+                } else {
+                    /*$data[$matches[2]] - не массив*/
+                    $value = $data[$matches[2]];
+                }
+
+                if (!empty($matches[4])) {
+                    if (is_array($value)) {
+                        $value = json_encode($value);
+                    }
+                    $value = $this->getFormattedValue($matches[4], (string)$value);
+                }
+
+                return $value;
+
+            },
+            $html
+        );
+    }
+
+    protected function getFormattedValue(string $formatString, mixed $value): mixed
     {
         if ($formatData = explode(':', $formatString, 2)) {
             switch ($formatData[0]) {

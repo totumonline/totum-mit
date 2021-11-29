@@ -649,134 +649,44 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params);
 
-        if (!$params['template'] || !($templates = $this->Table->getTotum()->getModel('print_templates')->getAllIndexedByField(
-                [],
-                'styles, html, name',
-                'name'
-            )) || (!array_key_exists(
-                $params['template'],
-                $templates
-            ))) {
+        $getTemplate = function ($name) {
+            return $this->Table->getTotum()->getModel('print_templates')->getPrepared(
+                ['name' => $name],
+                'styles, html, name'
+            );
+        };
+
+        $this->__checkNotArrayParams($params, ['template', 'text']);
+
+        if ($params['template'] ?? null) {
+            if ($main = $getTemplate($params['template'])) {
+                $mainTemplate = $main['html'];
+                $style = $main['styles'];
+            } else {
+                throw new errorException($this->translate('Template not found.'));
+            }
+        } elseif ($params['text'] ?? null) {
+            $mainTemplate = $params['text'];
+            $style = null;
+        } else {
             throw new errorException($this->translate('Template not found.'));
         }
 
-        $style = $templates[$params['template']]['styles'];
 
         $usedStyles = [];
 
-        $funcReplaceTemplates = function ($html, $data) use (&$funcReplaceTemplates, $templates, &$style, &$usedStyles) {
-            return preg_replace_callback(
-                '/{(([a-z_0-9]+)(?:\["?([a-z_0-9]+)"?\])?(?:,([a-z]+(?::[^}]+)?))?)}/',
-                function ($matches) use ($data, $templates, &$funcReplaceTemplates, &$style, &$usedStyles) {
-                    if (array_key_exists($matches[2], $data)) {
-                        if (is_array($data[$matches[2]])) {
-                            if (empty($data[$matches[2]])) {
-                                $value = null;
-                            } else {
-                                if (!empty($matches[3])) {
-                                    $value = $data[$matches[2]][$matches[3]] ?? null;
-                                } else {
-                                    if (empty($data[$matches[2]]['template'])) {
-                                        throw new errorException($this->translate('No [[%s]] is specified for the [[%s]] parameter.',
-                                            ['template', $matches[2]]));
-                                    }
-                                    if (!array_key_exists(
-                                        $data[$matches[2]]['template'],
-                                        $templates
-                                    )) {
-                                        throw new errorException($this->translate('Not found [[%s]] for the [[%s]] parameter.',
-                                            ['template', $matches[2]]));
-                                    }
-                                    $template = $templates[$data[$matches[2]]['template']];
-                                    $html = '';
-                                    if (!in_array($template['name'], $usedStyles)) {
-                                        $style .= $template['styles'];
-                                        $usedStyles[] = $template['name'];
-                                    }
-
-                                    if (array_key_exists(0, $data[$matches[2]]['data'])) {
-                                        foreach ($data[$matches[2]]['data'] ?? [] as $_data) {
-                                            $html .= $funcReplaceTemplates($template['html'], $_data);
-                                        }
-                                    } else {
-                                        $html .= $funcReplaceTemplates(
-                                            $template['html'],
-                                            (array)$data[$matches[2]]['data']
-                                        );
-                                    }
-
-                                    return $html;
-                                }
-                            }
-                        } else {
-                            $value = $data[$matches[2]];
-                        }
-
-                        if (!empty($matches[4])) {
-                            if ($formatData = explode(':', $matches[4], 2)) {
-                                switch ($formatData[0]) {
-                                    case 'money':
-                                        if (is_numeric($value)) {
-                                            $value = $this->getLangObj()->num2str($value);
-                                        }
-                                        break;
-                                    case 'number':
-                                        if (count($formatData) === 2) {
-                                            if (is_numeric($value)) {
-                                                if ($numberVals = explode('|', $formatData[1])) {
-                                                    if (is_numeric($value)) {
-                                                        $value = number_format(
-                                                                $value,
-                                                                $numberVals[0],
-                                                                $numberVals[1] ?? '.',
-                                                                $numberVals[2] ?? ''
-                                                            )
-                                                            . ($numberVals[3] ?? '');
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    case 'date':
-                                        if (count($formatData) === 2) {
-                                            if ($date = date_create($value)) {
-                                                $value = $this->getLangObj()->dateFormat($date, $formatData[1]);
-                                            }
-                                        }
-                                        break;
-                                    case 'checkbox':
-                                        if (is_bool($value)) {
-                                            $sings = [];
-                                            if (count($formatData) === 2) {
-                                                $sings = explode('|', $formatData[1] ?? '');
-                                            }
-
-                                            switch ($value) {
-                                                case true:
-                                                    $value = $sings[0] ?? '✓';
-                                                    break;
-                                                case false:
-                                                    $value = $sings[1] ?? '-';
-                                                    break;
-                                            }
-                                        }
-                                        break;
-                                }
-                            }
-                        }
-
-                        return $value;
-                    }
-                },
-                $html
-            );
-        };
-        //var_dump($style); die;
+        $body=$this->replaceTemplates(
+            $mainTemplate,
+            $params['data'] ?? [],
+            $getTemplate,
+            $style,
+            $usedStyles
+        );
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'print',
             [
-                'body' => $funcReplaceTemplates($templates[$params['template']]['html'], $params['data'] ?? []),
+                'body' => $body,
                 'styles' => $style
             ]
         );

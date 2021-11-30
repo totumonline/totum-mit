@@ -323,7 +323,11 @@ trait FuncStringsTrait
         $this->__checkRequiredParams($params, ['str']);
         $this->__checkNotArrayParams($params, ['str']);
 
-        return gzdecode($params['str']);
+        $data = @gzdecode($params['str']);
+        if ($data === false) {
+            throw new errorException($this->translate('String is not gz-encoded'));
+        }
+        return $data;
     }
 
     protected function funcSysTranslit(string $params): string

@@ -1561,6 +1561,7 @@ CODE;;
             };
 
             if (is_a($SourceTable, RealTables::class)) {
+
                 $params['ids'] = (array)$params['ids'] ?? [];
                 $fields = array_flip($params['fields'] ?? []);
                 $rows = [];
@@ -1572,6 +1573,9 @@ CODE;;
 
                 $tbl['params'] = array_intersect_key($tbl['params'], $fields);
 
+                if ($SourceTable->getTableRow()['with_order_field'] ?? false) {
+                    array_multisort(array_column($tbl['rows'], 'n'), $tbl['rows']);
+                }
 
                 foreach ($tbl['rows'] as $_row) {
                     if ($_row['is_del'] && !key_exists('is_del', $fields)) {

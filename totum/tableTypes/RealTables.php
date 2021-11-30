@@ -726,15 +726,23 @@ abstract class RealTables extends aTable
             /*Удаляем из reorder несуществующие id*/
             $reorder = array_intersect($reorder, array_column($old_order_arrays, 'id'));
 
-            if ($addAfter) {
-                if ($getNRow = $this->model->executePrepared(true, ['id' => $addAfter], 'n, id', 'n')->fetch()) {
+            if ($addAfter !== null) {
+                if ((string)$addAfter === '0') {
+                    $minN = $this->model->executePrepared(true, [], 'n', 'n desc')->fetch();
+                    if ($minN['n']) {
+                        $nextN = $this->getNextN(null, 0, $minN['n']);
+                    } else {
+                        $nextN = 1;
+                    }
+
+                } elseif ($getNRow = $this->model->executePrepared(true, ['id' => $addAfter], 'n, id', 'n')->fetch()) {
                     $addAfterN = $getNRow['n'];
                 } else {
                     throw new errorException($this->translate('Row %s not found', $addAfter));
                 }
                 $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
                 foreach ($reorder as $rId) {
-                    $nextN = $this->getNextN(null, $addAfterN);
+                    $nextN = $nextN ?? $this->getNextN(null, $addAfterN);
                     if (!$orderMinN) {
                         $orderMinN = $nextN;
                     }
@@ -742,15 +750,19 @@ abstract class RealTables extends aTable
                     $addAfterN = $nextN;
 
                     $this->changeIds['reorderedIds'][$rId] = 1;
+                    $nextN = null;
                 }
 
 
                 $this->setIsTableDataChanged(true);
                 $this->changeIds['reordered'] = true;
             } else {
-
+                ;
                 /*Удаляем из реордера совпадающие по порядку id с начала*/
                 foreach ($old_order_arrays as $i => $orderRow) {
+                    if (!$orderRow['n']) {
+                        continue;
+                    }
                     if ($orderRow['id'] === $reorder[0]) {
                         array_splice($reorder, 0, 1);
                         unset($old_order_arrays[$i]);
@@ -763,6 +775,9 @@ abstract class RealTables extends aTable
                     $old_order_arrays_rev = array_reverse($old_order_arrays);
                     $reorder_rev = array_reverse($reorder);
                     foreach ($old_order_arrays_rev as $i => $orderRow) {
+                        if (!$orderRow['n']) {
+                            continue;
+                        }
                         if ($orderRow['id'] === $reorder_rev[0]) {
                             array_splice($reorder_rev, 0, 1);
                             unset($old_order_arrays_rev[$i]);
@@ -778,11 +793,15 @@ abstract class RealTables extends aTable
 
                     /*Обнуляем n у сортируемых*/
                     $reorder = array_reverse($reorder_rev);
-                    $orderMinN = $old_order_arrays[0];
+                    $orderMinN = null;
                     $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
                     /*Проставляем n у сортируемых из старых N*/
                     foreach ($reorder as $i => $rId) {
-                        $this->model->updatePrepared(true, ['n' => $old_order_arrays[$i]], ['id' => [$rId]]);
+                        $n = ($old_order_arrays[$i] ?? $this->getNextN());
+                        if (is_null($orderMinN) || $orderMinN > $n) {
+                            $orderMinN = $n;
+                        }
+                        $this->model->updatePrepared(true, ['n' => $n], ['id' => [$rId]]);
                         $this->changeIds['reorderedIds'][$rId] = 1;
                     }
                     $this->tbl['rows'] = [];
@@ -850,7 +869,7 @@ abstract class RealTables extends aTable
 
 
                 $afterN = null;
-                if ("0" === (string)$addAfter) {
+                if ('0' === (string)$addAfter) {
                     $afterN = 0;
                 } elseif ($addAfter) {
                     $this->loadRowsByIds([$addAfter]);
@@ -1189,8 +1208,12 @@ abstract class RealTables extends aTable
         return strlen($n) - strpos($n, '.') - 1;
     }
 
-    protected function getNextN($idRows = null, $prevN = null)
+    protected function getNextN($idRows = null, $prevN = null, $nextN = null)
     {
+        if (empty($idRows) && is_null($prevN) && is_null($nextN)) {
+            return $this->model->getField('max(n)+1 as n', []) ?? 1;
+        }
+
         if (!empty($idRows) && is_null($prevN)) {
             if (empty($this->tableRow['order_desc'])) {
                 $prevN = $this->model->executePrepared(true, ['id' => $idRows], 'MAX(n) as n')->fetchColumn(0);
@@ -1199,11 +1222,13 @@ abstract class RealTables extends aTable
             }
         }
         if (!is_null($prevN)) {
-            if (!empty($this->tableRow['order_desc'])) {
-                $nextN = $this->model->executePrepared(true, ['<n' => $prevN], 'MAX(n) as n')->fetchColumn(0);
-                [$prevN, $nextN] = [$nextN, $prevN];
-            } else {
-                $nextN = $this->model->executePrepared(true, ['>n' => $prevN], 'MIN(n) as n')->fetchColumn(0);
+            if (is_null($nextN)) {
+                if (!empty($this->tableRow['order_desc'])) {
+                    $nextN = $this->model->executePrepared(true, ['<n' => $prevN], 'MAX(n) as n')->fetchColumn(0);
+                    [$prevN, $nextN] = [$nextN, $prevN];
+                } else {
+                    $nextN = $this->model->executePrepared(true, ['>n' => $prevN], 'MIN(n) as n')->fetchColumn(0);
+                }
             }
             if ($nextN) {
                 $scalePrev = static::getNSize($prevN);
@@ -1275,7 +1300,7 @@ abstract class RealTables extends aTable
                     )->fetchColumn(0);
                     $n = $id;
                 } else {
-                    $n = $this->model->getField('max(n)+1 as n', []);
+                    $n = $this->getNextN();
                 }
                 $changedData['id'] = $id;
                 $changedData['n'] = $n;
@@ -1416,7 +1441,7 @@ abstract class RealTables extends aTable
                         }
                     }
                 }
-                if($isRemovedValues && is_array($value)){
+                if ($isRemovedValues && is_array($value)) {
                     $value = array_values($value);
                 }
 
@@ -1620,37 +1645,34 @@ abstract class RealTables extends aTable
                         if (empty($value)) {
                             $where[] = 'FALSE';
                         } else {
-                            /*Если в массиве содержится пустое значение*/
-                            $q = '';
-                            if ($isEmptyValueInArray($value)) {
-                                $q .= "$fieldQuoted  IS NULL";
-                                if (!$isNumeric) {
-                                    $q .= " OR $fieldQuoted = ''";
+                            /*if it's list*/
+                            if ((array_keys($value) === range(0, count($value) - 1))) {
+                                /*Если в массиве содержится пустое значение*/
+                                $q = '';
+                                if ($isEmptyValueInArray($value)) {
+                                    $q .= "$fieldQuoted  IS NULL";
+                                    if (!$isNumeric) {
+                                        $q .= " OR $fieldQuoted = ''";
+                                    }
                                 }
-                            }
-                            /*если есть непустые значения*/
-                            if (!empty($value)) {
-                                $checkIsArrayInArray();
-                                if ($q) {
-                                    $q .= ' OR ';
-                                }
-                                $q .= $fieldQuoted . ' IN (?' . str_repeat(
-                                        ',?',
-                                        count($value) - 1
-                                    ) . ')';
-
-
-                                /*if it's list*/
-                                if ((array_keys($value) === range(0, count($value) - 1))) {
+                                /*если есть непустые значения*/
+                                if (!empty($value)) {
+                                    $checkIsArrayInArray();
+                                    if ($q) {
+                                        $q .= ' OR ';
+                                    }
+                                    $q .= $fieldQuoted . ' IN (?' . str_repeat(
+                                            ',?',
+                                            count($value) - 1
+                                        ) . ')';
                                     array_push($params, ...$value);
-                                } else {
-                                    throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row',
-                                        $wI['field']));
                                 }
-
-
+                                $where[] = "($q)";
+                            } else {
+                                throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row',
+                                    $wI['field']));
                             }
-                            $where[] = "($q)";
+
                         }
                         break;
                     case '!=':

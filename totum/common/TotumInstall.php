@@ -887,9 +887,9 @@ CONF;
 
                         if (!empty($schemaRow['data']['rows'])) {
                             $_tableModel = $this->Totum->getModel($schemaRow['name']);
-                            foreach ($schemaRow['data']['rows'] as $row) {
-                                $selectedRowId = null;
 
+
+                            $getRowId = function ($row) use ($_tableModel) {
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
                                             'id',
                                             $row
@@ -911,6 +911,14 @@ CONF;
                                     }
                                     $selectedRowId = $_tableModel->getField('id', $keys);
                                 }
+                                return $selectedRowId ?? null;
+                            };
+
+                            $before = null;
+                            $orderedIds = [];
+                            foreach ($schemaRow['data']['rows'] as $row) {
+                                $selectedRowId = $getRowId($row);
+
                                 if ($cycleTables = $row['_tables'] ?? []) {
                                     unset($row['_tables']);
                                 }
@@ -930,6 +938,8 @@ CONF;
                                         }
                                         $rowId = $selectedRowId;
                                     }
+                                    $before = $selectedRowId;
+                                    $orderedIds[] = $selectedRowId;
                                 } /*Добавление*/
                                 elseif ($schemaRow['change'] !== 'edit') {
                                     $rowId = $_tableModel->insertPrepared($row);
@@ -947,7 +957,27 @@ CONF;
                                             );
                                         }
                                     }
-                                    $insertedIds[] = $rowId;
+
+                                    if (($this->Totum->getTableRow($tableId)['with_order_field'] ?? false) && ($schemaRow['n_type'] ?? false) === '1') {
+                                        if (!$before) {
+                                            foreach ($schemaRow['data']['rows'] as $_i => $_row) {
+                                                if ($_i && $after = $getRowId($_row)) {
+                                                    $afterN = $_tableModel->getField('n', ['id' => $after]);
+                                                    $before = $_tableModel->getField('id', ['<n' => $afterN], 'n desc');
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        if (!$before) $before = '0';
+
+                                        $this->Totum->getTable($tableId)->reCalculateFromOvers([
+                                            'reorder' => [$rowId],
+                                            'addAfter' => $before
+                                        ]);
+                                    }
+                                    $orderedIds[] = $insertedIds[] = $rowId;
+                                    $before = $rowId;
                                 }
 
                                 if ($rowId && $schemaRow['type'] === 'cycles' && !empty($cycleTables)) {
@@ -1010,6 +1040,13 @@ CONF;
                                         array_keys($cycleTables),
                                         $cycleTables
                                     );
+                                }
+                            }
+                            if (($this->Totum->getTableRow($tableId)['with_order_field'] ?? false) && ($schemaRow['n_type'] ?? false) === '2') {
+                                if ($orderedIds) {
+                                    $this->Totum->getTable($tableId)->reCalculateFromOvers([
+                                        'reorder' => $orderedIds,
+                                    ]);
                                 }
                             }
                         }

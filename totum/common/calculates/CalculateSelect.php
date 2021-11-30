@@ -29,10 +29,8 @@ class CalculateSelect extends Calculate
         try {
             if (key_exists('columnVals', $newVal)) {
                 $this->columnVals = $newVal['columnVals'];
+                unset($newVal['columnVals']);
             }
-
-            unset($newVal['columnVals']);
-
             $r = parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
             if (!$this->error && !is_array($r)) {
                 throw new errorException($this->translate('The code should return [[%s]].', 'rowList'));

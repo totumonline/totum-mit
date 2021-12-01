@@ -698,8 +698,10 @@ class CalculateAction extends Calculate
         switch ($params['type'] ?? '') {
             case 'text':
                 $this->funcLinkToDataText($params);
+                break;
             case 'table':
                 $this->funcLinkToDataTable($params);
+                break;
         }
     }
 

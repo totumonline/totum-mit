@@ -1467,12 +1467,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if ($field['type'] === 'select') {
                 foreach ($field['codeSelect'] ?? [] as $code) {
-                    if (is_string($code) && preg_match('/selectRowListForSelect\([^)]*preview\s*:/i', $code)) {
+                    if (is_string($code) && preg_match('/(selectRowListForSelect|selectListAssoc)\([^)]*preview\s*:/i', $code)) {
                         $field['withPreview'] = true;
                         break;
                     }
                 }
             }
+
 
             foreach (Totum::FIELD_CODE_PARAMS as $param) {
                 if (!empty($field[$param])) {

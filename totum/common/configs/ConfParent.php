@@ -27,6 +27,8 @@ abstract class ConfParent
 
     /* Переменные настройки */
 
+
+    protected $ajaxTimeout = 50;
     public static $CalcLogs;
     protected $tmpDirPath = 'totumTmpfiles/tmpLoadedFiles/';
     protected $tmpTableChangesDirPath = 'totumTmpfiles/tmpTableChangesDirPath/';

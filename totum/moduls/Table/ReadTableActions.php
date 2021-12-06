@@ -337,6 +337,13 @@ class ReadTableActions extends Actions
 
     public function loadPreviewHtml()
     {
+        $this->Table->reCalculateFilters(
+            'web',
+            false,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+
         $data = json_decode($this->post['data'], true);
 
         $fields = $this->Table->getFields();

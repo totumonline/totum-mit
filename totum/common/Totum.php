@@ -188,7 +188,6 @@ class Totum
             $tableRow = $this->Config->getTableRow($table);
         }
 
-
         if (empty($tableRow)) {
             throw new errorException($this->translate('Table [[%s]] is not found.', $table));
         } elseif (empty($tableRow['type'])) {

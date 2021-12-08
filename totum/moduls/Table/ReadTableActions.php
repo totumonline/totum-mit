@@ -84,6 +84,9 @@ class ReadTableActions extends Actions
                 $this->Table->checkIsUserCanViewIds('web', [$this->post['id']]);
                 $item = $this->Table->getTbl()['rows'][$this->post['id']];
             }
+            if (!($field = $this->Table->getVisibleFields('web')[$field['name']] ?? null)) {
+                throw new errorException($this->translate('Field [[%s]] is not found.', $field['title']));
+            }
 
             $Field = Field::init($field, $this->Table);
             $result = $Field->getPanelFormat($item,
@@ -348,7 +351,7 @@ class ReadTableActions extends Actions
 
         $fields = $this->Table->getFields();
 
-        if (!($field = $fields[$data['field']] ?? null)) {
+        if (!($field = $this->Table->getVisibleFields('web')[$data['field']] ?? null)) {
             throw new errorException($this->translate('Field [[%s]] is not found.', $data['field']));
         }
 
@@ -359,8 +362,13 @@ class ReadTableActions extends Actions
         $this->Table->loadDataRow();
         $row = $data['item'];
 
-        if ($field['category'] === 'column' && !isset($row['id'])) {
-            $row['id'] = null;
+        if ($field['category'] === 'column') {
+            if(!isset($row['id'])) {
+                $row['id'] = null;
+            }else{
+                /*Проверка не заблокирована ли строка для пользователя*/
+                $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
+            }
         }
 
         foreach ($row as $k => &$v) {

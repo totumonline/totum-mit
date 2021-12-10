@@ -141,7 +141,7 @@ class Select extends Field
             if ($row['previewscode'] ?? null) {
                 $CalcPreview = new Calculate($row['previewscode']);
                 $data = $CalcPreview->exec(
-                    ['name' => 'CALC PREVIEW'],
+                    ['name' => 'CALC PREVIEW ' . $this->data['name']],
                     [],
                     [],
                     $this->table->getTbl()['params'],
@@ -150,14 +150,34 @@ class Select extends Field
                     $this->table,
                     ['val' => $val['v']]
                 );
-                foreach ($data as $_row) {
-                    $title = $_row['title'] ?? '';
-                    $value = $_row['value'] ?? '';
-                    if ($withNames) {
-                        $htmls[$_row['name'] ?? ''] = [$title, $value, 'text', ''];
-                    } else {
-                        $htmls[] = [$title, $value, 'text', ''];
+
+                try {
+                    if ($CalcPreview->getError()) {
+                        throw new errorException($CalcPreview->getError());
                     }
+
+
+                    if (!is_array($data)) {
+                        throw new errorException("error");
+                    }
+                    foreach ($data as $_row) {
+                        if (!is_array($_row) || !key_exists('title', $_row) || !key_exists('value', $_row)) {
+                            throw new errorException("error");
+                        }
+                        $title = $_row['title'] ?? '';
+                        $value = $_row['value'] ?? '';
+                        if ($withNames) {
+                            $htmls[$_row['name'] ?? ''] = [$title, $value, 'text', ''];
+                        } else {
+                            $htmls[] = [$title, $value, 'text', ''];
+                        }
+                    }
+                } catch (errorException) {
+                    $errorText = $this->translate('Value format error') . ': [{"title":"Title of preview","value":"Value of preview","name":"name of preview if it\'s needed"}]';
+                    $exception = new errorException($errorText);
+                    $exception->addPath($this->translate('field [[%s]] of [[%s]] table',
+                        [$this->data['name'], $this->table->getTableRow()['name']]));
+                    throw $exception;
                 }
             }
 

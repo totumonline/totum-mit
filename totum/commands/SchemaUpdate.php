@@ -46,6 +46,7 @@ class SchemaUpdate extends Command
                 $Conf->setHostSchema(null, $schema);
             }else{
                 $output->writeln('Set option -s for identify the schema or use schemas-update for update all ones');
+                return;
             }
         }
         $sourceName = $input->getArgument('matches');

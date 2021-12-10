@@ -583,6 +583,16 @@ class TableController extends interfaceController
             }
         }
 
+        if ($links = $this->Totum->getInterfaceLinks()) {
+            $result['links'] = $links;
+        }
+        if ($panels = $this->Totum->getPanelLinks()) {
+            $result['panels'] = $panels;
+        }
+        if ($links = $this->Totum->getInterfaceDatas()) {
+            $result['interfaceDatas'] = $links;
+        }
+
         $this->__addAnswerVar('error', $error ?? $result['error'] ?? null);
         $this->__addAnswerVar('tableConfig', $result);
     }

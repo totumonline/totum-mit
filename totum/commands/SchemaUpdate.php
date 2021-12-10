@@ -44,6 +44,8 @@ class SchemaUpdate extends Command
         if (is_callable([$Conf, 'setHostSchema'])) {
             if ($schema = $input->getOption('schema')) {
                 $Conf->setHostSchema(null, $schema);
+            }else{
+                $output->writeln('Set option -s for identify the schema or use schemas-update for update all ones');
             }
         }
         $sourceName = $input->getArgument('matches');

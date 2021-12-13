@@ -59,9 +59,9 @@ class Auth
     public static function isCanBeOnShadow(?User $User): bool
     {
         return key_exists('ShadowRole', $_SESSION) || count(array_intersect(
-            static::$shadowRoles,
-            $User->getRoles()
-        )) > 0;
+                static::$shadowRoles,
+                $User->getRoles()
+            )) > 0;
     }
 
     public static function getShadowRole(?User $User): int
@@ -112,7 +112,8 @@ class Auth
         if ($userRow = static::getUserWhere($Config, ['login' => 'service'])) {
             return new User($userRow, $Config);
         } else {
-            die($Config->getLangObj()->translate('User %s is not configured. Contact your system administrator.', 'service'));
+            die($Config->getLangObj()->translate('User %s is not configured. Contact your system administrator.',
+                'service'));
         }
     }
 
@@ -121,10 +122,11 @@ class Auth
         /*block the ability to log in with service logins*/
         if ($login !== 'cron' && $login !== 'service') {
             $where = ['on_off' => true, 'is_del' => false, 'interface' => $interface];
+
             if (str_contains($login, '@')) {
                 $where['email'] = strtolower($login);
             } else {
-                $where = ['login' => $login];
+                $where['login'] = $login;
             }
             if ($UserRow = static::getUserWhere($Config, $where, false)) {
                 return $UserRow;
@@ -143,24 +145,24 @@ class Auth
             $block_date = $BlockDate->format('Y-m-d H:i');
         }
 
-        if ($block_time && $Config->getModel('auth_log')->get(['user_ip' => $ip, 'login'=>$login, 'datetime->>\'v\'>=\'' . $block_date . '\'', 'status' => 2])) {
+        if ($block_time && $Config->getModel('auth_log')->get(['user_ip' => $ip, 'login' => $login, 'datetime->>\'v\'>=\'' . $block_date . '\'', 'status' => 2])) {
             return static::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION'];
         } else {
             if (($userRow = $userRow ?? Auth::getUserRowWithServiceRestriction(
-                $login,
-                $Config,
-                $interface
-            )) && static::checkUserPass(
-                $pass,
-                $userRow['pass']
-            )) {
+                        $login,
+                        $Config,
+                        $interface
+                    )) && static::checkUserPass(
+                    $pass,
+                    $userRow['pass']
+                )) {
                 $status = static::$AuthStatuses['OK'];
             } elseif (!$block_time || !$error_count) {
                 $status = static::$AuthStatuses['WRONG_PASSWORD'];
             } else {
                 $count = static::$AuthStatuses['WRONG_PASSWORD'];
                 $statuses = $Config->getModel('auth_log')->getAll(
-                    ['user_ip' => $ip, 'login'=>$login, 'datetime->>\'v\'>=\''.$block_date.'\''],
+                    ['user_ip' => $ip, 'login' => $login, 'datetime->>\'v\'>=\'' . $block_date . '\''],
                     'status',
                     'id desc'
                 );

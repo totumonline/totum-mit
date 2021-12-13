@@ -332,7 +332,7 @@ class Model
         }
         foreach ($train as $k => &$val) {
             if (is_bool($val)) {
-                $val = $val ? 'TRUE' : 'FALSE';
+                $val = $val ? 'true' : 'false';
             } elseif (is_null($val) && !$nullMeans) {
                 unset($train[$k]);
             }

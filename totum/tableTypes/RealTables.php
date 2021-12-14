@@ -275,6 +275,11 @@ abstract class RealTables extends aTable
             !in_array('is_del', ($params['field'] ?? []))
         );
 
+        if ($whereStr === 'FALSE') {
+            return $returnType === 'field' ? null : [];
+        }
+
+
         $order = null;
 
         if (isset($params['order'])) {
@@ -340,6 +345,7 @@ abstract class RealTables extends aTable
 
 
         if ($returnType === 'rows' || $returnType === 'row') {
+
 
             //техническая выборка - не трогать
             if ($params['field'] === ['__all__']) {
@@ -485,6 +491,11 @@ abstract class RealTables extends aTable
         }
 
         list($whereStr, $paramsWhere) = $this->getWhereFromParams($params);
+
+        if ($whereStr === 'FALSE') {
+            return 0;
+        }
+
         if ($untilId) {
             if (is_array($untilId)) {
                 $isRefresh = -1;

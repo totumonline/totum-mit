@@ -12,11 +12,13 @@ use SoapClient;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Lang\RU;
+use totum\common\Totum;
 use totum\common\TotumInstall;
 use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 use totum\tableTypes\RealTables;
 use \Exception;
+use totum\tableTypes\tmpTable;
 
 class CalculateAction extends Calculate
 {
@@ -356,6 +358,76 @@ class CalculateAction extends Calculate
         );
     }
 
+    protected function funcLinkToEdit($params)
+    {
+        $params = $this->getParamsArray($params, ['var'], [], ['var']);
+
+        $this->__checkNotEmptyParams($params, 'field');
+        $this->__checkNotArrayParams($params, 'field');
+
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
+        $LinkedTable = $this->getActionTable($tableRow, $params);
+
+        if (!key_exists($params['field'], $LinkedTable->getFields())) {
+            throw new errorException(
+                $this->translate('The [[%s]] field is not found in the [[%s]] table.',
+                    [$params['field'], $LinkedTable->getTableRow()['name']]));
+        }
+
+        if (!empty($params['id'])) {
+            $this->__checkNumericParam($params['id'], 'id');
+            $LinkedTable->loadFilteredRows('inner', [$params['id']]);
+            if (!key_exists($params['id'], $LinkedTable->getTbl()['rows'])) {
+                throw new errorException($this->translate('Row not found'));
+            }
+            $value = $LinkedTable->getTbl()['rows'][$params['id']][$params['field']] ?? ['v' => null];
+        } else {
+            $value = $LinkedTable->getTbl()['params'][$params['field']] ?? ['v' => null];
+        }
+
+
+        $data = [];
+        $data['table']['name'] = $LinkedTable->getTableRow()['name'];
+        $data['table']['field'] = $params['field'];
+        if($params['id']){
+            $data['table']['id'] = $params['id'];
+        }
+        switch ($LinkedTable->getTableRow()['type']) {
+            case 'calc':
+                $data['table']['extra'] = $LinkedTable->getCycle()->getId();
+                break;
+            case 'tmp':
+                $data['table']['extra'] = $LinkedTable->getTableRow()['sess_hash'];
+        }
+
+        /** @var TmpTables $model */
+        $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
+
+        $newHash = $model->getNewHash(TmpTables::SERVICE_TABLES['linktoedit'],
+            $this->Table->getTotum()->getUser(),
+            $data);
+
+        $fieldData = $LinkedTable->getFields()[$params['field']];
+        foreach ($fieldData as $k => &$v) {
+            if (in_array($k, Totum::FIELD_CODE_PARAMS)) {
+                $v = true;
+            } elseif (in_array($k, Totum::FIELD_ROLES_PARAMS)) {
+                $v = [];
+            }
+        }
+
+        $this->Table->getTotum()->addToInterfaceDatas(
+            'editField',
+            [
+                'title' => $params['title'],
+                'hash' => $newHash,
+                'field' => $fieldData,
+                'value' => $value,
+                'refresh' => $params['refresh'] ?? false
+            ]
+        );
+    }
+
     protected function funcSleep(string $params)
     {
         $params = $this->getParamsArray($params, [], []);
@@ -675,7 +747,7 @@ class CalculateAction extends Calculate
 
         $usedStyles = [];
 
-        $body=$this->replaceTemplates(
+        $body = $this->replaceTemplates(
             $mainTemplate,
             $params['data'] ?? [],
             $getTemplate,
@@ -791,7 +863,7 @@ class CalculateAction extends Calculate
             $model = $this->Table->getTotum()->getNamedModel(TmpTables::class);
             $saveData['env'] = $this->getEnvironment();
 
-            $hash = $model->getNewHash(TmpTables::serviceTables['linktodatajson'],
+            $hash = $model->getNewHash(TmpTables::SERVICE_TABLES['linktodatajson'],
                 $this->Table->getTotum()->getUser(),
                 $saveData);
 
@@ -1172,7 +1244,7 @@ class CalculateAction extends Calculate
             function ($params) {
                 if (!empty($params['hash']) && str_starts_with($params['hash'], 'i-')) {
                     $hashData = TmpTables::init($this->Table->getTotum()->getConfig())->getByHash(
-                        TmpTables::serviceTables['insert_row'],
+                        TmpTables::SERVICE_TABLES['insert_row'],
                         $this->Table->getUser(),
                         $params['hash']
                     );
@@ -1498,6 +1570,34 @@ class CalculateAction extends Calculate
             },
             true
         );
+    }
+
+    protected function getActionTable(array $tableRow, array $params): aTable
+    {
+        switch ($tableRow['type']) {
+            case 'calcs':
+                if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
+                    if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
+                        $Cycle_id = $this->Table->getCycle()->getId();
+                    } elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
+                        $Cycle_id = $this->row['id'];
+                    } else {
+                        $this->__checkNumericParam($params['cycle'], 'cycle');
+                        $Cycle_id = $params['cycle'];
+                    }
+                    $Cycle = $this->Table->getTotum()->getCycle($Cycle_id, $tableRow['tree_node_id']);
+                    $linkedTable = $Cycle->getTable($tableRow);
+                } else {
+                    throw new errorException($this->translate('The cycles table is specified incorrectly.'));
+                }
+                return $linkedTable;
+            case 'tmp':
+                $this->__checkNotEmptyParams($params, 'hash');
+                $this->__checkNotArrayParams($params, 'hash');
+                return $this->Table->getTotum()->getTable($tableRow, $params['hash']);
+            default:
+                return $this->Table->getTotum()->getTable($tableRow);
+        }
     }
 
 }

@@ -7,9 +7,10 @@ use totum\common\Model;
 
 class TmpTables extends Model
 {
-    const serviceTables = [
+    public const SERVICE_TABLES = [
         'insert_row' => '_insert_row',
         'linktodatajson' => '_linktodatajson',
+        'linktoedit' => '_linktoedit',
     ];
     protected bool $isServiceTable = true;
 
@@ -39,10 +40,10 @@ class TmpTables extends Model
         return true;
     }
 
-    public function getNewHash(string $table_name, $User, array|string $data): string
+    public function getNewHash(string $table_name, $User, array|string $data, $prefix = 't'): string
     {
         do {
-            $hash = 'i-' . md5(microtime(true) . rand());
+            $hash = $prefix . '-' . md5(microtime(true) . rand());
         } while (!$this->saveByHash(
             $table_name,
             $User,

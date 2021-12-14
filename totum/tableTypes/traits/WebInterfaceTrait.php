@@ -152,7 +152,7 @@ trait WebInterfaceTrait
                 $inVars['add'] = [$data['add']];
             } elseif ($insertRowHash = $data['add']) {
                 $this->insertRowSetData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
-                    TmpTables::serviceTables['insert_row'],
+                    TmpTables::SERVICE_TABLES['insert_row'],
                     $this->getUser(),
                     $data['add']
                 );
@@ -211,7 +211,7 @@ trait WebInterfaceTrait
 
         if (!empty($insertRowHash)) {
             TmpTables::init($this->getTotum()->getConfig())->deleteByHash(
-                TmpTables::serviceTables['insert_row'],
+                TmpTables::SERVICE_TABLES['insert_row'],
                 $this->User,
                 $insertRowHash
             );

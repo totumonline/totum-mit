@@ -78,7 +78,7 @@ class WriteTableActions extends ReadTableActions
             do {
                 $hash = 'i-' . md5(microtime(true) . rand());
             } while (!TmpTables::init($this->Totum->getConfig())->saveByHash(
-                TmpTables::serviceTables['insert_row'],
+                TmpTables::SERVICE_TABLES['insert_row'],
                 $this->User,
                 $hash,
                 [],

@@ -199,7 +199,7 @@ abstract class aTable
         } elseif ($hash = $hashData) {
             $this->insertRowHash = $hash;
             $loadData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
-                    TmpTables::serviceTables['insert_row'],
+                    TmpTables::SERVICE_TABLES['insert_row'],
                     $this->getUser(),
                     $hash
                 ) ?? [];
@@ -234,7 +234,7 @@ abstract class aTable
         }
 
         TmpTables::init($this->Totum->getConfig())->saveByHash(
-            TmpTables::serviceTables['insert_row'],
+            TmpTables::SERVICE_TABLES['insert_row'],
             $this->User,
             $hash,
             $dataToSave

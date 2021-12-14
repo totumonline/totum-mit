@@ -1265,9 +1265,9 @@ class Calculate
         }
     }
 
-    protected function __checkNotArrayParams(array $params, array $cheks)
+    protected function __checkNotArrayParams(array $params, array|string $cheks)
     {
-        foreach ($cheks as $param) {
+        foreach ((array)$cheks as $param) {
             if (key_exists($param, $params) && is_array($params[$param])) {
                 throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.',
                     $param));

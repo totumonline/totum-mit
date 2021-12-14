@@ -17,6 +17,7 @@ use totum\fieldTypes\Comments;
 use totum\fieldTypes\Select;
 use totum\models\TmpTables;
 use totum\tableTypes\aTable;
+use totum\tableTypes\tmpTable;
 
 class ReadTableActions extends Actions
 {
@@ -95,6 +96,34 @@ class ReadTableActions extends Actions
         return ['panelFormats' => $result];
     }
 
+    public function saveLinkToEdit()
+    {
+        /** @var TmpTables $model */
+        $model = $this->Totum->getNamedModel(TmpTables::class);
+
+        if (!empty($this->post['shash']) && ($data = $model->getByHash(TmpTables::SERVICE_TABLES['linktoedit'],
+                $this->User,
+                $this->post['shash']))) {
+            $value = $this->post['data'];
+            $item = [];
+            if ($data['table']['id'] ?? false) {
+                $item[$data['table']['id']] = [$data['table']['field'] => $value];
+            } else {
+                $item['params'] = [$data['table']['field'] => $value];
+            }
+
+            $LinkedTable = $this->Totum->getTable($data['table']['name'], $data['table']['extra'] ?? null);
+            $LinkedTable->reCalculateFromOvers([
+                'modify' => $item
+            ]);
+
+        } else {
+            throw new errorException($this->translate('Temporary table storage time has expired'));
+        }
+
+        return ['ok' => 1];
+    }
+
     public function getValue()
     {
         $data = json_decode($this->post['data'], true) ?? [];
@@ -142,7 +171,7 @@ class ReadTableActions extends Actions
 
         /** @var TmpTables $model */
         $model = $this->Totum->getNamedModel(TmpTables::class);
-        $data = $model->getByHash(TmpTables::serviceTables['linktodatajson'], $this->User, $this->post['hash'], true);
+        $data = $model->getByHash(TmpTables::SERVICE_TABLES['linktodatajson'], $this->User, $this->post['hash'], true);
         if (!$data) {
             throw new errorException($this->translate('Temporary table storage time has expired'));
         }
@@ -163,7 +192,7 @@ class ReadTableActions extends Actions
             'exec',
             $vars
         );
-        $model->deleteByHash(TmpTables::serviceTables['linktodatajson'], $this->User, $this->post['hash']);
+        $model->deleteByHash(TmpTables::SERVICE_TABLES['linktodatajson'], $this->User, $this->post['hash']);
         return ['ok' => 1];
 
     }
@@ -363,9 +392,9 @@ class ReadTableActions extends Actions
         $row = $data['item'];
 
         if ($field['category'] === 'column') {
-            if(!isset($row['id'])) {
+            if (!isset($row['id'])) {
                 $row['id'] = null;
-            }else{
+            } else {
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $this->Table->checkIsUserCanViewIds('web', [$row['id']]);
             }

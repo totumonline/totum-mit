@@ -104,18 +104,55 @@ class ReadTableActions extends Actions
         if (!empty($this->post['shash']) && ($data = $model->getByHash(TmpTables::SERVICE_TABLES['linktoedit'],
                 $this->User,
                 $this->post['shash']))) {
-            $value = $this->post['data'];
-            $item = [];
-            if ($data['table']['id'] ?? false) {
-                $item[$data['table']['id']] = [$data['table']['field'] => $value];
-            } else {
-                $item['params'] = [$data['table']['field'] => $value];
-            }
 
             $LinkedTable = $this->Totum->getTable($data['table']['name'], $data['table']['extra'] ?? null);
-            $LinkedTable->reCalculateFromOvers([
-                'modify' => $item
-            ]);
+
+            if (!empty($this->post['search'])) {
+
+                if (!empty($data['table']['id'])) {
+                    $LinkedTable->loadFilteredRows('inner', [$data['table']['id']]);
+                    $item = $LinkedTable->getTbl()['rows'][$data['table']['id']];
+                } else {
+                    $item = $LinkedTable->getTbl()['pararms'];
+                }
+                foreach ($item as $k => &$v) {
+                    if (is_array($v)) {
+                        $v = $v['v'];
+                    }
+                }
+                unset($v);
+
+                if ($this->post['search']['checkedVals'] ?? false) {
+                    $item[$data['table']['field']] = $this->post['search']['checkedVals'];
+                }
+
+                return $this->getEditSelectFromTable(['field' => $data['table']['field'], 'item' => $item],
+                    $LinkedTable,
+                    'inner',
+                    [],
+                    ($this->post['search']['q'] ?? ''),
+                    ($this->post['search']['parentId'] ?? null));
+
+            } else {
+
+                $value = $this->post['data'];
+                $item = [];
+                if ($data['table']['id'] ?? false) {
+                    $item[$data['table']['id']] = [$data['table']['field'] => $value];
+                } else {
+                    $item['params'] = [$data['table']['field'] => $value];
+                }
+
+
+                $modifyData = [
+                    match ($this->post['special'] ?? false) {
+                        'setValuesToDefaults', 'setValuesToPinned' => $this->post['special'],
+                        default => 'modify'
+                    } => $item
+                ];
+
+                $LinkedTable->reCalculateFromOvers($modifyData);
+            }
 
         } else {
             throw new errorException($this->translate('Temporary table storage time has expired'));
@@ -528,6 +565,59 @@ class ReadTableActions extends Actions
             ]
         );
         return ['ok' => 1];
+    }
+
+    protected function getEditSelectFromTable(array $data, aTable $Table, $channel, $filters, $q = '', $parentId = null): array
+    {
+        $fields = $Table->getFields();
+
+        if (!($field = $fields[$data['field']] ?? null)) {
+            throw new errorException($this->translate('Field [[%s]] is not found.', $data['field']));
+        }
+
+        $Table->loadDataRow();
+        $Table->reCalculateFilters(
+            $channel,
+            false,
+            false,
+            ['params' => $filters]
+        );
+
+        $row = $data['item'];
+
+        if ($field['category'] === 'column' && !isset($row['id'])) {
+            $row['id'] = null;
+        }
+        foreach ($row as $k => &$v) {
+            if ($k !== 'id') {
+                $v = ['v' => $v];
+            }
+        }
+        if ($field['category'] === 'column') {
+            if (array_key_exists('id', $row) && !is_null($row['id'])) {
+                $Table->loadFilteredRows('web', [$row['id']]);
+                $row = $row + $Table->getTbl()['rows'][$row['id']] ?? [];
+            } else {
+                $row = $row + $Table->checkInsertRow([], $data['item'], null, []);
+            }
+        } else {
+            $row = $row + $Table->getTbl()['params'];
+        }
+
+
+        if (!in_array(
+            $field['type'],
+            ['select', 'tree']
+        )) {
+            throw new errorException($this->translate('Field not of type select/tree'));
+        }
+
+        /** @var Select $Field */
+        $Field = Field::init($field, $Table);
+
+        $list = $Field->calculateSelectList($row[$field['name']], $row, $Table->getTbl());
+
+        return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
     }
 
     protected function getPanelsCookieName()
@@ -1270,55 +1360,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $data = $data ?? json_decode($this->post['data'] ?? '[]', true) ?? [];
         $q = $q ?? $this->post['q'] ?? '';
         $parentId = $parentId ?? $this->post['parentId'] ?? null;
-        $fields = $this->Table->getFields();
-
-        if (!($field = $fields[$data['field']] ?? null)) {
-            throw new errorException($this->translate('Field [[%s]] is not found.', $data['field']));
-        }
-
-        $this->Table->loadDataRow();
-        $this->Table->reCalculateFilters(
+        return $this->getEditSelectFromTable($data,
+            $this->Table,
             'web',
-            false,
-            false,
-            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
-        );
-
-        $row = $data['item'];
-
-        if ($field['category'] === 'column' && !isset($row['id'])) {
-            $row['id'] = null;
-        }
-        foreach ($row as $k => &$v) {
-            if ($k !== 'id') {
-                $v = ['v' => $v];
-            }
-        }
-        if ($field['category'] === 'column') {
-            if (array_key_exists('id', $row) && !is_null($row['id'])) {
-                $this->Table->loadFilteredRows('web', [$row['id']]);
-                $row = $row + $this->Table->getTbl()['rows'][$row['id']] ?? [];
-            } else {
-                $row = $row + $this->Table->checkInsertRow([], $data['item'], null, []);
-            }
-        } else {
-            $row = $row + $this->Table->getTbl()['params'];
-        }
-
-
-        if (!in_array(
-            $field['type'],
-            ['select', 'tree']
-        )) {
-            throw new errorException($this->translate('Field not of type select/tree'));
-        }
-
-        /** @var Select $Field */
-        $Field = Field::init($field, $this->Table);
-
-        $list = $Field->calculateSelectList($row[$field['name']], $row, $this->Table->getTbl());
-
-        return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
+            $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? ''),
+            $q,
+            $parentId);
     }
 
 
@@ -1511,7 +1558,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if ($field['type'] === 'select') {
                 foreach ($field['codeSelect'] ?? [] as $code) {
-                    if (is_string($code) && preg_match('/(selectRowListForSelect|selectListAssoc)\([^)]*preview\s*:/i', $code)) {
+                    if (is_string($code) && preg_match('/(selectRowListForSelect|selectListAssoc)\([^)]*preview\s*:/i',
+                            $code)) {
                         $field['withPreview'] = true;
                         break;
                     }

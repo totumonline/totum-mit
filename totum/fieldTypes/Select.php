@@ -49,7 +49,7 @@ class Select extends Field
         if (!empty($checkedVals) && count($list) > $selectLength) {
             if (empty($this->data['multiple'])) {
                 $mm = $checkedVals;
-                if (array_key_exists($mm, $list) && $list[$mm][1] === 0) {
+                if (!is_array($mm) && array_key_exists($mm, $list) && $list[$mm][1] === 0) {
                     $v = $list[$mm];
                     unset($list[$mm]);
                     $list = [$mm => $v] + $list;
@@ -57,7 +57,7 @@ class Select extends Field
                 }
             } else {
                 foreach ((array)$checkedVals as $mm) {
-                    if (array_key_exists($mm, $list) && $list[$mm][1] === 0) {
+                    if (!is_array($mm) && array_key_exists($mm, $list) && $list[$mm][1] === 0) {
                         $v = $list[$mm];
                         unset($list[$mm]);
                         $list = [$mm => $v] + $list;

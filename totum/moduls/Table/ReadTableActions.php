@@ -107,6 +107,7 @@ class ReadTableActions extends Actions
 
             $LinkedTable = $this->Totum->getTable($data['table']['name'], $data['table']['extra'] ?? null);
 
+
             if (!empty($this->post['search'])) {
 
                 if (!empty($data['table']['id'])) {
@@ -115,6 +116,16 @@ class ReadTableActions extends Actions
                 } else {
                     $item = $LinkedTable->getTbl()['pararms'];
                 }
+
+                if (!empty($this->post['search']['comment'])) {
+                    if ($this->post['search']['comment'] === 'getValues') {
+                        return ['value' => Field::init($LinkedTable->getFields()[$data['table']['field']],
+                            $LinkedTable)->getFullValue($item[$data['table']['field']]['v'] ?? [],
+                            $item['id'] ?? null)];
+                    }
+                }
+
+
                 foreach ($item as $k => &$v) {
                     if (is_array($v)) {
                         $v = $v['v'];

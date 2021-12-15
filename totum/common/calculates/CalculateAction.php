@@ -11,6 +11,7 @@ namespace totum\common\calculates;
 use SoapClient;
 use totum\common\Crypt;
 use totum\common\errorException;
+use totum\common\Field;
 use totum\common\Lang\RU;
 use totum\common\Totum;
 use totum\common\TotumInstall;
@@ -374,6 +375,8 @@ class CalculateAction extends Calculate
                     [$params['field'], $LinkedTable->getTableRow()['name']]));
         }
 
+        $Field=Field::init($LinkedTable->getFields()[$params['field']], $LinkedTable);
+
         if (!empty($params['id'])) {
             $this->__checkNumericParam($params['id'], 'id');
             $LinkedTable->loadFilteredRows('inner', [$params['id']]);
@@ -381,6 +384,8 @@ class CalculateAction extends Calculate
                 throw new errorException($this->translate('Row not found'));
             }
             $value = $LinkedTable->getTbl()['rows'][$params['id']][$params['field']] ?? ['v' => null];
+            $Field->addViewValues('edit', $value, $LinkedTable->getTbl()['rows'][$params['id']], $LinkedTable->getTbl());
+
         } else {
             $value = $LinkedTable->getTbl()['params'][$params['field']] ?? ['v' => null];
         }

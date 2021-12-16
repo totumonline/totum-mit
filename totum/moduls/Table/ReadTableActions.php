@@ -146,6 +146,14 @@ class ReadTableActions extends Actions
             } else {
 
                 $value = $this->post['data'];
+
+                if (is_string($value) && $LinkedTable->getFields()[$data['table']['field']]['type'] === 'file') {
+                    $val = json_decode($value, true);
+                    if (!json_last_error()) {
+                        $value = $val;
+                    }
+                }
+
                 $item = [];
                 if ($data['table']['id'] ?? false) {
                     $item[$data['table']['id']] = [$data['table']['field'] => $value];

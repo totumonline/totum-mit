@@ -657,15 +657,20 @@ class CalculateAction extends Calculate
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
                 if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
-                } else {
+                }
+                elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
+                    $Cycle_id = $this->row['id'];
+                }
+                else {
                     $this->__checkNumericParam($params['cycle'], 'cycle');
                     $Cycle_id = $params['cycle'];
                 }
 
                 $link .= $topTableRow['top'] . '/' . $topTableRow['id'] . '/' . $Cycle_id . '/' . $tableRow['id'] . '/';
+
                 if (!empty($params['bfield'])) {
                     $Table = $this->Table->getTotum()->getCycle($Cycle_id,
-                        $topTableRow['top'])->getTable($tableRow['id']);
+                        $topTableRow['id'])->getTable($tableRow['id']);
                 }
 
             } else {

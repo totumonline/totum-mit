@@ -123,26 +123,25 @@ class ReadTableActions extends Actions
                             $LinkedTable)->getFullValue($item[$data['table']['field']]['v'] ?? [],
                             $item['id'] ?? null)];
                     }
-                }
-
-
-                foreach ($item as $k => &$v) {
-                    if (is_array($v)) {
-                        $v = $v['v'];
+                } else {
+                    foreach ($item as $k => &$v) {
+                        if (is_array($v)) {
+                            $v = $v['v'];
+                        }
                     }
-                }
-                unset($v);
+                    unset($v);
 
-                if ($this->post['search']['checkedVals'] ?? false) {
-                    $item[$data['table']['field']] = $this->post['search']['checkedVals'];
-                }
+                    if ($this->post['search']['checkedVals'] ?? false) {
+                        $item[$data['table']['field']] = $this->post['search']['checkedVals'];
+                    }
 
-                return $this->getEditSelectFromTable(['field' => $data['table']['field'], 'item' => $item],
-                    $LinkedTable,
-                    'inner',
-                    [],
-                    ($this->post['search']['q'] ?? ''),
-                    ($this->post['search']['parentId'] ?? null));
+                    return $this->getEditSelectFromTable(['field' => $data['table']['field'], 'item' => $item],
+                        $LinkedTable,
+                        'inner',
+                        [],
+                        ($this->post['search']['q'] ?? ''),
+                        ($this->post['search']['parentId'] ?? null));
+                }
 
             } else {
 

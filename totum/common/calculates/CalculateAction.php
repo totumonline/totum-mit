@@ -373,9 +373,12 @@ class CalculateAction extends Calculate
             throw new errorException(
                 $this->translate('The [[%s]] field is not found in the [[%s]] table.',
                     [$params['field'], $LinkedTable->getTableRow()['name']]));
+        } elseif (in_array($LinkedTable->getFields()[$params['field']]['type'], ['link', 'button', 'fieldParams'])) {
+            throw new errorException(
+                $this->translate('Function [[linkToEdit]] not available for [[%s]] field type.', $LinkedTable->getFields()[$params['field']]['type']));
         }
 
-        $Field=Field::init($LinkedTable->getFields()[$params['field']], $LinkedTable);
+        $Field = Field::init($LinkedTable->getFields()[$params['field']], $LinkedTable);
 
         if (!empty($params['id'])) {
             $this->__checkNumericParam($params['id'], 'id');
@@ -384,7 +387,10 @@ class CalculateAction extends Calculate
                 throw new errorException($this->translate('Row not found'));
             }
             $value = $LinkedTable->getTbl()['rows'][$params['id']][$params['field']] ?? ['v' => null];
-            $Field->addViewValues('edit', $value, $LinkedTable->getTbl()['rows'][$params['id']], $LinkedTable->getTbl());
+            $Field->addViewValues('edit',
+                $value,
+                $LinkedTable->getTbl()['rows'][$params['id']],
+                $LinkedTable->getTbl());
 
         } else {
             $value = $LinkedTable->getTbl()['params'][$params['field']] ?? ['v' => null];
@@ -394,7 +400,7 @@ class CalculateAction extends Calculate
         $data = [];
         $data['table']['name'] = $LinkedTable->getTableRow()['name'];
         $data['table']['field'] = $params['field'];
-        if($params['id']){
+        if ($params['id']) {
             $data['table']['id'] = $params['id'];
         }
         switch ($LinkedTable->getTableRow()['type']) {
@@ -657,11 +663,9 @@ class CalculateAction extends Calculate
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
                 if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
-                }
-                elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
+                } elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
                     $Cycle_id = $this->row['id'];
-                }
-                else {
+                } else {
                     $this->__checkNumericParam($params['cycle'], 'cycle');
                     $Cycle_id = $params['cycle'];
                 }

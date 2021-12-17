@@ -53,6 +53,7 @@ class RU implements LangInterface
         'Calling a third-party script.' => 'Обращение к стороннему скрипту.',
         'Not for the temporary table.' => 'Не для временной таблицы.',
         'The [[%s]] field is not found in the [[%s]] table.' => 'Поле [[%s]] не надено в таблице [[%s]].',
+        'Function [[linkToEdit]] not available for [[%s]] field type.' => 'Функция [[linkToEdit]] не доступна для типа поля [[%s]].',
         'The %s field must be numeric.' => 'Поле %s должно быть числовым.',
         'The value of the %s field must be numeric.' => 'Значение поля %s должно быть числовым.',
         'For selecting by numeric field [[%s]] you must pass numeric values' => 'Для выборки по числовому полю [[%s]] должно быть передано число',

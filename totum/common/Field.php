@@ -704,6 +704,31 @@ class Field
         } else {
             $this->checkValByType($val, $row, $isCheck);
         }
+
+
+        if (!$this->__checkIsNotBinary($newVal['v'])) {
+            $newVal['v'] = $this->data['errorText'];
+            $newVal['e'] = $this->translate('Non-utf8 content');
+        }
+        if (key_exists('c', $newVal) && !$this->__checkIsNotBinary($newVal['c'])) {
+            $newVal['c'] = $this->data['errorText'];
+        }
+
+    }
+
+    protected function __checkIsNotBinary($val)
+    {
+        if (is_array($val)) {
+            foreach ($val as $_v) {
+                if (!$this->__checkIsNotBinary($_v)) {
+                    return false;
+                }
+            }
+            return true;
+        } elseif (is_string($val)) {
+            return mb_detect_encoding($val, 'UTF-8', true);
+        }
+        return true;
     }
 
     protected function calculate(array &$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)

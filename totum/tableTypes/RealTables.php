@@ -476,7 +476,9 @@ abstract class RealTables extends aTable
                 $changedKeys = [];
                 foreach ($row as $k => $v) {
                     if (($oldRow[$k] ?? null) !== $v) {
-                        $changedKeys[] = $k;
+                        if(!Calculate::compare('==', $oldRow[$k], $v, $this->getLangObj())){
+                            $changedKeys[] = $k;
+                        }
                     }
                 }
                 $this->rowsOperations($action, $row, $changedKeys);

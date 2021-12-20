@@ -41,7 +41,7 @@ class Field
         'setToPinned' => 3,
         'inAddRecalc' => 4,
     ];
-    protected const NO_ERROR_IN_VALUE = ['number', 'checkbox'];
+    protected const NO_ERROR_IN_VALUE = ['checkbox'];
 
     public static array $fields = [];
     protected $data;
@@ -702,7 +702,12 @@ class Field
         if ($val === '' && $this->data['category'] !== 'filter') {
             $val = null;
         } else {
-            $this->checkValByType($val, $row, $isCheck);
+            try {
+                $this->checkValByType($val, $row, $isCheck);
+            } catch (errorException $errorException) {
+                $newVal['v'] = $this->data['errorText'];
+                $newVal['e'] = $errorException->getMessage();
+            }
         }
 
 

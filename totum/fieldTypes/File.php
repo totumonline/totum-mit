@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 use totum\common\Auth;
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Lang\RU;
@@ -227,7 +228,7 @@ class File extends Field
         }
 
         if (!is_array($val)) {
-            throw new errorException($this->translate('The data format is not correct for the File field.'));
+            throw new criticalErrorException($this->translate('The data format is not correct for the File field.'));
         }
 
 
@@ -323,19 +324,19 @@ class File extends Field
             foreach ($val as $file) {
                 $fl = [];
                 if (!array_key_exists('name', $file)) {
-                    throw new errorException($this->translate('The data format is not correct for the File field.'));
+                    throw new criticalErrorException($this->translate('The data format is not correct for the File field.'));
                 }
 
                 $file['ext'] = preg_replace('/^.*\.([a-z0-9]{2,4})$/', '$1', strtolower($file['name']));
 
                 if (empty($file['ext'])) {
-                    throw new errorException($this->translate('The file must have an extension.'));
+                    throw new criticalErrorException($this->translate('The file must have an extension.'));
                 }
                 if (in_array(
                     $file['ext'],
                     ['php', 'phtml']
                 )) {
-                    throw new errorException($this->translate('Restricted to add executable files to the server.'));
+                    throw new criticalErrorException($this->translate('Restricted to add executable files to the server.'));
                 }
 
                 if ($file['ext'] === 'jpeg') {

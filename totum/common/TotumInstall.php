@@ -6,6 +6,7 @@ namespace totum\common;
 use PDO;
 use Symfony\Component\Console\Output\OutputInterface;
 use totum\common\calculates\CalculateAction;
+use totum\common\Lang\RU;
 use totum\common\sql\Sql;
 use totum\config\Conf;
 use totum\fieldTypes\fieldParamsResult;
@@ -45,7 +46,7 @@ class TotumInstall
         if (is_array($Config)) {
             $this->installSettings = $Config;
             $this->Config = $this->createConfig($Config, $this->installSettings['host'] ?? $_SERVER['HTTP_HOST']);
-            $this->User = new User(['login' => $user, 'roles' => ["1"], 'id' => 1], $this->Config);
+            $this->User = new User(['login' => $user, 'roles' => ['1'], 'id' => 1], $this->Config);
         } else {
             $this->Config = $Config;
             if (is_object($user)) {
@@ -62,10 +63,16 @@ class TotumInstall
         $this->outputConsole = $outputConsole;
     }
 
+    protected function translate(string $str, array|string|int|float $vars = []): string
+    {
+        return $this->Config->getLangObj()->translate($str, $vars);
+    }
+
     public function createConfig($post, $host)
     {
         $post['db_schema'] = trim($post['db_schema']);
         $post['db_port'] = $post['db_port'] ?? 5432;
+        $post['lang'] = $post['lang'] ?? 'en';
         $db = [
             'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
             'host' => $post['db_host'],
@@ -79,12 +86,28 @@ class TotumInstall
         $dbExport = var_export($db, true);
 
         if ($post['multy'] === '1') {
-            $multyPhp = ' use MultiTrait;';
+            $multyPhp = <<<CONF
+
+/***** multi start ***/
+    use MultiTrait;
+/***** multi stop ***/
+
+/***** no-multi start ***
+    protected \$hostName='$host';
+    protected \$schemaName='{$post['db_schema']}';
+/***** no-multi stop ***/   
+CONF;
         } else {
             $multyPhp = <<<CONF
 
-    protected \$hostName="$host";
-    protected \$schemaName="{$post['db_schema']}";
+/***** multi start ***
+    use MultiTrait;
+/***** multi stop ***/
+
+/***** no-multi start ***/
+    protected \$hostName='$host';
+    protected \$schemaName='{$post['db_schema']}';
+/***** no-multi stop ***/   
 CONF;
         }
 
@@ -99,22 +122,25 @@ use totum\common\configs\MultiTrait;
 
 class Conf extends ConfParent{
     use WithPhpMailerTrait;
+    
     $multyPhp
+    
+    
     
     const db=$dbExport;
     
     public static \$timeLimit = 120;
     
-    const adminEmail="{$post['admin_email']}";
+    const adminEmail='{$post['admin_email']}';
     
-    const ANONYM_ALIAS="An";
+    const ANONYM_ALIAS='An';
     
     const LANG="{$post['lang']}";
     
     /***getSchemas***/
     static function getSchemas()
     {
-        return ["$host"=>"{$post['db_schema']}"];
+        return ['$host'=>'{$post['db_schema']}'];
     }
     /***getSchemasEnd***/
     
@@ -131,7 +157,7 @@ class Conf extends ConfParent{
 CONF;
 
         eval($this->confClassCode);
-        $Conf = new Conf("dev", false);
+        $Conf = new Conf('dev', false);
         if ($post['multy'] === '1') {
             $Conf->setHostSchema($host);
         }
@@ -145,16 +171,16 @@ CONF;
         $this->saveFileConfig();
     }
 
-    public static function getDataFromFile($path)
+    public function getDataFromFile($path)
     {
         if (!is_file($path)) {
-            throw new errorException('Файл схемы не найден');
+            throw new errorException($this->translate('Scheme file not found.'));
         }
         if (!($filedata = gzdecode(file_get_contents($path)))) {
-            throw new errorException('Файл схемы неверного формата');
+            throw new errorException($this->translate('Wrong format scheme file.'));
         }
         if (!($schema = json_decode($filedata, true))) {
-            throw new errorException('Файл схемы неверного формата');
+            throw new errorException($this->translate('Wrong format scheme file.'));
         }
         return $schema;
     }
@@ -170,7 +196,7 @@ CONF;
         $fieldsModify = [];
         foreach ($fields as $field) {
             if (empty($field['name'])) {
-                throw new errorException('Не задан NAME одного из полей');
+                throw new errorException($this->translate('Parametr [[%s]] is required.', 'name of field'));
             }
             if (key_exists($field['name'], $selectFields)) {
                 $fieldsModify[$selectFields[$field['name']]['id']] = array_intersect_key(
@@ -225,7 +251,7 @@ CONF;
     public function insertUsersAndAuthAdmin(array $post)
     {
         $this->Totum->getTable('users')->reCalculateFromOvers(['add' => [
-            ['login' => $post['user_login'], 'pass' => $post['user_pass'], 'fio' => 'Администратор', 'roles' => ['1']],
+            ['login' => $post['user_login'], 'pass' => $post['user_pass'], 'fio' => $this->translate('Administrator'), 'roles' => ['1']],
             ['login' => 'cron', 'pass' => '', 'fio' => 'Cron', 'roles' => []],
             ['login' => 'service', 'pass' => '', 'fio' => 'service', 'roles' => ['1']],
             ['login' => 'anonym', 'pass' => '---', 'fio' => 'anonym', 'roles' => [], 'on_off' => false],
@@ -253,7 +279,7 @@ CONF;
         $this->consoleLog('Upload start sql');
         $this->applySql($getFilePath('start.sql'));
 
-        $data = static::getDataFromFile($getFilePath('start_' . $this->Totum->getConfig()->getLang() . '.json.gz.ttm'));
+        $data = $this->getDataFromFile($getFilePath('start_' . strtolower($this->Totum->getConfig()->getLang()) . '.json.gz.ttm'));
 
         $this->consoleLog('Install base tables');
         $baseTablesIds = $this->installBaseTables($data);
@@ -269,7 +295,7 @@ CONF;
                 break;
             }
         }
-        $data = static::applyMatches($data, []);
+        $data = $this->applyMatches($data, []);
 
         unset($data['tables_settings']['settings']);
         unset($data['fields_settings']);
@@ -325,8 +351,8 @@ CONF;
             '/((?i:userInRoles))\(([^)]+)\)/',
             function ($matches) use ($funcRoles) {
                 return $matches[1] . '(' . preg_replace_callback(
-                    '/role:\s*(\d+)/',
-                    function ($matches) use ($funcRoles) {
+                        '/role:\s*(\d+)/',
+                        function ($matches) use ($funcRoles) {
                             $roles = '';
                             foreach ($matches[1] as $role) {
                                 if ($roles !== '') {
@@ -336,8 +362,8 @@ CONF;
                             }
                             return $roles;
                         },
-                    $matches[2]
-                ) . ')';
+                        $matches[2]
+                    ) . ')';
             },
             $code
         );
@@ -359,26 +385,27 @@ CONF;
 
     protected function calcTableSettings(&$schemaRow, &$tablesChanges, $funcRoles, $getTreeId, $funcCategories)
     {
-        if (empty($schemaRow['settings'])) {
-            return;
-        }
 
 
         $schemaRow['name'] = $schemaRow['name'] ?? $schemaRow['table'];
         if (empty($schemaRow['name'])) {
-            throw new errorException('NAME загружаемой таблицы должен быть не пуст');
+            throw new errorException($this->translate('Parametr [[%s]] is required.', 'name of table'));
         }
 
         if (empty($schemaRow['type'])) {
-            throw new errorException('Тип загружаемой таблицы должен быть не пуст');
+            throw new errorException($this->translate('Parametr [[%s]] is required.', 'type of table'));
         }
         if ($schemaRow['type'] === 'calcs' && empty($schemaRow['version'])) {
-            throw new errorException('Версия загружаемой расчетной таблицы в цикле должен быть не пуст');
+            throw new errorException($this->translate('Parametr [[%s]] is required.', 'version of calcs table'));
         }
 
         unset($schemaRow['settings']['top']);
 
         $schemaRow['tableReNamed'] = false;
+
+        if (empty($schemaRow['settings'])) {
+            return;
+        }
 
         foreach ($schemaRow['settings'] as $setting => &$val) {
             if (in_array($setting, Totum::TABLE_ROLES_PARAMS)) {
@@ -398,7 +425,8 @@ CONF;
                 $tableId = $selectTableRow['id'];
 
                 if ($selectTableRow['type'] !== $schemaRow['type']) {
-                    throw new errorException('Тип загружаемой и обновляемой таблиц разный - ' . $selectTableRow['name']);
+                    throw new errorException($this->translate('The type of the loaded table [[%s]] does not match.',
+                        $selectTableRow['name']));
                 }
                 unset($schemaRow['settings']['tree_node_id']);
                 unset($schemaRow['settings']['sort']);
@@ -419,10 +447,10 @@ CONF;
                 $this->consoleLog('Add table "' . $schemaRow['name'] . '"', 3);
                 $Log = $this->calcLog(['name' => "ADD TABLE {$schemaRow['name']}"]);
 
-                $treeNodeId = null;
                 if ($schemaRow['type'] === 'calcs') {
                     if (empty($schemaRow['cycles_table'])) {
-                        throw new errorException('Не задана таблица циклов для добавления расчетной таблицы ' . $schemaRow['name']);
+                        throw new errorException($this->translate('The cycles table for the adding calculation table [[%s]] is not set.',
+                            $schemaRow['name']));
                     }
                     $treeNodeId = $this->Totum->getNamedModel(Table::class)->getField(
                         'id',
@@ -430,24 +458,18 @@ CONF;
                     );
 
                     if (empty($treeNodeId)) {
-                        throw new errorException('Не найдена таблица циклов ' . $schemaRow['cycles_table']);
+                        throw new errorException($this->translate('Table [[%s]] is not found.',
+                            $schemaRow['cycles_table']));
                     }
-                    $tablesChanges['add'][] = array_merge(
-                        $schemaRow['settings'],
-                        ['tree_node_id' => $treeNodeId, 'category' => $funcCategories(
-                            $schemaRow['settings']['category']
-                        ), 'name' => $schemaRow['name'], 'type' => $schemaRow['type']]
-                    );
                 } else {
                     $treeNodeId = $getTreeId($schemaRow['settings']['tree_node_id']);
-
-                    $tablesChanges['add'][] = array_merge(
-                        $schemaRow['settings'],
-                        ['tree_node_id' => $treeNodeId, 'category' => $funcCategories(
-                            $schemaRow['settings']['category']
-                        ), 'name' => $schemaRow['name'], 'type' => $schemaRow['type']]
-                    );
                 }
+                $tablesChanges['add'][] = array_merge(
+                    $schemaRow['settings'],
+                    ['tree_node_id' => $treeNodeId, 'category' => $funcCategories(
+                        $schemaRow['settings']['category']
+                    ), 'name' => $schemaRow['name'], 'type' => $schemaRow['type']]
+                );
                 $tableId = null;
             }
             $this->calcLog($Log, 'result', 'done');
@@ -458,12 +480,19 @@ CONF;
         $schemaRow['tableId'] = $tableId;
     }
 
-    public static function applyMatches($schemaData, $matches)
+    public function applyMatches($schemaData, $matches)
     {
+        if ($schemaData['match_existings'] ?? false) {
+            foreach (['tree' => 'tree', 'categories' => 'table_categories', 'roles' => 'roles'] as $type => $table) {
+                $existings[$type] = $this->Totum->getModel($table)->getAllIds();
+                $existings[$type] = array_combine($existings[$type], $existings[$type]);
+            }
+        }
+
         foreach (['tree', 'categories', 'roles'] as $type) {
             foreach ($schemaData[$type] as &$row) {
                 if (!key_exists('out_id', $row)) {
-                    $row['out_id'] = $matches[$type][$row['id']] ?? '';
+                    $row['out_id'] = $existings[$type][$row['id']] ?? $matches[$type][$row['id']] ?? '';
                 }
             }
             unset($row);
@@ -528,7 +557,7 @@ CONF;
 
                 foreach ($schemaRow['fields'] as $field) {
                     if (empty($field['name'])) {
-                        throw new errorException('Не задан NAME одного из полей');
+                        throw new errorException($this->translate('Parametr [[%s]] is required.', 'name of field'));
                     }
 
                     if (key_exists($field['name'], $selectFields)) {
@@ -690,7 +719,7 @@ CONF;
     public function checkSchemaExists($schema_exists_conf)
     {
         if (!preg_match('/^[a-z_0-9\-]+$/', $this->Config->getSchema())) {
-            throw new errorException('Формат имени схемы неверен. Строчные английские буквы, цифры и - _');
+            throw new errorException($this->translate('The format of the schema name is incorrect. Small English letters, numbers and - _'));
         }
 
         $prepare = $this->Sql->getPrepared('SELECT 1 FROM information_schema.schemata WHERE schema_name = ?');
@@ -700,7 +729,7 @@ CONF;
         if (!$schemaExists) {
             $this->Sql->exec('CREATE SCHEMA IF NOT EXISTS "' . $this->Config->getSchema() . '"');
         } elseif ($schema_exists_conf !== true) {
-            throw new errorException('Схема существует - выберите другую для установки');
+            throw new errorException($this->translate('A scheme exists - choose another one to install.'));
         }
     }
 
@@ -729,7 +758,7 @@ CONF;
 
         /*Заполняем поля таблицы Состав таблиц */
         foreach ($data['fields_settings'] as $setting) {
-            $insertSysField(2, "tables_fields", $setting);
+            $insertSysField(2, 'tables_fields', $setting);
         }
         $data['fields_settings'] = [];
 
@@ -738,7 +767,7 @@ CONF;
             if (!in_array($setting['name'], ['type', 'name']) && $setting['category'] === 'column') {
                 $this->Sql->exec('ALTER TABLE "tables" ADD COLUMN "' . $setting['name'] . '" JSONB NOT NULL DEFAULT \'{"v":null}\' ');
             }
-            $insertSysField(1, "tables", $setting);
+            $insertSysField(1, 'tables', $setting);
         }
 
 
@@ -818,7 +847,6 @@ CONF;
         $TablesTable = $this->Totum->getTable('tables');
         $TablesTable->addCalculateLogInstance($this->CalculateLog);
 
-        /** @var Model $TablesModel */
         $TablesModel = $this->Totum->getNamedModel(Table::class);
 
         /*Данные и Коды*/
@@ -832,7 +860,7 @@ CONF;
                 $tableId = $schemaRow['tableId'];
                 switch ($schemaRow['type']) {
                     case 'globcalcs':
-                        $this->Totum->getModel(NonProjectCalcs::class)->update(
+                        $this->Totum->getNamedModel(NonProjectCalcs::class)->update(
                             ['tbl' => json_encode(
                                 $schemaRow['data'],
                                 JSON_UNESCAPED_UNICODE
@@ -842,12 +870,12 @@ CONF;
                         break;
                     case 'simple':
                     case 'cycles':
-                        if (!empty($schemaRow['data']["params"])) {
+                        if (!empty($schemaRow['data']['params'])) {
                             $header = json_decode(
                                 $TablesModel->getField('header', ['id' => $tableId]),
                                 true
                             );
-                            foreach ($schemaRow['data']["params"] as $param => $val) {
+                            foreach ($schemaRow['data']['params'] as $param => $val) {
                                 $header[$param] = $val;
                             }
                             $TablesModel->updatePrepared(
@@ -857,21 +885,21 @@ CONF;
                             );
                         }
 
-                        if (!empty($schemaRow['data']["rows"])) {
+                        if (!empty($schemaRow['data']['rows'])) {
                             $_tableModel = $this->Totum->getModel($schemaRow['name']);
-                            foreach ($schemaRow['data']["rows"] as $row) {
-                                $selectedRowId = null;
 
+
+                            $getRowId = function ($row) use ($_tableModel) {
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
-                                    'id',
-                                    $row
-                                ) && $schemaRow['key_fields'] = ['id'])) {
+                                            'id',
+                                            $row
+                                        ) && $schemaRow['key_fields'] = ['id'])) {
                                     $keys = [];
                                     foreach ($schemaRow['key_fields'] as $key) {
                                         $keys[$key] = (is_array($row[$key] ?? []) && key_exists(
-                                            'v',
-                                            $row[$key] ?? []
-                                        )) ? $row[$key]['v'] : $row[$key];
+                                                'v',
+                                                $row[$key] ?? []
+                                            )) ? $row[$key]['v'] : $row[$key];
                                         if (is_array($keys[$key])) {
                                             $keys[$key] = json_encode(
                                                 $keys[$key],
@@ -883,6 +911,14 @@ CONF;
                                     }
                                     $selectedRowId = $_tableModel->getField('id', $keys);
                                 }
+                                return $selectedRowId ?? null;
+                            };
+
+                            $before = null;
+                            $orderedIds = [];
+                            foreach ($schemaRow['data']['rows'] as $row) {
+                                $selectedRowId = $getRowId($row);
+
                                 if ($cycleTables = $row['_tables'] ?? []) {
                                     unset($row['_tables']);
                                 }
@@ -896,14 +932,16 @@ CONF;
                                 $rowId = null;
                                 /*Изменение*/
                                 if ($selectedRowId) {
-                                    if ($schemaRow['change'] !== "add") {
+                                    if ($schemaRow['change'] !== 'add') {
                                         if ($_tableModel->saveVars($selectedRowId, $row)) {
                                             $changedIds[] = $selectedRowId;
                                         }
                                         $rowId = $selectedRowId;
                                     }
+                                    $before = $selectedRowId;
+                                    $orderedIds[] = $selectedRowId;
                                 } /*Добавление*/
-                                elseif ($schemaRow['change'] !== "edit") {
+                                elseif ($schemaRow['change'] !== 'edit') {
                                     $rowId = $_tableModel->insertPrepared($row);
                                     if (key_exists('id', $row)) {
                                         $rowId = $row['id'];
@@ -919,7 +957,27 @@ CONF;
                                             );
                                         }
                                     }
-                                    $insertedIds[] = $rowId;
+
+                                    if (($this->Totum->getTableRow($tableId)['with_order_field'] ?? false) && ($schemaRow['n_type'] ?? false) === '1') {
+                                        if (!$before) {
+                                            foreach ($schemaRow['data']['rows'] as $_i => $_row) {
+                                                if ($_i && $after = $getRowId($_row)) {
+                                                    $afterN = $_tableModel->getField('n', ['id' => $after]);
+                                                    $before = $_tableModel->getField('id', ['<n' => $afterN], 'n desc');
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        if (!$before) $before = '0';
+
+                                        $this->Totum->getTable($tableId)->reCalculateFromOvers([
+                                            'reorder' => [$rowId],
+                                            'addAfter' => $before
+                                        ]);
+                                    }
+                                    $orderedIds[] = $insertedIds[] = $rowId;
+                                    $before = $rowId;
                                 }
 
                                 if ($rowId && $schemaRow['type'] === 'cycles' && !empty($cycleTables)) {
@@ -972,9 +1030,9 @@ CONF;
                                                                 ['v' => $tName],
                                                                 JSON_UNESCAPED_UNICODE
                                                             ), 'cycles_table' => json_encode(
-                                                                ['v' => $tableId],
-                                                                JSON_UNESCAPED_UNICODE
-                                                            ),]
+                                                            ['v' => $tableId],
+                                                            JSON_UNESCAPED_UNICODE
+                                                        ),]
                                                     );
                                                 }
                                             }
@@ -982,6 +1040,13 @@ CONF;
                                         array_keys($cycleTables),
                                         $cycleTables
                                     );
+                                }
+                            }
+                            if (($this->Totum->getTableRow($tableId)['with_order_field'] ?? false) && ($schemaRow['n_type'] ?? false) === '2') {
+                                if ($orderedIds) {
+                                    $this->Totum->getTable($tableId)->reCalculateFromOvers([
+                                        'reorder' => $orderedIds,
+                                    ]);
                                 }
                             }
                         }
@@ -1003,7 +1068,7 @@ CONF;
                     ) . '...',
                     3
                 );
-                $Log = $TablesTable->calcLog(['name' => "CODE FROM SCHEMA", 'code' => $schemaRow['code']]);
+                $Log = $TablesTable->calcLog(['name' => 'CODE FROM SCHEMA', 'code' => $schemaRow['code']]);
                 $action = new CalculateAction($schemaRow['code']);
                 $r = $action->execAction(
                     'InstallCode',
@@ -1068,7 +1133,7 @@ CONF;
                 }
             }
 
-            throw new errorException('Категория с ид ' . $cat . ' не найдена для замены');
+            throw new errorException($this->translate('Category [[%s]] not found for replacement.', $cat));
         };
     }
 
@@ -1102,7 +1167,7 @@ CONF;
                 }
             }
 
-            throw new errorException("Роль  $inId для сопоставления не найдена");
+            throw new errorException($this->translate('Role [[%s]] not found for replacement.', $inId));
         };
     }
 
@@ -1150,10 +1215,10 @@ CONF;
                             if (key_exists($row['id'], $addedBranches)) {
                                 if (!key_exists($row['parent_id'], $lastOrdParent)) {
                                     $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField(
-                                        'ord',
-                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
-                                        'ord desc'
-                                    ) ?? 0;
+                                            'ord',
+                                            ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                            'ord desc'
+                                        ) ?? 0;
                                 }
                                 $lastOrdParent[$row['parent_id']] += 10;
                                 $modify[$addedBranches[$row['id']]]['ord'] = $lastOrdParent[$row['parent_id']];
@@ -1194,7 +1259,7 @@ CONF;
                     return $treeMatches[$id];
                 }
             }
-            throw new errorException("Ветка  $tree_node_id для сопоставления не найдена");
+            throw new errorException($this->translate('Branch [[%s]] not found for replacement.', $tree_node_id));
         };
     }
 
@@ -1202,10 +1267,10 @@ CONF;
     {
         $Log = $this->CalculateLog->getChildInstance(['name' => 'Save Config file']);
         if (!file_put_contents(
-            dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . "Conf.php",
+            dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Conf.php',
             '<?php' . "\n" . $this->confClassCode
         )) {
-            throw new errorException('Ошибка сохранения файла Conf.php');
+            throw new errorException($this->translate('Error saving file %s', 'Conf.php'));
         } else {
             $Log->addParam('result', 'done');
         }
@@ -1213,8 +1278,6 @@ CONF;
 
     private function consoleLog(string $string, $level = 0)
     {
-        if ($this->outputConsole) {
-            $this->outputConsole->write(str_repeat(" ", $level) . $string, true);
-        }
+        $this->outputConsole?->write(str_repeat(' ', $level) . $string, true);
     }
 }

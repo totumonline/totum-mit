@@ -10,13 +10,13 @@ namespace totum\models;
 
 use Exception;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\models\traits\WithTotumTrait;
 use totum\tableTypes\aTable;
 use totum\tableTypes\calcsTable;
 use totum\tableTypes\RealTables;
-use totum\tableTypes\tableTypes;
 
 class Table extends Model
 {
@@ -34,7 +34,33 @@ class Table extends Model
             'users' => [],
             'tree' => [],
             'settings' => [],
-            'table_categories' => []];
+            'auth_log' => [],
+            'crons' => [],
+            'ttm__backups' => [],
+            'ttm__charts' => [],
+            'ttm__forms' => [],
+            'ttm__forms_viewtypes' => [],
+            'ttm__remotes' => [],
+            'ttm__search_catalog' => [],
+            'ttm__search_settings' => [],
+            'ttm__updates' => [],
+            'calcstable_cycle_version' => [],
+            'calcstable_versions' => [],
+        ];
+
+    public function createTableAfterPrepared($id, int $duplicatedId): void
+    {
+        if ($id && ($row = $this->Totum->getTableRow($id))) {
+            if ($row['type'] === 'calcs') {
+                calcsTable::__createTable($row['name'], $this->Totum);
+            } else {
+                $table = $this->Totum->getTable($row);
+                $table->createTable($duplicatedId);
+            }
+        } else {
+            throw new errorException($this->translate('Table creation error.'));
+        }
+    }
 
     use WithTotumTrait;
 
@@ -45,20 +71,11 @@ class Table extends Model
         $name = json_decode($vars['name'], true)['v'];
 
         if (in_array($name, Model::RESERVED_WORDS)) {
-            throw new errorException('[[' . $name . ']] не может быть названием таблицы');
+            throw new errorException($this->translate('[[%s]] cannot be a table name.', $name));
         }
 
         $id = parent::insertPrepared($vars, $returning, $ignore, $cacheIt);
-        if ($id && ($row = $this->Totum->getTableRow($id))) {
-            if ($row['type'] === 'calcs') {
-                calcsTable::__createTable($row['name'], $this->Totum);
-            } else {
-                $table = $this->Totum->getTable($row);
-                $table->createTable();
-            }
-        } else {
-            throw new errorException('Ошибка с таблицей');
-        }
+
         return $id;
     }
 
@@ -139,7 +156,7 @@ class Table extends Model
                 $tableType = $tableRow['type'];
 
                 if (key_exists($tableName, static::$systemTables)) {
-                    throw new errorException('Нельзя удалять системные таблицы');
+                    throw new errorException($this->translate('You cannot delete system tables.'));
                 }
 
                 $this->Totum->getNamedModel(TablesFields::class)->delete(['table_id' => $tableRow['id']]);

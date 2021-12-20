@@ -7,8 +7,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\controllers\Controller;
+use totum\common\Lang\RU;
 use totum\common\Model;
-use totum\common\tableSaveException;
+use totum\common\tableSaveOrDeadLockException;
 use totum\common\Totum;
 use totum\tableTypes\RealTables;
 
@@ -36,12 +37,12 @@ class RemotesController extends Controller
                         $onceMore = false;
                         try {
                             $data = $this->action($User, $remote, $remote_row, $request);
-                        } catch (tableSaveException $exception) {
+                        } catch (tableSaveOrDeadLockException $exception) {
                             $this->Config = $this->Config->getClearConf();
                             if (++$tries < 5) {
                                 $onceMore = true;
                             } else {
-                                $error = 'Ошибка одновременного доступа к таблице';
+                                $error = $this->translate('Conflicts of access to the table error');
                             }
                         } catch (\Exception $e) {
                             $error = $e->getMessage();
@@ -50,10 +51,10 @@ class RemotesController extends Controller
                     } while ($onceMore);
 
                 } else {
-                    $error = 'Ошибка авторизации пользователя';
+                    $error = $this->translate('Authorization error');
                 }
             } else {
-                $error = 'Remote не подключен к пользователю';
+                $error = $this->translate('Remote is not connected to the user');
             }
 
             switch ($remote['return']) {
@@ -80,7 +81,7 @@ class RemotesController extends Controller
                     echo $data['body'];
             }
         } else {
-            echo $error = 'Remote не активен или не существует';
+            echo $this->translate('Remote is not active or does not exist');
             die;
         }
     }

@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\tableTypes\aTable;
 
 class Text extends Field
@@ -29,7 +30,7 @@ class Text extends Field
             $paramInXml->addAttribute('error', $fVar['e']);
         }
         if (isset($fVar['c'])) {
-            $paramInXml->addAttribute('c', $fVar['c'] !== $fVar['v'] ? 'Текст изменен' : 'Текст соответствует');
+            $paramInXml->addAttribute('c', $fVar['c'] !== $fVar['v'] ? $this->translate('Text modified') : $this->translate('Text unchanged'));
             $paramInXml->addAttribute('h', isset($fVar['h']) ? '1' : '0');
         }
     }

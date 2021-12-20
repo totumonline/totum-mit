@@ -9,8 +9,10 @@
 namespace totum\fieldTypes;
 
 use totum\common\Auth;
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\common\sql\Sql;
 use totum\config\Conf;
 
@@ -23,7 +25,7 @@ class File extends Field
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         switch ($viewType) {
             case 'csv':
-                throw new errorException('Поле типа файл нельзя использовать в csv-экспорт');
+                throw new errorException($this->translate('Export via csv is not available for [[%s]] field.', 'file'));
             case 'print':
                 $func = function ($array) use (&$func) {
                     if (!$array) {
@@ -31,11 +33,11 @@ class File extends Field
                     }
                     $v = $array[0];
                     return '<div><span>' . htmlspecialchars($v['name']) . '</span><span>' . number_format(
-                        $v['size'] / 1024,
-                        0,
-                        ',',
-                        ' '
-                    ) . 'Kb</span></div>' . $func(array_slice($array, 1));
+                            $v['size'] / 1024,
+                            0,
+                            ',',
+                            ' '
+                        ) . 'Kb</span></div>' . $func(array_slice($array, 1));
                 };
                 $valArray['v'] = $func($valArray['v']);
                 break;
@@ -44,7 +46,7 @@ class File extends Field
 
     public function getValueFromCsv($val)
     {
-        throw new errorException('Поле типа файл нельзя использовать в csv-импорт');
+        throw new errorException($this->translate('Import from csv is not available for [[%s]] field.', 'file'));
 
         //return $val = json_decode(base64_decode($val), true);
     }
@@ -146,7 +148,7 @@ class File extends Field
         $tmpFileName = tempnam($Config->getTmpDir(), $Config->getSchema() . '.' . $userId . '.');
         if ($_FILES['file']) {
             if (filesize($_FILES['file']['tmp_name']) > Conf::$MaxFileSizeMb * 1024 * 1024) {
-                return ['error' => 'Файл больше ' . Conf::$MaxFileSizeMb . ' Mb'];
+                return ['error' => $Config->getLangObj()->translate('File > ') . Conf::$MaxFileSizeMb . ' Mb'];
             }
 
             if (copy($_FILES['file']['tmp_name'], $tmpFileName)) {
@@ -154,7 +156,7 @@ class File extends Field
                 return ['fname' => preg_replace('`^.*/([^/]+)$`', '$1', $tmpFileName)];
             }
         }
-        return ['error' => 'Файл не получен. Возможно, слишком большой'];
+        return ['error' => $Config->getLangObj()->translate('File not received. May be too big.')];
     }
 
     public function getLogValue($val, $row, $tbl = [])
@@ -181,19 +183,31 @@ class File extends Field
 
     protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
-        if (is_object($modifyVal)) {
-            $modifyVal = $modifyVal->val;
+        if (is_object($modifyVal) && empty($this->data['multiple'])) {
+            throw new errorException($this->translate('Operation [[%s]] over not mupliple select is not supported.',
+                $modifyVal->sign));
         }
+
+
         if (!$isCheck) {
             $deletedFiles = [];
-            if (!empty($oldVal) && is_array($oldVal)) {
+            if (is_object($modifyVal)) {
+                if (empty($oldVal)) {
+                    $oldVal = array();
+                }
+                $modifyVal = match ($modifyVal->sign) {
+                    '+' => array_merge($oldVal, [$modifyVal->val]),
+                    default => throw new errorException($this->translate('Operation [[%s]] over files is not supported.',
+                        $modifyVal->sign)),
+                };
+            } elseif (!empty($oldVal) && is_array($oldVal)) {
                 foreach ($oldVal as $fOld) {
                     foreach ($modifyVal as $file) {
                         if ($fOld['file'] === ($file['file'] ?? null)) {
                             continue 2;
                         }
                     }
-                    if (strpos($fOld['file'], $this->_getFprefix($row['id'] ?? null)) === 0) {
+                    if (str_starts_with($fOld['file'] ?? '', $this->_getFprefix($row['id'] ?? null))) {
                         $deletedFiles[] = $fOld;
                     }
                 }
@@ -214,7 +228,7 @@ class File extends Field
         }
 
         if (!is_array($val)) {
-            throw new errorException('Тип данных не подходит для поля Файл');
+            throw new criticalErrorException($this->translate('The data format is not correct for the File field.'));
         }
 
 
@@ -301,7 +315,7 @@ class File extends Field
 
 
                 if ($fnum === 1030) {
-                    die('Не удалось создать файл для записи в ячейку');
+                    die($this->translate('File name search error.'));
                 }
                 return $fname;
             };
@@ -310,24 +324,19 @@ class File extends Field
             foreach ($val as $file) {
                 $fl = [];
                 if (!array_key_exists('name', $file)) {
-                    throw new errorException('Тип данных не подходит для поля Файл');
-                }
-                if (empty($file['tmpfile']) && empty($file['file'])) {
-                    if ($isCheck) {
-                        throw new errorException('Тип данных не подходит для поля Файл');
-                    }
+                    throw new criticalErrorException($this->translate('The data format is not correct for the File field.'));
                 }
 
                 $file['ext'] = preg_replace('/^.*\.([a-z0-9]{2,4})$/', '$1', strtolower($file['name']));
 
                 if (empty($file['ext'])) {
-                    throw new errorException('У файла должно быть расширение');
+                    throw new criticalErrorException($this->translate('The file must have an extension.'));
                 }
                 if (in_array(
                     $file['ext'],
                     ['php', 'phtml']
                 )) {
-                    throw new errorException('Запрещено добавление исполняемых на сервере файлов');
+                    throw new criticalErrorException($this->translate('Restricted to add executable files to the server.'));
                 }
 
                 if ($file['ext'] === 'jpeg') {
@@ -345,11 +354,12 @@ class File extends Field
 
                     $this->table->getTotum()->getConfig()->getSql()->addOnCommit(function () use ($ftmpname, $fname) {
                         if (!copy($ftmpname, $fname)) {
-                            die('{"error":"Не удалось копировать временный файл"}');
+                            die(json_encode(['error' => $this->translate('Failed to copy a temporary file.')]));
                         }
                         if (is_file($ftmpname . '_thumb.jpg')) {
                             if (!copy($ftmpname . '_thumb.jpg', $fname . '_thumb.jpg')) {
-                                die('{"error":"Не удалось копировать превью"}');
+                                die(json_encode(['error' => $this->translate('Failed to copy preview.')],
+                                    JSON_UNESCAPED_UNICODE));
                             }
                         }
                         unset(static::$transactionCommits[$fname]);
@@ -364,12 +374,12 @@ class File extends Field
 
                     if (key_exists($filepath, static::$transactionCommits)) ; elseif (!is_file($filepath)) {
                         if ($isCheck) {
-                            throw new errorException('файл не найден');
+                            throw new errorException($this->translate('Field [[%s]] is not found.', $file['name']));
                         }
                         $file['size'] = 0;
                         $fl['e'] = 'Файл не найден';
                     } else {
-                        if (strpos($file['file'], $fPrefix) !== 0 && !empty($this->data['fileDuplicateOnCopy'])) {
+                        if (!str_starts_with($file['file'], $fPrefix) && !empty($this->data['fileDuplicateOnCopy'])) {
                             $fname = $funcGetFname($file['ext']);
 
                             $otherfname = static::getFilePath($file['file'], $this->table->getTotum()->getConfig());
@@ -378,7 +388,8 @@ class File extends Field
 
                             $this->table->getTotum()->getConfig()->getSql()->addOnCommit(function () use ($otherfname, $fname) {
                                 if (!copy($otherfname, $fname)) {
-                                    die('{"error":"Не удалось копировать  файл в ячейку"}');
+                                    die(json_encode(['error' => $this->translate('Error copying a file to the storage folder.')],
+                                        JSON_UNESCAPED_UNICODE));
                                 }
                                 if (is_file($otherfname . '_thumb.jpg')) {
                                     copy($otherfname . '_thumb.jpg', $fname . '_thumb.jpg');
@@ -403,7 +414,7 @@ class File extends Field
         }
     }
 
-    public static function getContent($fname, Conf $Config)
+    public static function getContent($fname, Conf $Config): bool|string|null
     {
         $filepath = static::getFilePath($fname, $Config);
         if (key_exists($filepath, static::$transactionCommits)) {

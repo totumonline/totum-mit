@@ -4,6 +4,7 @@
 namespace totum\common;
 
 use Exception;
+use totum\common\Lang\RU;
 use totum\config\Conf;
 use totum\models\Table;
 
@@ -26,6 +27,7 @@ class User
      * @var array
      */
     private $tables;
+
     /**
      * @var mixed
      */
@@ -39,7 +41,8 @@ class User
             return $this->allData[$name];
         }
 
-        throw new Exception('Запрошено несуществующее свойство ' . $name);
+        throw new Exception($this->Config->getLangObj()->translate('A nonexistent [[%s]] property was requested.',
+            $name));
     }
 
     public function __construct($allData, Conf $Config)
@@ -86,14 +89,6 @@ class User
         return $this->allData[$string];
     }
 
-    /**
-     * @param int $shadowRole
-     */
-    public function setShadowRole($shadowRole): ?int
-    {
-        $this->shadowRole = $shadowRole;
-    }
-
     private function loadRolesTables()
     {
         $roles = $this->Config->getModel('roles')->executePrepared(
@@ -102,27 +97,26 @@ class User
             'tables, tables_read, tree_off, id, one_cycle_tables'
         )->fetchAll();
         $tables = [];
-        $treeTables = [];
         $roleIds = [];
         $oneCycleTables = [];
 
-        foreach ($roles as $role) {
-            $roleIds[] = $role['id'];
+        $NoTreeTables = [];
 
+        foreach ($roles as $role) {
             $noTables = json_decode($role['tree_off'], true) ?? [];
 
             foreach (json_decode($role['tables']) as $table) {
                 $tables[$table] = 1;
-                if (!in_array($table, $noTables)) {
-                    $treeTables[$table] = 1;
+                if (in_array($table, $noTables)) {
+                    $NoTreeTables[$table] = 1;
                 }
             }
             foreach (json_decode($role['tables_read'], true) ?? [] as $table) {
                 if (empty($tables[$table])) {
                     $tables[$table] = 0;
                 }
-                if (!in_array($table, $noTables)) {
-                    $treeTables[$table] = 1;
+                if (in_array($table, $noTables)) {
+                    $NoTreeTables[$table] = 1;
                 }
             }
             $oneCycleTables = array_merge(
@@ -130,6 +124,8 @@ class User
                 (json_decode($role['one_cycle_tables'], true) ?? [])
             );
         }
+        $treeTables = array_diff_key($tables, $NoTreeTables);
+        $treeTables = array_combine(array_keys($treeTables), array_fill(0, count($treeTables), 1));
 
         /*EXTRA ROLES*/
         if (in_array(-1, $this->roles)) {

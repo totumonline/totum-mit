@@ -29,28 +29,29 @@ class GitUpdate extends Command
             $error = true;
             if ($totumClass = file_get_contents('https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/common/Totum.php')) {
                 if (preg_match('/public\s*const\s*VERSION = \'(\d+)/', $totumClass, $matches)) {
-                    if ((string)preg_replace('/^(\d+).*$/', '$1', Totum::VERSION) !== $matches[1]) {
-                        die('Смена мажорной версии. ' .
-                            'Проверьте параметры сервера и нарушения обратной совместимости. ' .
-                            'Используйте --force, если уверены в обновлении.');
+                    $oldVersion = (string)preg_replace('/^(\d+).*$/', '$1', Totum::VERSION);
+                    if ($oldVersion !== $matches[1]) {
+                        die('This update will change the major version from '.$oldVersion.' to ' . $matches[1].' '.
+                            'Check server settings and backward compatibility violations at https://github.com/totumonline/totum-mit/UPDATES.md' .
+                            'Use --force if you are sure about the update.');
                     } else {
                         $error = false;
                     }
                 }
             }
             if ($error) {
-                die('Доступ к файлам на github был ограничен. Проверка смены мажорной версии не пройдена. ' .
-                    'Проверьте самостоятельно на https://github.com/totumonline/totum-mit/blob/master/totum/common/Totum.php ' .
-                    'и используйте --force для исключения этой проверки.');
+                die('Access to the files on GitHub has been restricted. The major version change check failed. ' .
+                    'Check yourself at https://github.com/totumonline/totum-mit/blob/master/totum/common/Totum.php ' .
+                    'Use --force if you are sure about the update.');
             }
         }
 
         $Conf = new Conf();
 
         if (is_callable([$Conf, 'setHostSchema'])) {
-            passthru('git pull origin master && php -f composer.phar install --no-dev && bin/totum schemas-update');
+            passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev && bin/totum schemas-update');
         } else {
-            passthru('git pull origin master && php -f composer.phar install --no-dev && bin/totum schema-update');
+            passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev && bin/totum schema-update');
         }
 
         return 0;

@@ -4,6 +4,7 @@
 namespace totum\common\logs;
 
 use totum\common\calculates\Calculate;
+use totum\common\Lang\LangInterface;
 use totum\tableTypes\aTable;
 use totum\tableTypes\tmpTable;
 
@@ -112,10 +113,10 @@ class CalculateLog
                 break;
             case 'SELECTS AND FORMATS':
             case 'SELECTS AND FORMATS ROWS':
+            case 'SELECTS AND FORMATS OF OTHER NON-ROWS PARTS':
                 $section = 'views';
                 break;
         }
-
 
         $logTypes = $this->topParent->getTypes();
         if (!$logTypes) {
@@ -231,7 +232,7 @@ class CalculateLog
         return $fields;
     }
 
-    public function getLogsForJsTree()
+    public function getLogsForJsTree(LangInterface $Lang)
     {
         $tree = [];
 
@@ -241,7 +242,7 @@ class CalculateLog
             $tree['icon'] = 'fa fa-magic';
         }
 
-        if (($this->params['type'] ?? false) == 'fixed') {
+        if (($this->params['type'] ?? false) === 'fixed') {
             $tree['icon'] = 'fa fa-hand-grab-o';
         }
 
@@ -251,25 +252,25 @@ class CalculateLog
         if ($this->params['recalculate'] ?? null) {
             switch ($this->params['recalculate']) {
                 case 'param':
-                    $tree['text'] .= 'Хэдер';
+                    $tree['text'] .= $Lang->translate('Header');
                     if (!$this->children) {
                         return null;
                     }
                     break;
                 case 'footer':
-                    $tree['text'] .= 'Футер';
+                    $tree['text'] .= $Lang->translate('Footer');
                     if (!$this->children) {
                         return null;
                     }
                     break;
                 case 'column':
-                    $tree['text'] .= 'Строчная часть';
+                    $tree['text'] .= $Lang->translate('Rows part');
                     if (!$this->children) {
                         return null;
                     }
                     break;
                 case 'filter':
-                    $tree['text'] .= 'Фильтры';
+                    $tree['text'] .= $Lang->translate('Filters');
                     if (!$this->children) {
                         return null;
                     }
@@ -288,7 +289,7 @@ class CalculateLog
                 continue;
             }*/
 
-            if ($data = $child->getLogsForJsTree()) {
+            if ($data = $child->getLogsForJsTree($Lang)) {
                 if (($child->getParams()['name'] ?? null) === '=') {
                     array_push($tree['children'], ...$data['children']);
                 } else {
@@ -302,7 +303,7 @@ class CalculateLog
             if (count($ids) > 1 || !key_exists('', $ids)) {
                 foreach ($ids as $id => $row) {
                     if ($id !== '') {
-                        $tree['children'][] = ['text' => 'Строка ' . $id, 'children' => $row, 'icon' => 'fa fa-folder'];
+                        $tree['children'][] = ['text' => $Lang->translate('Row: id %s', (string)$id), 'children' => $row, 'icon' => 'fa fa-folder'];
                     } else {
                         array_push($tree['children'], ...$row);
                     }
@@ -471,7 +472,7 @@ class CalculateLog
 
         if ($withTimes) {
             if (!empty($this->params['field']) && !empty($this->params['times']) && $this->params['times'] > 0.0001) {
-                $tree['text'] .= ' ' . $this->params['times'] . ' сек.';
+                $tree['text'] .= ' ' . $this->params['times'] . ' sec.';
             }
         } elseif (key_exists('result', $this->params)) {
             if (is_array($this->params['result']) && count($this->params['result']) > 3) {

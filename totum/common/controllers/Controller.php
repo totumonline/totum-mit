@@ -66,4 +66,9 @@ abstract class Controller
     {
         $this->answerVars[$name] = $var;
     }
+
+    protected function translate(string $str, array|string|int|float $vars = []): string
+    {
+        return $this->Config->getLangObj()->translate($str, $vars);
+    }
 }

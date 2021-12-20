@@ -23,7 +23,7 @@ class CalculateSelectPreview extends CalculateSelect
 
         $baseField = $params['bfield'] ?? 'id';
 
-        $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal];
+        $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal['v']];
 
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
@@ -41,7 +41,7 @@ class CalculateSelectPreview extends CalculateSelect
 
         $baseField = $params['bfield'] ?? 'id';
 
-        $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal];
+        $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal['v']];
 
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
@@ -57,8 +57,7 @@ class CalculateSelectPreview extends CalculateSelect
 
         $baseField = $params['bfield'] ?? 'id';
 
-        $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal];
-
+        $params2['where'][] = ['field' => $baseField, 'operator' => '=', 'value' => $this->newVal['v']];
         /** @var aTable $Table */
         list($rows, $Table) = $this->select($params2, 'row&table');
 

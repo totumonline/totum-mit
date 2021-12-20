@@ -38,8 +38,13 @@ if (class_exists($controllerClass)) {
 
     //$Config->getSql()->transactionRollBack();
 
-
-    die;
-} else die('Не найдено ' . htmlspecialchars($controllerClass));
-
+} else {
+    if ($Config) {
+        $Lang=$Config->getLangObj();
+    }else{
+        $Lang=(new \totum\common\Lang\EN());
+    }
+    echo $Lang->translate('Not found: %s', [htmlspecialchars($controllerClass)]);
+}
+die;
 ?>

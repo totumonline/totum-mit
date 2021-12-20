@@ -8,9 +8,11 @@
 
 namespace totum\common;
 
+use JetBrains\PhpStorm\ExpectedValues;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
+use totum\common\Lang\RU;
 use totum\fieldTypes\Checkbox;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Date;
@@ -39,16 +41,15 @@ class Field
         'setToPinned' => 3,
         'inAddRecalc' => 4,
     ];
-    protected const NO_ERROR_IN_VALUE = ['number', 'checkbox'];
+    protected const NO_ERROR_IN_VALUE = ['checkbox'];
 
-    public static $fields = [];
+    public static array $fields = [];
     protected $data;
     protected $table;
     protected $CalculateCode;
     protected $CalculateCodeSelect;
     protected $CalculateCodeSelectValue;
-    protected $CalculateFormat;
-    protected $timeCalculating = ['calculate' => 0, 'calculateSelect' => 0];
+    protected bool|null|CalculcateFormat $CalculateFormat = null;
     protected $log;
     /**
      * @var string
@@ -58,23 +59,17 @@ class Field
     /**
      * Является ли значение поля листом
      *
-     * @param $type
+     * @param string $type
      * @param $isMulty
      * @return bool
      */
-    public static function isFieldListValues($type, $isMulty)
+    public static function isFieldListValues(string $type, $isMulty): bool
     {
-        switch ($type) {
-            case 'select':
-            case 'tree':
-                return !!$isMulty;
-                break;
-            case 'listRow':
-            case 'fieldParams':
-            case 'fieldParamsResult':
-            case 'file':
-                return true;
-        }
+        return match ($type) {
+            'select', 'tree' => !!$isMulty,
+            'listRow', 'fieldParams', 'fieldParamsResult', 'file' => true,
+            default => false,
+        };
     }
 
     public function getName()
@@ -110,7 +105,7 @@ class Field
 
                 $this->data['code'] = '=:select(' . $params . ')';
             } else {
-                $this->data['code'] = '=:errorExeption(text: "Неверные параметры якорного поля")';
+                $this->data['code'] = '=:errorExeption(text: "' . $this->translate('The anchor field settings are incorrect.') . '")';
             }
             $this->data['codeOnlyInAdd'] = false;
         }
@@ -119,12 +114,14 @@ class Field
             $this->CalculateCode = new Calculate($this->data['code']);
         }
 
-        if (!empty($this->data['format']) && $this->data['format'] !== 'f1=:') {
-            $this->CalculateFormat = new CalculcateFormat($this->data['format']);
-        }
         if (empty($this->data['errorText'])) {
-            $this->data['errorText'] = 'ОШБК!';
+            $this->data['errorText'] = $this->translate('ERR!');
         }
+    }
+
+    protected function translate(string $str, array|string|int|float $vars = []): string
+    {
+        return $this->table->getTotum()->getLangObj()->translate($str, $vars);
     }
 
     /**
@@ -197,7 +194,7 @@ class Field
                     default:
                         $model = Field::class;
                         debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                        throw new errorException('Тип поля не определен');
+                        throw new errorException($this->translate('Field type is not defined.'));
                 }
                 return new $model($fieldData, $table);
             })
@@ -210,16 +207,45 @@ class Field
     }
 
 
-    public function addFormat(&$valArray, $row, $tbl)
+    protected function checkFormatObject()
     {
-        if ($this->CalculateFormat) {
-            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "format", 'field' => $this->data['name']]);
+        if (is_null($this->CalculateFormat)) {
+            if (!empty($this->data['format']) && $this->data['format'] !== 'f1=:') {
+                $this->CalculateFormat = new CalculcateFormat($this->data['format']);
+            } else {
+                $this->CalculateFormat = false;
+            }
+        }
 
-            if ($format = $this->CalculateFormat->getFormat($this->data['name'], $row, $tbl, $this->table)) {
+        return !!$this->CalculateFormat;
+    }
+
+    public function addFormat(&$valArray, $row, $tbl, $pageIds)
+    {
+        if ($this->checkFormatObject()) {
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
+
+            if ($format = $this->CalculateFormat->getFormat($this->data['name'],
+                $row,
+                $tbl,
+                $this->table,
+                ['rows' => $this->table->getRowsForFormat($pageIds)])) {
                 $valArray['f'] = $format;
             }
             $this->table->calcLog($Log, 'result', $format);
         }
+    }
+
+    public function getPanelFormat($row, $tbl)
+    {
+        if ($this->checkFormatObject()) {
+            $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
+            $result = $this->CalculateFormat->getPanelFormat($this->data['name'], $row, $tbl, $this->table);
+            $this->table->calcLog($Log, 'result', $result);
+        } else {
+            $result = null;
+        }
+        return $result;
     }
 
     public function __destruct()
@@ -236,7 +262,7 @@ class Field
             return Field::CHANGED_FLAGS['setToDefault'];
         } elseif (isset($newVal) || $newValExists) {
             if ($modifyCalculated !== true) {
-                if ($oldVal && (Calculate::compare('==', $oldVal['v'], $newVal))) {
+                if ($oldVal && (Calculate::compare('==', $oldVal['v'], $newVal, $this->table->getLangObj()))) {
                     return false;
                 }
                 switch ($modifyCalculated) {
@@ -267,10 +293,15 @@ class Field
                     $type,
                     $vars
                 );
-            } catch (errorException $e) {
-                $e->addPath('Таблица [[' . $this->table->getTableRow()['name'] . ']]; Поле [[' . $this->data['name'] . ']]');
+            } catch (\Exception $e) {
+                $row = $oldRow ?? $newRow ?? [];
+                if (method_exists($e, 'addPath')) {
+                    $e->addPath('action ' . $this->translate('field [[%s]] of [[%s]] table',
+                            [$this->data['name'], $this->table->getTableRow()['name']]) . (!empty($row['id']) ? ' id ' . $row['id'] : ''));
+                }
                 throw $e;
             }
+
         }
     }
 
@@ -287,6 +318,7 @@ class Field
         return true;
     }
 
+    #[ExpectedValues(values: ['web', 'xml', 'inner'])]
     public function isChannelChangeable($action, $channel)
     {
         switch ($channel) {
@@ -297,7 +329,7 @@ class Field
             case 'inner':
                 return true;
             default:
-                throw new errorException('Не указан канал ' . $action);
+                throw new errorException($this->translate('Unsupported channel [[%s]] is specified.', $action));
         }
     }
 
@@ -315,16 +347,16 @@ class Field
                 if ($insertable = !empty($this->data['insertable'])) {
                     if (!$this->table->getUser()->isCreator() && !empty($this->data['webRoles'])) {
                         if (count(array_intersect(
-                            $this->data['webRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['webRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $insertable = false;
                         }
                     }
                     if ($insertable && !empty($this->data['addRoles']) && count(array_intersect(
-                        $this->data['addRoles'],
-                        $this->table->getUser()->getRoles()
-                    )) === 0) {
+                            $this->data['addRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                         $insertable = false;
                     }
                 }
@@ -336,16 +368,16 @@ class Field
                     //Для фильтров не применять webRoles
                     if (!$this->table->getUser()->isCreator() && $this->data['category'] !== 'filter' && !empty($this->data['webRoles'])) {
                         if (count(array_intersect(
-                            $this->data['webRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['webRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $editable = false;
                         }
                     }
                     if ($editable && !empty($this->data['editRoles']) && count(array_intersect(
-                        $this->data['editRoles'],
-                        $this->table->getUser()->getRoles()
-                    )) === 0) {
+                            $this->data['editRoles'],
+                            $this->table->getUser()->getRoles()
+                        )) === 0) {
                         $editable = false;
                     }
                 }
@@ -369,9 +401,9 @@ class Field
                 if ($insertable = !empty($this->data['apiInsertable'])) {
                     if (!empty($this->data['xmlRoles'])) {
                         if (count(array_intersect(
-                            $this->data['xmlRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['xmlRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $insertable = false;
                         }
                     }
@@ -382,15 +414,15 @@ class Field
                 if ($editable = !empty($this->data['apiEditable'])) {
                     if (!$this->table->getTotum()->getUser()->isCreator() && !empty($this->data['xmlRoles'])) {
                         if (count(array_intersect(
-                            $this->data['xmlRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['xmlRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $editable = false;
                         }
                         if ($editable && !empty($this->data['xmlEditRoles']) && count(array_intersect(
-                            $this->data['xmlEditRoles'],
-                            $this->table->getUser()->getRoles()
-                        )) === 0) {
+                                $this->data['xmlEditRoles'],
+                                $this->table->getUser()->getRoles()
+                            )) === 0) {
                             $editable = false;
                         }
                     }
@@ -402,35 +434,32 @@ class Field
 
     public function add($channel, $inNewVal, $row = [], $oldTbl = [], $tbl = [], $isCheck = false, $vars = [])
     {
-        switch ($channel) {
-            case 'inner':
-                $insertable = true;
-                break;
-            case 'web':
-                $insertable = $this->isWebChangeable('insert');
-
-                break;
-            case 'xml':
-                $insertable = $this->isXmlChangeable('insert');
-                break;
-            default:
-                throw new errorException('Не указан канал добавления');
+        if ($channel === 'webInsertRow') {
+            $channel = 'inner';
         }
+
+        $insertable = match ($channel) {
+            'inner' => true,
+            'web' => $this->isWebChangeable('insert'),
+            'xml' => $this->isXmlChangeable('insert'),
+            default => throw new errorException($this->translate('Unsupported channel [[%s]] is specified.', $channel)),
+        };
 
         $newVal = ['v' => null];
 
 
-        if (empty($this->data['code']) && (!$insertable || $inNewVal === '' || is_null($inNewVal) || $inNewVal === $this->data['errorText'])) {
+        if (empty($this->data['code']) && (!$insertable || ($inNewVal ?? '') === '' || $inNewVal === [] || $inNewVal === $this->data['errorText'])) {
             if ($this->data['category'] === 'filter') {
                 if (is_null($inNewVal)) {
                     $inNewVal = $this->getDefaultValue();
                 }
                 $newVal = ['v' => $inNewVal];
-            } elseif (array_key_exists('default', $this->data) && $this->data['default'] !== '') {
+            } elseif ($inNewVal !== [] && array_key_exists('default', $this->data) && $this->data['default'] !== '') {
                 $inNewVal = $this->getDefaultValue();
                 $newVal = ['v' => $inNewVal];
             } elseif ($insertable && !empty($this->data['required']) && !$isCheck) {
-                throw new errorException('Поле [[' . $this->data['title'] . ']] обязательно для заполнения Таблица [[' . $this->table->getTableRow()['title'] . ']]');
+                throw new errorException($this->translate('Field [[%s]] of table [[%s]] is required.',
+                    [$this->data['title'], $this->table->getTableRow()['title']]));
             }
         }
 
@@ -459,11 +488,18 @@ class Field
         try {
             $this->checkVal($newVal, $row, $isCheck);
         } catch (errorException $e) {
-            $e->addPath('Таблица [[' . $this->table->getTableRow()['name'] . ']]; Поле: [[' . $this->data['name'] . ']]');
+            $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                [$this->data['name'], $this->table->getTableRow()['name']]));
 
             if (!$isCheck) {
                 throw $e;
             }
+        } catch (\Exception $e) {
+            if (method_exists($e, 'addPath')) {
+                $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                    [$this->data['name'], $this->table->getTableRow()['name']]));
+            }
+            throw $e;
         }
 
         if (!empty($newVal['h'])) {
@@ -472,8 +508,8 @@ class Field
             }
         }
 
-        if (array_key_exists('c', $newVal)) {
-            if (empty($newVal['h']) || $newVal['c'] === $newVal['v'] || (is_float($newVal['c']) && is_int($newVal['v']) && $newVal['c'] == $newVal['v'])) {
+        if (key_exists('c', $newVal)) {
+            if (empty($newVal['h']) || $newVal['c'] === $newVal['v'] || (is_numeric($newVal['c']) && is_numeric($newVal['v']) && $newVal['c'] == $newVal['v'])) {
                 unset($newVal['c']);
             }
         }
@@ -486,7 +522,8 @@ class Field
         $oldVal = $oldRow[$this->data['name']] ?? null;
 
         if ($changeFlag === Field::CHANGED_FLAGS['inAddRecalc']) {
-            $this->calculate($newVal, $oldRow, $row, $oldTbl, $tbl, [], "modify");
+            $newVal = ['v' => null];
+            $this->calculate($newVal, $oldRow, $row, $oldTbl, $tbl, [], 'modify');
         } else {
             $editable = $this->isChannelChangeable('modify', $channel);
 
@@ -536,9 +573,11 @@ class Field
         }
         try {
             $this->checkVal($newVal, $row, $isCheck);
-        } catch (errorException $e) {
-            $e->addPath('Таблица [[' . $this->table->getTableRow()['name'] . ']]; Поле: [[' . $this->data['name'] . ']]');
-
+        } catch (\Exception $e) {
+            if (method_exists($e, 'addPath')) {
+                $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                        [$this->data['name'], $this->table->getTableRow()['name']]) . (!empty($row['id']) ? ' id ' . $row['id'] : ''));
+            }
             throw $e;
         }
 
@@ -548,7 +587,7 @@ class Field
 
         if (empty($newVal['h'])
             || $newVal['c'] === $newVal['v']
-            || (is_float($newVal['c']) && is_int($newVal['v']) && $newVal['c'] == $newVal['v'])) {
+            || (is_numeric($newVal['c']) && is_numeric($newVal['v']) && $newVal['c'] == $newVal['v'])) {
             unset($newVal['c']);
         }
 
@@ -611,15 +650,15 @@ class Field
     }
 
     /**
-     * @param $val
+     * @param array $val
      * @param $row
      * @param array $tbl
      * @return array $list
      * @throws errorException
      */
-    public function calculateSelectList(&$val, $row, $tbl = [])
+    public function calculateSelectList(array &$val, $row, $tbl = [])
     {
-        throw new errorException('Это не поле селекта');
+        throw new errorException('This is not select field');
     }
 
 
@@ -652,9 +691,10 @@ class Field
 
         $val = &$newVal['v'];
 
-        if (!$isCheck && !empty($this->data['required']) && ($val === '' || $val === null)) {
+        if (!$isCheck && !empty($this->data['required']) && (($val ?? '') === '' || $val === [])) {
             errorException::criticalException(
-                'Поле [[' . $this->data['title'] . ']] таблицы [[' . ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name']) . ']] должно быть заполнено',
+                $this->translate('Field [[%s]] of table [[%s]] is required.',
+                    [$this->data['title'], ($this->table->getTableRow()['title'] ?? $this->table->getTableRow()['name'])]),
                 $this->table
             );
         }
@@ -662,11 +702,41 @@ class Field
         if ($val === '' && $this->data['category'] !== 'filter') {
             $val = null;
         } else {
-            $this->checkValByType($val, $row, $isCheck);
+            try {
+                $this->checkValByType($val, $row, $isCheck);
+            } catch (errorException $errorException) {
+                $newVal['v'] = $this->data['errorText'];
+                $newVal['e'] = $errorException->getMessage();
+            }
         }
+
+
+        if (!$this->__checkIsNotBinary($newVal['v'])) {
+            $newVal['v'] = $this->data['errorText'];
+            $newVal['e'] = $this->translate('Non-utf8 content');
+        }
+        if (key_exists('c', $newVal) && !$this->__checkIsNotBinary($newVal['c'])) {
+            $newVal['c'] = $this->data['errorText'];
+        }
+
     }
 
-    protected function calculate(&$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
+    protected function __checkIsNotBinary($val)
+    {
+        if (is_array($val)) {
+            foreach ($val as $_v) {
+                if (!$this->__checkIsNotBinary($_v)) {
+                    return false;
+                }
+            }
+            return true;
+        } elseif (is_string($val)) {
+            return mb_detect_encoding($val, 'UTF-8', true);
+        }
+        return true;
+    }
+
+    protected function calculate(array &$newVal, $oldRow, $row, $oldTbl, $tbl, $vars, $calcInit)
     {
 
         //Поле инсерта расчетных таблиц

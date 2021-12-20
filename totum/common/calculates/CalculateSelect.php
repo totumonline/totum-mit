@@ -11,6 +11,7 @@ namespace totum\common\calculates;
 use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\common\sql\SqlException;
 use totum\models\Table;
 use totum\tableTypes\aTable;
@@ -21,28 +22,34 @@ class CalculateSelect extends Calculate
      * @var mixed
      */
     protected $parentName;
+    protected $columnVals;
 
-    public function exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = [])
+    public function exec($fieldData, array $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
         try {
+            if (key_exists('columnVals', $newVal)) {
+                $this->columnVals = $newVal['columnVals'];
+                unset($newVal['columnVals']);
+            }
             $r = parent::exec($fieldData, $newVal, $oldRow, $row, $oldTbl, $tbl, $table, $vars);
             if (!$this->error && !is_array($r)) {
-                throw new errorException('Код должен возвращать rowList или то, что возвращает функция SelectListAssoc');
+                throw new errorException($this->translate('The code should return [[%s]].', 'rowList'));
             }
             $r = $this->getPreparedList($r);
         } catch (SqlException $e) {
-            $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
-            $this->newLog['children'][] = ['type' => 'error', 'text' => 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]'];
-            $this->error = 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]';
+            $this->newLog['text'] = ($this->newLog['text'] ?? '') . $this->translate('ERR!');
+            $this->error = $this->translate('Database error while processing [[%s]] code.', $e->getMessage());
+            $this->newLog['children'][] = ['type' => 'error', 'text' => $this->error];
             throw $e;
         } catch (errorException $e) {
-            $this->newLog['text'] = ($this->newLog['text'] ?? '') . 'ОШБК!';
+            $this->newLog['text'] = ($this->newLog['text'] ?? '') . $this->translate('ERR!');
             $this->newLog['children'][] = ['type' => 'error', 'text' => $e->getMessage()];
             $this->error = $e->getMessage();
         }
 
         if ($this->error) {
-            $this->error .= ' (поле [[' . $this->varName . ']] таблицы [[' . $this->Table->getTableRow()['name'] . ']])';
+            $this->error .= ' (' . $this->translate('field [[%s]] of [[%s]] table',
+                    [$this->varName, $this->Table->getTableRow()['name']]) . ')';
         }
 
         return $r ?? $this->error;
@@ -59,6 +66,7 @@ class CalculateSelect extends Calculate
     protected function funcSelectListAssoc($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order']);
+        $this->__checkRequiredParams($params, ['field'], 'selectListAssoc');
 
         $params2 = $params;
 
@@ -116,15 +124,13 @@ class CalculateSelect extends Calculate
         $params2['field'] = [$params['field'], $params['bfield'], 'is_del'];
         $params2['sfield'] = [];
 
-        if (empty($params['parent'])) {
-            throw new errorException('Параметр parent должен быть заполнен');
-        } else {
-            $this->parentName = $params['parent'];
-        }
+        $this->__checkNotEmptyParams($params, 'parent');
+
+        $this->parentName = $params['parent'];
         $params2['field'][] = $params['parent'];
 
         if (key_exists('disabled', $params)) {
-            $this->__checkListParam($params['disabled'], 'disabled', $params);
+            $this->__checkListParam($params['disabled'], 'disabled');
             $disabled = array_flip(array_unique($params['disabled']));
         } else {
             $disabled = [];
@@ -141,9 +147,14 @@ class CalculateSelect extends Calculate
         /* Дополненное дерево - ид папок из другой таблицы */
         if (empty($thisField['treeAutoTree'])) {
             $sourceTable = $this->getSourceTable($params);
+
+            if (!$sourceTable) {
+                return [];
+            }
             $ParentField = Field::init($sourceTable->getFields()[$params['parent']], $sourceTable);
             if ($ParentField->getData('codeSelectIndividual')) {
-                throw new errorException('Параметр [[' . $params['parent'] . ']] не должен быть индивидуально рассчитываемым селектом/деревом');
+                throw new errorException($this->translate('The [[%s]] parameter must [[not]] be [[%s]].',
+                    [$params['parent'], 'codeSelectIndividual']));
             } else {
                 $treeListPrep = 'PP/';
 
@@ -198,7 +209,7 @@ class CalculateSelect extends Calculate
 
             foreach ((array)$params['roots'] as $root) {
                 if (key_exists($root, $TreeRowsIndexed)) {
-                    $TreeRowsIndexed[$root]['parent']=null;
+                    $TreeRowsIndexed[$root]['parent'] = null;
                     $newTreeRows[] = $TreeRowsIndexed[$root];
                     $getChildren($root);
                 }
@@ -214,9 +225,9 @@ class CalculateSelect extends Calculate
     protected function funcSelectRowListForSelect($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order'], ['previewscode']);
+        $this->__checkRequiredParams($params, ['field'], 'selectRowListForSelect');
 
         $params2 = $params;
-
         $baseField = $params['bfield'] ?? 'id';
 
         $params2['field'] = [$params['field'], $baseField, 'is_del'];
@@ -271,6 +282,9 @@ class CalculateSelect extends Calculate
             unset($rows['previewdata']);
 
             foreach ($rows as $row) {
+                if (!is_array($row) || !key_exists('value', $row)) {
+                    continue;
+                }
                 $selectList[$row['value']] = [$row['title']];                   //0
                 $selectList[$row['value']][] = !empty($row['is_del']) ? 1 : 0;  //1
                 $selectList[$row['value']][] = $row['section'] ?? null;         //2

@@ -19,7 +19,7 @@ class Install extends Command
     {
         $this->setName('install')
             ->setDescription('Install new schema and create Conf.php')
-            ->addArgument('lang', InputArgument::REQUIRED, 'Enter language ('.implode('/', Totum::LANGUAGES).')')
+            ->addArgument('lang', InputArgument::REQUIRED, 'Enter language')
             ->addArgument('multi', InputArgument::REQUIRED, 'Enter type of install (multi/no-multi)')
             ->addArgument('schema', InputArgument::REQUIRED, 'Enter schema name')
             ->addArgument('admin_email', InputArgument::REQUIRED, 'Enter admin email')
@@ -47,7 +47,7 @@ class Install extends Command
         }
         $confs = [];
         $confs['lang'] = $input->getArgument('lang');
-        if (!in_array($confs['lang'], Totum::LANGUAGES)) {
+        if (!class_exists('totum\\common\\Lang\\' . strtoupper($confs['lang']))) {
             throw new errorException('Language '.$confs['lang'].' is not supported');
         }
 

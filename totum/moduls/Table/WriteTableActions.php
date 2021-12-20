@@ -5,6 +5,7 @@ namespace totum\moduls\Table;
 
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\fieldTypes\File;
 use totum\models\TmpTables;
 use totum\tableTypes\tmpTable;
@@ -19,20 +20,26 @@ class WriteTableActions extends ReadTableActions
     public function add()
     {
         if ($this->User->isOneCycleTable($this->Table->getTableRow())) {
-            return 'Добавление запрещено';
+            return $this->translate('You are not allowed to add to this table');
         }
         if (!$this->Table->isUserCanAction('insert')) {
-            throw new errorException('Добавление в эту таблицу вам запрещено');
+            throw new errorException($this->translate('You are not allowed to add to this table'));
         }
         $this->Table->setWebIdInterval(json_decode($this->post['ids'], true));
 
         if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists(
-            'afterField',
-            $this->post['tableData']
-        )) {
+                'afterField',
+                $this->post['tableData']
+            )) {
             $this->Totum->getModel('tables_fields')->setAfterField($this->post['tableData']['afterField']);
         }
-        return $this->modify(['add' => $this->post['hash'] ?? "new cycle", 'addAfter' => $this->post['insertAfter'] ?? null]);
+
+        $data = null;
+        if (!empty($this->post['data'])) {
+            $data = json_decode($this->post['data'], true);
+        }
+
+        return $this->modify(['add' => $data ?? $this->post['hash'] ?? 'new cycle', 'addAfter' => $this->post['insertAfter'] ?? null]);
     }
 
     public function tmpFileUpload()
@@ -43,16 +50,16 @@ class WriteTableActions extends ReadTableActions
     public function saveOrder()
     {
         if (!$this->Table->isUserCanAction('reorder')) {
-            throw new errorException('Сортировка в этой таблице вам запрещена');
+            throw new errorException($this->translate('You are not allowed to sort in this table'));
         }
 
         if (!empty($this->post['ids']) && ($orderedIds = json_decode(
-            $this->post['orderedIds'],
-            true
-        ))) {
+                $this->post['orderedIds'],
+                true
+            ))) {
             return $this->modify(['reorder' => $orderedIds ?? []]);
         } else {
-            throw new errorException('Таблица пуста');
+            throw new errorException($this->translate('Table is empty'));
         }
     }
 
@@ -71,7 +78,7 @@ class WriteTableActions extends ReadTableActions
             do {
                 $hash = 'i-' . md5(microtime(true) . rand());
             } while (!TmpTables::init($this->Totum->getConfig())->saveByHash(
-                TmpTables::serviceTables['insert_row'],
+                TmpTables::SERVICE_TABLES['insert_row'],
                 $this->User,
                 $hash,
                 [],
@@ -101,8 +108,8 @@ class WriteTableActions extends ReadTableActions
                 ) {
                     $filtered = $val ?? null;
                 }
-                if (is_null($addData[$v['name']] ?? null) && !empty($filtered)) {
-                    $addData[$v['name']] = $filtered;
+                if (!empty($filtered)) {
+                    $filtersData[$v['name']] = $filtered;
                 }
             }
         }
@@ -111,10 +118,11 @@ class WriteTableActions extends ReadTableActions
             $addData,
             $hash,
             [],
-            $this->post['clearField'] ?? null
+            $this->post['clearField'] ?? null,
+            $filtersData ?? []
         )]];
 
-        $data = $this->Table->getValuesAndFormatsForClient($data, 'edit');
+        $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);
         return ['row' => $data['rows'][0], 'hash' => $hash];
     }
 
@@ -137,8 +145,8 @@ class WriteTableActions extends ReadTableActions
         }
 
         $row = $this->Table->checkEditRow($data, $dataSetToDefault, $this->post['tableData'] ?? []);
-        $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit')['rows'][0];
-        $res['f'] = $this->getTableFormat([]);
+        $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit', [])['rows'][0];
+        $res['f'] = $this->Table->getTableFormat([]);
         return $res;
     }
 
@@ -160,11 +168,11 @@ class WriteTableActions extends ReadTableActions
             );
 
             if (is_array($r) && ($r['ok'] ?? false)) {
-                $this->Totum->addToInterfaceLink($this->Request->getServerParams()['REQUEST_URI'], 'self', 'reload');
+                return ['ok' => 1];
             }
             return $r;
         } else {
-            throw new errorException('У вас нет доступа для csv-изменений');
+            throw new errorException($this->translate('You do not have access to csv-import in this table'));
         }
     }
 
@@ -177,7 +185,7 @@ class WriteTableActions extends ReadTableActions
     public function duplicate()
     {
         if (!$this->Table->isUserCanAction('duplicate')) {
-            throw new errorException('Дублирование в этой таблице вам запрещено');
+            throw new errorException($this->translate('You are not allowed to duplicate in this table'));
         }
         $ids = !empty($this->post['duplicate_ids']) ? json_decode($this->post['duplicate_ids'], true) : [];
         if ($ids) {
@@ -195,14 +203,14 @@ class WriteTableActions extends ReadTableActions
                         ['ids' => $ids]
                     );
                 } catch (errorException $e) {
-                    $e->addPath('Таблица [[' . $this->Table->getTableRow()['name'] . ']]; КОД ПРИ ДУБЛИРОВАНИИ');
+                    $e->addPath($this->translate('Table %s. DUPLICATION CODE', $this->Table->getTableRow()['name']));
                     throw $e;
                 }
             } else {
                 $this->modify(['channel' => 'inner', 'duplicate' => ['ids' => $ids, 'replaces' => json_decode(
-                    $this->post['data'],
-                    true
-                ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
+                        $this->post['data'],
+                        true
+                    ) ?? []], 'addAfter' => ($this->post['insertAfter'] ?? null)]);
             }
 
             return $this->getTableClientChangedData([]);/*$this->getTableClientData($this->post['offset'] ?? null,
@@ -213,7 +221,7 @@ class WriteTableActions extends ReadTableActions
     public function delete()
     {
         if (!$this->Table->isUserCanAction('delete')) {
-            throw new errorException('Удаление из этой таблицы вам запрещено');
+            throw new errorException($this->translate('You are not allowed to delete from this table'));
         }
         $ids = (array)(!empty($this->post['delete_ids']) ? json_decode($this->post['delete_ids'], true) : []);
         return $this->modify(['remove' => $ids]);
@@ -222,7 +230,7 @@ class WriteTableActions extends ReadTableActions
     public function restore()
     {
         if (!$this->Table->isUserCanAction('restore')) {
-            throw new errorException('Восстановление в этой таблице вам запрещено');
+            throw new errorException($this->translate('You are not allowed to restore in this table'));
         }
         $ids = (array)(!empty($this->post['restore_ids']) ? json_decode($this->post['restore_ids'], true) : []);
 
@@ -231,9 +239,10 @@ class WriteTableActions extends ReadTableActions
 
     public function selectSourceTableAction()
     {
-        return $this->Table->selectSourceTableAction(
+        $this->Table->selectSourceTableAction(
             $this->post['field_name'],
             json_decode($this->post['data'], true) ?? []
         );
+        return ['ok' => true];
     }
 }

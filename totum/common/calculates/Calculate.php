@@ -332,7 +332,7 @@ class Calculate
         }
         $dateFromParams = strval($dateFromParams);
         if ($dateFromParams !== '') {
-            if(is_numeric($dateFromParams)){
+            if (is_numeric($dateFromParams)) {
                 $dt = new \DateTime();
                 return $dt->setTimestamp((int)$dateFromParams);
             }
@@ -596,7 +596,9 @@ class Calculate
             '-' => 'bcsub',
             '*' => 'bcmul',
             '^' => 'bcpow',
-            '/' => bccomp($right, 0, 10) === 0 ? throw new errorException($this->translate('Division by zero.')) : 'bcdiv',
+            '/' => bccomp($right,
+                0,
+                10) === 0 ? throw new errorException($this->translate('Division by zero.')) : 'bcdiv',
             default => throw new errorException($this->translate('Unknown operator [[%s]].')),
         };
 
@@ -891,7 +893,8 @@ class Calculate
 
                     if (!empty($paramArray['field2'])) {
                         $r = $processHardSelect($paramArray['field2']);
-                    } elseif ($paramArray['field'] === 'id' || $paramArray['field'] === 'n' || ($this->Table->getTotum()->getTable($paramArray['table'], $this->Table->getCycle()?->getId())->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
+                    } elseif ($paramArray['field'] === 'id' || $paramArray['field'] === 'n' || ($this->Table->getTotum()->getTable($paramArray['table'],
+                                $this->Table->getCycle()?->getId())->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
                         $r = $processHardSelect('id');
                     } else {
                         $r = $this->Table->getSelectByParams(
@@ -1413,7 +1416,7 @@ class Calculate
         return $params;
     }
 
-    protected function getSourceTable($params)
+    protected function getSourceTable($params): ?aTable
     {
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
@@ -1429,9 +1432,13 @@ class Calculate
                     }
                 }
 
-                $this->__checkNotEmptyParams($params, 'cycle');
+                try {
+                    $this->__checkNotEmptyParams($params, 'cycle');
+                    $Cycle = $this->Table->getTotum()->getCycle($params['cycle'], $tableRow['tree_node_id']);
+                } catch (errorException) {
+                    return null;
+                }
 
-                $Cycle = $this->Table->getTotum()->getCycle($params['cycle'], $tableRow['tree_node_id']);
                 $table = $Cycle->getTable($tableRow);
                 unset($params['cycle']);
 

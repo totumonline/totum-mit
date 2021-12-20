@@ -118,30 +118,26 @@ trait FuncOperationsTrait
             if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
                 $code = $this->Table->getFields()[$code]['code'] ?? '';
             }
-
             $CA = new Calculate($code);
-            try {
-                $Vars = [];
-                foreach ($params['var'] ?? [] as $v) {
-                    $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
-                }
-                $r = $CA->exec(
-                    $this->varData,
-                    $this->newVal,
-                    $this->oldRow,
-                    $this->row,
-                    $this->oldTbl,
-                    $this->tbl,
-                    $this->Table,
-                    $Vars
-                );
 
-                $this->newLogParent['children'][] = $CA->getLogVar();
-                return $r;
-            } catch (errorException $e) {
-                $this->newLogParent['children'][] = $CA->getLogVar();
-                throw $e;
+            $Vars = [];
+
+            foreach ($params['var'] ?? [] as $v) {
+                $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
             }
+            $r = $CA->exec(
+                $this->varData,
+                $this->newVal,
+                $this->oldRow,
+                $this->row,
+                $this->oldTbl,
+                $this->tbl,
+                $this->Table,
+                $Vars
+            );
+
+            return $r;
+
         }
         return null;
     }

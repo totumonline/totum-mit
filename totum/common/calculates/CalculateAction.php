@@ -375,7 +375,8 @@ class CalculateAction extends Calculate
                     [$params['field'], $LinkedTable->getTableRow()['name']]));
         } elseif (in_array($LinkedTable->getFields()[$params['field']]['type'], ['link', 'button', 'fieldParams'])) {
             throw new errorException(
-                $this->translate('Function [[linkToEdit]] not available for [[%s]] field type.', $LinkedTable->getFields()[$params['field']]['type']));
+                $this->translate('Function [[linkToEdit]] not available for [[%s]] field type.',
+                    $LinkedTable->getFields()[$params['field']]['type']));
         }
 
         $Field = Field::init($LinkedTable->getFields()[$params['field']], $LinkedTable);
@@ -1051,6 +1052,10 @@ class CalculateAction extends Calculate
             $addedIds = [];
             $funcSet = function ($params) use (&$addedIds) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 if (key_exists('field', $params)) {
                     $fields = $this->__getActionFields($params['field'], 'Insert');
                 } else {
@@ -1093,6 +1098,10 @@ class CalculateAction extends Calculate
     {
         if ($params = $this->getParamsArray($params)) {
             $table = $this->getSourceTable($params);
+
+            if (!$table) {
+                return;
+            }
             if ($table->getTableRow()['type'] === 'tmp') {
                 throw new errorException($this->translate('Not for the temporary table.'));
             }
@@ -1207,6 +1216,10 @@ class CalculateAction extends Calculate
             $funcSet = function ($params) use ($rowList, &$addedIds) {
                 $table = $this->getSourceTable($params);
 
+                if (!$table) {
+                    return;
+                }
+
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
                 }
@@ -1269,11 +1282,19 @@ class CalculateAction extends Calculate
                     }
 
                     $table = $this->getSourceTable($params);
+
+                    if (!$table) {
+                        return;
+                    }
                     $fields = $this->__getActionFields($params['field'], 'Set');
                     $fields = $this->clearNONEFields($fields);
                     $table->checkInsertRow(null, [], $hashData, $fields);
                 } else {
                     $table = $this->getSourceTable($params);
+
+                    if (!$table) {
+                        return;
+                    }
                     if (!empty($params['log'])) {
                         $table->setWithALogTrue($params['log']);
                     }
@@ -1292,6 +1313,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
@@ -1307,6 +1332,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
@@ -1322,6 +1351,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $fields = $this->__getActionFields($params['field'], 'Duplicate');
 
                 if (!empty($params['log'])) {
@@ -1343,6 +1376,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $fields = $this->__getActionFields($params['field'], 'DuplicateList');
 
                 if (!empty($params['log'])) {
@@ -1364,6 +1401,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
@@ -1379,6 +1420,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
@@ -1394,6 +1439,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
 
                 $where = $params['where'] ?? [];
 
@@ -1413,6 +1462,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
                 }
@@ -1429,6 +1482,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
                 }
@@ -1446,6 +1503,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $fields = $this->__getActionFields($params['field'], 'SetList');
                 $fields = $this->clearNONEFields($fields);
                 if (!empty($params['log'])) {
@@ -1460,6 +1521,11 @@ class CalculateAction extends Calculate
     protected function __execButtonList($params)
     {
         $table = $this->getSourceTable($params);
+
+        if (!$table) {
+            return;
+        }
+
         $params['field'] = $params['field'][0] ?? null;
         if (!$params['field']) {
             throw new errorException($this->translate('Fill in the parameter [[%s]].', 'field'));
@@ -1535,6 +1601,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $fields = $this->__getActionFields($params['field'], 'SetListExtended');
                 $fields = $this->clearNONEFields($fields);
 
@@ -1563,6 +1633,10 @@ class CalculateAction extends Calculate
             $params,
             function ($params) {
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $where = $params['where'] ?? [];
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
@@ -1580,6 +1654,10 @@ class CalculateAction extends Calculate
             function ($params) {
                 $this->__checkRequiredParams($params, ['ids'], 'reorder');
                 $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
                 $table->actionReorder($params['ids'], (int)($params['after'] ?? null));
             },
             true

@@ -147,6 +147,10 @@ class CalculateSelect extends Calculate
         /* Дополненное дерево - ид папок из другой таблицы */
         if (empty($thisField['treeAutoTree'])) {
             $sourceTable = $this->getSourceTable($params);
+
+            if (!$sourceTable) {
+                return [];
+            }
             $ParentField = Field::init($sourceTable->getFields()[$params['parent']], $sourceTable);
             if ($ParentField->getData('codeSelectIndividual')) {
                 throw new errorException($this->translate('The [[%s]] parameter must [[not]] be [[%s]].',

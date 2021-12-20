@@ -3,6 +3,8 @@
 
 namespace totum\common\configs;
 
+use totum\common\errorException;
+
 trait MultiTrait
 {
     public function getFilesDir()
@@ -26,7 +28,7 @@ trait MultiTrait
     {
         if ($hostName) {
             $this->hostName = $hostName;
-            $this->schemaName = $schemaName ?? $this->getSchemas()[$hostName];
+            $this->schemaName = $schemaName ?? $this->getSchemas()[$hostName] ?? die($this->getLangObj()->translate('Scheme not found.'));
         } elseif ($schemaName) {
             $this->schemaName = $schemaName;
             $this->hostName = $hostName ?? array_flip($this->getSchemas())[$schemaName];

@@ -4,6 +4,8 @@
 namespace totum\common\configs;
 
 use Exception;
+use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\models\CalcsTableCycleVersion;
 use totum\models\CalcsTablesVersions;
@@ -31,14 +33,16 @@ trait TablesModelsTrait
         , 'calcstable_versions' => CalcsTablesVersions::class
         , '_tmp_tables' => TmpTables::class
     ];
+
     private $tableRowsById = [];
     private $tableRowsByName = [];
 
     /* Инициализированные модели */
-    protected $models = [];
+    protected array $models = [];
 
     public function getModel($table, $idField = null, $isService = null): Model
     {
+
         $keyStr = $table . ($isService ? '!!!' : '');
 
         if (key_exists($keyStr, $this->models)) {
@@ -46,25 +50,27 @@ trait TablesModelsTrait
         }
         $className = $this->getModelClassName($table);
 
-        return $this->models[$keyStr] = new $className(
+        /** @var Model $model */
+        $model = new $className(
             $this->getSql(),
             $table,
+            $this->getLangObj(),
             $idField,
             $isService
         );
+        return $this->models[$keyStr] = $model;
     }
 
-    public static function getTableNameByModel($className)
+    public static function getTableNameByModel(string $className): string
     {
         $tableName = array_flip(static::$modelsConnector)[$className] ?? null;
 
         if (!$tableName) {
             if ($className === Model::class) {
                 debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                /*TODO после тестирования и проверок - обрабатывать по-другому*/
-                throw new Exception('Ошибка модель вызывается по-старому');
+                throw new Exception('Design error: Incorrect model call from php code.');
             }
-            throw new Exception('Модель ' . $className . ' не подключена к коннектору');
+            throw new Exception('Model ' . $className . '  is not connected to the connector.');
         }
         return $tableName;
     }
@@ -74,9 +80,12 @@ trait TablesModelsTrait
      * @param int|string $table
      * @return array|null
      */
-    public function getTableRow($table, $force = false)
+    public function getTableRow($table, $force = false): ?array
     {
-        if (is_int($table) || ctype_digit($table)) {
+        if(empty($table)){
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'name of table'));
+        }
+        elseif (is_int($table) || ctype_digit($table)) {
             if (!$force && key_exists($table, $this->tableRowsById)) {
                 return $this->tableRowsById[$table];
             }
@@ -108,11 +117,13 @@ trait TablesModelsTrait
 
             $this->tableRowsByName[$row['name']] = $row;
             $this->tableRowsById[$row['id']] = $row;
+        }else{
+            return null;
         }
         return $row;
     }
 
-    public function getNamedModel($className, $isService)
+    public function getNamedModel($className, $isService): Model
     {
         return $this->getModel(static::getTableNameByModel($className), null, $isService);
     }
@@ -132,4 +143,5 @@ trait TablesModelsTrait
         $this->tableRowsById=[];
         $this->tableRowsByName=[];
     }
+
 }

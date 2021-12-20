@@ -6,6 +6,9 @@ use Exception;
 use \PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
+use totum\common\Lang\LangInterface;
+use totum\common\Lang\RU;
+use totum\common\tableSaveOrDeadLockException;
 
 class Sql
 {
@@ -25,10 +28,10 @@ class Sql
     protected $preparedCount;
 
 
-    public function __construct(array $settings, LoggerInterface $Log, $withSchema = true)
+    public function __construct(array $settings, LoggerInterface $Log, $withSchema, protected LangInterface $Lang, int $sessionTimeout = 0)
     {
         $this->Log = $Log;
-        $this->PDO = static::getNewConnection($settings, $withSchema);
+        $this->PDO = static::getNewConnection($settings, $withSchema, $sessionTimeout);
     }
 
     /**
@@ -270,12 +273,12 @@ class Sql
         if ($exec) {
             $r = $this->getPDO()->exec($query_string);
             if ($this->PDO->errorInfo()[0] !== '00000') {
-                $this->errorHandler($query_string);
+                $this->errorHandler($this->PDO->errorCode(), $query_string);
             }
         } else {
             $r = $this->getPDO()->query($query_string);
             if (!$r) {
-                $this->errorHandler($query_string);
+                $this->errorHandler($this->getPDO()->errorCode(), $query_string);
             }
         }
 
@@ -294,10 +297,10 @@ class Sql
      * @param null $data
      * @throws \totum\common\sql\SqlException
      */
-    public function errorHandler($query_string, $error = null, $data = null)
+    public function errorHandler(string $errorCode, $query_string, $error = null, $data = null)
     {
         $error = $error ?? $this->PDO->errorInfo();
-        $error = $error[2] ?? "Ошибка POSTGRES: CODE " . $error[0];
+        $error = $error[2] ?? $this->Lang->translate('Database error: [[%s]]', 'CODE ' . $error[0]);
 
         if ($error) {
             $this->Log->error(
@@ -306,21 +309,26 @@ class Sql
             );
             $this->lastQuery['error'] = $error;
 
-            $exp = new SqlException($error);
-            $exp->addPath($query_string);
-            $exp->addPath(json_encode($data, JSON_UNESCAPED_UNICODE));
+            if ($errorCode === '40P01'){
+                sleep(3);
+                $exp = new tableSaveOrDeadLockException($error);
+            }else {
+                $exp = new SqlException($error);
+                $exp->addPath($query_string);
+                $exp->addPath(json_encode($data, JSON_UNESCAPED_UNICODE));
+            }
             throw $exp;
         }
     }
 
     public function getPrepared($query_string, $driver_options = []): PDOStatement
     {
-        $this->lastQuery = ['str' => $query_string, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options'=>$driver_options];
+        $this->lastQuery = ['str' => $query_string, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options' => $driver_options];
         $microTime = microtime(1);
         $stmt = $this->getPDO()->prepare($query_string, $driver_options);
 
         if (!$stmt) {
-            $this->errorHandler($query_string);
+            $this->errorHandler($this->getPDO()->errorCode(), $query_string);
         }
 
         $query_time_pad = str_pad(round(microtime(1) - $microTime, 3), 5, '0', STR_PAD_LEFT);
@@ -338,7 +346,7 @@ class Sql
 
     public function executePrepared(PDOStatement $statement, array $listOfParams)
     {
-        $this->lastQuery = ['str' => $statement->queryString, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options'=>$listOfParams];
+        $this->lastQuery = ['str' => $statement->queryString, 'error' => null, 'num' => ($this->lastQuery['num'] + 1), 'options' => $listOfParams];
 
         $microTime = microtime(true);
         foreach ($listOfParams as &$param) {
@@ -347,12 +355,20 @@ class Sql
             }
         }
         unset($param);
-        $r = $statement->execute($listOfParams);
-        if (!$r || $statement->errorCode() !== "00000") {
+
+        try {
+            $r = $statement->execute($listOfParams);
+            if (!$r || $statement->errorCode() !== "00000") {
+                $info = $statement->errorInfo();
+                $info[2] = "(prep{$statement->num}) {$info[2]}";
+                $this->errorHandler($statement->errorCode(), $statement->queryString, $info, $listOfParams);
+            }
+        } catch (\PDOException $exception) {
             $info = $statement->errorInfo();
             $info[2] = "(prep{$statement->num}) {$info[2]}";
-            $this->errorHandler($statement->queryString, $info, $listOfParams);
+            $this->errorHandler($statement->errorCode(), $statement->queryString, $info, $listOfParams);
         }
+
 
         $query_time_pad = str_pad(round(microtime(1) - $microTime, 3), 5, '0', STR_PAD_LEFT);
         $this->lastQuery['time'] = $query_time_pad;
@@ -365,7 +381,7 @@ class Sql
         return $rowCount;
     }
 
-    protected function getNewConnection($conf, $withSchema = true)
+    protected function getNewConnection($conf, $withSchema = true, int $sessionTimeout = 0)
     {
         try {
             $PDO = new PDO($conf['dsn'], $conf['username'], $conf['password'], [PDO::ATTR_EMULATE_PREPARES => false]);
@@ -374,7 +390,7 @@ class Sql
             }
             if ($withSchema) {
                 if (empty($conf['schema'])) {
-                    throw new SqlException('Не определена схема');
+                    throw new SqlException($this->Lang->translate('Scheme string is empty.'));
                 }
                 $this->Log->debug('SET search_path TO "' . $conf['schema'] . '"');
                 $PDO->exec('SET search_path TO "' . $conf['schema'] . '"');
@@ -383,8 +399,18 @@ class Sql
                     throw new Exception($PDO->errorInfo()[2]);
                 }
             }
+
+            if ($sessionTimeout) {
+                try {
+                    $PDO->exec('SET idle_in_transaction_session_timeout TO \'' . ($sessionTimeout) . '\'');
+                } catch (\Exception) {
+                    /*ups, old version of postgres*/
+                }
+            }
+
         } catch (Exception $e) {
-            throw new SqlException('Ошибка подключения к базе данных . Попробуйте позже:' . $e->getMessage(), 0, $e);
+            throw new SqlException($this->Lang->translate('Database connect error. Try later. [[%s]]',
+                $e->getMessage()), 0, $e);
         }
         return $PDO;
     }

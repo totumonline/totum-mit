@@ -12,6 +12,7 @@ use totum\common\Auth;
 use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\models\Table;
 use totum\models\UserV;
@@ -39,7 +40,7 @@ class Comments extends Field
 
     public function getValueFromCsv($val)
     {
-        throw new errorException('Нельзя заливать comments');
+        throw new errorException($this->translate('Import from csv is not available for [[%s]] field.', 'comments'));
     }
 
     public function modify($channel, $changeFlag, $newVal, $oldRow, $row = [], $oldTbl = [], $tbl = [], $isCheck = false)
@@ -137,7 +138,7 @@ class Comments extends Field
         foreach ($val as &$comment) {
             $comment = $this->prepareComment($comment, false, $n);
         }
-        if ($comment[1] !== $this->table->getUser()->getId()) {
+        if (!empty($comment) && $comment[1] !== $this->table->getUser()->getId()) {
             $this->setViewed(count($val), $rowId);
         }
         unset($comment);
@@ -158,16 +159,18 @@ class Comments extends Field
                     '/^\d\d\d\d(\-\d\d){2} \d\d:\d\d$/',
                     $comment[0] ?? null
                 )) {
-                    throw new errorException('Формат даты неверен');
+                    throw new errorException($this->translate('Date format error: [[%s]].',
+                        is_array($comment[0]) ? 'Array' : (string)$comment[0]));
                 }
                 if (!preg_match(
                     '/^\d+$/',
                     $comment[1] ?? null
                 )) {
-                    throw new errorException('Формат пользователя неверен');
+                    throw new errorException($this->translate('[[%s]] format error: [[%s]].',
+                        ['user id', is_array($comment[0]) ? 'Array' : (string)$comment[1]]));
                 }
                 if (!($comment[2] ?? null)) {
-                    throw new errorException('Не введен комментарий');
+                    throw new errorException($this->translate('[[%s]] is reqired.', 'Comment text'));
                 }
             }
         }
@@ -220,7 +223,8 @@ class Comments extends Field
         if (!is_array($commentArray)) {
             return [];
         }
-        $commentArray[0] = $this->getDateFormated(Calculate::getDateObject($commentArray[0]));
+        $commentArray[0] = $this->getDateFormated(Calculate::getDateObject($commentArray[0],
+            $this->table->getLangObj()));
 
         if ($textCut) {
             if (mb_strlen($commentArray[2]) > $this->data['viewTextMaxLength']) {

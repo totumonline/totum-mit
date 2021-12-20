@@ -4,6 +4,7 @@
 namespace totum\models;
 
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\Model;
 
 class CalcsTablesVersions extends Model
@@ -20,7 +21,7 @@ class CalcsTablesVersions extends Model
             )->fetch();
 
             if (!$this->cacheDefVersions[$tableName]) {
-                throw new errorException('Нет версии по-умолчанию для таблицы ' . $tableName);
+                throw new errorException($this->translate('There is no default version for table %s.'), $tableName);
             }
         }
         if ($withDefaultOrd) {

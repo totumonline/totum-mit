@@ -10,19 +10,21 @@ namespace totum\common\calculates;
 
 use totum\common\controllers\Controller;
 use totum\common\errorException;
+use totum\common\Lang\RU;
 use totum\common\sql\SqlException;
 use totum\moduls\Forms\FormsController;
 use totum\tableTypes\aTable;
 
 class CalculcateFormat extends Calculate
 {
-    const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide', 'placeholder', 'showhand', 'expand'];
-    const tableformats = ['buttons', 'blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablehtml', 'tablecomment'];
-    const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
-    const floatFormat = ["fill", "glue", "maxheight", "maxwidth", "nextline", "blocknum", "height", "breakwidth"];
-    protected $startSections = [];
-    protected $startPanelSections = [];
-    protected $formatArray = [];
+    protected const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide', 'placeholder', 'showhand', 'expand', 'textasvalue'];
+    protected const tableformats = ['buttons', 'blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablehtml', 'tablecomment', 'browsertitle'];
+    protected const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration'];
+    protected const floatFormat = ['fill', 'glue', 'maxheight', 'maxwidth', 'nextline', 'blocknum', 'height', 'breakwidth'];
+
+    protected array $startSections = [];
+    protected array $startPanelSections = [];
+    protected array $formatArray = [];
 
     public function __construct($code)
     {
@@ -64,51 +66,38 @@ class CalculcateFormat extends Calculate
     protected function funcSetRowsOrder($params)
     {
         if ($params = $this->getParamsArray($params, ['condition'], ['condition', 'ids'])) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+            if ($this->getConditionsResult($params)) {
+                if (key_exists('ids', $params) && is_array($params['ids'] = $this->execSubCode($params['ids'],
+                        'ids'))) {
+                    foreach ($params['ids'] as &$id) {
+                        $id = (int)$id;
                     }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
-            }
-
-            if ($conditionTest) {
-                if (key_exists('ids', $params) && is_array($params['ids'] =  $this->execSubCode($params['ids'], 'ids'))) {
-                    $this->formatArray["order"] = $params['ids'];
+                    unset($id);
+                    $this->formatArray['order'] = $params['ids'];
                 }
             }
         }
     }
+
     protected function funcSetRowsHide($params)
     {
         if ($params = $this->getParamsArray($params, ['condition'], ['condition', 'ids'])) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
+            if ($this->getConditionsResult($params)) {
+                if (key_exists('ids', $params) && is_array($params['ids'] = $this->execSubCode($params['ids'],
+                        'ids'))) {
+                    $this->formatArray['hideRows'] = $params['ids'];
                 }
             }
+        }
+    }
 
-            if ($conditionTest) {
-                if (key_exists('ids', $params) && is_array($params['ids'] =  $this->execSubCode($params['ids'], 'ids'))) {
-                    $this->formatArray["hideRows"] = $params['ids'];
+    protected function funcSetRowsShow($params)
+    {
+        if ($params = $this->getParamsArray($params, ['condition'], ['condition', 'ids'])) {
+            if ($this->getConditionsResult($params)) {
+                if (key_exists('ids', $params) && is_array($params['ids'] = $this->execSubCode($params['ids'],
+                        'ids'))) {
+                    $this->formatArray['showRows'] = $params['ids'];
                 }
             }
         }
@@ -117,23 +106,7 @@ class CalculcateFormat extends Calculate
     public function funcSetFloatFormat($params)
     {
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], static::floatFormat))) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
-            }
-
-            if ($conditionTest) {
+            if ($this->getConditionsResult($params)) {
                 foreach (static::floatFormat as $format) {
                     if (key_exists($format, $params)) {
                         $this->formatArray[$format] = $this->__getValue($this->getCodes($params[$format])[0]);
@@ -143,105 +116,72 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    public function getFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
+    public function getFormat($fieldName, $row, $tbl, aTable $table, $Vars = []): array
     {
         return $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, 'f');
     }
 
-    protected function funcPanelHtml($paramsIn)
+    protected function funcPanelHtml($paramsIn): ?array
     {
-        if ($params = $this->getParamsArray($paramsIn, ['button'], ["html", "condition"])) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
+        if ($params = $this->getParamsArray($paramsIn, ['button'], ['html', 'condition'])) {
+            if ($this->getConditionsResult($params)) {
+                $params = $this->getParamsArray($paramsIn, [], ['condition']);
+                return ['type' => 'html', 'value' => $params['html']];
             }
-
-            if (!$conditionTest) {
-                return;
-            }
-
-            $params = $this->getParamsArray($paramsIn, [], ["condition"]);
-            return ['type' => 'html', 'value' => $params['html']];
         }
+        return null;
     }
 
-    protected function funcPanelImg($paramsIn)
+    protected function funcPanelImg(string $paramsIn): ?array
     {
-        if ($params = $this->getParamsArray($paramsIn, ['button'], ["img", "condition"])) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
+        if ($params = $this->getParamsArray($paramsIn, ['button'], ['img', 'condition'])) {
+            if ($this->getConditionsResult($params)) {
+                $params = $this->getParamsArray($paramsIn, [], ['condition']);
+                return ['type' => 'img', 'value' => $params['img']];
             }
-
-            if (!$conditionTest) {
-                return;
-            }
-
-            $params = $this->getParamsArray($paramsIn, [], ["condition"]);
-            return ['type' => 'img', 'value' => $params['img']];
         }
+        return null;
     }
 
-    protected function funcPanelButtons($paramsIn)
+    protected function funcPanelButtons(string $paramsIn): ?array
     {
-        if ($params = $this->getParamsArray($paramsIn, ['button'], ["buttons", "button", "refresh", "condition"])) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
+        if ($params = $this->getParamsArray($paramsIn, ['button'], ['buttons', 'button', 'refresh', 'condition'])) {
+            if ($this->getConditionsResult($params)) {
+                $params = $this->getParamsArray($paramsIn, ['button'], ['condition']);
 
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
+                $values = array_merge($params['button'] ?? [], $params['buttons'] ?? []);
+                if (key_exists('refresh', $params)) {
+                    foreach ($values as &$btn) {
+                        $btn['refresh'] = $btn['refresh'] ?? $params['refresh'];
                     }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
+                    unset($btn);
                 }
+                return ['type' => 'buttons', 'value' => $values];
             }
-
-            if (!$conditionTest) {
-                return;
-            }
-
-            $params = $this->getParamsArray($paramsIn, ['button'], ["condition"]);
-
-            $values = array_merge($params['button'] ?? [], $params['buttons'] ?? []);
-            if (key_exists('refresh', $params)) {
-                foreach ($values as &$btn) {
-                    $btn['refresh'] = $btn['refresh'] ?? $params['refresh'];
-                }
-                unset($btn);
-            }
-            $btns = ['type' => 'buttons', 'value' => $values];
-            return $btns;
         }
+        return null;
     }
 
-    public function getPanelFormat($fieldName, $row, $tbl, aTable $table, $Vars = [])
+    protected function funcPanelButton(string $paramsIn): ?array
+    {
+        if ($params = $this->getParamsArray($paramsIn,
+            [],
+            ['text', 'code', 'icon', 'background', 'vars', 'refresh', 'condition'])) {
+            if ($this->getConditionsResult($params)) {
+                $params = $this->getParamsArray($paramsIn, [], ['condition']);
+
+                $this->__checkNotEmptyParams($params, ['code']);
+                $this->__checkNotArrayParams($params, ['text', 'code', 'icon', 'background', 'refresh']);
+
+                $values = [array_intersect_key($params,
+                    array_flip(['text', 'code', 'icon', 'background', 'vars', 'refresh']))];
+                return ['type' => 'buttons', 'value' => $values];
+            }
+        }
+        return null;
+    }
+
+    public function getPanelFormat($fieldName, $row, $tbl, aTable $table, $Vars = []): array
     {
         $result = $this->__getFormat($fieldName, $row, $tbl, $table, $Vars, 'p');
 
@@ -272,7 +212,7 @@ class CalculcateFormat extends Calculate
             do {
                 $hash = md5(microtime(true) . '__panelbuttons_' . mt_srand());
                 $key = ['table_name' => '_panelbuttons', 'user_id' => $this->Table->getTotum()->getUser()->getId(), 'hash' => $hash];
-            } while ($model->executePrepared(true, $key, 'user_id', null, '0,1')->fetchColumn(0));
+            } while ($model->executePrepared(true, $key, 'user_id', null, '0,1')->fetchColumn());
 
             $vars = array_merge(
                 ['tbl' => json_encode(
@@ -290,12 +230,14 @@ class CalculcateFormat extends Calculate
         return ['rows' => $result, 'hash' => $hash ?? null];
     }
 
-    protected function __getFormat($fieldName, $row, $tbl, aTable $table, $Vars, $sectionPart)
+    protected function __getFormat($fieldName, $row, $tbl, aTable $table, $Vars, $sectionPart): array
     {
         $this->formatArray = [];
         $this->fixedCodeVars = [];
 
-        $this->newLog = ['text' => 'Секции форматирования', 'children' => []];
+
+        $this->Table = $table;
+        $this->newLog = ['text' => $this->translate('Format sections'), 'children' => []];
         $this->newLogParent = &$this->newLog;
         $this->vars = $Vars;
 
@@ -303,7 +245,7 @@ class CalculcateFormat extends Calculate
 
         $this->row = $row;
         $this->tbl = $tbl;
-        $this->Table = $table;
+
         $result = [];
 
         try {
@@ -326,7 +268,7 @@ class CalculcateFormat extends Calculate
                             if (key_exists('type', $r) && in_array($r['type'], ['text', 'html', 'buttons', 'img'])) {
                                 $result[] = ['type' => $r['type'], 'value' => $r['value']];
                             }
-                        } else {
+                        } elseif (!empty($r)) {
                             $result[] = ['type' => 'text', 'value' => $r];
                         }
                     }
@@ -335,7 +277,7 @@ class CalculcateFormat extends Calculate
 
             $this->newLog['text'] .= ': ' . json_encode($result, JSON_UNESCAPED_UNICODE);
         } catch (SqlException $e) {
-            $this->error = 'Ошибка базы данных при обработке кода [[' . $e->getMessage() . ']]';
+            $this->error = $this->translate('Database error: [[%s]]', $e->getMessage());
             $this->newLog['text'] .= ': ' . $this->error;
 
 
@@ -349,7 +291,7 @@ class CalculcateFormat extends Calculate
     }
 
 
-    protected function funcExec($params)
+    protected function funcExec(string $params): mixed
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
             if (!empty($code = $params['code'] ?? $params['kod'])) {
@@ -362,7 +304,7 @@ class CalculcateFormat extends Calculate
                 try {
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {
-                        $Vars = array_merge($Vars, $this->getExecParamVal($v));
+                        $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
                     }
                     $r = $CA->getFormat($this->varName, $this->row, $this->tbl, $this->Table, $Vars);
                     $this->newLogParent['children'][] = $CA->getLogVar();
@@ -374,6 +316,7 @@ class CalculcateFormat extends Calculate
                 }
             }
         }
+        return null;
     }
 
     protected function funcSetFormat($params)
@@ -383,23 +326,7 @@ class CalculcateFormat extends Calculate
             ['condition', 'hide'],
             array_merge(['condition'], static::formats)
         )) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
-            }
-
-            if ($conditionTest) {
+            if ($this->getConditionsResult($params)) {
                 if ($params['hideinpanel'] ?? false) {
                     $params['hide']['panel'] = true;
                 }
@@ -412,7 +339,8 @@ class CalculcateFormat extends Calculate
                                     $_strSplit = preg_split('/\s*=\s*/', $_str);
 
                                     if (count($_strSplit) !== 2) {
-                                        throw new errorException('Ошибка форматирования параметра [[hide]]');
+                                        throw new errorException($this->translate('The [[%s]] parameter must contain 2 elements.',
+                                            'hide'));
                                     }
                                     $this->formatArray[$format][$this->__getValue($this->getCodes($_strSplit[0])[0])] = $this->__getValue($this->getCodes($_strSplit[1])[0]);
                                 }
@@ -433,29 +361,16 @@ class CalculcateFormat extends Calculate
             ['fieldhide', 'fieldtitle'],
             array_merge(['condition'], static::tableformats)
         )) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
 
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
-            };
-            if ($conditionTest) {
+            if ($this->getConditionsResult($params)) {
                 foreach (static::tableformats as $format) {
                     if (key_exists($format, $params)) {
                         if (in_array($format, ['fieldhide', 'fieldtitle'])) {
                             foreach ($params[$format] as $fieldparam) {
                                 $fieldparam = $this->getCodes($fieldparam);
                                 if (count($fieldparam) !== 3 || $fieldparam['comparison'] !== '=') {
-                                    throw new errorException('Неверное оформление параметра ' . $fieldparam);
+                                    throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                                        $fieldparam));
                                 }
                                 $fieldname = $this->__getValue($fieldparam[0]);
                                 $fieldvalue = $this->__getValue($fieldparam[1]);
@@ -471,7 +386,7 @@ class CalculcateFormat extends Calculate
         }
     }
 
-    protected function funcSetFormFieldFormat($params)
+    protected function funcSetFormFieldFormat($params): ?array
     {
         if ($this->Table->getTotum()->getSpecialInterface() !== 'form') {
             return [];
@@ -483,22 +398,8 @@ class CalculcateFormat extends Calculate
             ['condition'],
             array_merge(['condition', 'section'], $formats)
         )) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
 
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
-            }
-            if ($conditionTest) {
+            if ($this->getConditionsResult($params)) {
                 foreach ($formats as $format) {
                     if (key_exists($format, $params)) {
                         $this->formatArray[$format] = is_string($params[$format]) ? $this->__getValue($this->getCodes($params[$format])[0]) : $params[$format];
@@ -506,9 +407,10 @@ class CalculcateFormat extends Calculate
                 }
             }
         }
+        return null;
     }
 
-    protected function funcSetFormSectionsFormat($params)
+    protected function funcSetFormSectionsFormat($params): ?array
     {
         if ($this->Table->getTotum()->getSpecialInterface() !== 'form') {
             return [];
@@ -516,32 +418,19 @@ class CalculcateFormat extends Calculate
 
         $formats = ['status'];
         if ($params = $this->getParamsArray($params, ['condition'], array_merge(['condition'], $formats))) {
-            if (empty($params['section'])) {
-                throw new errorException('Укажите section');
-            }
+
+            $this->__checkNotEmptyParams($params, ['section']);
+            $this->__checkNotArrayParams($params, ['section']);
+
             if (!preg_match(
                 '/^[a-z_0-9]+$/',
                 $params['section']
             )) {
-                throw new errorException('Неверный формат параметра section (ожидаются цифны, строчные английские буквы и _)');
+                throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].',
+                    ['section', 'string - [a-z_0-9]+']));
             }
 
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
-            }
-            if ($conditionTest) {
+            if ($this->getConditionsResult($params)) {
                 foreach ($formats as $format) {
                     if (key_exists($format, $params)) {
                         $this->formatArray['sections'][$params['section']][$format] = is_string($params[$format]) ? $this->__getValue($this->getCodes($params[$format])[0]) : $params[$format];
@@ -549,6 +438,7 @@ class CalculcateFormat extends Calculate
                 }
             }
         }
+        return null;
     }
 
     protected function funcSetRowFormat($params)
@@ -558,23 +448,7 @@ class CalculcateFormat extends Calculate
             ['condition'],
             array_merge(['condition'], static::rowformats)
         )) {
-            $conditionTest = true;
-            if (!empty($params['condition'])) {
-                foreach ($params['condition'] as $i => $c) {
-                    $condition = $this->execSubCode($c, 'condition' . (1 + $i));
-
-
-                    if (!is_bool($condition)) {
-                        throw new errorException('Параметр [[condition' . (1 + $i) . ']] вернул не true/false');
-                    }
-                    if (!$condition) {
-                        $conditionTest = false;
-                        break;
-                    }
-                }
-            }
-
-            if ($conditionTest) {
+            if ($this->getConditionsResult($params)) {
                 foreach (static::rowformats as $format) {
                     if (key_exists($format, $params)) {
                         $this->formatArray[$format] = $this->__getValue($this->getCodes($params[$format])[0]);
@@ -583,4 +457,5 @@ class CalculcateFormat extends Calculate
             }
         }
     }
+
 }

@@ -44,6 +44,9 @@ class SchemaUpdate extends Command
         if (is_callable([$Conf, 'setHostSchema'])) {
             if ($schema = $input->getOption('schema')) {
                 $Conf->setHostSchema(null, $schema);
+            }else{
+                $output->writeln('Set option -s for identify the schema or use schemas-update for update all ones');
+                return;
             }
         }
         $sourceName = $input->getArgument('matches');
@@ -82,7 +85,7 @@ class SchemaUpdate extends Command
         } else {
             $matches = $TotumInstall->getTotum()->getTable('ttm__updates')->getTbl()['params']['h_matches']['v'][$sourceName] ?? [];
         }
-        $cont = TotumInstall::applyMatches($cont, $matches);
+        $cont = $TotumInstall->applyMatches($cont, $matches);
 
         $TotumInstall->updateSchema($cont, true, $sourceName);
     }

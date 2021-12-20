@@ -7,10 +7,12 @@ use totum\common\Model;
 
 class TmpTables extends Model
 {
-    const serviceTables=[
-      'insert_row'=>'_insert_row',
+    public const SERVICE_TABLES = [
+        'insert_row' => '_insert_row',
+        'linktodatajson' => '_linktodatajson',
+        'linktoedit' => '_linktoedit',
     ];
-    protected $isServiceTable = true;
+    protected bool $isServiceTable = true;
 
     public function saveByHash($table_name, $User, $hash, $data, $isNewHash = false): bool
     {
@@ -38,6 +40,20 @@ class TmpTables extends Model
         return true;
     }
 
+    public function getNewHash(string $table_name, $User, array|string $data, $prefix = 't'): string
+    {
+        do {
+            $hash = $prefix . '-' . md5(microtime(true) . rand());
+        } while (!$this->saveByHash(
+            $table_name,
+            $User,
+            $hash,
+            $data,
+            true
+        ));
+        return $hash;
+    }
+
     public function deleteByHash($table_name, $User, $hash)
     {
         $this->executePreparedSimple(
@@ -49,7 +65,7 @@ class TmpTables extends Model
         );
     }
 
-    public function getByHash($table_name, $User, $hash, $json_decode=true)
+    public function getByHash($table_name, $User, $hash, $json_decode = true)
     {
         $smtp = $this->executePreparedSimple(
             true,

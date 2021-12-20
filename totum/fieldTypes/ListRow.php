@@ -9,6 +9,7 @@
 namespace totum\fieldTypes;
 
 use totum\common\Field;
+use totum\common\Lang\RU;
 
 class ListRow extends Field
 {
@@ -16,7 +17,7 @@ class ListRow extends Field
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         if ($viewType === 'web' && array_key_exists('c', $valArray)) {
-            $valArray['c'] = 'Изменено';
+            $valArray['c'] = $this->translate('Changed');
         }
 
         switch ($viewType) {
@@ -34,9 +35,6 @@ class ListRow extends Field
             case 'print':
             case 'csv':
                 $valArray['v'] = base64_encode(json_encode($valArray['v'], JSON_UNESCAPED_UNICODE));
-                break;
-            case 'xml':
-                $valArray['v'] = json_encode($valArray['v'], JSON_UNESCAPED_UNICODE);
                 break;
         }
     }

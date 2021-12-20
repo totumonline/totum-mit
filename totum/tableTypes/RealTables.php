@@ -13,6 +13,7 @@ use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\sql\SqlException;
 use totum\fieldTypes\File;
@@ -43,16 +44,18 @@ abstract class RealTables extends aTable
     public function getChildrenIds($id, $parentField, $bfield)
     {
         if (!array_key_exists($parentField, $this->fields) || $this->fields[$parentField]['category'] !== 'column') {
-            throw new errorException('Поле [' . $parentField . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
+            throw new errorException($this->translate('The [[%s]] field in the rows part of table [[%s]] does not exist',
+                [$parentField, $this->tableRow['title']]));
         }
         if ($bfield !== 'id' && !key_exists($bfield, $this->fields)) {
-            throw new errorException('Поле [' . $bfield . '] в строчной части таблицы [' . $this->tableRow['name'] . '] не найдено');
+            throw new errorException($this->translate('The [[%s]] field in the rows part of table [[%s]] does not exist',
+                [$bfield, $this->tableRow['title']]));
         }
 
         return $this->model->childrenIdsRecursive($id, $parentField, $bfield);
     }
 
-    public function createTable()
+    public function createTable(int $duplicatedId)
     {
         $fields = [];
         $fields[] = 'id SERIAL PRIMARY KEY NOT NULL';
@@ -158,7 +161,8 @@ abstract class RealTables extends aTable
         }
 
         if ($this->tableRow['deleting'] === 'none' && !$isInnerChannel) {
-            throw new errorException('В таблице [[' . $this->tableRow['title'] . ']] запрещено удаление');
+            throw new errorException($this->translate('You are not allowed to delete from this table',
+                $this->tableRow['title']));
         } else {
             switch ($this->tableRow['deleting']) {
                 case 'none':
@@ -182,7 +186,7 @@ abstract class RealTables extends aTable
                         $this->tableRow['id'],
                         null,
                         $id,
-                        $this->recalculateWithALog ? (is_bool($this->recalculateWithALog) ? 'скрипт' : $this->recalculateWithALog) : null
+                        $this->recalculateWithALog ? (is_bool($this->recalculateWithALog) ? $this->translate('script') : $this->recalculateWithALog) : null
                     );
                 }
             }
@@ -271,6 +275,11 @@ abstract class RealTables extends aTable
             !in_array('is_del', ($params['field'] ?? []))
         );
 
+        if ($whereStr === 'FALSE') {
+            return $returnType === 'field' ? null : [];
+        }
+
+
         $order = null;
 
         if (isset($params['order'])) {
@@ -284,10 +293,11 @@ abstract class RealTables extends aTable
                 $AscDesc = $of['ad'] === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST';
 
                 if ((!array_key_exists($field, $fields) && !in_array(
-                    $field,
-                    Model::serviceFields
-                )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
-                    throw new errorException('Поля [[' . $field . ']] в таблице [[' . $tableRow['name'] . ']] не существует');
+                            $field,
+                            Model::serviceFields
+                        )) || (empty($this->tableRow['with_order_field']) && $field === 'n')) {
+                    throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
+                        [$field, $tableRow['name']]));
                 }
                 if (in_array($field, Model::serviceFields)) {
                     $order .= $field . ' ' . $AscDesc;
@@ -306,13 +316,13 @@ abstract class RealTables extends aTable
             case 'rows':
             case 'list':
 
-                $offset = ($params['offset']) ?? "";
+                $offset = ($params['offset']) ?? '';
                 if ($offset !== "" && !(ctype_digit(strval($offset)))) {
-                    throw new errorException('Параметр offset должен быть целым числом');
+                    throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
                 }
-                $limit_ = ($params['limit']) ?? "";
-                if ($limit_ !== "" && !(ctype_digit(strval($limit_)))) {
-                    throw new errorException('Параметр limit должен быть целым числом');
+                $limit_ = ($params['limit']) ?? '';
+                if ($limit_ !== '' && !(ctype_digit(strval($limit_)))) {
+                    throw new errorException($this->translate('The %s parameter must be a number.', 'limit'));
                 }
                 $limit = $offset . ',' . $limit_;
                 if ($limit === ',') {
@@ -336,13 +346,14 @@ abstract class RealTables extends aTable
 
         if ($returnType === 'rows' || $returnType === 'row') {
 
+
             //техническая выборка - не трогать
             if ($params['field'] === ['__all__']) {
-                $notLoaded='';
+                $notLoaded = '';
                 if ($this->withoutNotLoaded) {
                     foreach ($this->sortedFields['column'] as $field) {
-                        if ($field['notLoaded']??null) {
-                            $notLoaded.=', \'{"v": "**NOT LOADED**"}\' as '.$field['name'];
+                        if ($field['notLoaded'] ?? null) {
+                            $notLoaded .= ', \'{"v": "**NOT LOADED**"}\' as ' . $field['name'];
                         }
                     }
                 }
@@ -350,7 +361,7 @@ abstract class RealTables extends aTable
                 return $this->model->executePrepared(
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
-                    '*'.$notLoaded,
+                    '*' . $notLoaded,
                     $order,
                     $limit
                 );
@@ -439,7 +450,7 @@ abstract class RealTables extends aTable
                 $old = $oldRow[$field['name']]['v'] ?? null;
                 $new = $row[$field['name']]['v'] ?? null;
 
-                if ($action !== 'Change' || Calculate::compare('!==', $old, $new)) {
+                if ($action !== 'Change' || Calculate::compare('!==', $old, $new, $this->getLangObj())) {
                     $this->changeIds['rowOperations'][] = function () use ($field, $oldRow, $row, $action) {
                         Field::init($field, $this)->action(
                             $oldRow,
@@ -465,7 +476,9 @@ abstract class RealTables extends aTable
                 $changedKeys = [];
                 foreach ($row as $k => $v) {
                     if (($oldRow[$k] ?? null) !== $v) {
-                        $changedKeys[] = $k;
+                        if(!Calculate::compare('==', $oldRow[$k], $v, $this->getLangObj())){
+                            $changedKeys[] = $k;
+                        }
                     }
                 }
                 $this->rowsOperations($action, $row, $changedKeys);
@@ -480,6 +493,11 @@ abstract class RealTables extends aTable
         }
 
         list($whereStr, $paramsWhere) = $this->getWhereFromParams($params);
+
+        if ($whereStr === 'FALSE') {
+            return 0;
+        }
+
         if ($untilId) {
             if (is_array($untilId)) {
                 $isRefresh = -1;
@@ -489,13 +507,13 @@ abstract class RealTables extends aTable
             }
             array_push($paramsWhere, ... $untilId);
             return $this->model->executePreparedSimple(
-                true,
-                "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
+                    true,
+                    "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
                         ',',
                         array_fill(0, count($untilId), '?')
                     ) . ")",
-                $paramsWhere
-            )->fetchColumn(1) + $isRefresh;
+                    $paramsWhere
+                )->fetchColumn(1) + $isRefresh;
         }
 
         return $this->model->executePrepared(
@@ -574,6 +592,7 @@ abstract class RealTables extends aTable
         return $this->nTailLength;
     }
 
+
     protected function onSaveTable($tbl, $loadedTbl)
     {
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
@@ -587,8 +606,7 @@ abstract class RealTables extends aTable
             $Log = $this->calcLog(['name' => 'ACTIONS', 'table' => $this]);
 
             if ($codeAction) {
-                $Code = new CalculateAction($codeAction);
-                $Code->execAction('DEFAULT ACTION', [], [], $loadedTbl, $tbl, $this, 'exec');
+                $this->execDefaultTableAction($codeAction, $loadedTbl, $tbl);
             }
 
             while ($func = array_shift($this->changeIds['rowOperationsPre'])) {
@@ -597,10 +615,12 @@ abstract class RealTables extends aTable
             if ($fieldsWithActionOnChange) {
                 foreach ($fieldsWithActionOnChange as $field) {
                     if (key_exists($field['name'], $loadedTbl['params']) && Calculate::compare(
-                        '!==',
-                        $loadedTbl['params'][$field['name']]['v'],
-                        $tbl['params'][$field['name']]['v']
-                    )) {
+                            '!==',
+                            $loadedTbl['params'][$field['name']]['v'],
+                            $tbl['params'][$field['name']]['v'],
+                            $this->getLangObj()
+
+                        )) {
                         Field::init($field, $this)->action(
                             $loadedTbl['params'],
                             $tbl['params'],
@@ -708,52 +728,102 @@ abstract class RealTables extends aTable
 
         /***reorder***/
         if ($reorder) {
-            $startId = 0;
+
             foreach ($reorder as $id) {
                 if (!is_int($id)) {
-                    throw new errorException('Ошибка клиентской части. Получена строка вместо id');
+                    throw new errorException($this->translate('Client side error. Received row instead of id'));
                 }
             }
             $old_order_arrays = $this->model->executePrepared(true, ['id' => $reorder], 'n, id', 'n')->fetchAll();
-            if (!empty($this->tableRow['order_desc'])) {
-                $reorder = array_reverse($reorder);
-            }
 
-            foreach ($old_order_arrays as $i => $orderRow) {
-                if ($orderRow['id'] === $reorder[0]) {
-                    array_splice($reorder, 0, 1);
-                    unset($old_order_arrays[$i]);
+            /*Удаляем из reorder несуществующие id*/
+            $reorder = array_intersect($reorder, array_column($old_order_arrays, 'id'));
+
+            if ($addAfter !== null) {
+                if ((string)$addAfter === '0') {
+                    $minN = $this->model->executePrepared(true, [], 'n', 'n desc')->fetch();
+                    if ($minN['n']) {
+                        $nextN = $this->getNextN(null, 0, $minN['n']);
+                    } else {
+                        $nextN = 1;
+                    }
+
+                } elseif ($getNRow = $this->model->executePrepared(true, ['id' => $addAfter], 'n, id', 'n')->fetch()) {
+                    $addAfterN = $getNRow['n'];
                 } else {
-                    break;
+                    throw new errorException($this->translate('Row %s not found', $addAfter));
                 }
-            }
-            if ($reorder) {
-                $old_order_arrays_rev = array_reverse($old_order_arrays);
-                $reorder_rev = array_reverse($reorder);
-                foreach ($old_order_arrays_rev as $i => $orderRow) {
-                    if ($orderRow['id'] === $reorder_rev[0]) {
-                        array_splice($reorder_rev, 0, 1);
-                        unset($old_order_arrays_rev[$i]);
+                $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
+                foreach ($reorder as $rId) {
+                    $nextN = $nextN ?? $this->getNextN(null, $addAfterN);
+                    if (!$orderMinN) {
+                        $orderMinN = $nextN;
+                    }
+                    $this->model->updatePrepared(true, ['n' => $nextN], ['id' => [$rId]]);
+                    $addAfterN = $nextN;
+
+                    $this->changeIds['reorderedIds'][$rId] = 1;
+                    $nextN = null;
+                }
+
+
+                $this->setIsTableDataChanged(true);
+                $this->changeIds['reordered'] = true;
+            } else {
+                ;
+                /*Удаляем из реордера совпадающие по порядку id с начала*/
+                foreach ($old_order_arrays as $i => $orderRow) {
+                    if (!$orderRow['n']) {
+                        continue;
+                    }
+                    if ($orderRow['id'] === $reorder[0]) {
+                        array_splice($reorder, 0, 1);
+                        unset($old_order_arrays[$i]);
                     } else {
                         break;
                     }
                 }
+                if ($reorder) {
+                    /*Удаляем из реордера совпадающие по порядку id с конца*/
+                    $old_order_arrays_rev = array_reverse($old_order_arrays);
+                    $reorder_rev = array_reverse($reorder);
+                    foreach ($old_order_arrays_rev as $i => $orderRow) {
+                        if (!$orderRow['n']) {
+                            continue;
+                        }
+                        if ($orderRow['id'] === $reorder_rev[0]) {
+                            array_splice($reorder_rev, 0, 1);
+                            unset($old_order_arrays_rev[$i]);
+                        } else {
+                            break;
+                        }
+                    }
 
-                $old_order_arrays = [];
-                foreach (array_reverse($old_order_arrays_rev) as $oldOrdRow) {
-                    $old_order_arrays[] = $oldOrdRow['n'];
+                    $old_order_arrays = [];
+                    foreach (array_reverse($old_order_arrays_rev) as $oldOrdRow) {
+                        $old_order_arrays[] = $oldOrdRow['n'];
+                    }
+
+                    /*Обнуляем n у сортируемых*/
+                    $reorder = array_reverse($reorder_rev);
+                    $orderMinN = null;
+                    $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
+                    /*Проставляем n у сортируемых из старых N*/
+                    foreach ($reorder as $i => $rId) {
+                        $n = ($old_order_arrays[$i] ?? $this->getNextN());
+                        if (is_null($orderMinN) || $orderMinN > $n) {
+                            $orderMinN = $n;
+                        }
+                        $this->model->updatePrepared(true, ['n' => $n], ['id' => [$rId]]);
+                        $this->changeIds['reorderedIds'][$rId] = 1;
+                    }
+                    $this->tbl['rows'] = [];
+                    $this->setIsTableDataChanged(true);
+                    $this->changeIds['reordered'] = true;
                 }
-
-                $reorder = array_reverse($reorder_rev);
-                $orderMinN = $old_order_arrays[0];
-                $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
-
-                foreach ($reorder as $i => $rId) {
-                    $this->model->updatePrepared(true, ['n' => $old_order_arrays[$i]], ['id' => [$rId]]);
-                }
-                $this->tbl['rows'] = [];
-                $this->setIsTableDataChanged(true);
             }
+
+
         }
 
 
@@ -812,14 +882,14 @@ abstract class RealTables extends aTable
 
 
                 $afterN = null;
-                if ("0" === (string)$addAfter) {
+                if ('0' === (string)$addAfter) {
                     $afterN = 0;
                 } elseif ($addAfter) {
                     $this->loadRowsByIds([$addAfter]);
                     if (!empty($this->tbl['rows'][$addAfter])) {
                         $afterN = $this->tbl['rows'][$addAfter]['n'];
                     } else {
-                        throw new errorException('Строки с id ' . $addAfter . ' не существует. Возможно, она была удалена');
+                        throw new errorException($this->translate('Row %s not found', $addAfter));
                     }
                 }
             }
@@ -827,23 +897,23 @@ abstract class RealTables extends aTable
             foreach ($add as $rAdd) {
                 if ($this->tableRow['with_order_field'] ?? false) {
                     if ((!is_null($afterN) || $this->issetActiveFilters($channel)) && $n = $this->getNextN(
-                        $fIds,
-                        $afterN
-                    )) {
+                            $fIds,
+                            $afterN
+                        )) {
                         $afterN = $rAdd['n'] = $n;
                     }
                 }
 
-                $row = $this->addRow($channel, $rAdd, false, $addWithId, 0, $isCheck);
-
-                if ($this->tableRow['with_order_field'] ?? false) {
-                    if (is_null($orderMinN) || $orderMinN > $row['n']) {
-                        $orderMinN = $row['n'];
+                if ($row = $this->addRow($channel, $rAdd, false, $addWithId, 0, $isCheck)) {
+                    if ($this->tableRow['with_order_field'] ?? false) {
+                        if (is_null($orderMinN) || $orderMinN > $row['n']) {
+                            $orderMinN = $row['n'];
+                        }
                     }
+                    if (!is_a($this, cyclesTable::class)) {
+                        $modifiedIds[] = $row['id'];
+                    } //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
                 }
-                if (!$isCheck && !is_a($this, cyclesTable::class)) {
-                    $modifiedIds[] = $row['id'];
-                } //Для пересчета строки при добавлении, чтобы не сыпались ошибки обращения к #id;
             }
         }
         if (!empty($this->tableRow['recalc_in_reorder'])) {
@@ -894,12 +964,12 @@ abstract class RealTables extends aTable
             if (!empty($this->tbl['rows'][$id])) {
                 $this->tbl['rows'][$id] = $this->modifyRow(
                     $channel,
+                    $this->tbl['rows'][$id],
                     $modify[$id] ?? [],
                     $setValuesToDefaults[$id] ?? [],
                     $setValuesToPinned[$id] ?? [],
-                    $this->tbl['rows'][$id],
-                    $modifyCalculated,
-                    !$isCheck
+                    modifyCalculated: $modifyCalculated,
+                    saveIt: !$isCheck
                 );
             }
         }
@@ -976,7 +1046,7 @@ abstract class RealTables extends aTable
         $this->model = $this->Totum->getModel($this->tableRow['name']);
     }
 
-    protected function modifyRow($channel, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $oldRow, $modifyCalculated = true, $saveIt = true)
+    protected function modifyRow($channel, $oldRow, $modify = [], $setValuesToDefaults = [], $setValuesToPinned = [], $modifyCalculated = true, $saveIt = true)
     {
         $changedData = ['id' => $oldRow['id']];
 
@@ -1097,7 +1167,7 @@ abstract class RealTables extends aTable
 
         /******Расчет дублированной строки для  REAL-таблиц********/
 
-        $baseRow = $this->modifyRow($channel, [], [], [], $baseRow);
+        $baseRow = $this->modifyRow($channel, $baseRow);
         $newRowData = [];
         foreach ($this->sortedFields['column'] as $field) {
             if (array_key_exists($field['name'], ($replaces))) {
@@ -1151,8 +1221,12 @@ abstract class RealTables extends aTable
         return strlen($n) - strpos($n, '.') - 1;
     }
 
-    protected function getNextN($idRows = null, $prevN = null)
+    protected function getNextN($idRows = null, $prevN = null, $nextN = null)
     {
+        if (empty($idRows) && is_null($prevN) && is_null($nextN)) {
+            return $this->model->getField('max(n)+1 as n', []) ?? 1;
+        }
+
         if (!empty($idRows) && is_null($prevN)) {
             if (empty($this->tableRow['order_desc'])) {
                 $prevN = $this->model->executePrepared(true, ['id' => $idRows], 'MAX(n) as n')->fetchColumn(0);
@@ -1161,11 +1235,13 @@ abstract class RealTables extends aTable
             }
         }
         if (!is_null($prevN)) {
-            if (!empty($this->tableRow['order_desc'])) {
-                $nextN = $this->model->executePrepared(true, ['<n' => $prevN], 'MAX(n) as n')->fetchColumn(0);
-                [$prevN, $nextN] = [$nextN, $prevN];
-            } else {
-                $nextN = $this->model->executePrepared(true, ['>n' => $prevN], 'MIN(n) as n')->fetchColumn(0);
+            if (is_null($nextN)) {
+                if (!empty($this->tableRow['order_desc'])) {
+                    $nextN = $this->model->executePrepared(true, ['<n' => $prevN], 'MAX(n) as n')->fetchColumn(0);
+                    [$prevN, $nextN] = [$nextN, $prevN];
+                } else {
+                    $nextN = $this->model->executePrepared(true, ['>n' => $prevN], 'MIN(n) as n')->fetchColumn(0);
+                }
             }
             if ($nextN) {
                 $scalePrev = static::getNSize($prevN);
@@ -1177,10 +1253,10 @@ abstract class RealTables extends aTable
                 $len = 4;
 
                 while (bccomp(
-                    $diff,
-                    ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
-                    $scaleDiff > $len ? $scaleDiff : $len
-                ) !== 1) {
+                        $diff,
+                        ($nPlus = '0.' . (str_repeat('0', $len - 1)) . '1'),
+                        $scaleDiff > $len ? $scaleDiff : $len
+                    ) !== 1) {
                     $len += 4;
                 }
 
@@ -1189,7 +1265,7 @@ abstract class RealTables extends aTable
                 $scaleN = static::getNSize($n);
                 $scaleComp = $scaleN > $scaleNext ? $scaleN : $scaleNext;
                 if (bccomp($n, $nextN, $scaleComp) !== -1) {
-                    throw new SqlException("Ошибка логики n: $n>=$nextN");
+                    throw new SqlException($this->translate('Logic error n: %s', "$n>=$nextN"));
                 }
                 if ($this->nTailLength < $scaleComp) {
                     $this->nTailLength = $scaleComp;
@@ -1219,7 +1295,8 @@ abstract class RealTables extends aTable
 
         if ($addWithId && ($id = (int)($addData['id'] ?? 0)) > 0) {
             if ($this->model->getPrepared(['id' => $id], 'id')) {
-                throw new errorException('id ' . $id . ' в таблице уже существует. Нельзя добавить повторно');
+                throw new errorException($this->translate('The row with id %s in the table already exists. Cannot be added again',
+                    $id));
             }
             $changedData['id'] = $id;
         }
@@ -1236,7 +1313,7 @@ abstract class RealTables extends aTable
                     )->fetchColumn(0);
                     $n = $id;
                 } else {
-                    $n = $this->model->getField('max(n)+1 as n', []);
+                    $n = $this->getNextN();
                 }
                 $changedData['id'] = $id;
                 $changedData['n'] = $n;
@@ -1249,13 +1326,13 @@ abstract class RealTables extends aTable
             $_channel = $channel;
 
             if (!key_exists(
-                $v['name'],
-                $addData
-            ) && $this->insertRowSetData && key_exists(
+                    $v['name'],
+                    $addData
+                ) && $this->insertRowSetData && key_exists(
                     $v['name'],
                     $this->insertRowSetData
                 )) {
-                $_channel = 'inner';
+                $_channel = 'webInsertRow';
                 $newVal = $this->insertRowSetData[$v['name']];
 
             }
@@ -1294,6 +1371,10 @@ abstract class RealTables extends aTable
             $this->setIsTableDataChanged(true);
 
             if ($resultId = $this->model->insertPrepared($changedSaveData)) {
+                if (is_a($this->model, Table::class)) {
+                    $this->model->createTableAfterPrepared($resultId, $duplicatedId);
+                }
+
                 $row = static::decodeRow($this->model->getById($resultId));
                 $this->rowChanged([], $row, 'Add');
 
@@ -1311,7 +1392,7 @@ abstract class RealTables extends aTable
             }
         } else {
             debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-            throw new errorException('Ошибка добавления строки');
+            throw new errorException($this->translate('Adding row error'));
         }
     }
 
@@ -1325,6 +1406,8 @@ abstract class RealTables extends aTable
         if ($withoutDeleted && count($paramsWhere) === 1 && $paramsWhere[0]["field"] === 'id' && $paramsWhere[0]["operator"] === '=') {
             $withoutDeleted = false;
         }
+
+        $ReturnFalse = false;
 
         foreach ($paramsWhere as $wI) {
             if (!is_array($wI)) {
@@ -1341,7 +1424,8 @@ abstract class RealTables extends aTable
             }
 
             if (!array_key_exists($fieldName, $fields) && !Model::isServiceField($fieldName)) {
-                throw new errorException('Поля [[' . $fieldName . ']] в таблице [[' . $this->tableRow['name'] . ']] не существует');
+                throw new errorException($this->translate('The %s field in %s of the table does not exist',
+                    [$fieldName, $this->tableRow['name']]));
             }
 
 
@@ -1353,30 +1437,43 @@ abstract class RealTables extends aTable
             }
 
             /*Проверка на число - чтобы ошибок в базе не случалось*/
+            $isNumeric = false;
             if ($fieldName === 'is_del') {
                 $withoutDeleted = false;
-            } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
-                foreach ((array)$value as $v) {
-                    if ($v !== "" && !is_null($v) && !is_numeric((string)$v)) {
-                        throw new errorException('Для выборки по числовому полю [[' . $fieldName . ']] должно быть передано число');
+            } elseif ($fieldName === 'id' || $fieldName === 'n') {
+                $valueCheck = (array)$value;
+                $isRemovedValues = false;
+                foreach ($valueCheck as $i => $v) {
+                    if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
+                        if (is_array($value)) {
+                            unset($value[$i]);
+                            $isRemovedValues = true;
+                        } else {
+                            $ReturnFalse = true;
+                            break 2;
+                        }
                     }
+                }
+                if ($isRemovedValues && is_array($value)) {
+                    $value = array_values($value);
                 }
 
                 if ($fieldName === 'id') {
-                    $fieldQuoted = "(id)::NUMERIC";
+                    $fieldQuoted = '(id)::NUMERIC';
+                    $isNumeric = true;
                 } elseif ($fieldName !== 'n') {
                     $fieldQuoted = "$fieldQuoted::NUMERIC";
+                    $isNumeric = true;
                 }
             }
 
 
             /*Поиск в полях-листах*/
-            if (Field::isFieldListValues(
-                $fields[$wI['field']]['type'] ?? null,
-                $fields[$wI['field']]['multiple'] ?? false
-            )) {
-                $trueFalse = "TRUE";
-                $sqlOperator = '=';
+            if (key_exists($wI['field'], $fields) && Field::isFieldListValues(
+                    $fields[$wI['field']]['type'],
+                    $fields[$wI['field']]['multiple'] ?? false
+                )) {
+                $trueFalse = 'TRUE';
 
                 switch ($operator) {
                     case '!==':
@@ -1487,7 +1584,7 @@ abstract class RealTables extends aTable
                                 $value = $value ? "true" : "false";
                             }
                             $null = "";
-                            if ($operator == '!=') {
+                            if ($operator === '!=') {
                                 $null = " OR $fieldQuoted is NULL ";
                             }
 
@@ -1509,17 +1606,40 @@ abstract class RealTables extends aTable
                                 $params[] = "[$value]";
                             }
                             $null = "";
-                            if ($operator == '!=') {
+                            if ($operator === '!=') {
                                 $null = " OR $fieldQuoted is NULL ";
                             }
                             $where[] = "(($q) = $trueFalse $null)";
                         }
                         break;
                     default:
-                        throw new errorException('Операторы для работы с листами только [[=]]/[[==]]/[[!=]]/[[!==]]');
+                        throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
                 }
             } /* Поиск не в полях-листах по массиву */
             elseif (is_array($value)) {
+                $checkIsArrayInArray = function () use ($fieldName, $value) {
+                    foreach ($value as $v) {
+                        if (is_array($v)) {
+                            throw new errorException($this->translate('None of the elements of the %s parameter array must be a list.',
+                                $fieldName));
+                        }
+                    }
+                };
+                $isEmptyValueInArray = function (array &$value): bool {
+                    $newValue = array_filter(
+                        $value,
+                        function ($v) {
+                            return !(is_null($v) || $v === '');
+                        }
+                    );
+                    if ($newValue !== $value) {
+                        $value = $newValue;
+                        return true;
+                    }
+                    return false;
+                };
+
+
                 switch ($operator) {
                     case '==':
                         $where[] = 'FALSE';
@@ -1531,50 +1651,73 @@ abstract class RealTables extends aTable
                     case '<=':
                     case '>=':
                     case '>':
-                        throw new errorException('При сравнении с листом операторы  <=> не допустимы');
+                        throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
                         break;
                     case '=':
+                        /*Если на вход пришел пустой массив*/
+                        if (empty($value)) {
+                            $where[] = 'FALSE';
+                        } else {
+                            /*if it's list*/
+                            if ((array_keys($value) === range(0, count($value) - 1))) {
+                                /*Если в массиве содержится пустое значение*/
+                                $q = '';
+                                if ($isEmptyValueInArray($value)) {
+                                    $q .= "$fieldQuoted  IS NULL";
+                                    if (!$isNumeric) {
+                                        $q .= " OR $fieldQuoted = ''";
+                                    }
+                                }
+                                /*если есть непустые значения*/
+                                if (!empty($value)) {
+                                    $checkIsArrayInArray();
+                                    if ($q) {
+                                        $q .= ' OR ';
+                                    }
+                                    $q .= $fieldQuoted . ' IN (?' . str_repeat(
+                                            ',?',
+                                            count($value) - 1
+                                        ) . ')';
+                                    array_push($params, ...$value);
+                                }
+                                $where[] = "($q)";
+                            } else {
+                                throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row',
+                                    $wI['field']));
+                            }
+
+                        }
+                        break;
                     case '!=':
                         /*Если на вход пришел пустой массив*/
                         if (empty($value)) {
-                            if ($operator === '=') {
-                                $where[] = 'FALSE';
-                            } else {
-                                $where[] = 'TRUE';
-                            }
+                            $where[] = 'TRUE';
                         } else {
-                            foreach ($value as $v) {
-                                if (is_array($v)) {
-                                    throw new errorException("В параметре where [[$fieldName]] получен лист, в качестве элемента которого содержится лист");
-                                }
-                            }
                             /*Если в массиве содержится пустое значение*/
-                            $q = "";
-                            if (in_array('', $value, true) || in_array(null, $value, true)) {
-                                $value = array_filter(
-                                    $value,
-                                    function ($v) {
-                                        return !(is_null($v) || $v === '');
-                                    }
-                                );
-                                $q .= "$fieldQuoted  IS " . ($operator === '=' ? '' : 'NOT') . " NULL ";
+                            $q = '';
+                            if ($isEmptyValueInArray($value)) {
+                                $emptyString = '';
+                                if (!$isNumeric) {
+                                    $emptyString = "AND $fieldQuoted != ''";
+                                }
+                                $q .= "$fieldQuoted  IS NOT NULL $emptyString AND ";
+                            } else {
+                                $q .= "$fieldQuoted  IS NULL OR";
                             }
                             /*если есть непустые значения*/
                             if (!empty($value)) {
-                                if ($q) {
-                                    $q .= " OR ";
-                                }
-                                $q .= "$fieldQuoted " . ($operator === '=' ? 'IN' : 'NOT IN') . ' (?' . str_repeat(
-                                    ',?',
-                                    count($value) - 1
-                                ) . ')';
+                                $checkIsArrayInArray();
+                                $q .= $fieldQuoted . ' NOT IN (?' . str_repeat(
+                                        ',?',
+                                        count($value) - 1
+                                    ) . ')';
                                 array_push($params, ...$value);
                             }
                             $where[] = "($q)";
                         }
                         break;
                     default:
-                        throw new errorException('Операторы для работы с листами только [[=]] и [[!=]]');
+                        throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
 
                 }
             } /* Поиск не в полях-листах не по массиву*/
@@ -1621,14 +1764,22 @@ abstract class RealTables extends aTable
             }
         }
 
-        if ($withoutDeleted) {
-            $where[] = 'is_del = false';
-        }
+        if ($ReturnFalse) {
 
-        if (empty($where)) {
-            $whereStr = "TRUE";
+            $whereStr = 'FALSE';
+
         } else {
-            $whereStr = '(' . implode(') AND (', $where) . ')';
+
+            if ($withoutDeleted) {
+                $where[] = 'is_del = false';
+            }
+
+            if (empty($where)) {
+                $whereStr = 'TRUE';
+            } else {
+                $whereStr = '(' . implode(') AND (', $where) . ')';
+            }
+
         }
 
         return [$whereStr, $params];

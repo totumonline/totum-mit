@@ -4,19 +4,20 @@
 use totum\commands\CleanSchemasTmpTables;
 use totum\commands\CleanSchemaTmpTables;
 use totum\commands\CleanTmps;
-use totum\commands\CleanTmpTablesFiles;
 use totum\commands\CleanTmpTablesFilesMulti;
 use totum\commands\GitUpdate;
 use totum\commands\SchemaAdd;
 use totum\commands\SchemaCron;
 use totum\commands\SchemaCrons;
-use totum\commands\SchemaDecode;
 use totum\commands\Install;
 use totum\commands\SchemaDuplicate;
 use totum\commands\SchemaPasswd;
+use totum\commands\SchemaReplace;
 use totum\commands\SchemasCrons;
+use totum\commands\SchemasList;
 use totum\commands\SchemasUpdates;
 use totum\commands\SchemaUpdate;
+use totum\commands\SchemaBackup;
 use totum\commands\Vacuum;
 use totum\common\configs\MultiTrait;
 use totum\config\Conf;
@@ -27,7 +28,6 @@ use Symfony\Component\Console\Application;
 
 $app = new Application();
 if (class_exists(Conf::class)) {
-    $app->add(new SchemaDecode());
     $app->add(new SchemaCrons());
     $app->add(new SchemaCron());
 
@@ -39,6 +39,8 @@ if (class_exists(Conf::class)) {
     $app->add(new SchemaPasswd());
     $app->add(new Vacuum());
     $app->add(new GitUpdate());
+    $app->add(new SchemaBackup());
+    $app->add(new SchemaReplace());
 
     if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
         $app->add(new SchemasCrons());
@@ -47,6 +49,7 @@ if (class_exists(Conf::class)) {
         $app->add(new SchemasUpdates());
         $app->add(new SchemaDuplicate());
         $app->add(new SchemaAdd());
+        $app->add(new SchemasList());
     }
 } else {
     $app->add(new Install());

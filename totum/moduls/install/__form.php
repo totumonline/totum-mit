@@ -20,91 +20,157 @@
     foreach ($_POST as $k => $val) {
         $post[$k] = strip_tags($val);
     }
+    $post['lang'] = $post['lang'] ?? 'en';
+    $post['multy'] = $post['multy'] ?? '0';
+    $post['schema_exists'] = $post['schema_exists'] ?? '1';
+    $post['psql'] = $post['psql'] ?? 'psql';
+    $post['pg_dump'] = $post['pg_dump'] ?? 'pg_dump';
+    $post['consol'] = $post['consol'] ?? '0';
+
+    $post['admin_email'] = $post['admin_email'] ?? '';
+    $post['user_pass'] = $post['admin_email'] ?? '';
+    $post['user_login'] = $post['user_login'] ?? 'admin';
+    $post['db_schema'] = $post['db_schema'] ?? 'totum';
+
+    $post['db_host'] = $post['db_host'] ?? 'localhost';
+
     ?>
     <form method="post" id="form" action="/" style="width: 500px; margin: auto; padding-bottom: 100px" data-consol="0">
         <div style="padding-bottom: 40px; padding-top: 10px; font-size: 55px;"><img src="/imgs/365_100_file.png"></div>
-
-        <div class="form-group">
-            <select name="lang" class="form-control">
-                <option value="ru" <?= ($post['lang'] ?? 'ru') === 'ru' ? 'selected' : '' ?>>Русский язык</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <select id="multy" name="multy" class="form-control">
-                <option value="0" <?= ($post['multy'] ?? '0') === '0' ? 'selected' : '' ?>>Одинарная установка</option>
-                <option value="1" <?= ($post['multy'] ?? '0') === '1' ? 'selected' : '' ?>>Множественная установка
-                </option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Схема</label><input type="text" name="db_schema" class="form-control"
-                                       value="<?= $post['db_schema'] ?? "totum" ?>" required>
-            <br>
-            <select name="schema_exists" class="form-control">
-                <option value="0" <?= ($post['schema_exists'] ?? '1') === '0' ? 'selected' : '' ?>>Разворачивать только
-                    в новой
-                </option>
-                <option value="1" <?= ($post['schema_exists'] ?? '1') === '1' ? 'selected' : '' ?>>Использовать
-                    существующую
-                </option>
-            </select>
-        </div>
-
-        <h3>База данных PostgreSQL</h3>
-        <div class="form-group"><label>Строка установки</label>
-            <input type="text" class="form-control" id="dbstring">
-            <div class="error" id="dbstring_error"></div>
-        </div>
-
-
-        <div class="form-group"><label>host базы</label><input type="text" name="db_host" class="form-control"
-                                                               value="<?= $post['db_host'] ?? "localhost" ?>" required>
-        </div>
-        <div class="form-group"><label>Имя базы</label><input type="text" name="db_name" class="form-control"
-                                                              value="<?= $post['db_name'] ?? "" ?>" required></div>
-
-
-        <div class="form-group"><label>Логин</label><input type="text" name="db_user_login" class="form-control"
-                                                           value="<?= $post['db_user_login'] ?? "" ?>" required></div>
-        <div class="form-group"><label>Пароль</label><input type="text" name="db_user_password" class="form-control"
-                                                            value="<?= $post['db_user_password'] ?? "" ?>" required>
-        </div>
-
-        <div class="form-group">
-            <label>Консольные утилиты PostgreSql</label>
-            <select id="consol" name="consol" class="form-control">
-                <option value="0" <?= ($post['consol'] ?? '0') === '0' ? 'selected' : '' ?>>С консольными утилитами
-                </option>
-                <option value="1" <?= ($post['consol'] ?? '0') === '1' ? 'selected' : '' ?>>Без консольных утилит
-                </option>
-            </select>
-        </div>
-        <div id="consol-scripts">
-            <div class="form-group"><label>pg_dump</label><input type="text" name="pg_dump" class="form-control"
-                                                                 value="<?= $post['pg_dump'] ?? "pg_dump" ?>">
-            </div>
-
-            <div class="form-group"><label>psql</label><input type="text" name="psql" class="form-control"
-                                                              value="<?= $post['psql'] ?? "psql" ?>">
-            </div>
-        </div>
-
-
-        <h3>Создать пользователя с полным доступом</h3>
-        <div class="form-group"><label>Логин</label><input type="text" name="user_login" class="form-control"
-                                                           value="<?= $post['user_login'] ?? "admin" ?>" required>
-        </div>
-        <div class="form-group"><label>Пароль</label><input type="text" name="user_pass" class="form-control"
-                                                            value="<?= $post['user_pass'] ?? "" ?>" required></div>
-        <div class="form-group"><label>Email для нотификаций крона</label><input type="text" name="admin_email"
-                                                                                 class="form-control"
-                                                                                 value="<?= $post['admin_email'] ?? "" ?>">
-        </div>
-
-        <div><input type="submit" value="Создать конфиг и залить схему" style="color: #fff; margin-top: 20px;"
-                    class="btn btn-danger" id="submit"/></div>
+        <div id="mark"></div>
+        <div id="submit_div"><input type="submit" value="Создать конфиг и залить схему"
+                                    style="color: #fff; margin-top: 20px;"
+                                    class="btn btn-danger" id="submit"/></div>
     </form>
     <script>
+        const form = $('#form');
+        <?='let post = ' . json_encode($post, JSON_UNESCAPED_UNICODE) ?>;
+
+
+
+        const params = [
+            {
+                type: 'select', id: "langSelect", name: 'lang', label: "", vals: [
+                    {name: "Русский язык", val: 'ru'},
+                    {name: "English", val: 'en'},
+                ]
+            },
+            {
+                type: 'select', id: "multy", name: 'multy', label: "", vals: [
+                    {name: "Single installation", val: '0'},
+                    {name: "Multiple installation", val: '1'},
+                ]
+            },
+            {type: 'input', name: 'db_schema', label: "Schema"},
+            {
+                type: 'select', name: 'schema_exists', label: "", vals: [
+                    {name: "Deploy only in the new", val: '0'},
+                    {name: "Use the existing", val: '1'},
+                ]
+            },
+            {type: 'h3', label: "Database PostgreSQL"},
+            {type: 'input', name: '', id: 'dbstring', errorid: 'dbstring_error', label: "Setup string"},
+            {type: 'input', name: 'db_host', label: "Database host", required: true},
+            {type: 'input', name: 'db_name', label: "Database name", required: true},
+            {type: 'input', name: 'db_user_login', label: "Login", required: true},
+            {type: 'input', name: 'db_user_password', label: "Password", required: true},
+
+            {
+                type: 'select', name: 'consol', label: "PostgreSql console utilities", vals: [
+                    {name: "With console utilities", val: '0'},
+                    {name: "Without console utilities", val: '1'},
+                ]
+            },
+            {type: 'input', name: 'pg_dump', label: "pg_dump"},
+            {type: 'input', name: 'psql', label: "psql"},
+            {type: 'h3', label: "Create a user with full access"},
+            {type: 'input', name: 'user_login', label: "Login", required: true},
+            {type: 'input', name: 'user_pass', label: "Password", required: true},
+            {type: 'input', name: 'admin_email', label: "Email for cron notifications", required: true}
+
+        ];
+
+        const formForm = function () {
+            let mark = $('#mark');
+            while (mark.next().length && mark.next().attr('id') != 'submit_div') {
+                mark.next().remove();
+            }
+            mark = $('#mark');
+
+            params.forEach((param) => {
+                let div;
+                switch (param.type) {
+                    case 'select':
+                        div = $('<div class="form-group">').insertAfter(mark);
+                        if (param.label) {
+                            $('<label>').text(App.translate(param.label)).appendTo(div);
+                        }
+                        let select = $('<select>').attr('name', param.name).addClass('form-control').appendTo(div);
+                        param.vals.forEach((o) => {
+                            let option = $('<option>').text(App.translate(o.name)).attr('value', o.val);
+                            select.append(option)
+                            if (o.val == post[param.name]) {
+                                option.prop('selected', true)
+                            }
+                        })
+                        if (param.id) {
+                            select.attr('id', param.id)
+                        }
+                        break;
+                    case 'h3':
+                        div = $('<h3>').text(App.translate(param.label)).insertAfter(mark);
+                        break;
+                    case 'input':
+                        div = $('<div class="form-group">').insertAfter(mark);
+                        if (param.label) {
+                            $('<label>').text(App.translate(param.label)).appendTo(div);
+                        }
+                        let input = $('<input>').attr('name', param.name).addClass('form-control').val(post[param.name] || '').appendTo(div);
+                        if (param.required) {
+                            input.prop('required', true);
+                        }
+                        if (param.id) {
+                            input.attr('id', param.id)
+                        }
+                        if (param.errorid) {
+                            $('<div class="error">').attr('id', param.errorid).insertAfter(input)
+                        }
+                        break;
+                }
+                mark = div;
+            })
+        }
+
+        const SetLang = function (lang) {
+            const setLang = () => {
+                App.lang = App.langs[lang];
+                setTimeout(formForm, 20);
+            }
+            if (!App.langs || !App.langs[lang]) {
+                $.getScript('/js/i18n/' + lang + '.js', setLang)
+            } else {
+                setLang();
+            }
+        }
+        SetLang(post.lang)
+
+        $(() => {
+
+            formForm();
+
+
+
+            $('#form').on('change', '#langSelect', function (){
+               SetLang($(this).val())
+            });
+            $('#form').on('change', 'input,select', function () {
+                let self = $(this)
+                post[self.attr('name')] = self.val();
+            })
+
+        })
+
+
         $('.page_content:first').addClass('tree-minifyed')
 
         $('#multy').on('change', function () {
@@ -116,7 +182,7 @@
                 $('select[name="schema_exists"]').val("0");
             }
         })
-        $('#dbstring').on('change', function () {
+        $('#form').on('change', '#dbstring', function () {
             let val = $(this).val();
             $('#dbstring_error').text('');
             let matches
@@ -132,9 +198,9 @@
             }
 
         });
-        $('#consol').on('change', function () {
+        $('#form').on('change', '[name="consol"]', function () {
             let val = $(this).val();
-            $('#form').attr('data-consol', val)
+            form.attr('data-consol', val)
             if (val === '1') {
                 $('input[name="pg_dump').val('');
                 $('input[name="psql').val('');

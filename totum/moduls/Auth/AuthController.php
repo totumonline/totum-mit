@@ -12,6 +12,7 @@ use Exception;
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\controllers\interfaceController;
 use totum\common\Auth;
+use totum\common\Lang\RU;
 use totum\common\Totum;
 
 class AuthController extends interfaceController
@@ -54,7 +55,7 @@ class AuthController extends interfaceController
 
                 $this->Config->sendMail(
                     $email,
-                    'Учетные данные в ' . $_SERVER['HTTP_HOST'],
+                    $this->translate('Credentials in %s', $_SERVER['HTTP_HOST']),
                     '<style>' . $template["styles"] . '</style>' . $template["body"] . '',
                 );
             };
@@ -62,19 +63,19 @@ class AuthController extends interfaceController
 
             $getNewPass = function () {
                 $letters = 'abdfjhijklmnqrstuvwxz';
-                return $letters{mt_rand(0, strlen($letters) - 1)} . $letters{mt_rand(
+                return $letters[mt_rand(0, strlen($letters) - 1)] . $letters[mt_rand(
                     0,
                     strlen($letters) - 1
-                )} . str_pad(mt_rand(1, 9999), 4, 0);
+                )] . str_pad(mt_rand(1, 9999), 4, 0);
             };
 
             if (empty($post['login'])) {
-                return ['error' => 'Заполните поле Логин/Email'];
+                return ['error' => $this->translate('Fill in the Login/Email field')];
             }
 
             if (empty($post['recover'])) {
                 if (empty($post['pass'])) {
-                    return ['error' => 'Заполните поле Пароль'];
+                    return ['error' => $this->translate('Fill in the Password field')];
                 }
                 switch (Auth::passwordCheckingAndProtection($post['login'], $post['pass'], $userRow, $this->Config, 'web')) {
                     case Auth::$AuthStatuses['OK']:
@@ -82,19 +83,19 @@ class AuthController extends interfaceController
                         $this->location($_GET['from'] ?? null, !key_exists('from', $_GET));
                         break;
                     case Auth::$AuthStatuses['WRONG_PASSWORD']:
-                        return ['error' => 'Пароль не верен'];
+                        return ['error' => $this->translate('Password is not correct')];
                     case Auth::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION']:
-                        return ['error' => 'В связи с превышением количества попыток на ввод пароля ваш IP заблокирован'];
+                        return ['error' => $this->translate('Due to exceeding the number of password attempts, your IP is blocked')];
                 }
             } else {
                 if (!$Totum->getConfig()->getSettings('with_pass_recover')) {
-                    return ['error' => 'Восстановление пароля через  email для данной базы отключено. Обратитесь к админинстратору решения.'];
+                    return ['error' => $this->translate('Password recovery via email is disabled for this database. Contact the solution administrator.')];
                 }
 
                 if ($userRow = $userRow ?? Auth::getUserRowWithServiceRestriction($post['login'], $this->Config)) {
                     $email = $userRow['email'];
                     if (empty($email)) {
-                        return ['error' => 'Email для этого login не задан'];
+                        return ['error' => $this->translate('Email for this login is not set')];
                     }
                     $User = Auth::serviceUserStart($this->Config);
                     $Totum = new Totum($this->Config, $User);
@@ -111,14 +112,14 @@ class AuthController extends interfaceController
                         $email = $userRow['email'];
                         $SendLetter($email, $login, $pass);
 
-                        return ['error' => 'Письмо с новым паролем отправлено на ваш Email. Проверьте ваш ящик через пару минут.'];
+                        return ['error' => $this->translate('An email with a new password has been sent to your Email. Check your inbox in a couple of minutes.')];
                     } catch (Exception $e) {
                         Auth::webInterfaceRemoveAuth();
 
-                        return ['error' => 'Письмо не отправлено' . $e->getMessage()];
+                        return ['error' => $this->translate('Letter has not been sent: %s', $e->getMessage()) ];
                     }
                 } else {
-                    return ['error' => 'Пользователь с указанным Логин/Email не найден'];
+                    return ['error' => $this->translate('The user with the specified Login/Email was not found')];
                 }
             }
         }

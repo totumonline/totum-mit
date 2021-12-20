@@ -12,13 +12,13 @@ use totum\common\Auth;
 use totum\common\calculates\Calculate;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\sql\Sql;
 use totum\common\Totum;
 use totum\models\Table;
 use totum\models\TablesFields;
 use totum\tableTypes\JsonTables;
-use totum\tableTypes\tableTypes;
 
 class FieldParams extends Field
 {
@@ -33,11 +33,10 @@ class FieldParams extends Field
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         switch ($viewType) {
             case 'csv':
-                throw new errorException('Для работы с полями есть таблица Обновления');
-                // $valArray['v'] = "";base64_encode(json_encode($valArray['v'], JSON_UNESCAPED_UNICODE));
+                throw new errorException($this->translate('Export via csv is not available for [[%s]] field.', 'FieldParams'));
                 break;
             case 'web':
-                $valArray['v'] = 'Поле настроек';/**/
+                $valArray['v'] = $this->translate('Settings field.');
                 break;
             case 'edit':
 
@@ -47,7 +46,7 @@ class FieldParams extends Field
 
     public function getValueFromCsv($val)
     {
-        throw new errorException('Для работы с полями есть таблица Обновления');
+        throw new errorException($this->translate('Import from csv is not available for [[%s]] field.', 'FieldParams'));
         /*return $val = json_decode(base64_decode($val), true);*/
     }
 
@@ -88,13 +87,13 @@ class FieldParams extends Field
     final protected function checkValByType(&$val, $row, $isCheck = false)
     {
         if ($this->table->getTableRow()['id'] !== 2) {
-            throw new errorException('Тип поля Параметры допустим только для таблицы Состав полей');
+            throw new errorException($this->translate('The Parameters field type is valid only for the Tables Fields table'));
         }
         /*$val = json_decode('{"type": {"Val": "fieldParamsResult", "isOn": true}, "width": {"Val": 250, "isOn": true}, "showInWeb": {"Val": false, "isOn": true}}',
             true);*/
 
         if (empty($val['type']['Val'])) {
-            throw new errorException('Необходимо заполнить [[тип]] поля');
+            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'type'));
         }
 
         $category = $row['category']['v'];
@@ -108,7 +107,7 @@ class FieldParams extends Field
             Totum::getTableClass($tableRow),
             JsonTables::class
         )) {
-            throw new errorException('Нельзя создать поле [[футера]] [[не для рассчетных]] таблиц');
+            throw new errorException($this->translate('You cannot create a [[footer]] field for [[non-calculated]] tables.'));
         }
     }
 }

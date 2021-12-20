@@ -236,14 +236,14 @@ trait FormsTrait
                             case 'viewimage':
                                 $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
                                 $fileData = $Field->getPreviewHtml(
-                                    $data['params'][$fName]['v'],
+                                    $data['params'][$fName],
                                     $this->Table->getTbl()['params'],
                                     $this->Table->getTbl(),
                                     true
                                 );
                                 $data['params'][$fName]['v_'] = $this->getHttpFilePath() . ($fileData[$formats['p'][$fName]['viewdata']['picture_name'] ?? ''][1][0]['file'] ?? '');
                                 break 2;
-                            case "":
+                            case '':
                                 Field::init($field, $this->Table)->addViewValues(
                                     'edit',
                                     $value,
@@ -297,13 +297,14 @@ trait FormsTrait
         $fields = $this->Table->getFields();
 
         if (!($field = $fields[$data['field']] ?? null)) {
-            throw new errorException('Не найдено поле [[' . $data['field'] . ']]. Возможно изменилась структура таблицы. Перегрузите страницу');
+            throw new errorException($this->translate('The [[%s]] field was not found. The table structure may have changed. Reload the page.'),
+                $data['field']);
         }
         if (!in_array(
             $field['type'],
             ['select', 'tree']
         )) {
-            throw new errorException('Ошибка - поле не типа select/tree');
+            throw new errorException($this->translate('Field not of type select/tree'));
         }
 
         $this->Table->loadDataRow();
@@ -392,8 +393,8 @@ trait FormsTrait
 
         if ($this->CalcSectionStatuses) {
             $sectionFormats = $this->CalcSectionStatuses->exec(
-                ['name' => 'SECTION FORMATS'],
-                null,
+                ['name' => 'CALC SECTION FORMATS'],
+                ['v' => null],
                 [],
                 $this->Table->getTbl()['params'],
                 [],

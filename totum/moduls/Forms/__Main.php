@@ -9,14 +9,13 @@
     <meta name="viewport" content="width=900, user-scalable=no">
     <meta property="og:image" content="<?= $host ?>imgs/hand.png"/>
     <meta property="og:url" content="<?= $host ?>"/>
-    <meta property="og:title" content="TOTUM — платформа для любой автоматизации в малом бизнесе"/>
-    <meta property="og:description"
-          content="TOTUM — платформа для любой автоматизации в малом бизнесе. На ней можно собирать заточенные под клиента базы данных с готовым интерфейсом и настраиваемым доступом, узкоспециальные CRM, склады, расчеты и все, что придет в голову"/>
+    <meta property="og:title" content=""/>
+    <meta property="og:description" content=""/>
 </head>
 <body id="pk"
       class="lock">
 <noscript>
-    Для работы с системой необходимо включить JavaScript в настройках броузера
+    <?=$this->translate('To work with the system you need to enable JavaScript in your browser settings')?>
 </noscript>
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <div class="page_content">
@@ -31,7 +30,7 @@
 
             newScript.onerror = (event) => {
                 console.log(event)
-                div.innerHTML = '<div>Не загрузилось :(</div>';
+                div.innerHTML = '<div><?=$this->translate('It didn\'t load :(')?>></div>';
             };
             newScript.onload = (event) => {
                 address = src.match(/^(.*?\/)[^\/]*$/)[1] + address;

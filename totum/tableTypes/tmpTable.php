@@ -8,12 +8,10 @@
 
 namespace totum\tableTypes;
 
-use totum\common\Auth;
 use totum\common\calculates\Calculate;
-use totum\common\Controller;
 use totum\common\Cycle;
 use totum\common\errorException;
-use totum\common\Model;
+use totum\common\Lang\RU;
 use totum\common\Totum;
 use totum\common\User;
 
@@ -81,7 +79,7 @@ class tmpTable extends JsonTables
         return new static($Totum, $tableRow, $extraData, $light, $hash);
     }
 
-    public function createTable()
+    public function createTable(int $duplicatedId)
     {
     }
 
@@ -102,10 +100,10 @@ class tmpTable extends JsonTables
                 if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                     $this->changeIds['deleted'][$id] = null;
                 } elseif (!empty($oldRow) && empty($row['is_del'])) {
-                    if (Calculate::compare('!==', $oldRow, $row)) {
+                    if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
                         foreach ($row as $k => $v) {
                             /*key_exists for $oldRow[$k] не использовать!*/
-                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v)) {
+                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v, $this->getLangObj())) {
                                 $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                 $this->changeIds['changed'][$id][$k] = null;
                             }
@@ -132,7 +130,7 @@ class tmpTable extends JsonTables
     public function checkAndModify($tableData, array $data)
     {
         $this->loadDataRow();
-        return parent::checkAndModify($tableData, $data);
+        parent::checkAndModify($tableData, $data);
     }
 
     public function saveTable()
@@ -197,7 +195,7 @@ class tmpTable extends JsonTables
                 $this->updated = $this->dataRow['updated'];
                 $this->model->update(['touched' => date('Y-m-d H:i')], $this->key);
             } else {
-                throw new errorException('Время жизни таблицы истекло. Повторите запрос данных.');
+                throw new errorException($this->translate('Temporary table storage time has expired'));
             }
         }
     }

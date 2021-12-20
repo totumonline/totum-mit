@@ -10,6 +10,7 @@ namespace totum\common\logs;
 
 use Psr\Log\AbstractLogger;
 use totum\common\criticalErrorException;
+use totum\common\errorException;
 use totum\common\sql\SqlException;
 use totum\common\Totum;
 

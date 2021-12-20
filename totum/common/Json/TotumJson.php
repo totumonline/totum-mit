@@ -7,7 +7,6 @@ use JsonStreamingParser\Listener\InMemoryListener;
 use JsonStreamingParser\Parser;
 use JsonStreamingParser\Exception\ParsingException;
 use JsonStreamingParser\ParserHelper;
-use totum\common\errorException;
 
 class TotumJson extends TotumJsonParcer
 {

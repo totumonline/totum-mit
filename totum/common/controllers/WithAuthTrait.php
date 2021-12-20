@@ -13,17 +13,20 @@ trait WithAuthTrait
         $this->User = Auth::webInterfaceSessionStart($this->Config);
 
         if (!$this->User) {
-            $this->__UnauthorizedAnswer();
+            $this->__UnauthorizedAnswer($request);
         } else {
             $this->__actionRun($action, $request);
         }
     }
 
-    protected function __UnauthorizedAnswer()
+    protected function __UnauthorizedAnswer(ServerRequestInterface $request)
     {
-        /*TODO check header sends*/
+        if ($request->getParsedBody()['ajax'] ?? false) {
+            echo json_encode(['error' => $this->Config->getLangObj()->translate('Authorization lost.')]);
+            die;
+        }
         header('HTTP/1.0 401 Unauthorized');
-        header('location: /Auth/Login/?from='.urlencode($_SERVER['REQUEST_URI']));
+        header('location: /Auth/Login/?from=' . urlencode($_SERVER['REQUEST_URI']));
         die;
     }
 }

@@ -55,7 +55,7 @@ class globcalcsTable extends JsonTables
         return true;
     }
 
-    public function createTable()
+    public function createTable(int $duplicatedId)
     {
         $this->model->insertPrepared(['tbl_name' => $this->tableRow['name'], 'updated' => $updated = $this->getUpdatedJson()]);
         $this->savedUpdated = $this->updated = $updated;

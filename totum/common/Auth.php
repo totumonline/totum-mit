@@ -2,15 +2,16 @@
 
 namespace totum\common;
 
+use totum\common\Lang\RU;
 use totum\config\Conf;
 
 class Auth
 {
     public static $shadowRoles = [1, -2];
     public static $AuthStatuses = [
-        "OK" => 0,
-        "WRONG_PASSWORD" => 1,
-        "BLOCKED_BY_CRACKING_PROTECTION" => 2,
+        'OK' => 0,
+        'WRONG_PASSWORD' => 1,
+        'BLOCKED_BY_CRACKING_PROTECTION' => 2,
     ];
     public static $userManageRoles = [-1];
     public static $userManageTables = ['users', 'auth_log', 'ttm__user_log', 'ttm__users_online'];
@@ -39,7 +40,7 @@ class Auth
         return null;
     }
 
-    public static function webInterfaceSessionStart($Config, $close = true)
+    public static function webInterfaceSessionStart($Config)
     {
         $User = null;
         $Config->setSessionCookieParams();
@@ -51,18 +52,16 @@ class Auth
                 Crypt::setKeySess();
             }
         }
-        if ($close) {
-            session_write_close();
-        }
+        session_write_close();
         return $User;
     }
 
     public static function isCanBeOnShadow(?User $User): bool
     {
         return key_exists('ShadowRole', $_SESSION) || count(array_intersect(
-            static::$shadowRoles,
-            $User->getRoles()
-        )) > 0;
+                static::$shadowRoles,
+                $User->getRoles()
+            )) > 0;
     }
 
     public static function getShadowRole(?User $User): int
@@ -75,7 +74,7 @@ class Auth
 
     public static function getUsersForShadow(Conf $Config, User $User, $id = null): array
     {
-        $_id = $id ? "id = " . (int)$id : 'true';
+        $_id = $id ? 'id = ' . (int)$id : 'true';
         $_roles = 'true';
         if (Auth::getShadowRole($User) !== 1) {
             $_roles = "(roles->'v' @> '[\"1\"]'::jsonb) = FALSE";
@@ -113,27 +112,27 @@ class Auth
         if ($userRow = static::getUserWhere($Config, ['login' => 'service'])) {
             return new User($userRow, $Config);
         } else {
-            die('Пользователь service не настроен. Обратитесь к администратору системы');
+            die($Config->getLangObj()->translate('User %s is not configured. Contact your system administrator.',
+                'service'));
         }
     }
 
     public static function getUserRowWithServiceRestriction($login, Conf $Config, $interface = 'web')
     {
-        /*блокируем возможность авторизоваться под сервисными логинами*/
-        if ($login === 'cron' || $login === 'service') {
-            return false;
-        } else {
+        /*block the ability to log in with service logins*/
+        if ($login !== 'cron' && $login !== 'service') {
             $where = ['on_off' => true, 'is_del' => false, 'interface' => $interface];
-            if (strpos($login, '@') !== false) {
+
+            if (str_contains($login, '@')) {
                 $where['email'] = strtolower($login);
             } else {
-                $where = ['login' => $login];
+                $where['login'] = $login;
             }
             if ($UserRow = static::getUserWhere($Config, $where, false)) {
                 return $UserRow;
             }
-            return false;
         }
+        return false;
     }
 
     public static function passwordCheckingAndProtection($login, $pass, &$userRow, Conf $Config, $interface): int
@@ -146,24 +145,24 @@ class Auth
             $block_date = $BlockDate->format('Y-m-d H:i');
         }
 
-        if ($block_time && $Config->getModel('auth_log')->get(['user_ip' => $ip, 'login'=>$login, 'datetime->>\'v\'>=\'' . $block_date . '\'', 'status' => 2])) {
+        if ($block_time && $Config->getModel('auth_log')->get(['user_ip' => $ip, 'login' => $login, 'datetime->>\'v\'>=\'' . $block_date . '\'', 'status' => 2])) {
             return static::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION'];
         } else {
             if (($userRow = $userRow ?? Auth::getUserRowWithServiceRestriction(
-                $login,
-                $Config,
-                $interface
-            )) && static::checkUserPass(
-                $pass,
-                $userRow['pass']
-            )) {
+                        $login,
+                        $Config,
+                        $interface
+                    )) && static::checkUserPass(
+                    $pass,
+                    $userRow['pass']
+                )) {
                 $status = static::$AuthStatuses['OK'];
             } elseif (!$block_time || !$error_count) {
                 $status = static::$AuthStatuses['WRONG_PASSWORD'];
             } else {
                 $count = static::$AuthStatuses['WRONG_PASSWORD'];
                 $statuses = $Config->getModel('auth_log')->getAll(
-                    ['user_ip' => $ip, 'login'=>$login, 'datetime->>\'v\'>=\''.$block_date.'\''],
+                    ['user_ip' => $ip, 'login' => $login, 'datetime->>\'v\'>=\'' . $block_date . '\''],
                     'status',
                     'id desc'
                 );
@@ -218,6 +217,7 @@ class Auth
             session_start();
         }
         $_SESSION['userId'] = $userId;
+        session_write_close();
     }
 
     public static function webInterfaceRemoveAuth()
@@ -229,11 +229,14 @@ class Auth
     public static function asUser($Config, $id, User $User)
     {
         $Config->setSessionCookieParams();
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         if (empty($_SESSION['ShadowUserId']) || empty($_SESSION['ShadowRole'])) {
             $_SESSION['ShadowUserId'] = $User->getId();
             $_SESSION['ShadowRole'] = array_values(array_intersect(static::$shadowRoles, $User->getRoles()))[0];
         }
+
         $_SESSION['userId'] = $id;
         session_write_close();
     }

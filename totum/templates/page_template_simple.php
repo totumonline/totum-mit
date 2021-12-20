@@ -3,12 +3,14 @@
     <script>App = {}</script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/libs.css?v=005a92c">
-    <script src="/js/libs.js?v=f52b4ad"></script>
+          href="/css/libs.css?v=ead40ab">
+    <script src="/js/libs.js?v=c27fdf7"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=ff013ff">
-    <script src="/js/main.js?v=71f3627"></script>
+          href="/css/main.css?v=bb3efa7">
+    <script src="/js/main.js?v=97e8da9"></script>
+    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?8"></script>
+    <script>App.lang=App.langs["<?= $this->Config->getLang() ?>"]</script>
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
 
@@ -21,7 +23,7 @@
 <body id="pk"
       class="lock">
 <noscript>
-    Для работы с системой необходимо включить JavaScript в настройках броузера
+    <?=$this->translate('To work with the system you need to enable JavaScript in your browser settings')?>
 </noscript>
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <script>

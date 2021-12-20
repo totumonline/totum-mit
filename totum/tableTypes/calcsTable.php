@@ -27,10 +27,12 @@ class calcsTable extends JsonTables
     {
         $this->Cycle = $Cycle;
         if (!$Cycle->getRow()) {
-            if($this->CalculateLog){
+            if ($this->CalculateLog) {
                 $this->CalculateLog->addParam('backtrace', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
             }
-            throw new errorException($this->translate('Cycle [[%s]] in table [[%s]] is not found.', [$Cycle->getId(), $Totum->getTableRow($Cycle->getCyclesTableId())['title']]));
+            $this->Totum = $Totum;
+            throw new errorException($this->translate('Cycle [[%s]] in table [[%s]] is not found.',
+                [$Cycle->getId(), $Totum->getTableRow($Cycle->getCyclesTableId())['title']]));
         }
         parent::__construct($Totum, $tableRow, $Cycle, $light);
     }
@@ -141,7 +143,8 @@ class calcsTable extends JsonTables
                 $this->createCalcsTable();
                 $this->loadDataRow();
             } else {
-                throw new errorException($this->translate('The calculation table is not connected to %s cycles table', $this->tableRow['title']));
+                throw new errorException($this->translate('The calculation table is not connected to %s cycles table',
+                    $this->tableRow['title']));
             }
         }
     }

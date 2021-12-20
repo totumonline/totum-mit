@@ -108,8 +108,8 @@ class WriteTableActions extends ReadTableActions
                 ) {
                     $filtered = $val ?? null;
                 }
-                if (is_null($addData[$v['name']] ?? null) && !empty($filtered)) {
-                    $addData[$v['name']] = $filtered;
+                if (!empty($filtered)) {
+                    $filtersData[$v['name']] = $filtered;
                 }
             }
         }
@@ -118,7 +118,8 @@ class WriteTableActions extends ReadTableActions
             $addData,
             $hash,
             [],
-            $this->post['clearField'] ?? null
+            $this->post['clearField'] ?? null,
+            $filtersData ?? []
         )]];
 
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);
@@ -167,7 +168,7 @@ class WriteTableActions extends ReadTableActions
             );
 
             if (is_array($r) && ($r['ok'] ?? false)) {
-                return ['ok'=>1];
+                return ['ok' => 1];
             }
             return $r;
         } else {

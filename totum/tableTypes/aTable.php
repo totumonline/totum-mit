@@ -187,7 +187,7 @@ abstract class aTable
         $this->insertRowHash = $insertRowHash;
     }
 
-    public function checkInsertRow($tableData, $data, $hashData, $setData = [], $clearField = null)
+    public function checkInsertRow($tableData, $data, $hashData, $setData = [], $clearField = null, $filtersData = [])
     {
         if ($tableData) {
             $this->checkTableUpdated($tableData);
@@ -211,11 +211,13 @@ abstract class aTable
         }
 
         $this->insertRowSetData = array_merge(
+            $filtersData,
             $loadData,
             $setData
         );
 
         $this->reCalculate(['channel' => 'web', 'add' => [$data], 'isCheck' => true]);
+
 
         $dataToSave = [];
         foreach ($this->tbl['rowInserted'] as $k => $v) {

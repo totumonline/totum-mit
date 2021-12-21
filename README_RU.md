@@ -22,15 +22,14 @@
 
 #### Если вы сделали проект на тотум — [расскажите о нем здесь](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions/categories/%D1%81%D0%B4%D0%B5%D0%BB%D0%B0%D0%BD%D0%BD%D1%8B%D0%B5-%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%8B) 🙌
 
+.
 
-
+.
 
 
 ![logo](https://totum.totum.online/fls/365_100_file.png)
 
-# Программируемая база данных для
-
-# не-программистов
+# Программируемая база данных для не-программистов
 
 ##### Универсальный UI, логика на основе простых кодов, автоматические действия, права доступа, логгирование, API и куча всего остального 👍
 
@@ -38,7 +37,7 @@
 
 ##### На вашем сервере, легко изучаемая и масштабируемая вместе с ростом бизнеса 🎉
 
-
+.
 
 [![ico1](https://camo.githubusercontent.com/f7d915219b6605dcfe031152a9c787e078e1a527972c0d29dddfa80e1a490272/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233335f66696c652e706e67)](https://camo.githubusercontent.com/f7d915219b6605dcfe031152a9c787e078e1a527972c0d29dddfa80e1a490272/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233335f66696c652e706e67) [![ico2](https://camo.githubusercontent.com/7440e8f8dc1509396df00c5fe796c337c2c148cb641b9947de05ec86a512d21f/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233345f66696c652e706e67)](https://camo.githubusercontent.com/7440e8f8dc1509396df00c5fe796c337c2c148cb641b9947de05ec86a512d21f/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233345f66696c652e706e67) [![ico3](https://camo.githubusercontent.com/8825142c24ab6ce67d7add0c3ceb2edae91c360b42632e4839cd71bbe7bbd707/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233355f66696c652e706e67)](https://camo.githubusercontent.com/8825142c24ab6ce67d7add0c3ceb2edae91c360b42632e4839cd71bbe7bbd707/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233355f66696c652e706e67) [![ico4](https://camo.githubusercontent.com/bf667f6ea8f30c63fded67f2af8f03c1a74b672568d90a192157ca9fb203360c/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233365f66696c652e706e67)](https://camo.githubusercontent.com/bf667f6ea8f30c63fded67f2af8f03c1a74b672568d90a192157ca9fb203360c/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233365f66696c652e706e67) [![ico5](https://camo.githubusercontent.com/cf771525f947875d6e2b926535259039eb2b5ca1606fc382bf03714133529269/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233375f66696c652e706e67)](https://camo.githubusercontent.com/cf771525f947875d6e2b926535259039eb2b5ca1606fc382bf03714133529269/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233375f66696c652e706e67) [![ico6](https://camo.githubusercontent.com/90921929eabf57ba1c3db616fa1ec20c8271ca6e1ebd75cfa5685f6d16179c36/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233385f66696c652e706e67)](https://camo.githubusercontent.com/90921929eabf57ba1c3db616fa1ec20c8271ca6e1ebd75cfa5685f6d16179c36/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233385f66696c652e706e67) [![ico7](https://camo.githubusercontent.com/aacd9f3b3c04d285e9529b2bf2eb0eff08a8ff4d7442d5f59d2bc54adf1fde97/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233395f66696c652e706e67)](https://camo.githubusercontent.com/aacd9f3b3c04d285e9529b2bf2eb0eff08a8ff4d7442d5f59d2bc54adf1fde97/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233395f66696c652e706e67)
 
@@ -161,11 +160,7 @@ listNumbers: selectList(table: 'orders'; field: 'number'; where: 'date' >= #firs
 
 #### Строки, числа, чекбоксы и кнопки
 
-![строки](https://totum.totum.online/fls/365_263_file.png)
-
 ![числа](https://totum.totum.online/fls/365_264_file.png)
-
-![чекбоксы](https://totum.totum.online/fls/365_267_file.png)
 
 ![кнопки](https://totum.totum.online/fls/365_269_file.png)
 
@@ -230,10 +225,9 @@ listNumbers: selectList(table: 'orders'; field: 'number'; where: 'date' >= #firs
 ![деревья](https://totum.totum.online/fls/365_394_file.png)
 
 
-### ...
+.
 
-
-
+.
 
 
 ### И еще несколько моментов... 👀
@@ -258,7 +252,7 @@ listNumbers: selectList(table: 'orders'; field: 'number'; where: 'date' >= #firs
 
 
 
-#### API, для любого взаимодействия 
+#### API, для любого взаимодействия
 
 Открытое и настраиваемое API позволяет обмениваться данными с любыми системами как на вход, так и на выход.
 

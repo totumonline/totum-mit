@@ -6,7 +6,7 @@ use DateTime;
 
 interface LangInterface
 {
-    public function translate(string $str, array|string $vars = []): string;
+    public function translate(string $str, mixed $vars = []): string;
 
     public function dateFormat(DateTime $date, $fStr): string;
 

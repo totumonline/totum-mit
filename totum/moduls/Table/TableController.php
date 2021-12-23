@@ -139,7 +139,7 @@ class TableController extends interfaceController
                 $result['tableChanged'] = $tableChanged;
             }
             $this->Totum->transactionCommit();
-        } catch (errorException | criticalErrorException $exception) {
+        } catch (errorException|criticalErrorException $exception) {
             $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         }
 
@@ -730,25 +730,26 @@ class TableController extends interfaceController
             }
             $checkTreeTable($tableId);
         } else {
-            $branchData = $this->Totum->getModel('tree')->executePrepared(
+            if ($branchData = $this->Totum->getModel('tree')->executePrepared(
                 false,
                 ['id' => $this->branchId],
                 'html,type,default_table,filters,top'
-            )->fetch();
+            )->fetch()) {
 
-            switch ($branchData['type']) {
-                case null:
-                    $this->__addAnswerVar(
-                        'html',
-                        preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
-                    );
-                    break;
-                case 'anchor':
-                    $this->anchorId = $this->branchId;
-                    $this->branchId = $branchData['top'];
-                    $this->Table = $this->Totum->getTable($branchData['default_table']);
-                    $this->Table->setAnchorFilters(json_decode($branchData['filters'] ?? '[]', true));
-                    break;
+                switch ($branchData['type']) {
+                    case null:
+                        $this->__addAnswerVar(
+                            'html',
+                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
+                        );
+                        break;
+                    case 'anchor':
+                        $this->anchorId = $this->branchId;
+                        $this->branchId = $branchData['top'];
+                        $this->Table = $this->Totum->getTable($branchData['default_table']);
+                        $this->Table->setAnchorFilters(json_decode($branchData['filters'] ?? '[]', true));
+                        break;
+                }
             }
         }
 

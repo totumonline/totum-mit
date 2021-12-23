@@ -9,6 +9,7 @@
 namespace totum\tableTypes;
 
 use Exception;
+use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\criticalErrorException;
@@ -102,6 +103,13 @@ abstract class aTable
         'rowOperations' => [],
         'rowOperationsPre' => [],
         'reordered' => false,
+    ];
+    protected $changeInOneRecalcIds = [
+        'deleted' => [],
+        'restored' => [],
+        'added' => [],
+        'changed' => [],
+        'reorderedIds' => [],
     ];
     protected $onCalculating = false //Рассчитывается ли таблица - для некеширования запросов к ней
     ;
@@ -252,21 +260,64 @@ abstract class aTable
     protected function execDefaultTableAction(mixed $codeAction, $loadedTbl, $tbl): void
     {
         $Code = new CalculateAction($codeAction);
-        $changes = [];
-        foreach (['deleted',
-                     'restored',
-                     'added',
-                     'changed',
-                     'reorderedIds'] as $cat) {
-            $changes[$cat] = match ($cat) {
-                'deleted', 'added', 'reorderedIds', 'restored' => array_keys($this->changeIds[$cat]),
-                'changed' => array_map(function ($v) {
-                    return $v ? array_keys($v) : [];
-                }, $this->changeIds[$cat])
-            };
-        }
+
         $Code->execAction('DEFAULT ACTION', [], [], $loadedTbl, $tbl, $this, 'exec',
-            ['changes' => $changes]
+            ['changes' => function () use ($tbl, $loadedTbl) {
+                $changes = [];
+
+                $getChangedFields = function ($newRow, $oldRow) {
+                    $keys = [];
+                    foreach ($newRow as $k => $_v) {
+                        /*key_exists for $oldRow[$k] не использовать!*/
+                        if (is_array($_v) && Calculate::compare('!==',
+                                ($oldRow[$k]['v'] ?? null),
+                                $_v['v'],
+                                $this->getLangObj())) {
+                            $keys[] = $k;
+                        }
+                    }
+                    return $keys;
+                };
+
+
+                foreach (['deleted',
+                             'restored',
+                             'added',
+                             'changed',
+                             'reorderedIds'] as $cat) {
+                    $changes[$cat] = match ($cat) {
+                        'deleted', 'added', 'reorderedIds', 'restored' => array_keys($this->changeInOneRecalcIds[$cat]),
+                        default => []
+                    };
+                }
+
+                if (is_a($this, RealTables::class)) {
+                    $changes['changed'] = $this->changeInOneRecalcIds['changed'];
+                    array_walk($changes['changed'], function (&$v, $id) use ($getChangedFields, $tbl, $loadedTbl) {
+                        if (key_exists('old', $v)) {
+                            $v = $getChangedFields($v['new'], $v['old']);
+                        } elseif ($v === true || empty($v)) {
+                            $v = $getChangedFields($tbl['rows'][$id], $loadedTbl['rows']['id']);
+                        } else {
+                            $v = array_keys($v);
+                        }
+                    });
+                } else {
+                    foreach ($tbl['rows'] ?? [] as $id => $row) {
+                        if (key_exists($id, $loadedTbl['rows'] ?? [])) {
+                            $oldRow = $loadedTbl['rows'][$id];
+                            if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
+                                if ($_ = $getChangedFields($row, $oldRow)) {
+                                    $changes['changed'][$id] = $_;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $changes['changed']['params'] = $getChangedFields($tbl['params'], $loadedTbl['params']);
+                return $changes;
+            }]
         );
     }
 
@@ -903,6 +954,15 @@ CODE;;
         }
 
         $oldTbl = $this->tbl;
+
+
+        $this->changeInOneRecalcIds = [
+            'deleted' => [],
+            'restored' => [],
+            'added' => [],
+            'changed' => [],
+            'reorderedIds' => [],
+        ];
 
 
         $newTbl = $this->getNewTblForRecalc();

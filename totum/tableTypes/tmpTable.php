@@ -99,11 +99,15 @@ class tmpTable extends JsonTables
                 $oldRow = ($savedTbl['rows'][$id] ?? []);
                 if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                     $this->changeIds['deleted'][$id] = null;
+                    $this->changeInOneRecalcIds['deleted'][$id] = null;
                 } elseif (!empty($oldRow) && empty($row['is_del'])) {
                     if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
                         foreach ($row as $k => $v) {
                             /*key_exists for $oldRow[$k] не использовать!*/
-                            if ($k !== 'n' && Calculate::compare('!==', ($oldRow[$k] ?? null), $v, $this->getLangObj())) {
+                            if ($k !== 'n' && Calculate::compare('!==',
+                                    ($oldRow[$k] ?? null),
+                                    $v,
+                                    $this->getLangObj())) {
                                 $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
                                 $this->changeIds['changed'][$id][$k] = null;
                             }
@@ -111,14 +115,20 @@ class tmpTable extends JsonTables
                     }
                 }
             }
-            $this->changeIds['deleted'] = $this->changeIds['deleted'] + array_flip(array_keys(array_diff_key(
-                    $savedTbl['rows'] ?? [],
-                    $this->tbl['rows'] ?? []
-                )));
-            $this->changeIds['added'] = array_flip(array_keys(array_diff_key(
+            $deleted = array_flip(array_keys(array_diff_key(
+                $savedTbl['rows'] ?? [],
+                $this->tbl['rows'] ?? []
+            )));
+            $added = array_flip(array_keys(array_diff_key(
                 $this->tbl['rows'],
                 $savedTbl['rows']
             )));
+            $this->changeIds['deleted'] = $this->changeIds['deleted'] + $deleted;
+            $this->changeIds['added'] = $this->changeIds['added'] + $added;
+
+            $this->changeInOneRecalcIds['deleted'] = $deleted;
+            $this->changeInOneRecalcIds['added'] = $added;
+
             $this->isOnSaving = false;
 
             return true;

@@ -119,7 +119,7 @@ class Calculate
         return $conditionTest;
     }
 
-    protected function translate(string $str, array|string|int|float $vars = []): string
+    protected function translate(string $str, mixed $vars = []): string
     {
         return $this->Table->getTotum()->getLangObj()->translate($str, $vars);
     }

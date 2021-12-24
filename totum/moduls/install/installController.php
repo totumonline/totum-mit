@@ -72,7 +72,7 @@ class installController extends interfaceController
         include dirname(__FILE__) . DIRECTORY_SEPARATOR . 'page_install_template.php';
     }
 
-    protected function translate(string $str, float|int|array|string $vars = []): string
+    protected function translate(string $str, mixed $vars = []): string
     {
         if ($this->Config) {
             return parent::translate($str, $vars);

@@ -63,7 +63,7 @@ class TotumInstall
         $this->outputConsole = $outputConsole;
     }
 
-    protected function translate(string $str, array|string|int|float $vars = []): string
+    protected function translate(string $str, mixed $vars = []): string
     {
         return $this->Config->getLangObj()->translate($str, $vars);
     }

@@ -399,7 +399,7 @@ class Actions
         die;
     }
 
-    protected function translate(string $str, array|string|int|float $vars = []): string
+    protected function translate(string $str, mixed $vars = []): string
     {
         return $this->Totum->getLangObj()->translate($str, $vars);
     }

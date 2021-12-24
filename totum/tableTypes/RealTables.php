@@ -464,7 +464,6 @@ abstract class RealTables extends aTable
             }
         }
 
-
         switch ($action) {
             case 'Delete':
                 $this->rowsOperations($action, $oldRow);
@@ -476,12 +475,13 @@ abstract class RealTables extends aTable
                 $changedKeys = [];
                 foreach ($row as $k => $v) {
                     if (($oldRow[$k] ?? null) !== $v) {
-                        if(!Calculate::compare('==', $oldRow[$k], $v, $this->getLangObj())){
+                        if (!Calculate::compare('==', $oldRow[$k], $v, $this->getLangObj())) {
                             $changedKeys[] = $k;
                         }
                     }
                 }
                 $this->rowsOperations($action, $row, $changedKeys);
+                $this->changeInOneRecalcIds['changed'][$row['id']] = ['old' => $oldRow, 'new' => $row];
                 break;
         }
     }
@@ -763,6 +763,7 @@ abstract class RealTables extends aTable
                     $addAfterN = $nextN;
 
                     $this->changeIds['reorderedIds'][$rId] = 1;
+                    $this->changeInOneRecalcIds['reorderedIds'][$rId] = 1;
                     $nextN = null;
                 }
 
@@ -816,6 +817,7 @@ abstract class RealTables extends aTable
                         }
                         $this->model->updatePrepared(true, ['n' => $n], ['id' => [$rId]]);
                         $this->changeIds['reorderedIds'][$rId] = 1;
+                        $this->changeInOneRecalcIds['reorderedIds'][$rId] = 1;
                     }
                     $this->tbl['rows'] = [];
                     $this->setIsTableDataChanged(true);
@@ -1003,6 +1005,7 @@ abstract class RealTables extends aTable
             case 'Delete':
 
                 $this->changeIds['deleted'][$row['id']] = null;
+                $this->changeInOneRecalcIds['deleted'][$row['id']] = null;
                 foreach ($this->sortedFields['column'] as $field) {
                     if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
                         $this->loadRowsByIds([$row['id']]);
@@ -1017,6 +1020,7 @@ abstract class RealTables extends aTable
                 break;
             case 'Restore':
                 $this->changeIds['restored'][$row['id']] = null;
+                $this->changeInOneRecalcIds['restored'][$row['id']] = null;
                 break;
             case 'Load':
                 foreach ($rowsIndexedByIdOrChanges as $id => &$row) {
@@ -1027,6 +1031,7 @@ abstract class RealTables extends aTable
                 break;
             case 'Add':
                 $this->changeIds['added'][$row['id']] = null;
+                $this->changeInOneRecalcIds['added'][$row['id']] = null;
                 $this->tbl['rows'][$row['id']] = $row;
                 break;
             case 'Change':
@@ -1036,6 +1041,7 @@ abstract class RealTables extends aTable
                 }
 
                 $this->changeIds['changed'][$row['id']] += array_flip($rowsIndexedByIdOrChanges);
+
                 $this->tbl['rows'][$row['id']] = $row;
                 break;
         }
@@ -1213,6 +1219,7 @@ abstract class RealTables extends aTable
 
 
         $this->changeIds['duplicated'][$baseRow['id']] = $row['id'];
+        $this->changeInOneRecalcIds['duplicated'][$baseRow['id']] = $row['id'];
         return $row;
     }
 

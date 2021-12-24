@@ -135,6 +135,7 @@ abstract class JsonTables extends aTable
                     $oldRow = ($this->loadedTbl['rows'][$id] ?? []);
                     if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                         $this->changeIds['deleted'][$id] = null;
+                        $this->changeInOneRecalcIds['deleted'][$id] = null;
                     } elseif (!empty($oldRow) && empty($row['is_del'])) {
                         //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
                         if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
@@ -160,15 +161,19 @@ abstract class JsonTables extends aTable
                 }
 
                 $this->loadedTbl['rows'] = $this->loadedTbl['rows'] ?? [];
-                $this->changeIds['deleted'] = $this->changeIds['deleted']
-                    + array_flip(array_keys(array_diff_key(
-                        $this->loadedTbl['rows'],
-                        $this->tbl['rows']
-                    )));
-                $this->changeIds['added'] = array_flip(array_keys(array_diff_key(
+                $deleted = array_flip(array_keys(array_diff_key(
+                    $this->loadedTbl['rows'],
+                    $this->tbl['rows']
+                )));
+                $added = array_flip(array_keys(array_diff_key(
                     $this->tbl['rows'],
                     $this->loadedTbl['rows']
                 )));
+                $this->changeIds['deleted'] = $this->changeIds['deleted'] + $deleted;
+                $this->changeIds['added'] = $this->changeIds['added'] + $added;
+
+                $this->changeInOneRecalcIds['deleted'] = $deleted;
+                $this->changeInOneRecalcIds['added'] = $added;
 
                 $this->isOnSaving = false;
             }
@@ -273,6 +278,7 @@ abstract class JsonTables extends aTable
                             if (!key_exists($_id, $SavedRows)) continue;
                             $newRows[$_id] = $SavedRows[$_id];
                             $this->changeIds['reorderedIds'][$_id] = 1;
+                            $this->changeInOneRecalcIds['reorderedIds'][$_id] = 1;
                         }
                         $addAfter = null;
                     } else {
@@ -302,6 +308,7 @@ abstract class JsonTables extends aTable
                     if (key_exists($id, $reorders)) {
                         $id = $reorders[$id];
                         $this->changeIds['reorderedIds'][$id] = 1;
+                        $this->changeInOneRecalcIds['reorderedIds'][$id] = 1;
                     }
                     $newRows[$id] = $SavedRows[$id];
                 }
@@ -312,6 +319,7 @@ abstract class JsonTables extends aTable
                     if (key_exists($id, $reorderIds)) {
                         $id = array_shift($reorder);
                         $this->changeIds['reorderedIds'][$id] = 1;
+                        $this->changeInOneRecalcIds['reorderedIds'][$id] = 1;
                     }
                     $newRows[$id] = $SavedRows[$id];
                 }
@@ -400,6 +408,7 @@ abstract class JsonTables extends aTable
                     if (!$isInInsert) {
                         if (empty($newRow['_E'])) {
                             $this->changeIds['deleted'][$row['id']] = null;
+                            $this->changeInOneRecalcIds['deleted'][$row['id']] = null;
                             continue;
                         } else {
                             if (empty($row['InsDel'])) {
@@ -438,16 +447,19 @@ abstract class JsonTables extends aTable
                         case 'delete':
                             $aLogDelete($row['id']);
                             $this->changeIds['deleted'][$row['id']] = null;
+                            $this->changeInOneRecalcIds['deleted'][$row['id']] = null;
                             continue 2;
                         case 'hide':
                             $newRow['is_del'] = true;
                             $this->changeIds['deleted'][$row['id']] = null;
+                            $this->changeInOneRecalcIds['deleted'][$row['id']] = null;
                             $aLogDelete($row['id']);
                             break;
                     }
                 } elseif (in_array($row['id'], $restore)) {
                     $this->setIsTableDataChanged(true);
                     $this->changeIds['restored'][$row['id']] = null;
+                    $this->changeInOneRecalcIds['restored'][$row['id']] = null;
                     if ($this->tableRow['type'] !== 'tmp'
                         && (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog)
                     ) {
@@ -470,6 +482,7 @@ abstract class JsonTables extends aTable
                 $newRow['insert']['c'] = $insVal;
                 $this->tbl['rows'][$newRow['id']] = $newRow;
                 $this->changeIds['added'][$newRow['id']] = null;
+                $this->changeInOneRecalcIds['added'][$newRow['id']] = null;
                 $this->setIsTableDataChanged(true);
             }
         }
@@ -509,7 +522,9 @@ abstract class JsonTables extends aTable
                 }
                 $duplicatedIds[$newRow['id']] = $row['id'];
                 $this->changeIds['added'][$newRow['id']] = null;
+                $this->changeInOneRecalcIds['added'][$newRow['id']] = null;
                 $this->changeIds['duplicated'][$id] = $newRow['id'];
+                $this->changeInOneRecalcIds['duplicated'][$id] = $newRow['id'];
                 $this->setIsTableDataChanged(true);
             } else {
                 throw new errorException($this->translate('Row %s not found', $id));
@@ -572,6 +587,7 @@ abstract class JsonTables extends aTable
                 $this->tbl['insertedId'] = $newRow['id'];
             }
             $this->changeIds['added'][$newRow['id']] = null;
+            $this->changeInOneRecalcIds['added'][$newRow['id']] = null;
         }
 
 

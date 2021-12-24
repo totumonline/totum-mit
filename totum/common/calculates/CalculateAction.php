@@ -993,6 +993,10 @@ class CalculateAction extends Calculate
             }
         }
 
+        if (!empty($params['hash']) && $linkedTable->getTableRow()['type'] === 'tmp') {
+            $this->__checkNotArrayParams($params, 'check');
+            $q_params['sess_hash'] = $params['hash'];
+        }
 
         $params['target'] = $params['target'] ?? 'self';
 

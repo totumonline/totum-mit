@@ -62,7 +62,7 @@ class SchemaReplace extends Command
                         break;
                     }
                 }
-                if(!$exists){
+                if (!$exists) {
                     $helper = $this->getHelper('question');
                     $question = new Question('Please enter the name of the new host: ');
 
@@ -114,12 +114,13 @@ class SchemaReplace extends Command
                     $schemaMatch)) {
                 $dropSchema = 'DROP SCHEMA IF EXISTS "' . $schemaName . '" CASCADE;' . "\n";
                 $addedSchemaName = $schemaMatch[1];
-                if ($checkschemaExists($addedSchemaName)) {
+                if ($addedSchemaName != $schemaName && $checkschemaExists($addedSchemaName)) {
                     do {
                         $addedSchemaTmpName = ($addedSchemaTmpName ?? $addedSchemaName) . '---totum-tmp-renaming';
                     } while ($checkschemaExists($addedSchemaTmpName));
                     $buffer = 'ALTER SCHEMA "' . $addedSchemaName . '" RENAME TO "' . $addedSchemaTmpName . '";' . "\n" . $buffer;
                 }
+                /*Удаляем схему с новым именем, если она существует (уже спросили подтверждение)*/
                 $buffer = $dropSchema . $buffer;
                 $is_schema_replaced = true;
             }

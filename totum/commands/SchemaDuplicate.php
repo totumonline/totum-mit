@@ -19,7 +19,7 @@ class SchemaDuplicate extends Command
             ->setDescription('Duplicate schema. You need install with psql and pg_dump in it. Change Conf.php if you installed totum without its.')
             ->addArgument('base', InputArgument::REQUIRED, 'Enter base schema name')
             ->addArgument('name', InputArgument::REQUIRED, 'Enter new schema name')
-            ->addArgument('host', InputArgument::REQUIRED, 'Enter new schema host for connect it in Conf.php')
+            ->addArgument('host', InputArgument::OPTIONAL, 'Enter new schema host for connect it in Conf.php')
             ->addOption('no-logs', '', InputOption::VALUE_NONE, 'For not duplicating logs')
             ->addOption('no-content', '', InputOption::VALUE_OPTIONAL, 'Enter table names separated by commas for not duplicating it\'s content');
     }

@@ -199,7 +199,7 @@ trait FuncStringsTrait
         };
         $characters = $getCharacters('numbers', $numbers);
         $characters .= $getCharacters('letters', $letters);
-        $characters .= $getCharacters('simbols', $simbols);
+        $characters .= $getCharacters('symbols', $simbols);
 
         if (!$characters) {
             throw new errorException($this->translate('No characters selected for generation.'));

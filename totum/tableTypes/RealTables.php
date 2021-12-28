@@ -1551,7 +1551,7 @@ abstract class RealTables extends aTable
                                         $where_tmp .= ' OR ';
                                     }
                                     if ($isAssoc) {
-                                        if (is_numeric((string)$v)) {
+                                        if (!is_array($v) && is_numeric((string)$v)) {
                                             $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
                                             $params[] = json_encode(
                                                 [$k => is_string($v) ? (float)$v : (string)$v],
@@ -1561,7 +1561,7 @@ abstract class RealTables extends aTable
                                         $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
                                         $params[] = json_encode([$k => $v], JSON_UNESCAPED_UNICODE);
                                     } else {
-                                        if (is_numeric((string)$v)) {
+                                        if (!is_array($v) && is_numeric((string)$v)) {
                                             $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
                                             $params[] = json_encode(
                                                 [is_string($v) ? (float)$v : (string)$v]

@@ -140,7 +140,7 @@ trait FuncStringsTrait
     {
         $params = $this->getParamsArray($params);
 
-        $this->__checkRequiredParams($params, ['str', 'offset'], 'strPart');
+        $this->__checkRequiredParams($params, ['str'], 'strPart');
 
         if ($params['str']) {
             $this->__checkNotArrayParams($params, ['str']);
@@ -148,7 +148,7 @@ trait FuncStringsTrait
         } else {
             $str = '';
         }
-        if ($params['offset']) {
+        if ($params['offset'] ?? null) {
             $this->__checkNotArrayParams($params, ['offset']);
 
             $offset = (int)$params['offset'];

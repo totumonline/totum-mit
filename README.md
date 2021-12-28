@@ -1,158 +1,344 @@
-[README — RUSSIAN](/README_RU.md)
+#### Site — [totum.online](https://totum.online)
 
-[https://totum.online](https://totum.online)
+#### Demo-server — [demo.totum.online](https://demo.totum.online)
 
-[https://docs.totum.online](https://docs.totum.online)
+\>
 
-— — —
+#### Documentaion — [docs.totum.online](https://docs.totum.online)
+
+#### Training course — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀
+
+#### Forum — [questions, answers, suggestions, announcements ](https://github.com/totumonline/totum-mit/discussions) 🔥
+
+#### Telegram tech support — `@alexeypolunin`
+
+\>
+
+##### Email — `totum at totum.online`
+
+\>
+
+#### If you have done a project on Totum — [tell about it here](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌
+
+\>
+
+\>
+
 
 ![logo](https://totum.totum.online/fls/365_100_file.png)
 
-# CRM, ERP and custom constructor
+\>
 
-**When typical solutions are not enough, for any type of data, web, open source 🎉**
+# Programmable database for non-programmers
 
-**For two- or three-men teams, freelancers and business-analytics 💪 👀**
+##### Universal UI, simple code-based logic, automatic actions, access rights, logging, API and lots of other stuff 👍
 
+##### For rapid construction of business applications 💪 👀
 
+##### On your server, easy to learn and scalable with business growth 🎉
 
-![ico1](https://totum.totum.online/fls/365_233_file.png) ![ico2](https://totum.totum.online/fls/365_234_file.png) ![ico3](https://totum.totum.online/fls/365_235_file.png) ![ico4](https://totum.totum.online/fls/365_236_file.png) ![ico5](https://totum.totum.online/fls/365_237_file.png) ![ico6](https://totum.totum.online/fls/365_238_file.png) ![ico7](https://totum.totum.online/fls/365_239_file.png) 
+\>
 
-— Totum is a hybrid of electronic tables and databases.
+[![ico1](https://camo.githubusercontent.com/f7d915219b6605dcfe031152a9c787e078e1a527972c0d29dddfa80e1a490272/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233335f66696c652e706e67)](https://camo.githubusercontent.com/f7d915219b6605dcfe031152a9c787e078e1a527972c0d29dddfa80e1a490272/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233335f66696c652e706e67) [![ico2](https://camo.githubusercontent.com/7440e8f8dc1509396df00c5fe796c337c2c148cb641b9947de05ec86a512d21f/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233345f66696c652e706e67)](https://camo.githubusercontent.com/7440e8f8dc1509396df00c5fe796c337c2c148cb641b9947de05ec86a512d21f/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233345f66696c652e706e67) [![ico3](https://camo.githubusercontent.com/8825142c24ab6ce67d7add0c3ceb2edae91c360b42632e4839cd71bbe7bbd707/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233355f66696c652e706e67)](https://camo.githubusercontent.com/8825142c24ab6ce67d7add0c3ceb2edae91c360b42632e4839cd71bbe7bbd707/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233355f66696c652e706e67) [![ico4](https://camo.githubusercontent.com/bf667f6ea8f30c63fded67f2af8f03c1a74b672568d90a192157ca9fb203360c/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233365f66696c652e706e67)](https://camo.githubusercontent.com/bf667f6ea8f30c63fded67f2af8f03c1a74b672568d90a192157ca9fb203360c/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233365f66696c652e706e67) [![ico5](https://camo.githubusercontent.com/cf771525f947875d6e2b926535259039eb2b5ca1606fc382bf03714133529269/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233375f66696c652e706e67)](https://camo.githubusercontent.com/cf771525f947875d6e2b926535259039eb2b5ca1606fc382bf03714133529269/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233375f66696c652e706e67) [![ico6](https://camo.githubusercontent.com/90921929eabf57ba1c3db616fa1ec20c8271ca6e1ebd75cfa5685f6d16179c36/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233385f66696c652e706e67)](https://camo.githubusercontent.com/90921929eabf57ba1c3db616fa1ec20c8271ca6e1ebd75cfa5685f6d16179c36/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233385f66696c652e706e67) [![ico7](https://camo.githubusercontent.com/aacd9f3b3c04d285e9529b2bf2eb0eff08a8ff4d7442d5f59d2bc54adf1fde97/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233395f66696c652e706e67)](https://camo.githubusercontent.com/aacd9f3b3c04d285e9529b2bf2eb0eff08a8ff4d7442d5f59d2bc54adf1fde97/68747470733a2f2f746f74756d2e746f74756d2e6f6e6c696e652f666c732f3336355f3233395f66696c652e706e67)
 
-— Ready frontend — for desktop and mobile.
+\>
 
-— Small code principal — a lot of simple situational code.
+**— Totum** — a hybrid of database and spreadsheet.
 
-— Learn to program Totum in about 50-60 hours.
+**— Ready-made frontend** — for desktops and mobile devices.
 
-— WEB, full-stack — install it on your own server.
+**— Small-code** — simple syntax that is easy to learn.
 
-— Two levels of access — programmer-user.
+**— Documentation and training course** — first working table in 30 min.
 
-— Simple language —  logic, query and build-in IDE.
+**— WEB, open-source** — is installed on your own server.
 
-![main](https://totum.totum.online/fls/365_242_file.png)
+**— Two-level access** — developer-users.
 
-## Advantages
+**— API** —  integrate with anything.
 
-**Small code, simple language** — logic, actions, formatting and queries to data.
+\>
 
-**Role distribution** — roles, users, hierarchy of access, access on conditions.
+![main](https://totum.totum.online/fls/365_400_file.png)
 
-**Print** — print of tables, changeable templates, access to the templates of any HTML.
+\>
 
-**Logs** — time, place, users, actions, inserted data, online status, user history, customizable log access, log of outer interactions.
+\>
 
-**Schedule** — using of crons for completing tasks.
+## Using
 
-**Fields** — text, numbers, files, references, lists, dates, data, buttons, comments etc.
+\>
 
-**Notifications** — text, dynamic, user-type.
+#### Data ⟶ Processing ⟶ Actions ⟶ Exchange ⟶ Reports ⟶ Accesses ⟶ Logs
 
-**Import/export** — JSON-API, fast services, access to third-party scripts using inner code, CSV.
+\>
 
-**Debugging** — calculations, actions, formatting, load, time of action.
++ Production management
++ Cadastre accounting
++ Collecting data from sensors
++ Financial accounting
++ Order management
++ Stocks
++ Backends for an online shop
++ Services accounting
++ CRM
++ Contract shipments
++ Fitness management
++ Lease accounting
++ Equipment inventory
++ Transferring accounting from Excel
++ Purchasing optimisation
++ Printing industries
++ Pototyping apps
++ ...
 
-**Free extension** — add your own functions, implement special interface.
++ **See people's completed projects — [in this section of the GitHub forum](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌**
 
+\>
 
+![Using](https://totum.totum.online/fls/365_401_file.png)
 
+\>
 
-## Developer
+\>
 
+## All you need is a browser
 
+Development and operation are in the same environment.
 
-[Documentation](https://docs.totum.online/)
+Tables, fields and their settings are created and managed with the mouse.
 
+The developer can instantly hide the developer UI elements to see what the solution looks like for the user or switch to a specific user and perform an action from that user.
 
+\>
 
-**Small-code principal — lot of simple situational code divided by type of use and connected to the visual structure of the program.**
+![uniform interface](https://totum.totum.online/fls/365_283_file.png)
 
-**You will need from 2 to 5 less time for development.**
+\>
 
-**You won’t need additional programs for development, optimized for Chromium and Safari.**
+\>
 
-Build-in flexible system of access to visibility and modification of tables and fields.
+## Program the logic with simple codes
 
-Detailed tunable log of user’s actions.
+Totum is written in `PHP` but is internally programming with its own language — `totum code`.
 
-Graphic interface suitable for a lot of tasks.
+**This makes development on Totum possible for non-programmers.**
 
-Development and working using one interface. Developer can immediately see user’s solutions (Easy distant maintenance).
+A Totum developer does not need to know `SQL` — calling and writing data to database is also managed by `totum code`.
 
-Easy install, all api structure and transaction logic you need from the box.
+In most fields, the codes are small — up to 5-10 lines.
 
-You can easily transfer previous solutions into new projects. 
+Totum provides highlighting, searching and substitution of table and field addresses, variables and functions, and autofills parameters.
 
-Integration through API.
+Codes are linked to fields and separated by action types:
 
-Typical print protocols, e-mail send and using of cron.  
+— ones `calculate the value` similar to the formulas in Excel.
 
-You don’t need to be a skilled developer to use Totum.
+— others, follow the changes and `execute the actions`.
 
-You don’t need to be a skilled frontend-developer (if you use standard options).
+— the third type is responsible for `appearance` depending on conditions.
 
-**Simple language for any level of developer.**
+\>
 
-Build-in code highlighting, auto-insert and validation of code.
+```
+// Example of calculating value code
 
-Build-in system of debugging.
+= : listSum(list: $list) + #fixed_costs
 
-You don’t need to be a skilled developer — middle-class developer can solely make big final solution.
+list: selectList(table: 'orders'; field: 'cost'; where: 'number' = $listNumbers)
 
-**Easy install on server and no need in special maintenance (you can install it on typical shared).**
+listNumbers: selectList(table: 'orders'; field: 'number'; where: 'date' >= #first_day_months; where: 'orderStatus' = #final_status)
+```
 
-	CPU от 1х2.4 ГГц от 512 Мб PHP 7.3 PostgreSQL от 9.5 Apache/Nginx IonCube NIX
+\>
 
+#### You can implement complex logic, even with the lowest programming skills. You will be able to understand it with — [the free training course](https://docs.totum.online/training-course), [forum](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions) and technical support on Telegram 👌
 
+\>
 
+\>
 
-## Business
+## Database as interface - x10 to development speed 🏃💨
 
-+ Custom CRM;
+Use a variety of ready-made elements:
 
-+ for warehouse planning;
++ Strings
++ Numbers
++ Checkboxes
++ Buttons
++ Dropdown lists
++ Trees
++ Dates
++ Files
++ Charts
 
-+ for transactions planning;
+\>
 
-+ work-time planning and equipment upload;
+![numbers](https://totum.totum.online/fls/365_399_file.png)
 
-+ for Industrial planning;
+\>
 
-+ planning systems and purchase control;
+\>
 
-+ for logistic;
+### Adaptivity
 
-+ Interaction systems with dealers or franchisees.
+Use a single adaptability setting for desktop and mobile devices.
 
+You don't need to know `CSS/GRID/FLEX` to make a clear, adaptive interface on Totum.
 
+One function and several parameters provide a huge range of options.
 
-## Open-source code
+Your solution will look neat on all screen widths.
 
-![Лого лого](https://totum.totum.online/fls/365_74_file.png)
+![img](https://totum.totum.online/fls/365_216_file.gif)
 
-Open-source code on PHP.
+\>
 
-DB PostgreSQL.
+\>
 
-Install on your own server. ionCube is required (typical module for PHP) — encrypted part allow you to develop [commercial licenses](https://totum.online/licenzirovanie). All the rest code is free for modification!
+### Special views
 
-You can easily interact with other programs through simple API.
+After a little customisation, tables can be automatically presented in more than just cells!
 
-**You can modify custom interface without changing the core of your solution.**
+#### Kanban
 
-You can easily use scripts written on any other language.
+![kanban](https://totum.totum.online/fls/365_402_file.png)
 
+\>
 
+#### Trees
 
+![trees](https://totum.totum.online/fls/365_403_file.png)
 
-## Contacts
 
-[totum@totum.online](mailto:totum@totum.online) — just mail.
+\>
 
-[telegram](http://t.me/alexeypolunin) — telegram of the project manager (@alexeypolunin).
+\>
 
-[github.com/totumonline](https://github.com/totumonline) — list of repositories.
 
-[github.com/orgs/totumonline/projects/1](https://github.com/orgs/totumonline/projects/1) — project-planning on GitHub.
+### And a few more details... 👀
+
+#### Don't worry about concurrent access — transactions are atomic
+
+**All actions line up in chains:** if a cancellation or error occurs while the chain is in progress — the whole chain will be cancelled.
+
+**You can work in parallel:** if two users make a changes to the same table at the same time, the action saved by the second one will automatically restart.
+
+\>
+
+#### Refine directly in the running project
+
+With `PHP-base`, your development error will not crash the server, and built-in debugging and testing tools help you make changes to running projects on the fly.
+
+\>
+
+#### Print by html templates, export/import to .csv
+
+Just don't waste your time on it, that's all...
+
+\>
+
+#### API, for any interaction
+
+Open and customisable API allows data to be exchanged with any system for both input and output.
+
+Exchange data with Totum via `POST` in `JSON` format.
+
+Call to a third-party server directly from `totum-code`.
+
+Write your own microservice on `totum-code` responding to `GET/POST` requests.
+
+You will be able to write integrations with the website, bank, messengers and any other services working in `web`.
+
+\>
+
+\>
+
+## Perks 📣
+
+\>
+
+### Free
+
+The Community version of Totum is distributed under an MIT-licence. Free for any type of use!
+
+\>
+
+
+### All information can be located in the company's secure network
+
+Totum is self hosted. You can set up any access policies for the server you manage yourself.
+
+You also control what can be transmitted outside of this contour and what cannot.
+
+Therefore, Totum can be used to automate the work of individual units, and especially effectively as pilot prototypes!
+
+\>
+
+### A copy of Totum will stay with you forever
+
+You make a full copy of all platform scripts to your own server — you are not dependent on the availability of the developers servers, and you can modify the platform code as needed.
+
+\>
+
+### Totum is scalable
+
+In the event of dramatic success and large-scale growth of your database, the Totum solution will stand up to the load.
+
+Even if some elements of the solution turn out to be designed for a lower load — you can modify them without rewriting the whole solution.
+
+In addition, the database underlying Totum allows it to be clustered across multiple servers, including in large certified clouds.
+
+\>
+
+\>
+
+## Technical basis (double elefant)
+
+![postgres](https://totum.totum.online/fls/365_262_file.png)  ![php]( https://totum.totum.online/fls/365_261_file.png)
+
++ Open source code in PHP.
+
++ PostgreSQL database.
+
++ Installation on your own server. All code is freely modifiable!
+
++ Easy interaction with other software products via a simple API.
+
+\>
+
+**For skilled developers:**
+
+— the ability to add a custom interface without changing the core of the solution.
+
+— easy ability to connect codes written in any language via SSH.
+
+\>
+
+
+
+## How to try?
+
+#### Welcome to the demo server — [demo.totum.online](https://demoru.totum.online) 🎉
+
+\>
+
+#### Site — [totum.online](https://totum.online)
+
+\>
+
+#### Documentation — [docs.totum.online](https://docs.totum.online)
+
+#### Training course — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀
+
+#### Forum in English — [questions, answers, suggestions, announcements ](https://github.com/totumonline/totum-mit/discussions) 🔥
+
+#### Telegram tech support — `@alexeypolunin`
+
+\>
+
+##### Email — `totum at totum.online`
+
+\>
+
+#### If you have done a project on totum — [tell about him here](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌

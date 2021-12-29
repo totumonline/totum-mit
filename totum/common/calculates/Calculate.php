@@ -196,7 +196,7 @@ class Calculate
                     } else {
                         $key = strval($key);
                         foreach ($n2 as $nKey => $nItem) {
-                            if (strval($nKey) === $key && static::__compare_normalize($n) === static::__compare_normalize($nItem)) {
+                            if (strval($nKey) === $key && static::compare('==', $n, $nItem, $Lang)) {
                                 $r = true;
                                 break;
                             }

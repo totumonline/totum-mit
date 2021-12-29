@@ -214,6 +214,7 @@ trait ParsesTrait
                         \(|\)|
                         [&]{2}|
                         [|]{2}|
+                        !==|
                         ==|
                         !=|
                         >=|
@@ -302,6 +303,7 @@ trait ParsesTrait
                     case '>':
                     case '=':
                     case '==':
+                    case '!==':
                     case '!=':
                     case '<=':
                     case '>=':

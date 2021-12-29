@@ -40,7 +40,7 @@ class errorException extends \Exception
         match (true) {
             is_a($contextObject, aTable::class) => $contextObject->getTotum()->transactionRollback(),
             is_a($contextObject, Totum::class) => $contextObject->transactionRollback(),
-            is_a($contextObject, ConfParent::class) => $contextObject->getSql()->transactionRollBack(),
+            is_a($contextObject, ConfParent::class) => $contextObject->getSql(true, withSchema: false)->transactionRollBack(),
             is_a($contextObject, Sql::class) => $contextObject->transactionRollBack(),
         };
         if (!$path && is_object($error) && method_exists($error, 'getPathMess')) {

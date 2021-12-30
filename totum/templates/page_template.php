@@ -18,7 +18,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=f07adcf"></script>
+    <script src="/js/main.js?v=eab8500"></script>
     <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?8"></script>
     <script>App.lang=App.langs["<?= $this->Config->getLang() ?>"]</script>
 

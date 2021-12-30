@@ -671,8 +671,7 @@ class TableController extends interfaceController
             } else {
 
                 $tableId = $tableMatches[3];
-                if (!is_numeric($tableId)) {
-                    $calcsTableRow = $this->Totum->getTableRow($tableId);
+                if (!is_numeric($tableId) && ($calcsTableRow = $this->Totum->getTableRow($tableId))) {
                     $tableId = $calcsTableRow['id'];
                 }
                 if (!is_numeric($tableMatches[1])) {

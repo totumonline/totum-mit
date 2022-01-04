@@ -30,13 +30,16 @@ class CleanSchemaTmpTables extends Command
                 $Conf->setHostSchema(null, $schema);
             }
         }
-
+        $sql = $Conf->getSql();
         $plus24 = date_create();
         $plus24->modify('-24 hours');
-        $Conf->getSql()->exec('delete from _tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
+        $sql->exec('delete from _tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
 
         $minus10 = date_create();
         $minus10->modify('-10 minutes');
-        $Conf->getSql()->exec('delete from _tmp_tables where table_name IN (\'_panelbuttons\', \'_linkToButtons\') AND touched<\'' . $minus10->format('Y-m-d H:i') . '\'');
+        $sql->exec('delete from _tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\''
+            . $minus10->format('Y-m-d H:i') . '\'');
+
+        $sql->exec('VACUUM _tmp_tables');
     }
 }

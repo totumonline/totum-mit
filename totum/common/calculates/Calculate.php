@@ -134,6 +134,7 @@ class Calculate
 
     protected static function __compare_normalize($n)
     {
+
         switch (gettype($n)) {
             case 'NULL':
                 return '';
@@ -143,6 +144,9 @@ class Calculate
             case 'double':
             case 'string':
                 if (is_numeric($n)) {
+                    if (str_contains(strval($n), 'E')) {
+                        $n = number_format($n, 12, '.', '');
+                    }
                     return bcadd($n, 0, 10);
                 }
                 return $n;
@@ -172,34 +176,6 @@ class Calculate
                 $r = false;
                 break;
             case '=':
-                if (count($n2) === 0) {
-                    if ($isTopLevel && (($n ?? '') === '')) {
-                        $r = true;
-                    } else {
-                        $r = false;
-                    }
-                } else {
-                    $r = false;
-                    $n = static::__compare_normalize($n);
-
-                    if (is_null($key)) {
-                        foreach ($n2 as $nItem) {
-                            if ($n === static::__compare_normalize($nItem)) {
-                                $r = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        $key = strval($key);
-                        foreach ($n2 as $nKey => $nItem) {
-                            if (strval($nKey) === $key && $n === static::__compare_normalize($nItem)) {
-                                $r = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                break;
             case '!=':
                 if (count($n2) === 0) {
                     if ($isTopLevel && (($n ?? '') === '')) {
@@ -209,11 +185,10 @@ class Calculate
                     }
                 } else {
                     $r = false;
-                    $n = static::__compare_normalize($n);
 
                     if (is_null($key)) {
                         foreach ($n2 as $nItem) {
-                            if ($n === static::__compare_normalize($nItem)) {
+                            if (static::compare('==', $n, $nItem, $Lang)) {
                                 $r = true;
                                 break;
                             }
@@ -221,14 +196,17 @@ class Calculate
                     } else {
                         $key = strval($key);
                         foreach ($n2 as $nKey => $nItem) {
-                            if (strval($nKey) === $key && $n === static::__compare_normalize($nItem)) {
+                            if (strval($nKey) === $key && static::compare('==', $n, $nItem, $Lang)) {
                                 $r = true;
                                 break;
                             }
                         }
                     }
                 }
-                $r = !$r;
+
+                if ($operator === '!=') {
+                    $r = !$r;
+                }
                 break;
             default:
                 throw new errorException($Lang->translate('For lists comparisons, only available =, ==, !=, !==.'));
@@ -243,8 +221,6 @@ class Calculate
             if (count($n) > 0 && (array_keys($n) !== range(0, count($n) - 1))) {
                 $nIsRow = true;
                 $nIsArray = false;
-            } else {
-                $nIsRow = false;
             }
         }
 
@@ -252,8 +228,6 @@ class Calculate
             if (count($n2) > 0 && (array_keys($n2) !== range(0, count($n2) - 1))) {
                 $n2IsRow = true;
                 $n2IsArray = false;
-            } else {
-                $n2IsRow = false;
             }
         }
 
@@ -314,6 +288,12 @@ class Calculate
             return static::_compare_n_array($operator, $n, $n2, $Lang, null, true);
         } elseif ($nIsArray) {
             return static::_compare_n_array($operator, $n2, $n, $Lang, null, true);
+        } elseif ($n2IsRow || $nIsRow) {
+            $r = match ($operator) {
+                '!=', '!==' => true,
+                '==', '=' => false,
+                default => throw new errorException($Lang->translate('For lists comparisons, only available =, ==, !=, !==.')),
+            };
         } else {
             $r = match (static::__compare_normalize($n) <=> static::__compare_normalize($n2)) {
                 0 => in_array($operator, ['>=', '<=', '=', '==']),

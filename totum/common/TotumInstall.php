@@ -889,7 +889,7 @@ CONF;
                             $_tableModel = $this->Totum->getModel($schemaRow['name']);
 
 
-                            $getRowId = function ($row) use ($_tableModel) {
+                            $getRowId = function ($row) use ($_tableModel, $schemaRow) {
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
                                             'id',
                                             $row

@@ -19,8 +19,17 @@ class CleanSchemasTmpTables extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        foreach (array_unique(array_values(Conf::getSchemas())) as $schemaName) {
-            `{$_SERVER['SCRIPT_FILENAME']} clean-schema-tmp-tables $schemaName > /dev/null 2>&1 &`;
+        $Conf = new Conf();
+        $sql = $Conf->getSql(withSchema: false);
+        $plus24 = date_create();
+        $plus24->modify('-24 hours');
+        $minus10 = date_create();
+        $minus10->modify('-10 minutes');
+
+        foreach (array_unique(array_values(Conf::getSchemas())) as $schema) {
+            $sql->exec('delete from "'.$schema.'"._tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
+            $sql->exec('delete from "'.$schema.'"._tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\'' . $minus10->format('Y-m-d H:i') . '\'');
+            $sql->exec('VACUUM "'.$schema.'"._tmp_tables');
         }
     }
 }

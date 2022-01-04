@@ -1,3 +1,7 @@
+#### If you want russian README — go here: [README_RU](https://github.com/totumonline/totum-mit/blob/master/README_RU.md)
+
+\>
+
 #### Site — [totum.online](https://totum.online)
 
 #### Demo-server — [demo.totum.online](https://demo.totum.online)

@@ -1,4 +1,4 @@
-If you want russian README — go here: https://github.com/totumonline/totum-mit/blob/master/README_RU.md
+#### If you want russian README — go here: [README_RU](https://github.com/totumonline/totum-mit/blob/master/README_RU.md)
 
 \>
 

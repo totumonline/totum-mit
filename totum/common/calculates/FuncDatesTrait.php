@@ -13,6 +13,9 @@ trait FuncDatesTrait
         if (empty($lang)) {
             $lang = $this->getLangObj();
         } else {
+            if (!class_exists('totum\\common\\Lang\\' . strtoupper($lang))) {
+                throw new errorException($this->translate('Language %s not found.', strtolower($lang)));
+            }
             $lang = new ('totum\\common\\Lang\\' . strtoupper($lang))();
         }
 

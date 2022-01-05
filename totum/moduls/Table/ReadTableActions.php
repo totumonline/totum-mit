@@ -1812,6 +1812,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     unset($modify['params']);
                     $changedIds['changed'] += ($modify ?? []);
                     $selectOrFormatColumns['id'] = true;
+                    if ($this->getPageViewType() === 'tree') {
+                        $selectOrFormatColumns['n'] = true;
+                    }
 
                     $rows = $this->Table->getTbl()['rows'];
                     foreach ($pageIds as $id) {

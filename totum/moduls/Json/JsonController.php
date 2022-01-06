@@ -122,7 +122,7 @@ class JsonController extends Controller
 
             $this->authUser();
             $this->Totum = new Totum($this->Config, $this->aUser);
-            if ($this->aUser->isCreator() && $this->arrayIn['withLogs'] ?? null) {
+            if ($this->aUser->isCreator() && ($this->arrayIn['withLogs'] ?? null)) {
                 $this->Totum->setCalcsTypesLog(is_array($this->arrayIn['withLogs']) ? $this->arrayIn['withLogs'] : ['c', 'a']);
             }
 
@@ -630,7 +630,7 @@ class JsonController extends Controller
             }
         }
 
-        if ($this->Totum && $this->aUser->isCreator() && $this->arrayIn['withLogs'] ?? false) {
+        if ($this->Totum && $this->aUser->isCreator() && ($this->arrayIn['withLogs'] ?? false)) {
             $this->arrayOut['logs'] = $this->Totum->getCalculateLog()->getLodTree();
         }
 

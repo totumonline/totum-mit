@@ -34,6 +34,7 @@ class RU implements LangInterface
         'The parameter [[%s]] should be of type string.' => 'Параметр [[%s]] должен быть типа строка.',
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 
+        'Language %s not found.'=>'Язык %s не найден.',
 
         'For temporary tables only.' => 'Только для временных таблиц',
         'For simple and cycles tables only.' => 'Только для простых таблиц и таблиц циклов.',

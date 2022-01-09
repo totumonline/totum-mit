@@ -1935,7 +1935,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function getResultTree($filterFunc, $loadingIds, $onlyTree = false)
     {
         $Tree = Field::init($this->Table->getFields()['tree'], $this->Table);
-        $val = ["v" => null];
+        $val = ['v' => null];
 
         $Tree->clearCachedLists();
         $list = $Tree->calculateSelectList($val, [], $this->Table->getTbl());
@@ -1948,7 +1948,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if ($Tree->getData('treeViewType') !== 'self' && !is_null($t = $Tree->getData('withEmptyVal'))) {
                 $tree[] = ['v' => null, 't' => $t];
             }
-            $bids[] = "";
+            $bids[] = '';
         } else {
             $bids = $loadingIds;
             $thisNodes = array_intersect_key($list, array_flip($loadingIds));

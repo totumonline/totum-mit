@@ -132,9 +132,14 @@ class Comments extends Field
                     if (is_array($valArray['v'])) {
                         $n = count($valArray['v']);
                         if ($valArray['v']) {
-                            foreach ($valArray['v'] as &$comment) {
+                            foreach ($valArray['v'] as $i => &$comment) {
                                 $c = $comment;
                                 $comment = $this->prepareComment($comment, false, $n);
+
+                                if (($i === count($valArray['v']) - 1) && $c[1] == $this->table->getUser()->getId()) {
+                                    $comment[3] = (int)!!($comment[3] ?? false);
+                                    $comment[4] = 'editable';
+                                }
                             }
                             unset($comment);
                         }

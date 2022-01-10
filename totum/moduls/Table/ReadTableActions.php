@@ -1399,11 +1399,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         } elseif (!is_a($this, WriteTableActions::class)) {
             throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
         } else {
-            $clearFields = $data["params"] ?? [];
+            $clearFields = $data['params'] ?? [];
             if ($filters) {
                 $clearFields = array_diff_key($clearFields, $filters);
             }
-            $data["params"] = $clearFields;
+            $data['params'] = $clearFields;
 
             return $this->modify(['modify' => $data, 'setValuesToDefaults' => $data['setValuesToDefaults'] ?? false]);
         }

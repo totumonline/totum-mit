@@ -1,4 +1,4 @@
-#!/usr/bin/env ./php8
+#!/usr/bin/env php
 <?php
 
 use totum\commands\CleanSchemasTmpTables;

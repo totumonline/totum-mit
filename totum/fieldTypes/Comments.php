@@ -10,6 +10,7 @@ namespace totum\fieldTypes;
 
 use totum\common\Auth;
 use totum\common\calculates\Calculate;
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Lang\RU;
@@ -46,7 +47,23 @@ class Comments extends Field
     public function modify($channel, $changeFlag, $newVal, $oldRow, $row = [], $oldTbl = [], $tbl = [], $isCheck = false)
     {
         if ($channel === 'web') {
-            $newVal = strval($newVal);
+            if (is_array($newVal) && key_exists('value', $newVal) && key_exists('editLastComment', $newVal)) {
+                $lastComment = $oldRow[$this->data['name']]['v'][count($oldRow[$this->data['name']]['v']) - 1] ?? [];
+                if ($lastComment && $lastComment[1] === $this->table->getUser()->getId() && $lastComment[2] === $newVal['editLastComment']) {
+                    $lastComment[2] = (string)$newVal['value'];
+                    $lastComment[3] = 1;
+
+                    $newVal = $oldRow[$this->data['name']]['v'];
+                    $newVal[array_key_last($newVal)] = $lastComment;
+
+                } else {
+                    throw new criticalErrorException($this->translate('You cann\'t edit this comment'));
+                }
+
+
+            } else {
+                $newVal = strval($newVal);
+            }
         }
         return parent::modify($channel, $changeFlag, $newVal, $oldRow, $row, $oldTbl, $tbl, $isCheck);
     }
@@ -115,9 +132,14 @@ class Comments extends Field
                     if (is_array($valArray['v'])) {
                         $n = count($valArray['v']);
                         if ($valArray['v']) {
-                            foreach ($valArray['v'] as &$comment) {
+                            foreach ($valArray['v'] as $i => &$comment) {
                                 $c = $comment;
                                 $comment = $this->prepareComment($comment, false, $n);
+
+                                if (($i === count($valArray['v']) - 1) && $c[1] == $this->table->getUser()->getId()) {
+                                    $comment[3] = (int)!!($comment[3] ?? false);
+                                    $comment[4] = 'editable';
+                                }
                             }
                             unset($comment);
                         }
@@ -135,13 +157,20 @@ class Comments extends Field
 
     public function getFullValue($val, $rowId = null)
     {
-        foreach ($val as &$comment) {
+        foreach ($val as $i => &$comment) {
+            $commentIn = $comment;
             $comment = $this->prepareComment($comment, false, $n);
-        }
-        if (!empty($comment) && $comment[1] !== $this->table->getUser()->getId()) {
-            $this->setViewed(count($val), $rowId);
+            if (($i === count($val) - 1) && $commentIn[1] == $this->table->getUser()->getId()) {
+                $comment[3] = (int)!!($comment[3] ?? false);
+                $comment[4] = 'editable';
+            }
         }
         unset($comment);
+
+        if (!empty($commentIn) && $commentIn[1] !== $this->table->getUser()->getId()) {
+            $this->setViewed(count($val), $rowId);
+        }
+
         return $val;
     }
 
@@ -233,6 +262,7 @@ class Comments extends Field
             }
         }
         $commentArray[1] = $this->table->getTotum()->getNamedModel(UserV::class)->getFio($commentArray[1]);
+
         return $commentArray;
     }
 

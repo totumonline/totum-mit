@@ -8,10 +8,12 @@ use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\errorException;
+use totum\common\Field;
 use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\Totum;
 use totum\common\User;
+use totum\fieldTypes\Select;
 use totum\models\Table;
 use totum\models\TablesFields;
 use totum\models\Tree;
@@ -269,8 +271,41 @@ class Actions
                 if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
                     $row = $Table->getTbl()['rows'][$data['env']['id']];
                 }
+            } else {
+                $row = $Table->getTbl()['params'];
             }
 
+            if (key_exists('type', $data)) {
+
+                /** @var Select $Field */
+                $Field = Field::init([
+                    'type' => 'select',
+                    'name' => '_linktoinputselect',
+                    'category' => key_exists('id', $row) ? 'column' : 'param',
+                    'codeSelect' => $data['codeselect'],
+                    'checkSelectValues' => true,
+                    'title' => $data['title'],
+                    'multiple' => $data['multiple'] ?? false,
+                ], $Table);
+
+                /*Запрос селекта*/
+                if (key_exists('search', $this->post)) {
+
+
+                    $val = ['v' => $this->post['search']['checkedVals']];
+                    $list = $Field->calculateSelectList($val,
+                        $row,
+                        $Table->getTbl());
+
+                    return $Field->cropSelectListForWeb($list, $val['v'], $this->post['search']['q']);
+
+
+                } /*Проверка результата*/
+                else {
+                    $Field->checkSelectval('web', $this->post['val'], $row, $Table->getTbl());
+                }
+
+            }
 
             if ($Table->getFields()[$data['code']] ?? false) {
                 $CA = new CalculateAction($this->Table->getFields()[$data['code']]['codeAction']);

@@ -123,7 +123,9 @@ class WriteTableActions extends ReadTableActions
         )]];
 
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);
-        return ['row' => $data['rows'][0], 'hash' => $hash];
+        $res = ['row' => $data['rows'][0], 'hash' => $hash];
+        $this->addLoadedSelects($res);
+        return $res;
     }
 
     public function checkEditRow()
@@ -147,6 +149,8 @@ class WriteTableActions extends ReadTableActions
         $row = $this->Table->checkEditRow($data, $dataSetToDefault, $this->post['tableData'] ?? []);
         $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit', [])['rows'][0];
         $res['f'] = $this->Table->getTableFormat([]);
+        $this->addLoadedSelects($res);
+
         return $res;
     }
 
@@ -244,5 +248,24 @@ class WriteTableActions extends ReadTableActions
             json_decode($this->post['data'], true) ?? []
         );
         return ['ok' => true];
+    }
+
+    protected function addLoadedSelects(array &$res)
+    {
+        if (!empty($this->post['loadSelects'])) {
+            $selects = [];
+            foreach ($this->Table->getSortedFields()['column'] as $field) {
+                if ($field['type'] === 'select' && $this->Table->isField('editable', 'web', $field)) {
+                    if (($res['row'][$field['name']]['f']['block'] ?? false) != true) {
+                        if ($this->post['loadSelects'] === 'all' || ($field['codeSelectIndividual'] ?? false)) {
+                            $item = $res['row'];
+                            $item = array_map(fn($x) => is_array($x) && key_exists('v', $x) ? $x['v'] : $x, $item);
+                            $selects[$field['name']] = $this->getEditSelect(['field' => $field['name'], 'item' => $item]);
+                        }
+                    }
+                }
+            }
+            $res['selects'] = $selects;
+        }
     }
 }

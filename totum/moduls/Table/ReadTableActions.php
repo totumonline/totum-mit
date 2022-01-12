@@ -1399,11 +1399,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         } elseif (!is_a($this, WriteTableActions::class)) {
             throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
         } else {
-            $clearFields = $data["params"] ?? [];
+            $clearFields = $data['params'] ?? [];
             if ($filters) {
                 $clearFields = array_diff_key($clearFields, $filters);
             }
-            $data["params"] = $clearFields;
+            $data['params'] = $clearFields;
 
             return $this->modify(['modify' => $data, 'setValuesToDefaults' => $data['setValuesToDefaults'] ?? false]);
         }
@@ -1935,7 +1935,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function getResultTree($filterFunc, $loadingIds, $onlyTree = false)
     {
         $Tree = Field::init($this->Table->getFields()['tree'], $this->Table);
-        $val = ["v" => null];
+        $val = ['v' => null];
 
         $Tree->clearCachedLists();
         $list = $Tree->calculateSelectList($val, [], $this->Table->getTbl());
@@ -1948,7 +1948,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if ($Tree->getData('treeViewType') !== 'self' && !is_null($t = $Tree->getData('withEmptyVal'))) {
                 $tree[] = ['v' => null, 't' => $t];
             }
-            $bids[] = "";
+            $bids[] = '';
         } else {
             $bids = $loadingIds;
             $thisNodes = array_intersect_key($list, array_flip($loadingIds));

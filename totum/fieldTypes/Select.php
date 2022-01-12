@@ -826,7 +826,7 @@ class Select extends Field
         return $modifyVal;
     }
 
-    protected function checkSelectval($channel, $newVal, array $row, array $tbl)
+    public function checkSelectval($channel, $newVal, array $row, array $tbl)
     {
         if (!empty($this->data['checkSelectValues']) && $channel !== 'inner') {
             if (($newVal === [] || ($newVal ?? '') === '')) {

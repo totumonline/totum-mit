@@ -312,6 +312,9 @@ class CalculateAction extends Calculate
         $this->Table->getTotum()->addToInterfaceDatas('buttons', $params);
     }
 
+    /* *
+     * used in funclinktoinputselect
+     * */
     protected function funcLinkToInput($params)
     {
         $params = $this->getParamsArray($params, ['var'], [], ['var']);
@@ -354,9 +357,17 @@ class CalculateAction extends Calculate
             'input',
             array_intersect_key(
                 $params,
-                ["value" => 1, "title" => 1, "html" => 1, "hash" => 1, "refresh" => 1, "button" => 1, "close" => 1, "type" => 1]
+                ['value' => 1, 'title' => 1, 'html' => 1, 'hash' => 1, 'refresh' => 1, 'button' => 1, 'close' => 1, 'type' => 1, 'multiple' => 1]
             )
         );
+    }
+
+    protected function funcLinkToInputSelect($params)
+    {
+        $params = $this->getParamsArray($params, ['var'], [], ['var']);
+        $params['type'] = 'select';
+        $this->__checkNotEmptyParams($params, ['codeselect']);
+        $this->funcLinkToInput($params);
     }
 
     protected function funcLinkToEdit($params)

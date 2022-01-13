@@ -539,6 +539,7 @@ CONF;
                 )->fetchAll();
                 $selectFields = array_combine(array_column($selectFields, 'name'), $selectFields);
 
+                /*TODO Проверить и удалить если не используется*/
                 if ($schemaRow['type'] === 'calcs') {
                     if ($vers = $this->Totum->getModel('calcstable_versions')->executePrepared(
                         true,
@@ -547,7 +548,7 @@ CONF;
                         null,
                         '0,1'
                     )->fetch()) {
-                        if ($schemaRow['is_default'] && !$vers['is_default']) {
+                        if (!empty($schemaRow['is_default']) && empty($vers['is_default'])) {
                             $versions['modify'][$vers['id']]['is_default'] = true;
                         }
                     } else {

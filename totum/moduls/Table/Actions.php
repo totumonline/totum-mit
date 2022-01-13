@@ -208,7 +208,7 @@ class Actions
 
             $model = $this->Totum->getModel('notifications');
             if ($ids === 'ALL_ACTIVE') {
-                $rows = $model->getAllPrepared(['<=active_dt_from' => date('Y-m-d H:i:s', time() - 120),
+                $rows = $model->getAllPrepared(['<=active_dt_from' => date('Y-m-d H:i:s', time() - 2),
                     'user_id' => $this->User->getId(),
                     'active' => 'true']);
             } else {

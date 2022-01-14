@@ -16,6 +16,7 @@ use totum\models\Table;
 use totum\models\TablesCalcsConnects;
 use totum\tableTypes\aTable;
 use totum\tableTypes\calcsTable;
+use totum\tableTypes\cyclesTable;
 
 class Cycle
 {
@@ -248,7 +249,8 @@ class Cycle
 
         if ($tableRow['type'] !== 'calcs') {
             errorException::criticalException(
-                $this->Totum->getLangObj()->translate('[[%s]] is available only for the calculation table in the cycle.', 'Cycle->getTable'),
+                $this->Totum->getLangObj()->translate('[[%s]] is available only for the calculation table in the cycle.',
+                    'Cycle->getTable'),
                 $this->getCyclesTable()
             );
         }
@@ -324,7 +326,7 @@ class Cycle
         }
     }
 
-    public function getCyclesTable()
+    public function getCyclesTable(): cyclesTable
     {
         return $this->Totum->getTable($this->getCyclesTableId());
     }
@@ -334,11 +336,11 @@ class Cycle
         $tablesIds = $this->getTableIds();
         $tablesUpdates = [];
 
-        $tables=[];
+        $tables = [];
         foreach ($tablesIds as $t) {
             $t = $this->getTable($t);
             $tablesUpdates[$t->getTableRow()['id']] = $t->getLastUpdated();
-            $tables[] =$t;
+            $tables[] = $t;
         }
         unset($t);
 

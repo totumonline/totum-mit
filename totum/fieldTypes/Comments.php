@@ -157,7 +157,7 @@ class Comments extends Field
 
     public function getFullValue($val, $rowId = null)
     {
-        foreach ($val as $i => &$comment) {
+        foreach ($val ?? [] as $i => &$comment) {
             $commentIn = $comment;
             $comment = $this->prepareComment($comment, false, $n);
             if (($i === count($val) - 1) && $commentIn[1] == $this->table->getUser()->getId()) {

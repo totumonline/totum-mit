@@ -18,7 +18,7 @@ use totum\common\TotumInstall;
 use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 use totum\tableTypes\RealTables;
-use \Exception;
+use Exception;
 use totum\tableTypes\tmpTable;
 
 class CalculateAction extends Calculate
@@ -28,7 +28,7 @@ class CalculateAction extends Calculate
     protected function formStartSections()
     {
         foreach ($this->code as $k => $v) {
-            if (preg_match('/^([a-z]*)([\d]*)=$/', $k, $matches) && (!$matches[1] || $matches[2] !== "")) {
+            if (preg_match('/^([a-z]*)([\d]*)=$/', $k, $matches) && (!$matches[1] || $matches[2] !== '')) {
                 $this->allStartSections[$matches[1]][$k] = $v;
                 unset($this->code[$k]);
             }
@@ -492,7 +492,7 @@ class CalculateAction extends Calculate
         } catch (Exception $e) {
             if ($toBfl) {
                 $this->Table->getTotum()->getOutersLogger()->error(
-                    "email",
+                    'email',
                     ['error' => $e->getMessage()] + $params
                 );
             }
@@ -567,7 +567,7 @@ class CalculateAction extends Calculate
             $data = $objectToArray($res);
             if ($toBfl) {
                 $this->Table->getTotum()->getOutersLogger()->debug(
-                    "SOAP",
+                    'SOAP',
                     ['xml_request' => $soapClient->__getLastRequest(), 'xml_response' => $soapClient->__getLastResponse(), 'data_request' => $params, 'data_response' => $data]
                 );
             }
@@ -809,7 +809,7 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
-        if ($tableRow['type'] !== "tmp") {
+        if ($tableRow['type'] !== 'tmp') {
             throw new errorException($this->translate('For temporary tables only.'));
         }
         $d = [];
@@ -858,7 +858,7 @@ class CalculateAction extends Calculate
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
             ['title' => $title, 'width' => $width, 'text' => htmlspecialchars(is_array($params['text']) ?
-                "OBJECT: " . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
+                'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
                 $params['text'] ?? '')],
             $params['refresh'] ?? false
         );
@@ -955,8 +955,16 @@ class CalculateAction extends Calculate
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         $link = '/Table/';
+        $q_params = [];
 
-        if ($tableRow['type'] === 'calcs') {
+        if ($this->Table->getTableRow()['type'] === 'cycles' && str_starts_with($this->varName,
+                'tab_') && !empty($this->row['id']) && $tableRow['type'] != 'calcs') {
+
+            $link .= $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $this->row['id'] . '/' . $tableRow['id'];
+            $linkedTable = $this->Table->getTotum()->getTable($tableRow);
+            $q_params['b'] = $this->varName;
+
+        } elseif ($tableRow['type'] === 'calcs') {
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
                 if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
                     $Cycle_id = $this->Table->getCycle()->getId();
@@ -975,12 +983,12 @@ class CalculateAction extends Calculate
             }
         } else {
             $linkedTable = $this->Table->getTotum()->getTable($tableRow);
-            $link .= ($tableRow ['top'] ? $tableRow ['top'] : 0) . '/' . $tableRow['id'];
+            $link .= ($tableRow ['top'] ?: 0) . '/' . $tableRow['id'];
         }
 
         $fields = $linkedTable->getFields();
 
-        $q_params = [];
+
         if (!empty($params['filter'])) {
             $filters = [];
             foreach ($params['filter'] as $i => $f) {

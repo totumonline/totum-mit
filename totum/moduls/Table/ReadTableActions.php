@@ -1541,7 +1541,15 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $anchorFilters = $this->Table->getAnchorFilters() ?? [];
 
-        foreach ($fields as &$field) {
+        foreach ($fields as $fName => &$field) {
+
+            if (!$this->User->isCreator() && $field['category'] === 'column' && $field['type'] === 'button' && $this->Table->getTableRow()['type'] === 'cycles' && str_starts_with($field['name'],
+                    'tab_')) {
+                unset($fields[$fName]);
+                continue;
+            }
+
+
             if (!$this->Table->isField('editable', 'web', $field)) {
                 $field['editable'] = false;
             } elseif (key_exists($field['name'], $anchorFilters)) {

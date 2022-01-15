@@ -550,6 +550,9 @@ class TableController extends interfaceController
             }
         } catch (criticalErrorException $e) {
             $error = $this->translate('Error: %s', $e->getMessage());
+            if ($this->User && $this->User->isCreator() && $e->getPathMess()) {
+                $error .= '<br/>' . $e->getPathMess();
+            }
         }
 
 

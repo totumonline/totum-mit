@@ -41,7 +41,7 @@ class Field
         'setToPinned' => 3,
         'inAddRecalc' => 4,
     ];
-    protected const NO_ERROR_IN_VALUE = ['checkbox'];
+    protected const NO_ERROR_IN_VALUE = ['checkbox', 'number'];
 
     public static array $fields = [];
     protected $data;
@@ -775,6 +775,10 @@ class Field
 
                 $this->table->calcLog($Log, 'result', $newVal['v']);
             } catch (\Exception $exception) {
+                if (method_exists($exception, 'addPath')) {
+                    $exception->addPath($this->translate('field [[%s]] of [[%s]] table',
+                            [$this->data['name'], $this->table->getTableRow()['name']]) . (!empty($row['id']) ? ' id ' . $row['id'] : ''));
+                }
                 $this->table->calcLog($Log, 'error', $exception->getMessage());
                 throw $exception;
             }

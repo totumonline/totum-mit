@@ -314,6 +314,7 @@ class Sql
                 $exp = new tableSaveOrDeadLockException($error);
             }else {
                 $exp = new SqlException($error);
+                $exp->addSqlErrorCode($errorCode);
                 $exp->addPath($query_string);
                 $exp->addPath(json_encode($data, JSON_UNESCAPED_UNICODE));
             }

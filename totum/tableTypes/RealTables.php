@@ -343,83 +343,105 @@ abstract class RealTables extends aTable
             $fieldsString .= $f;
         }
 
+        try {
+            if ($returnType === 'rows' || $returnType === 'row') {
 
-        if ($returnType === 'rows' || $returnType === 'row') {
 
-
-            //техническая выборка - не трогать
-            if ($params['field'] === ['__all__']) {
-                $notLoaded = '';
-                if ($this->withoutNotLoaded) {
-                    foreach ($this->sortedFields['column'] as $field) {
-                        if ($field['notLoaded'] ?? null) {
-                            $notLoaded .= ', \'{"v": "**NOT LOADED**"}\' as ' . $field['name'];
+                //техническая выборка - не трогать
+                if ($params['field'] === ['__all__']) {
+                    $notLoaded = '';
+                    if ($this->withoutNotLoaded) {
+                        foreach ($this->sortedFields['column'] as $field) {
+                            if ($field['notLoaded'] ?? null) {
+                                $notLoaded .= ', \'{"v": "**NOT LOADED**"}\' as ' . $field['name'];
+                            }
                         }
                     }
+
+                    return $this->model->executePrepared(
+                        true,
+                        (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
+                        '*' . $notLoaded,
+                        $order,
+                        $limit
+                    );
                 }
 
-                return $this->model->executePrepared(
+
+                if ($returnType === 'rows') {
+                    $rows = $this->model->executePrepared(
+                        true,
+                        (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
+                        $fieldsString,
+                        $order,
+                        $limit
+                    )->fetchAll();
+                    if (!empty($params['with__sectionFunction'])) {
+                        foreach ($rows as &$row) {
+                            $row['__sectionFunction'] = function () use ($sectionReplaces, $row, $params) {
+                                return $sectionReplaces($row)[$params['sfield'][0]] ?? null;
+                            };
+                        }
+                        unset($row);
+                    } else {
+                        foreach ($rows as &$row) {
+                            $row = $sectionReplaces($row);
+                        }
+                        unset($row);
+                    }
+                    return $rows;
+                } elseif ($row = $this->model->executePrepared(
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
-                    '*' . $notLoaded,
-                    $order,
-                    $limit
-                );
-            }
-
-
-            if ($returnType === 'rows') {
-                $rows = $this->model->executePrepared(
+                    $fieldsString,
+                    $order
+                )->fetch()) {
+                    return $sectionReplaces($row);
+                } else {
+                    return [];
+                }
+            } else {
+                $r = $this->model->executePrepared(
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
                     $fieldsString,
                     $order,
                     $limit
                 )->fetchAll();
-                if (!empty($params['with__sectionFunction'])) {
-                    foreach ($rows as &$row) {
-                        $row['__sectionFunction'] = function () use ($sectionReplaces, $row, $params) {
-                            return $sectionReplaces($row)[$params['sfield'][0]] ?? null;
-                        };
-                    }
-                    unset($row);
-                } else {
-                    foreach ($rows as &$row) {
-                        $row = $sectionReplaces($row);
-                    }
-                    unset($row);
-                }
-                return $rows;
-            } elseif ($row = $this->model->executePrepared(
-                true,
-                (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
-                $fieldsString,
-                $order
-            )->fetch()) {
-                return $sectionReplaces($row);
-            } else {
-                return [];
-            }
-        } else {
-            $r = $this->model->executePrepared(
-                true,
-                (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
-                $fieldsString,
-                $order,
-                $limit
-            )->fetchAll();
 
-            if ($returnType === 'field') {
-                if ($r) {
-                    return $sectionReplaces($r[0])[$params['field'][0]];
+                if ($returnType === 'field') {
+                    if ($r) {
+                        return $sectionReplaces($r[0])[$params['field'][0]];
+                    }
+                    return null;
+                } else {
+                    foreach ($r as &$row) {
+                        $row = $sectionReplaces($row)[$params['field'][0]];
+                    }
+                    unset($row);
                 }
-                return null;
-            } else {
-                foreach ($r as &$row) {
-                    $row = $sectionReplaces($row)[$params['field'][0]];
-                }
-                unset($row);
             }
+        } catch (SqlException $exception) {
+            if ($exception->getSqlErrorCode() === '22P02') {
+                foreach ($params['where'] as $_w) {
+                    if (key_exists($_w['field'], $this->fields)) {
+                        if ($this->fields[$_w['field']]['type'] === 'number') {
+                            $row = $this->Totum->getConfig()->getSql(false)->get('select id from ' . $this->model->getTableName()
+                                . " where {$_w['field']}->>'v' !~ '^\d+(\.\d+)?$' ");
+                            if ($row) {
+                                $field = $_w['field'];
+                                break;
+                            }
+                        }
+                    }
+                }
+               if(!empty($field) && !empty($row)){
+                   errorException::criticalException($this->translate('Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data', [$field, $this->getTableRow()['name'], $row['id']]), $this->Totum);
+               }else{
+                   errorException::criticalException($this->translate('One of number fields of table [[%s]] contains non-numeric data. We cann\'t find what and where', $this->getTableRow()['name']), $this->Totum);
+               }
+            }
+            throw $exception;
         }
 
         return $r;
@@ -1447,7 +1469,7 @@ abstract class RealTables extends aTable
             $isNumeric = false;
             if ($fieldName === 'is_del') {
                 $withoutDeleted = false;
-            } elseif ($fieldName === 'id' || $fieldName === 'n') {
+            } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
                 $valueCheck = (array)$value;
                 $isRemovedValues = false;
                 foreach ($valueCheck as $i => $v) {

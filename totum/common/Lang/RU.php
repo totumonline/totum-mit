@@ -24,6 +24,7 @@ class RU implements LangInterface
         'The function is only available for cycles tables.' => 'Функция доступна только для таблиц циклов.',
 
         'System error. Action type not specified.' => 'Системная ошибка. Не указан тип действия.',
+        'Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data'=>'Поле [[%s]] таблицы [[%s]] в строке с id [[%s]] содержит нечисловую информацию',
         'Scheme source not defined.' => 'Не определен источник схемы.',
         'Fill in the parameter [[%s]].' => 'Заполните параметр [[%s]].',
         'Parametr [[%s]] is required.' => 'Параметр [[%s]] обязателен.',

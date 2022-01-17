@@ -586,9 +586,9 @@ abstract class aTable
                             $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
                         }
 
-                        $fForLink = $this->loadFields($linkTableId, $_version)[$f['linkFieldName']];
+                        $fForLink = $this->loadFields($linkTableId, $_version)[$f['linkFieldName']] ?? null;
                     } else {
-                        $fForLink = $this->loadFields($linkTableId)[$f['linkFieldName']];
+                        $fForLink = $this->loadFields($linkTableId)[$f['linkFieldName']] ?? null;
                     }
 
                     if ($fForLink) {

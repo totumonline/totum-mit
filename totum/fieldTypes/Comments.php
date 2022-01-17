@@ -98,34 +98,35 @@ class Comments extends Field
                 }
                 break;
             case 'web':
-                $n = count($valArray['v']);
-                $isCuted = false;
-                if ($n > 0 && ($valArray['v'][$n - 1][1] !== $this->table->getTotum()->getUser()->getId())) {
-                    $notViewed = $n - $this->getViewed($row['id'] ?? null);
-                }
+                if (is_array($valArray['v'])) {
+                    $n = count($valArray['v']);
+                    $isCuted = false;
+                    if ($n > 0 && ($valArray['v'][$n - 1][1] !== $this->table->getTotum()->getUser()->getId())) {
+                        $notViewed = $n - $this->getViewed($row['id'] ?? null);
+                    }
 
-                if ((!empty($valArray['f']['height']) || !empty($valArray['f']['maxheight']))
-                    && ($this->data['category'] !== 'column' && !($this->data['category'] === 'footer' && !empty($this->data['column'])))) {
-                    $valArray['v'] = ['all' => true, 'n' => $n, 'c' => array_map(
-                        function ($c) use (&$isCuted) {
-                            return $this->prepareComment($c, false, $isCuted);
-                        },
-                        $valArray['v']
-                    )];
-                } else {
-                    $valArray['v'] = ['n' => $n, 'c' => $n > 0 ? $this->prepareComment(
-                        $valArray['v'][$n - 1],
-                        true,
-                        $isCuted
-                    ) : []];
+                    if ((!empty($valArray['f']['height']) || !empty($valArray['f']['maxheight']))
+                        && ($this->data['category'] !== 'column' && !($this->data['category'] === 'footer' && !empty($this->data['column'])))) {
+                        $valArray['v'] = ['all' => true, 'n' => $n, 'c' => array_map(
+                            function ($c) use (&$isCuted) {
+                                return $this->prepareComment($c, false, $isCuted);
+                            },
+                            $valArray['v']
+                        )];
+                    } else {
+                        $valArray['v'] = ['n' => $n, 'c' => $n > 0 ? $this->prepareComment(
+                            $valArray['v'][$n - 1],
+                            true,
+                            $isCuted
+                        ) : []];
+                    }
+                    if ($n === 1 && $isCuted) {
+                        $valArray['v']['cuted'] = true;
+                    }
+                    if (!empty($notViewed)) {
+                        $valArray['v']['notViewed'] = $notViewed;
+                    }
                 }
-                if ($n === 1 && $isCuted) {
-                    $valArray['v']['cuted'] = true;
-                }
-                if (!empty($notViewed)) {
-                    $valArray['v']['notViewed'] = $notViewed;
-                }
-
                 break;
             case 'edit':
                 if ($this->data['category'] !== 'column' || !empty($row['id'])) {
@@ -157,7 +158,9 @@ class Comments extends Field
 
     public function getFullValue($val, $rowId = null)
     {
-        foreach ($val ?? [] as $i => &$comment) {
+        $val = $val ?? [];
+
+        foreach ($val as $i => &$comment) {
             $commentIn = $comment;
             $comment = $this->prepareComment($comment, false, $n);
             if (($i === count($val) - 1) && $commentIn[1] == $this->table->getUser()->getId()) {

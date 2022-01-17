@@ -21,7 +21,7 @@ class fieldParamsResult extends Field
     {
         if (!$isCheck) {
             if (!empty($row['data_src']['v'])) {
-                $val=static::getDataFromDataSrc($row['data_src']['v'], $row['table_name']['v']);
+                $val = static::getDataFromDataSrc($row['data_src']['v'], $row['table_name']['v']);
             }
         }
     }
@@ -29,7 +29,7 @@ class fieldParamsResult extends Field
     public static function getDataFromDataSrc($data_src, $table_name)
     {
         $val = [];
-        foreach ($data_src as $fName => $Vals) {
+        foreach ($data_src ?? [] as $fName => $Vals) {
             if ($Vals['isOn']) {
                 if (in_array($fName, static::CODE_PARAMS)) {
                     $val[$fName] = Calculate::parseTotumCode($Vals['Val'], $table_name);
@@ -52,6 +52,7 @@ class fieldParamsResult extends Field
 
     public function getValueFromCsv($val)
     {
-        throw new errorException($this->translate('Import from csv is not available for [[%s]] field.', 'field setttings'));
+        throw new errorException($this->translate('Import from csv is not available for [[%s]] field.',
+            'field setttings'));
     }
 }

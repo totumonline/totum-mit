@@ -2052,8 +2052,8 @@ CODE;;
                 if (!($field[$channelParam] ?? false)) {
                     continue;
                 }
-                if (key_exists($field['name'], $this->anchorFilters)) {
-                    $this->tbl['params'][$field['name']] = ["v" => $this->anchorFilters[$field['name']]];
+                if (is_array($this->anchorFilters) && key_exists($field['name'], $this->anchorFilters)) {
+                    $this->tbl['params'][$field['name']] = ['v' => $this->anchorFilters[$field['name']]];
                     continue;
                 }
                 /** @var Field $Field */

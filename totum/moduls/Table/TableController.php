@@ -753,9 +753,6 @@ class TableController extends interfaceController
                         $this->Table = $this->Cycle->getTable($tableRow);
                     } elseif ($this->tabButton) {
                         $this->Table = $this->Totum->getTable($tableRow);
-                        $this->Table->setAnchorFilters(json_decode(Crypt::getDeCrypted(strval($request->getQueryParams()['f'] ?? '[]'), true),
-                            true));
-
                     } else {
                         throw new errorException($this->translate('Wrong path to the table'));
                     }

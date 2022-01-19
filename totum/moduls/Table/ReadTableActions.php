@@ -638,6 +638,53 @@ class ReadTableActions extends Actions
         return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
     }
 
+    protected function getInsertRow($hash, $addData = [], $tableData = [], $clearField = null)
+    {
+        $this->Table->reCalculateFilters(
+            'web',
+            false,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+
+        $visibleFields = $this->Table->getVisibleFields('web', true);
+
+
+        $columnFilter = [];
+        foreach ($this->Table->getSortedFields()['filter'] as $k => $f) {
+            if (($f['showInWeb'] ?? false) && ($f['column'] ?? false)) {
+                $columnFilter[$f['column']] = $k;
+            }
+        }
+        foreach ($visibleFields['column'] as $v) {
+            $filtered = null;
+            if (key_exists($v['name'], $columnFilter) && empty($v['code'])) {
+                $val = $this->Table->getTbl()['params'][$columnFilter[$v['name']]]['v'];
+
+                if (isset($columnFilter[$v['name']])
+                    && $val !== '*ALL*'
+                    && $val !== ['*ALL*']
+                    && $val !== '*NONE*'
+                    && $val !== ['*NONE*']
+                ) {
+                    $filtered = $val ?? null;
+                }
+                if (!empty($filtered)) {
+                    $filtersData[$v['name']] = $filtered;
+                }
+            }
+        }
+
+        return $this->Table->checkInsertRow(
+            $tableData,
+            $addData,
+            $hash,
+            [],
+            $clearField,
+            $filtersData ?? []
+        );
+    }
+
     protected function getPanelsCookieName()
     {
         if ($this->Table->getTableRow()['type'] === 'calcs') {
@@ -1268,18 +1315,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
             } elseif (is_string($click['item']) && $click['item'][0] === 'i') {
-                $row = TmpTables::init($this->Totum->getConfig())->getByHash(
-                    '_insert_row',
-                    $this->User,
-                    $click['item']
-                );
+
+                $row = $this->getInsertRow($click['item']);
                 if (is_null($row)) {
                     throw new errorException($this->translate('Add row out of date'));
                 }
                 $this->Table->setInsertRowHash($click['item']);
-                foreach ($row as &$v) {
-                    $v = ['v' => $v];
-                }
+                unset($v);
             } else {
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $ids = $this->Table->loadFilteredRows('web', [$click['item']]);

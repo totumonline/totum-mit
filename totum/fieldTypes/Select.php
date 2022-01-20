@@ -717,7 +717,7 @@ class Select extends Field
                 if (count($val) === 0) {
                     $val = null;
                 } else {
-                    $val = strval($val[0]);
+                    $val = strval($val[array_key_first($val)]);
                 }
             } else {
                 $val = strval($val);

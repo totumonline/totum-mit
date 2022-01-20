@@ -123,6 +123,7 @@ class RU implements LangInterface
         'No characters selected for generation.' => 'Не выбраны символы для генерации.',
         'For selecting by %s field should be passed only single value or list, not row' => 'Для выбора по %s полю должно передаваться только одно значение или list, а не row',
 
+        'The value by %s key is not a row/list'=>'Значение по ключу %s - не row/list',
 
         'There is no NowField enabled in this type of code. We\'ll fix it - write us.' => 'В этом типе кода не подключен NowField. Мы исправимся - напишите нам.',
         '[[%s]] is available only for the calculation table in the cycle.' => '[[%s]] доступно только для расчетной таблицы в цикле.',

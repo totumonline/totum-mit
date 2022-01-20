@@ -939,6 +939,11 @@ trait FuncArraysTrait
                     if (count($action) > 1) {
                         $_k = $this->__getValue($action[0]);
                         $_v = $this->__getValue($action[1]);
+
+                        if (key_exists($k, $list) && !is_null($list[$k]) && !is_array($list[$k]) && !ctype_digit($k)) {;
+                            throw new errorException($this->translate('The value by %s key is not a row/list'));
+                        }
+
                         $list[$k][$_k] = $_v;
                         $this->Table->calcLog($Log, 'result', [$_k => $_v]);
                     } else {

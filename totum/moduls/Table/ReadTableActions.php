@@ -1643,7 +1643,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if (!is_a($this, WriteTableActions::class)
                 && !empty($field['CodeActionOnClick'])
-                && empty($field['clickableOnOnlyRead'])) {
+                && empty($field['AllowActionClickOnRead'])) {
                 unset($field['CodeActionOnClick']);
             }
 
@@ -1754,7 +1754,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $field,
                 $this->Table->getFields()
             ) && (($fieldParams = $this->Table->getFields()[$field])['CodeActionOnClick'] ?? false)) {
-            if (!is_a($this, WriteTableActions::class) && empty($fieldParams['clickableOnOnlyRead'])) {
+            if (!is_a($this, WriteTableActions::class) && empty($fieldParams['AllowActionClickOnRead'])) {
                 throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
             }
             if ($id) {

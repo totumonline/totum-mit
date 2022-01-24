@@ -275,14 +275,14 @@ class Actions
                 $row = $Table->getTbl()['params'];
             }
 
-            if (key_exists('type', $data)) {
+            if (key_exists('type', $data) && $data['type'] === 'select') {
 
                 /** @var Select $Field */
                 $Field = Field::init([
                     'type' => 'select',
                     'name' => '_linktoinputselect',
                     'category' => key_exists('id', $row) ? 'column' : 'param',
-                    'codeSelect' => $data['codeselect'],
+                    'codeSelect' => ($data['codeselect'] ?? null),
                     'checkSelectValues' => true,
                     'title' => $data['title'],
                     'multiple' => $data['multiple'] ?? false,

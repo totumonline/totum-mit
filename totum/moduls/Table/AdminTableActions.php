@@ -36,6 +36,14 @@ class AdminTableActions extends WriteTableActions
         return $result;
     }
 
+    public function getTableParam()
+    {
+        if (!empty($this->post['tableId']) && $row = $this->Totum->getTableRow($this->post['tableId'])) {
+            return [$this->post['param'] => $row[$this->post['param']]];
+        }
+        throw new errorException('Table not found');
+    }
+
     public function getAllTables()
     {
         $tables = [];

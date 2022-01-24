@@ -53,7 +53,9 @@ class Cycle
         $tables = $Cycle->getTableIds();
         foreach ($tables as $tableId) {
             $tableRow = $Totum->getTableRow($tableId);
-            $Cycle->addVersionForCycle($tableRow['name']);
+            if (!$Cycle->getVersionForTable($tableRow['name'])) {
+                $Cycle->addVersionForCycle($tableRow['name']);
+            }
         }
 
         $Cycle->afterCreate();
@@ -63,7 +65,7 @@ class Cycle
 
     public function getVersionForTable($tableName)
     {
-        if (empty($this->cacheVersions[$tableName])) {
+        if (empty($this->cacheVersions[$tableName]['table_name'])) {
             $this->cacheVersions[$tableName] = CalcsTableCycleVersion::init($this->Totum->getConfig())->executePrepared(
                 true,
                 ['table_name' => $tableName, 'cycle' => $this->getId()],

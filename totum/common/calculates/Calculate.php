@@ -86,6 +86,14 @@ class Calculate
         $this->formStartSections();
     }
 
+    public function setStartSections($sections)
+    {
+        $this->startSections = [];
+        foreach ($sections as $section) {
+            $this->startSections[] = $this->code[$section];
+        }
+    }
+
     protected function clearNONEFields(bool|array $fields): bool|array
     {
         if ($fields) {

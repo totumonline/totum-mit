@@ -22,6 +22,72 @@ use totum\tableTypes\tmpTable;
 class ReadTableActions extends Actions
 {
     protected bool $creatorCommonView = false;
+    protected $kanban_bases = [];
+
+    protected function getTableFormat(array $rowIds): array
+    {
+        $tFormat = [];
+        if ($this->Table->getTableRow()['table_format'] && $this->Table->getTableRow()['table_format'] != 'f1=:') {
+            $Log = $this->Table->calcLog(['name' => 'Table format']);
+
+            $calc = new CalculcateFormat($this->Table->getTableRow()['table_format']);
+            $tFormat = $calc->getFormat(
+                'TABLE',
+                [],
+                $this->Table->getTbl(),
+                $this->Table,
+                ['rows' => $this->Table->getRowsForFormat($rowIds)]
+            );
+            $this->Table->calcLog($Log, 'result', $tFormat);
+        }
+        if ($this->Table->getChangeIds()['reordered']) {
+            $tFormat['refreshOrder'] = true;
+        }
+
+        if (($this->Table->getTableRow()['panels_view']['kanban_html_type'] ?? false) === 'show') {
+            $tFormat['kanban_html'] = $this->__getKanbanHtml();
+        }
+
+        return $tFormat;
+    }
+
+    public function getKanbanHtml()
+    {
+        $this->Table->reCalculateFilters(
+            'web',
+            false,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+        return ['kanban_html' => $this->__getKanbanHtml()];
+
+    }
+
+    protected function __getKanbanHtml()
+    {
+        if (!$this->kanban_bases) {
+            $this->getKanbanData();
+        }
+        $fCalc = new CalculcateFormat($this->Table->getTableRow()['panels_view']['kanban_html_code']);
+        $fCalc->setStartSections(['=']);
+        $Log = $this->Table->calcLog(['name' => 'Kanban format']);
+        try {
+            foreach ($this->kanban_bases as $base) {
+                $htmls[$base] = $fCalc->exec(['name' => '_KANBAN_FORMAT'],
+                    [],
+                    [],
+                    [],
+                    $this->Table->getTbl(),
+                    $this->Table->getTbl(),
+                    $this->Table,
+                    ['kanban' => $base]);
+            }
+            $this->Table->calcLog($Log, 'result', $htmls);
+        } catch (errorException $e) {
+            $this->Table->calcLog($Log, 'error', $e->getMessage());
+        }
+        return $htmls ?? [];
+    }
 
     public function csvExport()
     {
@@ -415,7 +481,7 @@ class ReadTableActions extends Actions
         }
 
         $data = $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
-        $data['f'] = $this->Table->getTableFormat(array_column($data['rows'], 'id'));
+        $data['f'] = $this->getTableFormat(array_column($data['rows'], 'id'));
 
 
         return $data;
@@ -532,7 +598,7 @@ class ReadTableActions extends Actions
                 $pageIds = array_column($result['chdata']['rows'] ?? [], 'id');
                 $result['chdata']['params'] = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'],
                     $pageIds)['params'];
-                $result['chdata']['f'] = $this->Table->getTableFormat($pageIds);
+                $result['chdata']['f'] = $this->getTableFormat($pageIds);
                 break;
             default:
 
@@ -636,6 +702,53 @@ class ReadTableActions extends Actions
         $list = $Field->calculateSelectList($row[$field['name']], $row, $Table->getTbl());
 
         return $Field->cropSelectListForWeb($list, $row[$field['name']]['v'], $q, $parentId);
+    }
+
+    protected function getInsertRow($hash, $addData = [], $tableData = [], $clearField = null)
+    {
+        $this->Table->reCalculateFilters(
+            'web',
+            false,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+
+        $visibleFields = $this->Table->getVisibleFields('web', true);
+
+
+        $columnFilter = [];
+        foreach ($this->Table->getSortedFields()['filter'] as $k => $f) {
+            if (($f['showInWeb'] ?? false) && ($f['column'] ?? false)) {
+                $columnFilter[$f['column']] = $k;
+            }
+        }
+        foreach ($visibleFields['column'] as $v) {
+            $filtered = null;
+            if (key_exists($v['name'], $columnFilter) && empty($v['code'])) {
+                $val = $this->Table->getTbl()['params'][$columnFilter[$v['name']]]['v'];
+
+                if (isset($columnFilter[$v['name']])
+                    && $val !== '*ALL*'
+                    && $val !== ['*ALL*']
+                    && $val !== '*NONE*'
+                    && $val !== ['*NONE*']
+                ) {
+                    $filtered = $val ?? null;
+                }
+                if (!empty($filtered)) {
+                    $filtersData[$v['name']] = $filtered;
+                }
+            }
+        }
+
+        return $this->Table->checkInsertRow(
+            $tableData,
+            $addData,
+            $hash,
+            [],
+            $clearField,
+            $filtersData ?? []
+        );
     }
 
     protected function getPanelsCookieName()
@@ -919,35 +1032,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         switch ($this->getPageViewType()) {
             case 'panels':
                 $result['viewType'] = 'panels';
-                $panelViewSettings = $this->Table->getTableRow()['panels_view'];
+                $result['kanban'] = $this->getKanbanData($fields);
 
-
-                $fields = array_column($panelViewSettings['fields'], 'field');
-
-                if ($panelViewSettings['kanban'] && $kanban = $this->Table->getFields()[$panelViewSettings['kanban']]) {
-                    if (!in_array($panelViewSettings['kanban'], $fields)) {
-                        $fields[] = $panelViewSettings['kanban'];
-                    }
-                    $result['kanban'] = [];
-
-                    $val = [];
-                    $results = Field::init($kanban, $this->Table)->calculateSelectList(
-                        $val,
-                        [],
-                        $this->Table->getTbl()
-                    );
-                    unset($results['previewdata']);
-
-                    if ($kanban['withEmptyVal'] ?? false) {
-                        $result['kanban'][] = ['', $kanban['withEmptyVal']];
-                    }
-
-                    foreach ($results as $k => $v) {
-                        if (!$v[1]) {
-                            $result['kanban'][] = [$k, $v[0]];
-                        }
-                    }
-                }
                 foreach ($result['fields'] as $k => $v) {
                     if ($v['category'] === 'column' && !in_array($k, $fields)) {
                         unset($result['fields'][$k]);
@@ -1101,7 +1187,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $pageIds = array_column($data['rows'] ?? [], 'id');
         $result = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'], $pageIds);
-        $result['f'] = $this->Table->getTableFormat($pageIds);
+        $result['f'] = $this->getTableFormat($pageIds);
         $result['rows'] = $data['rows'] ?? [];
         $result['offset'] = $data['offset'] ?? null;
 
@@ -1237,7 +1323,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 ['rows' => [$this->Table->getTbl()['rows'][$id]]],
                 'edit', []
             )['rows'][0];
-            $res['f'] = $this->Table->getTableFormat([]);
+            $res['f'] = $this->getTableFormat([]);
             return $res;
         } else {
             throw new errorException($this->translate('Row not found'));
@@ -1268,18 +1354,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
             } elseif (is_string($click['item']) && $click['item'][0] === 'i') {
-                $row = TmpTables::init($this->Totum->getConfig())->getByHash(
-                    '_insert_row',
-                    $this->User,
-                    $click['item']
-                );
+
+                $row = $this->getInsertRow($click['item']);
                 if (is_null($row)) {
                     throw new errorException($this->translate('Add row out of date'));
                 }
                 $this->Table->setInsertRowHash($click['item']);
-                foreach ($row as &$v) {
-                    $v = ['v' => $v];
-                }
+                unset($v);
             } else {
                 /*Проверка не заблокирована ли строка для пользователя*/
                 $ids = $this->Table->loadFilteredRows('web', [$click['item']]);
@@ -1601,7 +1682,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if (!is_a($this, WriteTableActions::class)
                 && !empty($field['CodeActionOnClick'])
-                && empty($field['clickableOnOnlyRead'])) {
+                && empty($field['AllowActionClickOnRead'])) {
                 unset($field['CodeActionOnClick']);
             }
 
@@ -1712,7 +1793,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $field,
                 $this->Table->getFields()
             ) && (($fieldParams = $this->Table->getFields()[$field])['CodeActionOnClick'] ?? false)) {
-            if (!is_a($this, WriteTableActions::class) && empty($fieldParams['clickableOnOnlyRead'])) {
+            if (!is_a($this, WriteTableActions::class) && empty($fieldParams['AllowActionClickOnRead'])) {
                 throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
             }
             if ($id) {
@@ -1871,7 +1952,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS']);
 
             $return['chdata']['params'] = $this->Table->getTbl()['params'] ?? [];
-            $return['chdata']['f'] = $this->Table->getTableFormat($pageIds ?: []);
+            $return['chdata']['f'] = $this->getTableFormat($pageIds ?: []);
             $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web', $pageIds ?: []);
 
             if (empty($return['chdata']['params'])) {
@@ -1936,7 +2017,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $pageIds = array_column($result['rows'] ?? [], 'id');
         $result['params'] = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'], $pageIds)['params'];
         $result['filtersString'] = $this->getFiltersString();
-        $result['f'] = $this->Table->getTableFormat($pageIds);
+        $result['f'] = $this->getTableFormat($pageIds);
         return $result;
     }
 
@@ -2144,5 +2225,40 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
         }
         return [$Table, $row];
+    }
+
+    protected function getKanbanData(&$fields = null)
+    {
+        $panelViewSettings = $this->Table->getTableRow()['panels_view'];
+        $fields = array_column($panelViewSettings['fields'], 'field');
+
+        if ($panelViewSettings['kanban'] && $kanban = $this->Table->getFields()[$panelViewSettings['kanban']]) {
+            if (!in_array($panelViewSettings['kanban'], $fields)) {
+                $fields[] = $panelViewSettings['kanban'];
+            }
+            $kanban_data = [];
+
+            $val = [];
+            $results = Field::init($kanban, $this->Table)->calculateSelectList(
+                $val,
+                [],
+                $this->Table->getTbl()
+            );
+            unset($results['previewdata']);
+
+            if ($kanban['withEmptyVal'] ?? false) {
+                $kanban_data[] = ['', $kanban['withEmptyVal']];
+            }
+
+            foreach ($results as $k => $v) {
+                if (!$v[1]) {
+                    $kanban_data[] = [$k, $v[0]];
+                }
+            }
+            $this->kanban_bases = array_column($kanban_data, 0);
+
+            return $kanban_data;
+        }
+        return null;
     }
 }

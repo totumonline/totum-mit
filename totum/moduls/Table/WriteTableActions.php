@@ -65,16 +65,7 @@ class WriteTableActions extends ReadTableActions
 
     public function checkInsertRow()
     {
-        $this->Table->reCalculateFilters(
-            'web',
-            false,
-            false,
-            ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
-        );
-
-        $visibleFields = $this->Table->getVisibleFields('web', true);
         if (empty($this->post['hash'])) {
-            $addData = json_decode($this->post['data'], true);
             do {
                 $hash = 'i-' . md5(microtime(true) . rand());
             } while (!TmpTables::init($this->Totum->getConfig())->saveByHash(
@@ -85,42 +76,13 @@ class WriteTableActions extends ReadTableActions
                 true
             ));
         } else {
-            $addData = json_decode($this->post['data'], true);
             $hash = $this->post['hash'];
         }
 
-        $columnFilter = [];
-        foreach ($this->Table->getSortedFields()['filter'] as $k => $f) {
-            if (($f['showInWeb'] ?? false) && ($f['column'] ?? false)) {
-                $columnFilter[$f['column']] = $k;
-            }
-        }
-        foreach ($visibleFields['column'] as $v) {
-            $filtered = null;
-            if (key_exists($v['name'], $columnFilter) && empty($v['code'])) {
-                $val = $this->Table->getTbl()['params'][$columnFilter[$v['name']]]['v'];
-
-                if (isset($columnFilter[$v['name']])
-                    && $val !== '*ALL*'
-                    && $val !== ['*ALL*']
-                    && $val !== '*NONE*'
-                    && $val !== ['*NONE*']
-                ) {
-                    $filtered = $val ?? null;
-                }
-                if (!empty($filtered)) {
-                    $filtersData[$v['name']] = $filtered;
-                }
-            }
-        }
-        $data = ['rows' => [$this->Table->checkInsertRow(
+        $data = ['rows' => [$this->getInsertRow($hash,
+            json_decode($this->post['data'], true),
             $this->post['tableData'] ?? [],
-            $addData,
-            $hash,
-            [],
-            $this->post['clearField'] ?? null,
-            $filtersData ?? []
-        )]];
+            $this->post['clearField'] ?? null)]];
 
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);
         $res = ['row' => $data['rows'][0], 'hash' => $hash];
@@ -148,7 +110,7 @@ class WriteTableActions extends ReadTableActions
 
         $row = $this->Table->checkEditRow($data, $dataSetToDefault, $this->post['tableData'] ?? []);
         $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit', [])['rows'][0];
-        $res['f'] = $this->Table->getTableFormat([]);
+        $res['f'] = $this->getTableFormat([]);
         $this->addLoadedSelects($res);
 
         return $res;
@@ -268,4 +230,5 @@ class WriteTableActions extends ReadTableActions
             $res['selects'] = $selects;
         }
     }
+
 }

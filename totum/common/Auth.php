@@ -14,7 +14,7 @@ class Auth
         'BLOCKED_BY_CRACKING_PROTECTION' => 2,
     ];
     public static $userManageRoles = [-1];
-    public static $userManageTables = ['users', 'auth_log', 'ttm__user_log', 'ttm__users_online'];
+    public static $userManageTables = ['users', 'auth_log', 'ttm__users_online'];
 
     public static function checkUserPass($string, $hash)
     {
@@ -90,9 +90,13 @@ class Auth
         return $r;
     }
 
-    public static function getUserManageTables(Conf $Config)
+    public static function getUserManageTables(Conf $Config, User $User)
     {
-        return $Config->getModel('tables')->getAll(['name' => Auth::$userManageTables], 'name, title', 'sort');
+        $tables = Auth::$userManageTables;
+        if(in_array(-2, $User->getRoles())){
+            $tables[]='ttm__user_log';
+        }
+        return $Config->getModel('tables')->getAll(['name' => $tables], 'name, title', 'sort');
     }
 
 

@@ -129,9 +129,15 @@ class User
 
         /*EXTRA ROLES*/
         if (in_array(-1, $this->roles)) {
+
+            $tables = Auth::$userManageTables;
+            if(in_array(-2, $this->roles)){
+                $tables[]='ttm__user_log';
+            }
+
             $user_manager_tables = Table::init($this->Config)->getColumn(
                 'id',
-                ['name' => Auth::$userManageTables]
+                ['name' => $tables]
             );
             foreach ($user_manager_tables as $id) {
                 $tables[$id] = 1;

@@ -394,7 +394,7 @@ class TableController extends interfaceController
                         );
                     }
                     if ($userManager) {
-                        $this->__addAnswerVar('UserTables', Auth::getUserManageTables($this->Config));
+                        $this->__addAnswerVar('UserTables', Auth::getUserManageTables($this->Config, $this->User));
                     }
                 }
             }

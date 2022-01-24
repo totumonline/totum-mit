@@ -16,29 +16,6 @@ trait WebInterfaceTrait
 {
     protected $insertRowSetData;
 
-    public function getTableFormat(array $rowIds)
-    {
-        $tFormat = [];
-        if ($this->getTableRow()['table_format'] && $this->getTableRow()['table_format'] != 'f1=:') {
-            $Log = $this->calcLog(['name' => 'Table format']);
-
-            $calc = new CalculcateFormat($this->getTableRow()['table_format']);
-            $tFormat = $calc->getFormat(
-                'TABLE',
-                [],
-                $this->getTbl(),
-                $this,
-                ['rows' => $this->getRowsForFormat($rowIds)]
-            );
-            $this->calcLog($Log, 'result', $tFormat);
-        }
-        if ($this->getChangeIds()['reordered']) {
-            $tFormat['refreshOrder'] = true;
-        }
-
-        return $tFormat;
-    }
-
     public function changeFieldsSets($func = null)
     {
         if ($this->getTableRow()['type'] === 'calcs') {

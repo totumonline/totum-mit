@@ -140,11 +140,16 @@ class Select extends Field
 
             if ($row['previewscode'] ?? null) {
                 $CalcPreview = new Calculate($row['previewscode']);
+                $rowId = [];
+                if ($row['id'] ?? null) {
+                    $rowId['id'] = $row['id'];
+                }
+
                 $data = $CalcPreview->exec(
                     ['name' => 'CALC PREVIEW ' . $this->data['name']],
                     [],
                     [],
-                    $row,
+                    $rowId,
                     [],
                     $this->table->getTbl(),
                     $this->table,

@@ -136,8 +136,8 @@ class Select extends Field
         }
         try {
             $rowId = [];
-            if ($row['id'] ?? null) {
-                $rowId['id'] = $row['id'];
+            if ($this->data['category'] === 'column') {
+                $rowId['id'] = $row['id'] ?? null;
             }
             $row = $this->CalculateCodePreviews->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
             $htmls = [];

@@ -144,7 +144,7 @@ class Select extends Field
                     ['name' => 'CALC PREVIEW ' . $this->data['name']],
                     [],
                     [],
-                    $this->table->getTbl()['params'],
+                    $row,
                     [],
                     $this->table->getTbl(),
                     $this->table,

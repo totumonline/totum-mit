@@ -135,15 +135,15 @@ class Select extends Field
             $this->CalculateCodePreviews = new CalculateSelectPreview($this->data['codeSelect']);
         }
         try {
+            $rowId = [];
+            if ($row['id'] ?? null) {
+                $rowId['id'] = $row['id'];
+            }
             $row = $this->CalculateCodePreviews->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
             $htmls = [];
 
             if ($row['previewscode'] ?? null) {
                 $CalcPreview = new Calculate($row['previewscode']);
-                $rowId = [];
-                if ($row['id'] ?? null) {
-                    $rowId['id'] = $row['id'];
-                }
 
                 $data = $CalcPreview->exec(
                     ['name' => 'CALC PREVIEW ' . $this->data['name']],

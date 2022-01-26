@@ -107,7 +107,7 @@ class CalculateSelect extends Calculate
             $rows
         );
 
-        if (!empty($params['preview'])) {
+        if (!empty($params['preview']) || !empty($params['previewscode'])) {
             $rows['previewdata'] = true;
         };
         return $rows;
@@ -254,7 +254,7 @@ class CalculateSelect extends Calculate
             $rows
         );
 
-        if (!empty($params['preview'])) {
+        if (!empty($params['preview']) || !empty($params['previewscode'])) {
             $rows['previewdata'] = true;
         };
         return $rows;

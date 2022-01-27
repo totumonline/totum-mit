@@ -56,9 +56,11 @@ class CalculateAction extends Calculate
     protected function funcExec(string $params): mixed
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $code = $params['code'] ?? $params['kod'];
+            $code = $params['code'] ?? $params['kod'] ?? null;
 
-            if (!empty($code)) {
+            if (empty($code)) {
+                $this->__checkNotEmptyParams($params, ['code']);
+            } else {
                 if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
                     $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
                 }
@@ -952,6 +954,7 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['field'], ['field']);
 
+        $this->__checkNotEmptyParams($params, ['table']);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         $link = '/Table/';

@@ -1669,7 +1669,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if ($field['type'] === 'select') {
                 foreach ($field['codeSelect'] ?? [] as $code) {
-                    if (is_string($code) && preg_match('/(selectRowListForSelect|selectListAssoc)\([^)]*preview\s*:/i',
+                    if (is_string($code) && preg_match('/(selectRowListForSelect|selectListAssoc)\([^)]*(preview|previewscode)\s*:/i',
                             $code)) {
                         $field['withPreview'] = true;
                         break;

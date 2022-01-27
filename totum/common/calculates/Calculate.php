@@ -129,7 +129,7 @@ class Calculate
 
     protected function translate(string $str, mixed $vars = []): string
     {
-        return $this->Table->getTotum()->getLangObj()->translate($str, $vars);
+        return $this->Table?->getTotum()->getLangObj()->translate($str, $vars) ?? $str;
     }
 
     protected function formStartSections()

@@ -65,29 +65,54 @@ class CalculateAction extends Calculate
                     $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
                 }
 
-                $CA = new static($code);
-                try {
+                if (key_exists('ssh',
+                        $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
+
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {
                         $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
                     }
 
-                    $r = $CA->execAction(
-                        $this->varName,
-                        $this->oldRow,
-                        $this->row,
-                        $this->oldTbl,
-                        $this->tbl,
-                        $this->Table,
-                        $this->vars['tpa'],
-                        $Vars
-                    );
-                    $this->newLogParent['children'][] = $CA->getLogVar();
+                    $data = ['code' => $code, 'vars' => $Vars];
+                    $test = '> /dev/null 2>&1 &';
+                    if ($params['ssh'] === 'test') {
+                        $data['test'] = true;
+                        $test = '2>&1';
+                    }
 
-                    return $r;
-                } catch (errorException $e) {
-                    $this->newLogParent['children'][] = $CA->getLogVar();
-                    throw $e;
+                    $data = base64_encode(json_encode($data,
+                        JSON_UNESCAPED_UNICODE));
+
+                    $path=$this->Table->getTotum()->getConfig()->getBaseDir();
+                    return `cd {$path} && bin/totum exec {$this->Table->getUser()->getId()} {$data} {$test}`;
+
+                } else {
+
+
+                    $CA = new static($code);
+                    try {
+                        $Vars = [];
+                        foreach ($params['var'] ?? [] as $v) {
+                            $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
+                        }
+
+                        $r = $CA->execAction(
+                            $this->varName,
+                            $this->oldRow,
+                            $this->row,
+                            $this->oldTbl,
+                            $this->tbl,
+                            $this->Table,
+                            $this->vars['tpa'],
+                            $Vars
+                        );
+                        $this->newLogParent['children'][] = $CA->getLogVar();
+
+                        return $r;
+                    } catch (errorException $e) {
+                        $this->newLogParent['children'][] = $CA->getLogVar();
+                        throw $e;
+                    }
                 }
             }
         }
@@ -217,25 +242,14 @@ class CalculateAction extends Calculate
 
     public function exec($fieldData, array $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed
     {
-        switch ($vars['tpa'] ?? null) {
-            case 'add':
-                $s = 'ad';
-                break;
-            case 'delete':
-                $s = 'dl';
-                break;
-            case 'change':
-                $s = 'ch';
-                break;
-            case 'click':
-                $s = 'cl';
-                break;
-            case 'exec':
-                $s = 'ex';
-                break;
-            default:
-                throw new errorException($this->translate('System error. Action type not specified.'));
-        }
+        $s = match ($vars['tpa'] ?? null) {
+            'add' => 'ad',
+            'delete' => 'dl',
+            'change' => 'ch',
+            'click' => 'cl',
+            'exec' => 'ex',
+            default => throw new errorException($this->translate('System error. Action type not specified.')),
+        };
         $this->startSections = array_merge(
             $this->allStartSections[''] ?? [],
             $this->allStartSections['a'] ?? [],

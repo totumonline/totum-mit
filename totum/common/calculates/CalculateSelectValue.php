@@ -34,11 +34,14 @@ class CalculateSelectValue extends CalculateSelect
 
         return parent::funcSelectRowListForSelect($params);
     }
+
     protected function getPreparedList($rows)
     {
         $selectList = [];
+        unset($rows['previewdata']);
+
         foreach ($rows as $row) {
-            $selectList[$row['value']]=$row['title'];
+            $selectList[$row['value']] = $row['title'];
         }
         return $selectList;
     }

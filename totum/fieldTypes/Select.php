@@ -135,16 +135,21 @@ class Select extends Field
             $this->CalculateCodePreviews = new CalculateSelectPreview($this->data['codeSelect']);
         }
         try {
+            $rowId = [];
+            if ($this->data['category'] === 'column') {
+                $rowId['id'] = $row['id'] ?? null;
+            }
             $row = $this->CalculateCodePreviews->exec($this->data, $val, [], $row, $tbl, $tbl, $this->table);
             $htmls = [];
 
             if ($row['previewscode'] ?? null) {
                 $CalcPreview = new Calculate($row['previewscode']);
+
                 $data = $CalcPreview->exec(
                     ['name' => 'CALC PREVIEW ' . $this->data['name']],
                     [],
                     [],
-                    $this->table->getTbl()['params'],
+                    $rowId,
                     [],
                     $this->table->getTbl(),
                     $this->table,

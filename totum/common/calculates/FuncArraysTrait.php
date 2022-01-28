@@ -65,7 +65,16 @@ trait FuncArraysTrait
             if (is_null($MainList)) {
                 $MainList = $list;
             } else {
-                $MainList = array_intersect($MainList, $list);
+                $newMainList = [];
+                foreach ($MainList as $val) {
+                    foreach ($list as $val2){
+                        if(Calculate::compare('==', $val, $val2, $this->getLangObj())){
+                            $newMainList[]=$val;
+                            break;
+                        }
+                    }
+                }
+                $MainList = $newMainList;
             }
         }
 
@@ -391,7 +400,20 @@ trait FuncArraysTrait
                 if (is_null($MainList)) {
                     $MainList = $list;
                 } else {
-                    $MainList = array_diff($MainList, $list);
+                    $newMainList = [];
+                    foreach ($MainList as $val) {
+                        $exists=false;
+                        foreach ($list as $val2){
+                            if(Calculate::compare('==', $val, $val2, $this->getLangObj())){
+                                $exists = true;
+                                break;
+                            }
+                        }
+                        if(!$exists){
+                            $newMainList[]=$val;
+                        }
+                    }
+                    $MainList = $newMainList;
                 }
             }
         }
@@ -940,7 +962,8 @@ trait FuncArraysTrait
                         $_k = $this->__getValue($action[0]);
                         $_v = $this->__getValue($action[1]);
 
-                        if (key_exists($k, $list) && !is_null($list[$k]) && !is_array($list[$k]) && !ctype_digit($k)) {;
+                        if (key_exists($k, $list) && !is_null($list[$k]) && !is_array($list[$k]) && !ctype_digit($k)) {
+                            ;
                             throw new errorException($this->translate('The value by %s key is not a row/list'));
                         }
 

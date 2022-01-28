@@ -148,8 +148,12 @@ class ReadTableActions extends Actions
             $item = $tbl['params'];
 
             if ($field['category'] === 'column') {
-                $this->Table->checkIsUserCanViewIds('web', [$this->post['id']]);
-                $item = $this->Table->getTbl()['rows'][$this->post['id']];
+                if (is_numeric($this->post['id'])) {
+                    $this->Table->checkIsUserCanViewIds('web', [$this->post['id']]);
+                    $item = $this->Table->getTbl()['rows'][$this->post['id']];
+                }else{
+                    $item=$this->getInsertRow($this->post['id']);
+                }
             }
             if (!($field = $this->Table->getVisibleFields('web')[$field['name']] ?? null)) {
                 throw new errorException($this->translate('Field [[%s]] is not found.', $field['title']));
@@ -1665,7 +1669,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if ($field['type'] === 'select') {
                 foreach ($field['codeSelect'] ?? [] as $code) {
-                    if (is_string($code) && preg_match('/(selectRowListForSelect|selectListAssoc)\([^)]*preview\s*:/i',
+                    if (is_string($code) && preg_match('/(selectRowListForSelect|selectListAssoc)\([^)]*(preview|previewscode)\s*:/i',
                             $code)) {
                         $field['withPreview'] = true;
                         break;

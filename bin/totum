@@ -5,6 +5,7 @@ use totum\commands\CleanSchemasTmpTables;
 use totum\commands\CleanSchemaTmpTables;
 use totum\commands\CleanTmps;
 use totum\commands\CleanTmpTablesFilesMulti;
+use totum\commands\CodeExec;
 use totum\commands\GitUpdate;
 use totum\commands\SchemaAdd;
 use totum\commands\SchemaCron;
@@ -41,6 +42,7 @@ if (class_exists(Conf::class)) {
     $app->add(new GitUpdate());
     $app->add(new SchemaBackup());
     $app->add(new SchemaReplace());
+    $app->add(new CodeExec());
 
     if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
         $app->add(new SchemasCrons());

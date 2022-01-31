@@ -1730,7 +1730,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     'title->>\'v\''
                 );
                 $fields['data_src']['jsonFields']['fieldSettings']['selectTable']['values'] = $this->Totum->getModel('tables')->getFieldIndexedByField(
-                    ['is_del' => false, 'type' => ['globcalcs', 'simple', 'cycles']],
+                    ['is_del' => false, 'type' => ['globcalcs', 'simple']],
                     'name',
                     'title',
                     'title->>\'v\''

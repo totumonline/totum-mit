@@ -882,7 +882,9 @@ class Calculate
                     if (!empty($paramArray['field2'])) {
                         $r = $processHardSelect($paramArray['field2']);
                     } elseif ($paramArray['field'] === 'id' || $paramArray['field'] === 'n' || ($this->Table->getTotum()->getTable($paramArray['table'],
-                                $this->Table->getCycle()?->getId())->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
+                                $this->Table->getCycle()?->getId()
+                                ?? (($this->row['id'] ?? null) && $this->Table->isCalcsTableFromThisCyclesTable($paramArray['table']) ? $this->row['id'] : null)
+                            )->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
                         $r = $processHardSelect('id');
                     } else {
                         $r = $this->Table->getSelectByParams(

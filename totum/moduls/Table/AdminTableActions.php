@@ -94,7 +94,7 @@ class AdminTableActions extends WriteTableActions
             }
         }
 
-        return $this->refresh();
+        return $this->getTableClientChangedData([], true);
     }
 
     public function renameField()

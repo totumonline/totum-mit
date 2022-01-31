@@ -9,6 +9,7 @@
 namespace totum\common\calculates;
 
 use SoapClient;
+use totum\common\criticalErrorException;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
@@ -67,6 +68,10 @@ class CalculateAction extends Calculate
 
                 if (key_exists('ssh',
                         $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
+
+                    if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
+                        throw new criticalErrorException($this->translate('Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.'));
+                    }
 
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {

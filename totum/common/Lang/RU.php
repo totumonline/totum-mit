@@ -129,7 +129,8 @@ class RU implements LangInterface
         'There is no NowField enabled in this type of code. We\'ll fix it - write us.' => 'В этом типе кода не подключен NowField. Мы исправимся - напишите нам.',
         '[[%s]] is available only for the calculation table in the cycle.' => '[[%s]] доступно только для расчетной таблицы в цикле.',
 
-        'The ExecSSH function is disabled. Enable it in Conf.php.' => 'Функция ExecSSH выключена. Подключите ее в Conf.php',
+        'The ExecSSH function is disabled. Enable execSSHOn in Conf.php.' => 'Функция ExecSSH выключена. Подключите execSSHOn в Conf.php',
+        'Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.' => 'Параметр ssh:true выключен. Подключите execSSHOn в Conf.php',
         'The [[%s]] parameter has not been set in this code.' => 'Параметр [[%s]] не был установлен в этом коде.',
         'All list elements must be lists.' => 'Все элементы списка должны быть списками.',
         'None of the elements of the %s parameter array must be a list.' => 'Ни один из элементов массива параметра %s не должен быть списком.',

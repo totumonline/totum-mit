@@ -151,8 +151,8 @@ class ReadTableActions extends Actions
                 if (is_numeric($this->post['id'])) {
                     $this->Table->checkIsUserCanViewIds('web', [$this->post['id']]);
                     $item = $this->Table->getTbl()['rows'][$this->post['id']];
-                }else{
-                    $item=$this->getInsertRow($this->post['id']);
+                } else {
+                    $item = $this->getInsertRow($this->post['id']);
                 }
             }
             if (!($field = $this->Table->getVisibleFields('web')[$field['name']] ?? null)) {
@@ -792,7 +792,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $ids = $this->Table->loadFilteredRows('web', $settings['ids'] ?? []);
         $data = ['params' => $this->Table->getTbl()['params'], 'rows' => []];
-        foreach ($settings['ids'] as $id) {
+        foreach ($settings['ids'] ?? [] as $id) {
             if (in_array($id, $ids)) {
                 $data['rows'][$id] = $this->Table->getTbl()['rows'][$id];
             }

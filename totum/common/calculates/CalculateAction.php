@@ -83,7 +83,7 @@ class CalculateAction extends Calculate
                     $data = base64_encode(json_encode($data,
                         JSON_UNESCAPED_UNICODE));
 
-                    $path=$this->Table->getTotum()->getConfig()->getBaseDir();
+                    $path = $this->Table->getTotum()->getConfig()->getBaseDir();
                     return `cd {$path} && bin/totum exec {$this->Table->getUser()->getId()} {$data} {$test}`;
 
                 } else {
@@ -470,7 +470,18 @@ class CalculateAction extends Calculate
     protected function funcSleep(string $params)
     {
         $params = $this->getParamsArray($params, [], []);
-        sleep($params['sec'] ?? 0);
+        $sec = (float)($params['sec'] ?? 0);
+        $sleep = (int)floor($sec);
+        $usleep = $sec - $sleep;
+        $usleep *= 1000000;
+
+        if ($sleep > 0) {
+            sleep($sleep);
+        }
+        if ($usleep > 0) {
+            usleep($usleep);
+        }
+
     }
 
     protected function funcEmailSend($params)

@@ -23,6 +23,7 @@ class RU implements LangInterface
         'Scheme string is empty.' => 'Строка схемы пуста.',
         'The function is only available for cycles tables.' => 'Функция доступна только для таблиц циклов.',
 
+        'You see the contents of the table calculated and saved before the last transaction with the error.' => 'Вы видите содержимое таблицы, вычисленное и сохраненное перед последней транзакцией с ошибкой.',
         'System error. Action type not specified.' => 'Системная ошибка. Не указан тип действия.',
         'Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data'=>'Поле [[%s]] таблицы [[%s]] в строке с id [[%s]] содержит нечисловую информацию',
         'Scheme source not defined.' => 'Не определен источник схемы.',

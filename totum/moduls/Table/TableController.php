@@ -568,7 +568,8 @@ class TableController extends interfaceController
                 if ($this->User && $this->User->isCreator() && $exception->getPathMess()) {
                     $error .= '<br/>' . $exception->getPathMess();
                 }
-                $result = $Actions->getFullTableData(false);
+                $error .= '<br/>' .$this->translate('You see the contents of the table calculated and saved before the last transaction with the error.');
+                    $result = $Actions->getFullTableData(false);
             }
         }
 

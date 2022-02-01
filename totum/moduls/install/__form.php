@@ -47,6 +47,12 @@
         <?='let post = ' . json_encode($post, JSON_UNESCAPED_UNICODE) ?>;
 
 
+        let langs =
+            {
+                create_config: {ru: 'Создать конфиг и залить схему', en: 'Create config and upload scheme'},
+                error_string: {ru: 'Ошибочная строка', en: 'Dbstring is incorrect'},
+            };
+
 
         const params = [
             {
@@ -141,6 +147,8 @@
             })
         }
 
+        let LANG = 'en';
+
         const SetLang = function (lang) {
             const setLang = () => {
                 App.lang = App.langs[lang];
@@ -151,6 +159,8 @@
             } else {
                 setLang();
             }
+            LANG = lang;
+            $('#submit').val(langs.create_config[lang] || langs.create_config.en);
         }
         SetLang(post.lang)
 
@@ -159,9 +169,8 @@
             formForm();
 
 
-
-            $('#form').on('change', '#langSelect', function (){
-               SetLang($(this).val())
+            $('#form').on('change', '#langSelect', function () {
+                SetLang($(this).val())
             });
             $('#form').on('change', 'input,select', function () {
                 let self = $(this)
@@ -194,7 +203,7 @@
                 $('input[name="db_user_password').val(matches.groups.PASS);
                 $(this).val('');
             } else {
-                $('#dbstring_error').text('Некорректная строка');
+                $('#dbstring_error').text(langs['error_string'][LANG]);
             }
 
         });

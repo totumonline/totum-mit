@@ -2231,7 +2231,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
             );
 
-
             $parentIds = ($this->Request->getParsedBody()['withParents'] ?? null) ? null : [];
             $recurcive = ($this->Request->getParsedBody()['recurcive'] ?? null) === 'true';
             return $this->getResultTree(
@@ -2251,7 +2250,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
                     if (in_array($k, $branchIds)) {
                         return 'this';
-                    } elseif (in_array($k, $parentIds)) {
+                    } elseif ($parentIds && in_array($k, $parentIds)) {
                         return 'parent';
                     } elseif ($recurcive) {
                         $path = $v;
@@ -2262,7 +2261,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             $path = $path['path'] ?? null;
                         }
                         return false;
-                    } elseif (in_array($v[3] ?? null, $branchIds) || in_array($v[3] ?? null, $parentIds)) {
+                    } elseif (in_array($v[3] ?? null, $branchIds) || in_array($v[3] ?? null, $parentIds ?? [])) {
                         return 'child';
                     }
                 },

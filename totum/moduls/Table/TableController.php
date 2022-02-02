@@ -275,8 +275,57 @@ class TableController extends interfaceController
                 $tree[] = &$cycleRow;
             }
 
-            foreach ($this->Cycle->getViewListTables() as $i => $tName) {
-                if ($tableRow = $this->Totum->getTableRow($tName)) {
+
+            /*Подключенные вкладки-кнопки*/
+            $orderedInners = [];
+            foreach ($CyclesTable->getFields() as $field) {
+                if ($field['category'] === 'column' && str_starts_with($field['name'], 'tab_') &&
+                    $field['type'] === 'button' && $CyclesTable->isField('visible', 'web', $field) &&
+                    ($CyclesTable->isUserCanAction('edit') || ($field['pressableOnOnlyRead'] ?? false))) {
+
+                    $ord = $field['ord'];
+                    $dec = 1;
+                    while (key_exists($ord, $orderedInners)) {
+                        $ord += 5 * (1 / (10 ^ $dec));
+                        $dec++;
+                    }
+
+                    $orderedInners[$ord] = [
+                        'id' => $cyclesTableId . '/' . $this->Cycle->getId() . '/' . $field['name']
+                        , 'text' => $field['title']
+                        , 'icon' => 'fa fa-hand-pointer-o'
+                        , 'type' => 'tab_button'
+                        , 'isCycleTable' => true
+                        , 'parent' => $idHref
+                        , 'state' => [
+                            'selected' => $this->tabButton === $field['name']
+                        ]
+                    ];
+                }
+            }
+
+            $tables = $this->Cycle->getViewTablesWithOrds();
+            foreach ($tables as $ord => $table) {
+                $dec = 1;
+                while (key_exists($ord, $orderedInners)) {
+                    $ord += 5 * (1 / (10 ^ $dec));
+                    $dec++;
+                }
+                $orderedInners[$ord] = $table;
+            }
+            ksort($orderedInners, SORT_NUMERIC);
+            $isCycleRowConnected = false;
+
+            foreach ($orderedInners as $ord => $tName) {
+                /*Вкладка*/
+                if (is_array($tName)) {
+                    $tree[] = $tName;
+                    if (!$isCycleRowConnected && !empty($cycleRow)) {
+                        $isCycleRowConnected = true;
+                        $cycleRow['href'] = $tName['id'];
+                        $cycleRow['type'] .= '_tab';
+                    }
+                } elseif ($tableRow = $this->Totum->getTableRow($tName)) {
                     $tId = $tableRow['id'];
                     if (array_key_exists($tId, $this->User->getTreeTables())) {
                         $tbl = [
@@ -295,12 +344,13 @@ class TableController extends interfaceController
                         if ($this->User->isCreator()) {
                             $tbl['name'] = $tableRow['name'];
                         }
-                        $tree[] = $tbl;
                         if ($this->anchorId) {
-                            unset($tree[count($tree) - 1]['href']);
-                            $tree[count($tree) - 1]['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
+                            unset($tbl['href']);
+                            $tbl['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                         }
-                        if ($i === 0 && !empty($cycleRow)) {
+                        $tree[] = $tbl;
+                        if (!$isCycleRowConnected && !empty($cycleRow)) {
+                            $isCycleRowConnected = true;
                             if ($this->anchorId) {
                                 $cycleRow['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                             } else {
@@ -310,29 +360,7 @@ class TableController extends interfaceController
                     }
                 }
             }
-            /*Подключенные вкладки-кнопки*/
 
-
-            foreach ($CyclesTable->getFields() as $field) {
-                if ($field['category'] === 'column' && str_starts_with($field['name'], 'tab_') &&
-                    $field['type'] === 'button' && $CyclesTable->isField('visible', 'web', $field) &&
-                    ($CyclesTable->isUserCanAction('edit') || ($field['pressableOnOnlyRead'] ?? false))) {
-
-                    $tree[] = [
-                        'id' => $cyclesTableId . '/' . $this->Cycle->getId() . '/' . $field['name']
-                        , 'text' => $field['title']
-                        , 'icon' => 'fa fa-hand-pointer-o'
-                        , 'type' => 'tab_button'
-                        , 'isCycleTable' => true
-                        , 'parent' => $idHref
-                        , 'state' => [
-                            'selected' => $this->tabButton === $field['name']
-                        ]
-                    ];
-
-                }
-
-            }
 
         }
 
@@ -568,8 +596,8 @@ class TableController extends interfaceController
                 if ($this->User && $this->User->isCreator() && $exception->getPathMess()) {
                     $error .= '<br/>' . $exception->getPathMess();
                 }
-                $error .= '<br/>' .$this->translate('You see the contents of the table calculated and saved before the last transaction with the error.');
-                    $result = $Actions->getFullTableData(false);
+                $error .= '<br/>' . $this->translate('You see the contents of the table calculated and saved before the last transaction with the error.');
+                $result = $Actions->getFullTableData(false);
             }
         }
 

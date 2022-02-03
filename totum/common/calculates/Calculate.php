@@ -790,16 +790,20 @@ class Calculate
         return $result;
     }
 
-    protected function getExecParamVal($paramVal, string $paramsName)
+    protected function getExecParamVal($paramVal, string $paramsName, $isTreePartValue = false)
     {
         try {
             $codes = $this->getCodes($paramVal);
         } catch (errorException $e) {
             throw new errorException($this->translate('TOTUM-code format error [[%s]].', $paramVal));
         }
-
         if (count($codes) < 2 || !key_exists(1, $codes)) {
             throw new errorException($this->translate('The [[%s]] parameter must contain 2 elements.', $paramsName));
+        }
+
+        if ($isTreePartValue && !key_exists('comparison', $codes)) {
+            throw new errorException($this->translate('The %s parameter must contain a comparison element.',
+                $paramsName));
         }
 
         if (is_array($codes[0])) {
@@ -812,6 +816,13 @@ class Calculate
             $value = $this->__getValue($codes[1]);
         } else {
             $value = $codes[1];
+        }
+        if ($isTreePartValue) {
+            return [
+                'field' => $varName,
+                'operator' => $codes['comparison'],
+                'value' => $value
+            ];
         }
         return [$varName => $value];
     }

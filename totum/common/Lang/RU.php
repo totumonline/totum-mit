@@ -22,6 +22,7 @@ class RU implements LangInterface
         'Password doesn\'t match.' => 'Пароль не подходит.',
         'Scheme string is empty.' => 'Строка схемы пуста.',
         'The function is only available for cycles tables.' => 'Функция доступна только для таблиц циклов.',
+        'Using a comparison type in a filter of list/row is not allowed' => 'Использование типа сравнения при фильтрации list/row не разрешено',
 
         'You see the contents of the table calculated and saved before the last transaction with the error.' => 'Вы видите содержимое таблицы, вычисленное и сохраненное перед последней транзакцией с ошибкой.',
         'System error. Action type not specified.' => 'Системная ошибка. Не указан тип действия.',

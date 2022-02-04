@@ -145,7 +145,7 @@ trait FuncOperationsTrait
     protected function funcExecSSH(string $params): bool|string|null
     {
         if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
-            throw new criticalErrorException($this->translate('The ExecSSH function is disabled. Enable it in Conf.php.'));
+            throw new criticalErrorException($this->translate('The ExecSSH function is disabled. Enable execSSHOn in Conf.php.'));
         }
         $params = $this->getParamsArray($params);
         if (empty($params['ssh'])) {

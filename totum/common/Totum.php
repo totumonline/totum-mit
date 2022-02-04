@@ -144,6 +144,9 @@ class Totum
      */
     public function getTableRow($where, $force = false)
     {
+        if (is_array($where) && key_exists('name', $where) && key_exists('id', $where)) {
+            return $where;
+        }
         return $this->Config->getTableRow($where, $force);
     }
 
@@ -237,7 +240,8 @@ class Totum
                     $this->tablesInstances[$cacheString] = cyclesTable::init($this, $tableRow, $extraData, $light);
                     break;
                 default:
-                    errorException::criticalException($this->translate('The [[%s]] table type is not connected to the system.', $tableRow['type']),
+                    errorException::criticalException($this->translate('The [[%s]] table type is not connected to the system.',
+                        $tableRow['type']),
                         $this
                     );
             }

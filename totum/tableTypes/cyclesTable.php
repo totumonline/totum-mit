@@ -25,6 +25,18 @@ class cyclesTable extends RealTables
         parent::reCalculate($inVars);
     }
 
+    public function isCalcsTableFromThisCyclesTable(mixed $table): bool
+    {
+        $tableRow = $this->getTotum()->getTableRow($table);
+        if ($tableRow['type'] !== 'calcs') {
+            return false;
+        }
+        if ((int)$tableRow['tree_node_id'] === $this->getTableRow()['id']) {
+            return true;
+        }
+        return false;
+    }
+
     public function createTable(int $duplicatedId)
     {
         parent::createTable($duplicatedId);

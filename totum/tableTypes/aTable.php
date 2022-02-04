@@ -174,6 +174,11 @@ abstract class aTable
         return $this->anchorFilters;
     }
 
+    public function isCalcsTableFromThisCyclesTable(mixed $table): bool
+    {
+        return false;
+    }
+
     public function setRestoreView(bool $true)
     {
         $this->restoreView = $true;

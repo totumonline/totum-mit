@@ -9,6 +9,7 @@
 namespace totum\common\calculates;
 
 use SoapClient;
+use totum\common\criticalErrorException;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
@@ -68,6 +69,10 @@ class CalculateAction extends Calculate
                 if (key_exists('ssh',
                         $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
 
+                    if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
+                        throw new criticalErrorException($this->translate('Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.'));
+                    }
+
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {
                         $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
@@ -83,7 +88,7 @@ class CalculateAction extends Calculate
                     $data = base64_encode(json_encode($data,
                         JSON_UNESCAPED_UNICODE));
 
-                    $path=$this->Table->getTotum()->getConfig()->getBaseDir();
+                    $path = $this->Table->getTotum()->getConfig()->getBaseDir();
                     return `cd {$path} && bin/totum exec {$this->Table->getUser()->getId()} {$data} {$test}`;
 
                 } else {
@@ -470,7 +475,18 @@ class CalculateAction extends Calculate
     protected function funcSleep(string $params)
     {
         $params = $this->getParamsArray($params, [], []);
-        sleep($params['sec'] ?? 0);
+        $sec = (float)($params['sec'] ?? 0);
+        $sleep = (int)floor($sec);
+        $usleep = $sec - $sleep;
+        $usleep *= 1000000;
+
+        if ($sleep > 0) {
+            sleep($sleep);
+        }
+        if ($usleep > 0) {
+            usleep($usleep);
+        }
+
     }
 
     protected function funcEmailSend($params)

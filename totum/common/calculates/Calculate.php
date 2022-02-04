@@ -790,16 +790,20 @@ class Calculate
         return $result;
     }
 
-    protected function getExecParamVal($paramVal, string $paramsName)
+    protected function getExecParamVal($paramVal, string $paramsName, $isTreePartValue = false)
     {
         try {
             $codes = $this->getCodes($paramVal);
         } catch (errorException $e) {
             throw new errorException($this->translate('TOTUM-code format error [[%s]].', $paramVal));
         }
-
         if (count($codes) < 2 || !key_exists(1, $codes)) {
             throw new errorException($this->translate('The [[%s]] parameter must contain 2 elements.', $paramsName));
+        }
+
+        if ($isTreePartValue && !key_exists('comparison', $codes)) {
+            throw new errorException($this->translate('The %s parameter must contain a comparison element.',
+                $paramsName));
         }
 
         if (is_array($codes[0])) {
@@ -812,6 +816,13 @@ class Calculate
             $value = $this->__getValue($codes[1]);
         } else {
             $value = $codes[1];
+        }
+        if ($isTreePartValue) {
+            return [
+                'field' => $varName,
+                'operator' => $codes['comparison'],
+                'value' => $value
+            ];
         }
         return [$varName => $value];
     }
@@ -882,7 +893,9 @@ class Calculate
                     if (!empty($paramArray['field2'])) {
                         $r = $processHardSelect($paramArray['field2']);
                     } elseif ($paramArray['field'] === 'id' || $paramArray['field'] === 'n' || ($this->Table->getTotum()->getTable($paramArray['table'],
-                                $this->Table->getCycle()?->getId())->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
+                                $this->Table->getCycle()?->getId()
+                                ?? (($this->row['id'] ?? null) && $this->Table->isCalcsTableFromThisCyclesTable($paramArray['table']) ? $this->row['id'] : null)
+                            )->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
                         $r = $processHardSelect('id');
                     } else {
                         $r = $this->Table->getSelectByParams(

@@ -67,9 +67,9 @@ trait FuncArraysTrait
             } else {
                 $newMainList = [];
                 foreach ($MainList as $val) {
-                    foreach ($list as $val2){
-                        if(Calculate::compare('==', $val, $val2, $this->getLangObj())){
-                            $newMainList[]=$val;
+                    foreach ($list as $val2) {
+                        if (Calculate::compare('==', $val, $val2, $this->getLangObj())) {
+                            $newMainList[] = $val;
                             break;
                         }
                     }
@@ -110,8 +110,27 @@ trait FuncArraysTrait
 
     protected function funcListFilter(string $params): array
     {
-        $params = $this->getParamsArray($params, ['key']);
+        $params = $this->getParamsArray($params, ['key'], ['key']);
         $this->__checkListParam($params['list'], 'list');
+
+        foreach ($params['key'] as &$key) {
+
+            if (str_ends_with($key, 'str')) {
+                $sorttype = 'str';
+            } elseif (str_ends_with($key, 'num')) {
+                $sorttype = 'num';
+            } else {
+                $sorttype = null;
+            }
+
+            if (!empty($sorttype)) {
+                $key = substr($key, 0, -3);
+            }
+            $key = $this->getExecParamVal($key, 'key', true);
+            $key['type'] = $sorttype;
+        }
+        unset($key);
+
 
         $this->__checkNotEmptyParams($params, ['key']);
 
@@ -144,7 +163,31 @@ trait FuncArraysTrait
             } else {
                 $operator = $key['operator'];
                 $value = $key['value'];
-                $getCompare = function ($v) use ($operator, $value) {
+                $getCompare = function ($v) use ($operator, $value, $key) {
+
+
+                    if ($key['type'] ?? false) {
+                        if (is_array($value) || is_array($v)) {
+                            throw new errorException($this->translate('Using a comparison type in a filter of list/row is not allowed'));
+                        }
+                        switch ($key['type']) {
+                            case 'str':
+                                $value = '_' . strval($value);
+                                $v = '_' . strval($v);
+                                break;
+                            case 'num':
+                                $value = (float)$value;
+                                $v = (float)$v;
+                                break;
+                        }
+                        return match ($v <=> $value) {
+                            0 => in_array($operator, ['>=', '<=', '=', '==']),
+                            1 => in_array($operator, ['>=', '>', '!=', '!==']),
+                            default => in_array($operator, ['<=', '<', '!=', '!==']),
+                        };
+                    }
+
+
                     return Calculate::compare($operator, $v, $value, $this->getLangObj());
                 };
             }
@@ -402,15 +445,15 @@ trait FuncArraysTrait
                 } else {
                     $newMainList = [];
                     foreach ($MainList as $val) {
-                        $exists=false;
-                        foreach ($list as $val2){
-                            if(Calculate::compare('==', $val, $val2, $this->getLangObj())){
+                        $exists = false;
+                        foreach ($list as $val2) {
+                            if (Calculate::compare('==', $val, $val2, $this->getLangObj())) {
                                 $exists = true;
                                 break;
                             }
                         }
-                        if(!$exists){
-                            $newMainList[]=$val;
+                        if (!$exists) {
+                            $newMainList[] = $val;
                         }
                     }
                     $MainList = $newMainList;
@@ -562,8 +605,24 @@ trait FuncArraysTrait
             $keys = [['value', 1]];
         } else {
             $keys = [];
-            foreach ($params['key'] as $i => $key) {
 
+            $checkSortType = function (&$param) {
+                if (preg_match(
+                    '/(?i:(str|num))$/',
+                    $param,
+                    $matches
+                )) {
+                    $type = match ($matches[0]){
+                        'str'=>SORT_STRING,
+                        'num'=>SORT_NUMERIC,
+                    };
+                    $param = substr($param, 0, -3);
+                }
+                return $type ?? null;
+            };
+
+            foreach ($params['key'] as $i => $key) {
+                $type = $checkSortType($key);
                 if (preg_match(
                     '/^(.*?)(?i:(asc|desc))$/',
                     $key,
@@ -574,6 +633,10 @@ trait FuncArraysTrait
                 } else {
                     $order = ($params['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                 }
+                if (!$type) {
+                    $type = $checkSortType($key);
+                }
+
                 $key = $this->execSubCode($key, 'key');
                 if ($key === 'item') {
                     $this->__checkRequiredParams($params, 'item');
@@ -583,7 +646,7 @@ trait FuncArraysTrait
                     throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.',
                         'key' . ($i + 1)));
                 }
-                $keys[] = [$key, $order === 'desc' ? -1 : 1];
+                $keys[] = [$key, $order === 'desc' ? -1 : 1, $type ?? $flag];
             }
         }
 
@@ -592,7 +655,7 @@ trait FuncArraysTrait
 
         uksort($list, function ($a, $b) use ($flag, $list, $keys) {
             foreach ($keys as $key) {
-                list($key, $dir) = $key;
+                list($key, $dir, $type) = $key;
                 switch ($key) {
                     case 'key':
                         $A = $a;
@@ -611,7 +674,7 @@ trait FuncArraysTrait
                 }
                 $arr = [$A, $B];
 
-                @asort($arr, $flag);
+                @asort($arr, $type);
 
                 $r = array_key_first($arr) === 0 ? -1 : 1;
                 break;

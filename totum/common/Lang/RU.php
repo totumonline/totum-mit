@@ -22,7 +22,9 @@ class RU implements LangInterface
         'Password doesn\'t match.' => 'Пароль не подходит.',
         'Scheme string is empty.' => 'Строка схемы пуста.',
         'The function is only available for cycles tables.' => 'Функция доступна только для таблиц циклов.',
+        'Using a comparison type in a filter of list/row is not allowed' => 'Использование типа сравнения при фильтрации list/row не разрешено',
 
+        'You see the contents of the table calculated and saved before the last transaction with the error.' => 'Вы видите содержимое таблицы, вычисленное и сохраненное перед последней транзакцией с ошибкой.',
         'System error. Action type not specified.' => 'Системная ошибка. Не указан тип действия.',
         'Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data'=>'Поле [[%s]] таблицы [[%s]] в строке с id [[%s]] содержит нечисловую информацию',
         'Scheme source not defined.' => 'Не определен источник схемы.',
@@ -128,7 +130,8 @@ class RU implements LangInterface
         'There is no NowField enabled in this type of code. We\'ll fix it - write us.' => 'В этом типе кода не подключен NowField. Мы исправимся - напишите нам.',
         '[[%s]] is available only for the calculation table in the cycle.' => '[[%s]] доступно только для расчетной таблицы в цикле.',
 
-        'The ExecSSH function is disabled. Enable it in Conf.php.' => 'Функция ExecSSH выключена. Подключите ее в Conf.php',
+        'The ExecSSH function is disabled. Enable execSSHOn in Conf.php.' => 'Функция ExecSSH выключена. Подключите execSSHOn в Conf.php',
+        'Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.' => 'Параметр ssh:true выключен. Подключите execSSHOn в Conf.php',
         'The [[%s]] parameter has not been set in this code.' => 'Параметр [[%s]] не был установлен в этом коде.',
         'All list elements must be lists.' => 'Все элементы списка должны быть списками.',
         'None of the elements of the %s parameter array must be a list.' => 'Ни один из элементов массива параметра %s не должен быть списком.',

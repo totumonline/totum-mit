@@ -151,8 +151,8 @@ class ReadTableActions extends Actions
                 if (is_numeric($this->post['id'])) {
                     $this->Table->checkIsUserCanViewIds('web', [$this->post['id']]);
                     $item = $this->Table->getTbl()['rows'][$this->post['id']];
-                }else{
-                    $item=$this->getInsertRow($this->post['id']);
+                } else {
+                    $item = $this->getInsertRow($this->post['id']);
                 }
             }
             if (!($field = $this->Table->getVisibleFields('web')[$field['name']] ?? null)) {
@@ -792,7 +792,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $ids = $this->Table->loadFilteredRows('web', $settings['ids'] ?? []);
         $data = ['params' => $this->Table->getTbl()['params'], 'rows' => []];
-        foreach ($settings['ids'] as $id) {
+        foreach ($settings['ids'] ?? [] as $id) {
             if (in_array($id, $ids)) {
                 $data['rows'][$id] = $this->Table->getTbl()['rows'][$id];
             }
@@ -800,14 +800,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $result = $this->Table->getValuesAndFormatsForClient($data, 'print', array_keys($data['rows']), $fieldNames);
 
 
-        $getTdTitle = function ($field, $withWidth = true) {
+        $getTdTitle = function ($field, $withWidth = true, $width = null) {
             $title = htmlspecialchars($field['title']);
             if (!empty($field['unitType'])) {
                 $title .= ', ' . $field['unitType'];
             }
 
             return '<td'
-                . ($withWidth ? ' style="width: ' . $field['width'] . 'px;"' : '')
+                . ($withWidth ? ' style="width: ' . ($field['width'] ?? $width) . 'px;"' : '')
                 . ' class="title">' . $title . '</td>';
         };
 
@@ -849,84 +849,53 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
         }
 
-        $table = [];
-        $width = 0;
-        foreach ($fields as $field) {
-            if ($field['category'] === 'column') {
-                if (!$table) {
-                    $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
-                    if (array_key_exists('id', $settings['fields'])) {
-                        $table['head'][] = '<td style="width: ' . $settings['fields']['id'] . 'px;" class="title">id</td>';
-                        $width += $settings['fields']['id'];
+
+        /*Строчная часть*/
+        if ($settings['rotated'] ?? null) {
+
+            $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
+            $table['head'][] = '<td style="width: 120px;" class="title"></td>';
+            $width = 120;
+
+            foreach ($fields as $field) {
+                if ($field['category'] === 'column') {
+                    $table['body'][$field['name']][] = $getTdTitle($field);
+                } elseif ($field['category'] === 'footer') {
+                    $field['column'] = '';
+                }
+            }
+            foreach ($result['rows'] as $id => $row) {
+                $title = '';
+                if ($this->Table->getTableRow()['main_field']) {
+                    $mainField = $this->Table->getFields()[$this->Table->getTableRow()['main_field']];
+                    switch ($mainField['type']) {
+                        case 'date':
+                            if ($row[$mainField['name']]['v']) {
+                                $title = $this->Totum->getLangObj()->dateFormat(date_create($row[$mainField['name']]['v']),
+                                    $mainField['dateFormat']);
+                            }
+                            break;
+                        default:
+                            $title = $row[$mainField['name']]['v'];
                     }
                 }
-                $table['head'][] = $getTdTitle($field);
-                $width += $settings['fields'][$field['name']];
-            }
-        }
-        if ($table) {
-            foreach ($result['rows'] as $id => $row) {
-                $tr = '<tr>';
-                if (array_key_exists('id', $settings['fields'])) {
-                    $tr .= '<td class="f-id"><span>' . $id . '</span></td>';
+                if (array_key_exists('id', $settings['fields']) && (empty($title) || strip_tags($title) === '')) {
+                    $title = $id;
                 }
+
+
+                $table['head'][] = '<td style="width: ' . $settings['rotated'] . 'px;" class="title">' . $title . '</td>';
                 foreach ($fields as $field) {
                     if ($field['category'] === 'column') {
-                        $tr .= '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $row[$field['name']]['v'] . '</span></td>';
+                        $table['body'][$field['name']][] = '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $row[$field['name']]['v'] . '</span></td>';
                     }
                 }
-                $tr .= '</tr>';
-                $table['body'][] = $tr;
             }
 
-
-            if ($columnFooters = array_filter(
-                $fields,
-                function ($field) use ($fields) {
-                    if ($field['category'] === 'footer' && $field['column'] && array_key_exists(
-                            $field['column'],
-                            $fields
-                        )) {
-                        return true;
-                    }
-                }
-            )) {
-                while ($columnFooters) {
-                    $tr_names = '<tr>';
-                    $tr_values = '<tr>';
-                    foreach ($fields as $field) {
-                        if ($field['category'] === 'column') {
-                            $column = $field['name'];
-
-                            if ($thisColumnFooters = array_filter(
-                                $columnFooters,
-                                function ($field) use ($column) {
-                                    if ($field['column'] === $column) {
-                                        return true;
-                                    }
-                                }
-                            )) {
-                                $name = array_keys($thisColumnFooters)[0];
-                                $thisColumnFooter = $columnFooters[$name];
-
-                                $tr_names .= $getTdTitle($thisColumnFooter, false);
-                                $tr_values .= '<td class="f-' . $thisColumnFooter['type'] . ' n-' . $thisColumnFooter['name'] . '">' . $result['params'][$thisColumnFooter['name']]['v'] . '</td>';
-
-                                unset($columnFooters[$name]);
-                            } else {
-                                $tr_names .= '<td></td>';
-                                $tr_values .= '<td></td>';
-                            }
-                        }
-                    }
-                    $tr_names .= '</tr>';
-                    $tr_values .= '</tr>';
-                    $table['body'][] = $tr_names;
-                    $table['body'][] = $tr_values;
-                    unset($tr_names);
-                    unset($tr_values);
-                }
+            foreach ($table['body'] as &$row) {
+                $row = '<tr>' . implode('', $row) . '</tr>';
             }
+            unset($row);
 
             $tableAll[] = $table[0] . $width . $table[1] . implode(
                     '',
@@ -935,13 +904,105 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     '',
                     $table['body']
                 ) . $table[3];
+
+
+        } else {
+            $table = [];
+            $width = 0;
+            foreach ($fields as $field) {
+                if ($field['category'] === 'column') {
+                    if (!$table) {
+                        $table = ['<table style="width: ', 'px;"><thead><tr>', 'head' => [], '</tr></thead><tbody><tr>', 'body' => [], '</tr></tbody></table>'];
+                        if (array_key_exists('id', $settings['fields'])) {
+                            $table['head'][] = '<td style="width: ' . $settings['fields']['id'] . 'px;" class="title">id</td>';
+                            $width += $settings['fields']['id'];
+                        }
+                    }
+                    $table['head'][] = $getTdTitle($field);
+                    $width += $settings['fields'][$field['name']];
+                }
+            }
+            if ($table) {
+                foreach ($result['rows'] as $id => $row) {
+                    $tr = '<tr>';
+                    if (array_key_exists('id', $settings['fields'])) {
+                        $tr .= '<td class="f-id"><span>' . $id . '</span></td>';
+                    }
+                    foreach ($fields as $field) {
+                        if ($field['category'] === 'column') {
+                            $tr .= '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $row[$field['name']]['v'] . '</span></td>';
+                        }
+                    }
+                    $tr .= '</tr>';
+                    $table['body'][] = $tr;
+                }
+
+
+                if ($columnFooters = array_filter(
+                    $fields,
+                    function ($field) use ($fields) {
+                        if ($field['category'] === 'footer' && $field['column'] && array_key_exists(
+                                $field['column'],
+                                $fields
+                            )) {
+                            return true;
+                        }
+                    }
+                )) {
+                    while ($columnFooters) {
+                        $tr_names = '<tr>';
+                        $tr_values = '<tr>';
+                        foreach ($fields as $field) {
+                            if ($field['category'] === 'column') {
+                                $column = $field['name'];
+
+                                if ($thisColumnFooters = array_filter(
+                                    $columnFooters,
+                                    function ($field) use ($column) {
+                                        if ($field['column'] === $column) {
+                                            return true;
+                                        }
+                                    }
+                                )) {
+                                    $name = array_keys($thisColumnFooters)[0];
+                                    $thisColumnFooter = $columnFooters[$name];
+
+                                    $tr_names .= $getTdTitle($thisColumnFooter, false);
+                                    $tr_values .= '<td class="f-' . $thisColumnFooter['type'] . ' n-' . $thisColumnFooter['name'] . '">' . $result['params'][$thisColumnFooter['name']]['v'] . '</td>';
+
+                                    unset($columnFooters[$name]);
+                                } else {
+                                    $tr_names .= '<td></td>';
+                                    $tr_values .= '<td></td>';
+                                }
+                            }
+                        }
+                        $tr_names .= '</tr>';
+                        $tr_values .= '</tr>';
+                        $table['body'][] = $tr_names;
+                        $table['body'][] = $tr_values;
+                        unset($tr_names);
+                        unset($tr_values);
+                    }
+                }
+
+                $tableAll[] = $table[0] . $width . $table[1] . implode(
+                        '',
+                        $table['head']
+                    ) . $table[2] . implode(
+                        '',
+                        $table['body']
+                    ) . $table[3];
+            }
         }
+        /*/строчная часть*/
 
 
         $table = [];
         $width = 0;
 
 
+        /*Общие футеры*/
         foreach ($fields as $field) {
             if ($field['category'] === 'footer' && empty($field['column'])) {
                 if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
@@ -1730,7 +1791,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     'title->>\'v\''
                 );
                 $fields['data_src']['jsonFields']['fieldSettings']['selectTable']['values'] = $this->Totum->getModel('tables')->getFieldIndexedByField(
-                    ['is_del' => false, 'type' => ['globcalcs', 'simple', 'cycles']],
+                    ['is_del' => false, 'type' => ['globcalcs', 'simple']],
                     'name',
                     'title',
                     'title->>\'v\''
@@ -2170,7 +2231,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
             );
 
-
             $parentIds = ($this->Request->getParsedBody()['withParents'] ?? null) ? null : [];
             $recurcive = ($this->Request->getParsedBody()['recurcive'] ?? null) === 'true';
             return $this->getResultTree(
@@ -2190,7 +2250,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
                     if (in_array($k, $branchIds)) {
                         return 'this';
-                    } elseif (in_array($k, $parentIds)) {
+                    } elseif ($parentIds && in_array($k, $parentIds)) {
                         return 'parent';
                     } elseif ($recurcive) {
                         $path = $v;
@@ -2201,7 +2261,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                             $path = $path['path'] ?? null;
                         }
                         return false;
-                    } elseif (in_array($v[3] ?? null, $branchIds) || in_array($v[3] ?? null, $parentIds)) {
+                    } elseif (in_array($v[3] ?? null, $branchIds) || in_array($v[3] ?? null, $parentIds ?? [])) {
                         return 'child';
                     }
                 },

@@ -285,22 +285,33 @@ class Cycle
         return $this->tables[$tableRow['name']];
     }
 
-    public function getViewListTables()
+    public function getViewTablesWithOrds()
     {
-        $names = CalcsTableCycleVersion::init($this->Totum->getConfig())->getColumn(
-            'table_name',
+        $data = CalcsTableCycleVersion::init($this->Totum->getConfig())->getAll(
             ['cycles_table' => $this->getCyclesTableId(), 'cycle' => $this->getId()],
-            '(ord->>\'v\')::int, (sort->>\'v\')::int'
+            'table_name,ord,sort'
         );
-        if (count($this->getTableIds()) != $names) {
+        $dataWithOrd = [];
+        foreach ($data as $r) {
+            $ord = $r['ord'] ?? $r['sort'];
+            $dec = 1;
+            while (key_exists($ord, $dataWithOrd)) {
+                $ord += 5 * (1 / (10 ^ $dec));
+                $dec++;
+            }
+            $dataWithOrd[$ord] = $r['table_name'];
+        }
+        ksort($dataWithOrd, SORT_NUMERIC);
+        if (count($this->getTableIds()) != $dataWithOrd) {
             foreach ($this->getTableIds() as $id) {
                 $row = $this->Totum->getTableRow($id);
-                if (!in_array($row['name'], $names)) {
-                    $names[] = $row['name'];
+                if (!in_array($row['name'], $dataWithOrd)) {
+                    $dataWithOrd[] = $row['name'];
                 }
             }
         }
-        return $names;
+
+        return $dataWithOrd;
     }
 
     public function saveTables($forceReCalculateCyclesTableRow = false, $forceSaveTables = false)

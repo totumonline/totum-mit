@@ -826,6 +826,11 @@ class Select extends Field
                         break;
                 }
             }
+            if ($modifyVal === '' || $modifyVal === null) {
+                $modifyVal = [];
+            } elseif (!is_array($modifyVal)) {
+                $modifyVal = [$modifyVal];
+            }
             $modifyVal = array_values($modifyVal);
         }
         return $modifyVal;

@@ -325,6 +325,7 @@ class RU implements LangInterface
         'Interface Error' => 'Ошибка интерфейса',
         'Temporary table storage time has expired' => 'Время хранения временной таблицы истекло',
         'Field not of type select/tree' => 'Поле не типа селект/дерево',
+        'Field not of type comments' => 'Поле не типа комментарии',
         'The tree index is not passed' => 'Не передан индекс дерева',
         'Access to the logs is denied' => 'Доступ к логам запрещен',
         'No manual changes were made in the field' => 'Ручных изменений по полю не производилось',

@@ -616,11 +616,16 @@ class ReadTableActions extends Actions
                     false
                 )];
 
-                if ($pageViewType === 'panels' && $this->Table->getTableRow()['with_order_field']) {
-                    $result['chdata']['nsorted_ids'] = array_column($result['chdata']['rows'], 'id');
-                } elseif ($pageViewType === 'paging') {
-                    $params = $this->Table->filtersParamsForLoadRows('web');
-                    $result['allCount'] = $params === false ? 0 : $this->Table->countByParams($params);
+                switch ($pageViewType) {
+                    case 'panels':
+                        if ($this->Table->getTableRow()['with_order_field']) {
+                            $result['chdata']['nsorted_ids'] = array_column($result['chdata']['rows'], 'id');
+                        }
+                        break;
+                    case 'paging':
+                        $params = $this->Table->filtersParamsForLoadRows('web');
+                        $result['allCount'] = $params === false ? 0 : $this->Table->countByParams($params);
+                        break;
                 }
         }
 
@@ -1109,7 +1114,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $result,
                     $this->getTableClientData(
                         0,
-                        null,
+                        $this->isPagingView() ? 0 : null,
                         false,
                         $fields
                     )
@@ -1122,15 +1127,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $this->getTreeTopLevel($tree['treeViewLoad'] ?? null, $tree['treeViewOpen'] ?? null)
                 );
                 break;
-            case 'paging':
-                $result = array_merge($result, $this->getTableClientData(0, 0, false));
-                break;
             case 'commonByCount':
                 /*For off button on table head*/
-                $result['panels'] = "off";
+                $result['panels'] = 'off';
             // no break
             default:
-                $result = array_merge($result, $this->getTableClientData(0, null, false));
+                $result = array_merge($result, $this->getTableClientData(0, $this->isPagingView() ? 0 : null, false));
 
         }
 
@@ -1161,13 +1163,20 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             return 'common';
         }
 
+        if (($tree = $this->Table->getFields()['tree'] ?? null)
+            && $tree['category'] === 'column'
+            && $tree['type'] === 'tree'
+            && !empty($tree['treeViewType'])) {
+            return 'tree';
+        }
+
         if ($this->Request->getQueryParams()['iframe'] ?? false) ; elseif (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null))
         ) {
             if (($this->post['panelsView'] ?? false) === 'true') {
                 return 'panels';
             } elseif (empty($this->post)) {
                 $allCount = $this->Table->countByParams($this->Table->filtersParamsForLoadRows('web'));
-                if ($allCount <= ($panelViewSettings["panels_max_count"] ?? 100)) {
+                if ($allCount <= ($panelViewSettings['panels_max_count'] ?? 100)) {
                     $checkCookies = function () use ($panelViewSettings) {
                         $name = $this->getPanelsCookieName()[0];
                         if (key_exists($name, $_COOKIE)) {
@@ -1188,18 +1197,15 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 }
             }
         }
-        if (($tree = $this->Table->getFields()['tree'] ?? null)
-            && $tree['category'] === 'column'
-            && $tree['type'] === 'tree'
-            && !empty($tree['treeViewType'])) {
-            return 'tree';
-        }
-        if (($this->Table->getTableRow()['pagination'] ?? '0/0') !== '0/0') {
-            return 'paging';
-        }
 
         return 'common';
     }
+
+    protected function isPagingView(): bool
+    {
+        return ($this->Table->getTableRow()['pagination'] ?? '0/0') !== '0/0';
+    }
+
 
     protected function addValuesAndFormatsOfParams($params, array $rowIds)
     {

@@ -44,8 +44,8 @@ class Sql
     public function getPDO()
     {
         if ($this->isRollbacked) {
-            $this->Log->error('Try to get rollbacked SQL', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
-            throw new SqlException('Transaction was rollbacked. Create new Conf and Totum for correct work with TOTUM');
+            $this->Log->error('Tring to get rollbacked SQL', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
+            throw new SqlException('Transaction was rollbacked');
         }
         return $this->PDO;
     }

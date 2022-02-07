@@ -267,6 +267,7 @@ class TableController extends interfaceController
                     , 'href' => '#'
                     , 'text' => $this->Cycle->getRowName()
                     , 'type' => 'cycle_name'
+                    , 'li_attr'=> ['class'=>'nopoiner']
                     , 'parent' => ($this->anchorId ? 'tree' . $this->anchorId : 'table' . $cyclesTableId)
                     , 'state' => [
                         'selected' => false
@@ -320,11 +321,6 @@ class TableController extends interfaceController
                 /*Вкладка*/
                 if (is_array($tName)) {
                     $tree[] = $tName;
-                    if (!$isCycleRowConnected && !empty($cycleRow)) {
-                        $isCycleRowConnected = true;
-                        $cycleRow['href'] = $tName['id'];
-                        $cycleRow['type'] .= '_tab';
-                    }
                 } elseif ($tableRow = $this->Totum->getTableRow($tName)) {
                     $tId = $tableRow['id'];
                     if (array_key_exists($tId, $this->User->getTreeTables())) {
@@ -349,14 +345,6 @@ class TableController extends interfaceController
                             $tbl['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                         }
                         $tree[] = $tbl;
-                        if (!$isCycleRowConnected && !empty($cycleRow)) {
-                            $isCycleRowConnected = true;
-                            if ($this->anchorId) {
-                                $cycleRow['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
-                            } else {
-                                $cycleRow['href'] = $cyclesTableId . '/' . $this->Cycle->getId() . '/' . $tId;
-                            }
-                        }
                     }
                 }
             }

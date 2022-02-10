@@ -317,7 +317,7 @@ abstract class RealTables extends aTable
             case 'list':
 
                 $offset = ($params['offset']) ?? '';
-                if ($offset !== "" && !(ctype_digit(strval($offset)))) {
+                if ($offset !== '' && !(ctype_digit(strval($offset)))) {
                     throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
                 }
                 $limit_ = ($params['limit']) ?? '';
@@ -533,7 +533,7 @@ abstract class RealTables extends aTable
                     "select * from (select id, row_number()  over(order by $orders) as t from {$this->model->getTableName()} where $whereStr) z where id IN (" . implode(
                         ',',
                         array_fill(0, count($untilId), '?')
-                    ) . ")",
+                    ) . ')',
                     $paramsWhere
                 )->fetchColumn(1) + $isRefresh;
         }

@@ -1787,7 +1787,7 @@ CODE;;
      * @param bool $asStr
      * @return array[]|string
      */
-    protected function orderParamsForLoadRows($asStr = false)
+    public function orderParamsForLoadRows($asStr = false)
     {
         $sortFieldName = 'id';
         if ($this->tableRow['order_field'] === 'n') {

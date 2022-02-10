@@ -478,7 +478,7 @@ class ReadTableActions extends Actions
             'web',
             true,
             false,
-            ["params" => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
         if (method_exists($this->Table, 'withoutNotLoaded')) {
             $this->Table->withoutNotLoaded();
@@ -487,6 +487,51 @@ class ReadTableActions extends Actions
         $data = $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
         $data['f'] = $this->getTableFormat(array_column($data['rows'], 'id'));
 
+
+        return $data;
+    }
+
+    public function loadTreeRows()
+    {
+        $this->Table->reCalculateFilters(
+            'web',
+            true,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+
+        if (method_exists($this->Table, 'withoutNotLoaded')) {
+            $this->Table->withoutNotLoaded();
+        }
+        $onPage = $this->post['onPage'] ?? 0;
+        $params = $this->Table->filtersParamsForLoadRows('web');
+        $data['rows'] = [];
+        $data['treeCounts'] = [];
+        foreach (json_decode($this->post['branches'], true) as $branch) {
+            $offset = $onPage * ($branch['p']);
+            $treeIds = $this->Table->getByParams(
+                [
+                    'where' => [...$params, ['field' => 'tree', 'value' => $branch['v'], 'operator' => '=']],
+                    'field' => 'id',
+                    'offset' => $offset,
+                    'limit' => $onPage,
+                    'order' => $this->Table->orderParamsForLoadRows()
+                ],
+                'list'
+            );
+
+            $data['treeCounts'][$branch['v']] = $this->Table->countByParams([...$params, ['field' => 'tree', 'value' => $branch['v'], 'operator' => '=']]);
+            if ($treeIds) {
+                $rows = $this->Table->getSortedFilteredRows('web', 'web', $treeIds)['rows'];
+                $data['rows'] = array_merge($data['rows'], $rows);
+            }
+        }
+        $data['order'] = array_keys($this->Table->getTbl()['rows']);
+
+        $Log = $this->Table->calcLog(['name' => 'SELECTS AND FORMATS ROWS']);
+        $this->Table->getValuesAndFormatsForClient($data, 'web', array_keys($data['rows']));
+        $this->Table->calcLog($Log, 'result', 'done');
+        $data['f'] = $this->getTableFormat(array_column($data['rows'], 'id'));
 
         return $data;
     }
@@ -598,6 +643,10 @@ class ReadTableActions extends Actions
                         ['']
                     )
                 );
+
+                if ($this->isPagingView('tree') && $ids = json_decode($this->post['ids'], true)) {
+                    $result['chdata']['rows'] = $this->Table->getSortedFilteredRows('web', 'web', $ids)['rows'];
+                }
 
                 $pageIds = array_column($result['chdata']['rows'] ?? [], 'id');
                 $result['chdata']['params'] = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'],
@@ -1124,7 +1173,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $tree = $this->Table->getFields()['tree'];
                 $result = array_merge(
                     $result,
-                    $this->getTreeTopLevel($tree['treeViewLoad'] ?? null, $tree['treeViewOpen'] ?? null)
+                    $this->getTreeTopLevel($tree['treeViewLoad'] ?? null,
+                        $tree['treeViewOpen'] ?? null)
                 );
                 break;
             case 'commonByCount':
@@ -1201,11 +1251,16 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return 'common';
     }
 
-    protected function isPagingView(): bool
+    protected function isPagingView($type = null): bool
     {
-        return ($this->Table->getTableRow()['pagination'] ?? '0/0') !== '0/0';
+        if (($this->Table->getTableRow()['pagination'] ?? '0/0') === '0/0') {
+            return false;
+        }
+        if ($type === 'tree') {
+            return $this->Table->getFields()['tree']['treeViewType'] === 'other';
+        }
+        return true;
     }
-
 
     protected function addValuesAndFormatsOfParams($params, array $rowIds)
     {
@@ -2030,9 +2085,20 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 unset($return['chdata']['params']);
             }
 
-            if ($this->Table->getTableRow()['pagination'] && $this->Table->getTableRow()['pagination'] !== '0/0') {
-                $params = $this->Table->filtersParamsForLoadRows('web');
-                $return['allCount'] = $params === false ? 0 : $this->Table->countByParams($params);
+            if ($this->isPagingView()) {
+                if ($this->isPagingView('tree')) {
+                    $branches = [];
+                    foreach ($return['chdata']['rows'] ?? [] as $row) {
+                        $branches[$row['tree']['v']] = 1;
+                    }
+                    foreach ($branches as $b=>$_) {
+                        $params = $this->Table->filtersParamsForLoadRows('web');
+                        $return['chdata']['treeCounts'][$b] = $this->Table->countByParams([...$params, ['field' => 'tree', 'value' => $b, 'operator' => '=']]);
+                    }
+                } else {
+                    $params = $this->Table->filtersParamsForLoadRows('web');
+                    $return['allCount'] = $params === false ? 0 : $this->Table->countByParams($params);
+                }
             }
             $return['updated'] = $this->Table->getSavedUpdated();
 
@@ -2092,8 +2158,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $result;
     }
 
-    protected function getResultTree($filterFunc, $loadingIds, $onlyTree = false)
+    protected function getResultTree($filterFunc, $loadingIds, $withoutRows = false)
     {
+        $rowsSwitcher = $withoutRows ? false : ($this->isPagingView('tree') && ($this->Table->getFields()['tree_category']['category'] ?? false) !== 'column' ? 'counts' : 'rows');
+
         $Tree = Field::init($this->Table->getFields()['tree'], $this->Table);
         $val = ['v' => null];
 
@@ -2138,90 +2206,159 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         $result['rows'] = [];
 
-        if ($bids && !$onlyTree) {
-            $treeIds = $this->Table->getByParams(
-                (new FormatParamsForSelectFromTable)
-                    ->where('tree', $bids)
-                    ->field('id')
-                    ->params(),
-                'list'
-            );
-            if ($this->Table->getFields()['tree']['treeViewType'] === 'other'
-                && key_exists('tree_category', $this->Table->getFields())) {
-                $treeIds = array_merge(
-                    $treeIds,
-                    $this->Table->getByParams(
+        if ($bids) {
+            switch ($rowsSwitcher) {
+                case 'rows':
+                    $treeIds = $this->Table->getByParams(
                         (new FormatParamsForSelectFromTable)
-                            ->where('tree_category', $bids)
-                            ->where('tree_category', "", "!=")
+                            ->where('tree', $bids)
                             ->field('id')
                             ->params(),
                         'list'
-                    )
-                );
-            }
+                    );
 
-            if ($treeIds) {
-                $result['rows'] = $this->Table->getSortedFilteredRows('web', 'web', $treeIds)['rows'];
-
-                /*TreeBranchesFilter*/
-                $TreeBranchesFilter = false;
-                foreach ($this->Table->getSortedFields()['filter'] ?? [] as $fName => $field) {
-                    if (!empty($field['showInWeb']) && !empty($field['column'])
-                        && !empty($this->Table->getTbl()['params'][$field['name']]['v'])
-                        && $this->Table->getTbl()['params'][$field['name']]['v'] !== '*ALL*'
-                        && $this->Table->getTbl()['params'][$field['name']]['v'] !== ['*ALL*']
-                    ) {
-                        $TreeBranchesFilter = true;
-                        break;
-                    }
-                }
-
-                if ($TreeBranchesFilter) {
-                    $rowIds = [];
-                    foreach ($result['rows'] as $row) {
-                        $rowIds[$row['tree']['v']] = true;
+                    /*add tree_category rows*/
+                    if ($this->Table->getFields()['tree']['treeViewType'] === 'other'
+                        && ($this->Table->getFields()['tree_category']['category'] ?? false) === 'column') {
+                        $treeIds = array_merge(
+                            $treeIds,
+                            $this->Table->getByParams(
+                                (new FormatParamsForSelectFromTable)
+                                    ->where('tree_category', $bids)
+                                    ->where('tree_category', '', '!=')
+                                    ->field('id')
+                                    ->params(),
+                                'list'
+                            )
+                        );
                     }
 
-                    $treeBranches = [];
+                    if ($treeIds) {
+                        $result['rows'] = $this->Table->getSortedFilteredRows('web', 'web', $treeIds)['rows'];
 
-                    $addBranch = function ($treeId) use (&$addBranch, $list, &$treeBranches) {
-                        if (!key_exists($treeId, $treeBranches)) {
-                            $treeBranches[$treeId] = true;
-                            if (!empty($list[$treeId][3])) {
-                                $addBranch($list[$treeId][3]);
+                        /*TreeBranchesFilter*/
+                        $TreeBranchesFilter = false;
+                        foreach ($this->Table->getSortedFields()['filter'] ?? [] as $fName => $field) {
+                            if (!empty($field['showInWeb']) && !empty($field['column'])
+                                && !empty($this->Table->getTbl()['params'][$field['name']]['v'])
+                                && $this->Table->getTbl()['params'][$field['name']]['v'] !== '*ALL*'
+                                && $this->Table->getTbl()['params'][$field['name']]['v'] !== ['*ALL*']
+                            ) {
+                                $TreeBranchesFilter = true;
+                                break 1;
                             }
                         }
-                    };
 
-                    foreach ($rowIds as $treeId => $_) {
-                        if (key_exists($treeId, $list)) {
-                            $addBranch($treeId);
-                        }
-                    }
+                        if ($TreeBranchesFilter) {
+                            $rowIds = [];
+                            foreach ($result['rows'] as $row) {
+                                $rowIds[$row['tree']['v']] = true;
+                            }
 
-                    $tree = [];
-                    foreach ($list as $k => $v) {
-                        if (key_exists($k, $treeBranches)) {
-                            switch ($filterFunc($k, $v, $thisNodes)) {
-                                case 'this':
-                                case 'parent':
-                                    $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => true, 'p' => $v[3]];
-                                    break;
-                                case 'closed':
-                                    $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => false, 'p' => $v[3]];
-                                    break;
-                                case 'loaded':
-                                case 'child':
-                                    $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
-                                    break;
+                            $treeBranches = [];
+
+                            $addBranch = function ($treeId) use (&$addBranch, $list, &$treeBranches) {
+                                if (!key_exists($treeId, $treeBranches)) {
+                                    $treeBranches[$treeId] = true;
+                                    if (!empty($list[$treeId][3])) {
+                                        $addBranch($list[$treeId][3]);
+                                    }
+                                }
+                            };
+
+                            foreach ($rowIds as $treeId => $_) {
+                                if (key_exists($treeId, $list)) {
+                                    $addBranch($treeId);
+                                }
+                            }
+
+                            $tree = [];
+                            if ($Tree->getData('treeViewType') !== 'self' && !is_null($t = $Tree->getData('withEmptyVal'))) {
+                                $tree[] = ['v' => null, 't' => $t];
+                            }
+                            foreach ($list as $k => $v) {
+                                /*Без удаленных*/
+                                if ($v[1] === 0 && key_exists($k, $treeBranches)) {
+                                    switch ($filterFunc($k, $v, $thisNodes)) {
+                                        case 'this':
+                                        case 'parent':
+                                            $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => true, 'p' => $v[3]];
+                                            break 1;
+                                        case 'closed':
+                                            $tree[] = ['v' => $k, 't' => $v[0], 'l' => true, 'opened' => false, 'p' => $v[3]];
+                                            break 1;
+                                        case 'loaded':
+                                        case 'child':
+                                            $tree[] = ['v' => $k, 't' => $v[0], 'p' => $v[3]];
+                                            break 1;
+                                    }
+                                }
                             }
                         }
                     }
-                }
+                    break;
+                case 'counts':
+
+                    if ($tree) {
+                        $this->Table->reCalculateFilters('web');
+                        $params = $this->Table->filtersParamsForLoadRows('web');
+                        foreach ($tree as &$b) {
+                            $params_with_tree = [...$params, ['field' => 'tree', 'operator' => '=', 'value' => $b['v']]];
+                            $b['count'] = $this->Table->countByParams($params_with_tree);
+                        }
+                        unset($b);
+
+                        /*TreeBranchesFilter*/
+                        $TreeBranchesFilter = false;
+                        foreach ($this->Table->getSortedFields()['filter'] ?? [] as $fName => $field) {
+                            if (!empty($field['showInWeb']) && !empty($field['column'])
+                                && !empty($this->Table->getTbl()['params'][$field['name']]['v'])
+                                && $this->Table->getTbl()['params'][$field['name']]['v'] !== '*ALL*'
+                                && $this->Table->getTbl()['params'][$field['name']]['v'] !== ['*ALL*']
+                            ) {
+                                $TreeBranchesFilter = true;
+                                break 1;
+                            }
+                        }
+
+                        if ($TreeBranchesFilter) {
+                            $rowIds = [];
+                            foreach ($tree as $b) {
+                                if ($b['count']) {
+                                    $rowIds[$b['v']] = true;
+                                }
+                            }
+
+                            $treeBranches = [];
+
+                            $treeOld = $tree;
+                            $addBranch = function ($treeId) use (&$addBranch, $list, &$treeBranches) {
+                                if (!key_exists($treeId, $treeBranches)) {
+                                    $treeBranches[$treeId] = true;
+                                    if (!empty($list[$treeId][3])) {
+                                        $addBranch($list[$treeId][3]);
+                                    }
+                                }
+                            };
+
+                            foreach ($tree as $_) {
+                                if ($_['count']) {
+                                    $addBranch($_['v']);
+                                }
+                            }
+
+                            foreach ($tree as $k => $v) {
+                                /*Без удаленных*/
+                                if (!key_exists($v['v'], $treeBranches)) {
+                                    unset($tree[$k]);
+                                }
+                            }
+                            $tree = array_values($tree);
+                        }
+                    }
+                    break;
             }
         }
-
         $result['tree'] = $tree;
 
         return $result;

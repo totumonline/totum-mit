@@ -5,6 +5,7 @@ namespace totum\moduls\Table;
 
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
+use totum\common\FormatParamsForSelectFromTable;
 use totum\common\Lang\RU;
 use totum\fieldTypes\File;
 use totum\models\TmpTables;
@@ -25,6 +26,7 @@ class WriteTableActions extends ReadTableActions
         if (!$this->Table->isUserCanAction('insert')) {
             throw new errorException($this->translate('You are not allowed to add to this table'));
         }
+
         $this->Table->setWebIdInterval(json_decode($this->post['ids'], true));
 
         if ($this->Table->getTableRow()['name'] === 'tables_fields' && key_exists(

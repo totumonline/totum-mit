@@ -45,6 +45,7 @@ class Model
             $this->isServiceTable = $isService === true;
         }
     }
+
     protected function translate(string $str, mixed $vars = []): string
     {
         return $this->Lang->translate($str, $vars);
@@ -130,7 +131,9 @@ class Model
     public function addColumn($fieldName)
     {
         $this->preparedCache = [];
-        $this->Sql->exec('ALTER TABLE ' . $this->table . ' ADD COLUMN ' . $fieldName . ' JSONB NOT NULL DEFAULT \'{"v":null}\' ', [], true);
+        $this->Sql->exec('ALTER TABLE ' . $this->table . ' ADD COLUMN ' . $fieldName . ' JSONB NOT NULL DEFAULT \'{"v":null}\' ',
+            [],
+            true);
     }
 
     public static function init(Conf $Config, $isService = false)
@@ -197,7 +200,7 @@ class Model
         if (!$this->isServiceTable && $fields[0] !== '*') {
             $fields = explode(',', $fields);
             foreach ($fields as &$f) {
-                if (!strpos($f, ' as ')) {
+                if (!strpos($f, ' as ') && !str_contains($f, '*')) {
                     $f = preg_replace('/[^a-z0-9_]/', '', $f);
                     if (!in_array($f, static::serviceFields) && !strpos($f, ' as ')) {
                         $f = $f . '->>\'v\' as ' . $f;
@@ -637,6 +640,7 @@ class Model
         $stmt = $this->executePrepared(true, $where, $fields, $order_by, '0,1');
         return $stmt->fetch() ?? [];
     }
+
     public function getAllPrepared($where = [], string $fields = '*', $order_by = null)
     {
         $stmt = $this->executePrepared(true, $where, $fields, $order_by);

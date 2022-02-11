@@ -509,7 +509,7 @@ class ReadTableActions extends Actions
         $data['treeCounts'] = [];
         foreach (json_decode($this->post['branches'], true) as $branch) {
             $offset = $onPage * ($branch['p']);
-            $treeIds = $this->Table->getByParams(
+            $treeIds = $params === false ? [] : $this->Table->getByParams(
                 [
                     'where' => [...$params, ['field' => 'tree', 'value' => $branch['v'], 'operator' => '=']],
                     'field' => 'id',
@@ -1225,7 +1225,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             if (($this->post['panelsView'] ?? false) === 'true') {
                 return 'panels';
             } elseif (empty($this->post)) {
-                $allCount = $this->Table->countByParams($this->Table->filtersParamsForLoadRows('web'));
+                $params = $this->Table->filtersParamsForLoadRows('web');
+                $allCount = $params === false ? 0 : $this->Table->countByParams($params);
                 if ($allCount <= ($panelViewSettings['panels_max_count'] ?? 100)) {
                     $checkCookies = function () use ($panelViewSettings) {
                         $name = $this->getPanelsCookieName()[0];
@@ -1257,7 +1258,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             return false;
         }
         if ($type === 'tree') {
-            return $this->getPageViewType()==='tree' && $this->Table->getFields()['tree']['treeViewType'] === 'other';
+            return $this->getPageViewType() === 'tree' && $this->Table->getFields()['tree']['treeViewType'] === 'other';
         }
         return true;
     }
@@ -1507,7 +1508,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $vars = [];
                 if ($click['checked_ids'] ?? null) {
                     $vars['ids'] = function () use ($click) {
-                        return $this->Table->checkFilteredIds('web', $click['checked_ids']);
+                        return $this->Table->checkIsUserCanViewIds('web', $click['checked_ids']);
                     };
                 } else {
                     $vars['ids'] = [];
@@ -1873,12 +1874,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $fields = ['title', 'updated', 'type', 'id', 'tree_node_id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field',
             'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination',
-            'panels_view', 'new_row_in_sort', 'rotated_view', 'deleting'];
+            'panels_view', 'new_row_in_sort', 'rotated_view', 'deleting', 'on_duplicate'];
         if ($this->User->isCreator()) {
             $fields = array_merge(
                 $fields,
                 [
-                    'name', 'sort', 'actual', 'default_action', 'on_duplicate', 'row_format', 'table_format'
+                    'name', 'sort', 'actual', 'default_action', 'row_format', 'table_format'
                 ]
             );
 
@@ -1886,6 +1887,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $tableRow['description'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $tableRow['description']);
         }
         $_tableRow = array_intersect_key($tableRow, array_flip($fields));
+        foreach (Totum::TABLE_CODE_PARAMS as $name) {
+            if (key_exists($name, $_tableRow)) {
+                $_tableRow[$name] = trim($_tableRow[$name]);
+                $_tableRow[$name] = !(!$_tableRow[$name] || preg_match('/^[a-z0-9]{0,4}=:$/', $_tableRow[$name]));
+            }
+        }
+
 
         if (($tableRow['panels_view'] ?? null) && $tableRow['panels_view']['state'] === 'panel') {
             $_tableRow['panels_view'] = $tableRow['panels_view'];
@@ -2091,9 +2099,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     foreach ($return['chdata']['rows'] ?? [] as $row) {
                         $branches[$row['tree']['v']] = 1;
                     }
-                    foreach ($branches as $b=>$_) {
+                    foreach ($branches as $b => $_) {
                         $params = $this->Table->filtersParamsForLoadRows('web');
-                        $return['chdata']['treeCounts'][$b] = $this->Table->countByParams([...$params, ['field' => 'tree', 'value' => $b, 'operator' => '=']]);
+                        $return['chdata']['treeCounts'][$b] = $params === false ? 0 : $this->Table->countByParams([...$params, ['field' => 'tree', 'value' => $b, 'operator' => '=']]);
                     }
                 } else {
                     $params = $this->Table->filtersParamsForLoadRows('web');
@@ -2303,8 +2311,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         $this->Table->reCalculateFilters('web');
                         $params = $this->Table->filtersParamsForLoadRows('web');
                         foreach ($tree as &$b) {
-                            $params_with_tree = [...$params, ['field' => 'tree', 'operator' => '=', 'value' => $b['v']]];
-                            $b['count'] = $this->Table->countByParams($params_with_tree);
+                            $b['count'] = $params === false ? 0 : $this->Table->countByParams([...$params, ['field' => 'tree', 'operator' => '=', 'value' => $b['v']]]);
                         }
                         unset($b);
 

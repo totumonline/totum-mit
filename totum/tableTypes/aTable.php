@@ -693,17 +693,19 @@ abstract class aTable
 
     public function checkIsUserCanViewIds($channel, $ids, $removed = false)
     {
+        $getFiltered = [];
         if ($channel !== 'inner') {
             $getFiltered = $this->loadFilteredRows($channel, $ids, $removed);
             foreach ($ids as $id) {
                 if (!in_array($id, $getFiltered)) {
-                    errorException::criticalException($this->translate('The string %s does not exist or is not available for your role.',
+                    errorException::criticalException($this->translate('The row %s does not exist or is not available for your role.',
                         (string)$id),
                         $this
                     );
                 }
             }
         }
+        return $getFiltered;
     }
 
     public function getVisibleFields(string $channel, $sorted = false)
@@ -999,9 +1001,16 @@ CODE;;
                         $modifyIds = $modify;
                         unset($modifyIds['params']);
 
-                        $ids = array_merge(array_keys($modifyIds), $remove ?? []);
                         if ($channel !== 'inner') {
-                            if ($ids) {
+
+                            /* Жесткая проверка для каналов удаление/восстановление/редактирование/сброс к рассчетному*/
+                            $defaults = $setValuesToDefaults;
+                            unset($defaults['params']);
+
+                            if ($ids = array_merge(array_keys($modifyIds),
+                                $remove ?? [],
+                                array_keys($defaults))) {
+
                                 $this->tbl['rows'] = $oldTbl['rows'];
                                 $this->checkIsUserCanViewIds($channel, $ids);
                                 $this->tbl['rows'] = [];
@@ -1752,31 +1761,13 @@ CODE;;
     {
         $filteredIds = [];
         $this->reCalculateFilters($channel);
-        $params = $this->filtersParamsForLoadRows($channel, $idsFilter, [], true);
+        $params = $this->filtersParamsForLoadRows($channel, $idsFilter, true);
 
         if ($params !== false) {
             if ($removed) {
                 $params[] = ['field' => 'is_del', 'operator' => '=', 'value' => true];
             }
             $filteredIds = $this->loadRowsByParams($params, $this->orderParamsForLoadRows());
-        }
-        return $filteredIds;
-    }
-
-    public function checkFilteredIds($channel, $ids): array
-    {
-        $filteredIds = [];
-        $this->reCalculateFilters($channel);
-        $params = $this->filtersParamsForLoadRows($channel, $ids, [], true);
-        if ($params !== false) {
-            if ($params) {
-                $filteredIds = $this->getByParams(
-                    ['where' => $params, 'field' => 'id'],
-                    'list'
-                );
-            } else {
-                return $ids;
-            }
         }
         return $filteredIds;
     }
@@ -1825,12 +1816,11 @@ CODE;;
     /**
      * @param $channel
      * @param array $idsFilter
-     * @param array $elseFilters
      * @param bool $onlyBlockedFilters
      * @return array|false
      * @throws errorException
      */
-    public function filtersParamsForLoadRows($channel, $idsFilter = null, $elseFilters = [], $onlyBlockedFilters = false)
+    public function filtersParamsForLoadRows($channel, $idsFilter = null, $onlyBlockedFilters = false): bool|array
     {
         $params = [];
         $issetBlockedFilters = false;
@@ -1838,8 +1828,9 @@ CODE;;
         if (!is_null($idsFilter)) {
             $params[] = ['field' => 'id', 'operator' => '=', 'value' => $idsFilter];
         }
-        if (!empty($elseFilters)) {
-            array_push($params, ...$elseFilters);
+
+        if ($channel == 'web' && !$this->User->isCreator() && $this->tableRow['cycles_access_type'] === '1') {
+            $params[] = ['field' => 'creator_id', 'operator' => '=', 'value' => $this->User->getConnectedUsers()];
         }
 
         foreach ($this->sortedFields['filter'] ?? [] as $fName => $field) {
@@ -2764,8 +2755,16 @@ CODE;;
      * @return mixed
      * @throws errorException
      */
-    public function isField($property, $channel, $field)
+    public function isField($property, $channel, array|string $field)
     {
+        if (is_string($field)) {
+            if (!key_exists($field, $this->fields)) {
+                throw new errorException($this->translate('The %s field in %s of the table does not exist',
+                    [$field, $this->getTableRow()['title']]));
+            }
+            $field = $this->fields[$field];
+        }
+
         $User = $this->Totum->getUser();
         $userRoles = $User->getRoles();
         $isInRoles = function ($roles) use ($User, $userRoles) {

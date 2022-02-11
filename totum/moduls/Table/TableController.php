@@ -267,7 +267,7 @@ class TableController extends interfaceController
                     , 'href' => '#'
                     , 'text' => $this->Cycle->getRowName()
                     , 'type' => 'cycle_name'
-                    , 'li_attr'=> ['class'=>'nopoiner']
+                    , 'li_attr' => ['class' => 'nopoiner']
                     , 'parent' => ($this->anchorId ? 'tree' . $this->anchorId : 'table' . $cyclesTableId)
                     , 'state' => [
                         'selected' => false
@@ -535,35 +535,8 @@ class TableController extends interfaceController
 
     public function actionTable(ServerRequestInterface $request)
     {
-        $this->checkTableByUri($request);
-
-        if (!$this->Table) {
-            return;
-        }
         try {
-            /*Для таблиц циклов с одним циклом на пользователя*/
-            if ($this->Table->getUser()->isOneCycleTable($this->Table->getTableRow())) {
-                $cyclesCount = $this->Table->getUserCyclesCount();
-                if ($cyclesCount === 0) {
-                    $this->Table->reCalculateFromOvers(['add' => []]);
-                    $cyclesCount = 1;
-                }
-                if ($cyclesCount === 1) {
-                    $Cycle = $this->Totum->getCycle(
-                        $this->Table->getUserCycles($this->Table->getUser()->getId())[0],
-                        $this->Table->getTableRow()['id']
-                    );
-                    $calcsTablesIDs = $Cycle->getTableIds();
-                    if (!empty($calcsTablesIDs)) {
-                        foreach ($calcsTablesIDs as $tableId) {
-                            if ($this->Table->getUser()->isTableInAccess($tableId)) {
-                                $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
-                                die;
-                            }
-                        }
-                    }
-                }
-            }
+            $this->checkTableByUri($request, true);
         } catch (criticalErrorException $e) {
             $error = $this->translate('Error: %s', $e->getMessage());
             if ($this->User && $this->User->isCreator() && $e->getPathMess()) {
@@ -571,14 +544,16 @@ class TableController extends interfaceController
             }
         }
 
-
+        if (!$this->Table) {
+            return;
+        }
         /*Основная часть отдачи таблицы*/
         if (empty($error)) {
             try {
                 $Actions = $this->getTableActions($request, 'getFullTableData');
                 $result = $Actions->getFullTableData(true);
             } catch (criticalErrorException $exception) {
-                $this->clearTotum($request);
+                $this->clearTotum($request, true);
                 $Actions = $this->getTableActions($request, 'getFullTableData');
                 $error = $exception->getMessage();
                 if ($this->User && $this->User->isCreator() && $exception->getPathMess()) {
@@ -651,7 +626,7 @@ class TableController extends interfaceController
         $this->__addAnswerVar('tableConfig', $result);
     }
 
-    protected function checkTableByUri(ServerRequestInterface $request)
+    protected function checkTableByUri(ServerRequestInterface $request, $actionTable = false)
     {
         if (!preg_match('/^(\d+)\//', $this->tableUri, $branchMatches)) {
             return;
@@ -814,6 +789,38 @@ class TableController extends interfaceController
             $this->CalculateLog = $this->Table->getCalculateLog();
             Conf::$CalcLogs = $this->CalculateLog;
         }
+
+
+        /*Для таблиц циклов с одним циклом на пользователя*/
+        if ($this->Table->getUser()->isOneCycleTable($this->Table->getTableRow())) {
+            $cyclesCount = $this->Table->getUserCyclesCount();
+            if ($cyclesCount === 0) {
+                if (!$actionTable) {
+                    throw new errorException('Not correct request. Reload table page');
+                }
+                $this->Table->reCalculateFromOvers(['add' => []]);
+                $cyclesCount = 1;
+            }
+            if ($cyclesCount === 1) {
+                if (!$actionTable) {
+                    throw new errorException('Not correct request. Reload table page');
+                }
+                $Cycle = $this->Totum->getCycle(
+                    $this->Table->getUserCycleId(),
+                    $this->Table->getTableRow()['id']
+                );
+                $calcsTablesIDs = $Cycle->getTableIds();
+                if (!empty($calcsTablesIDs)) {
+                    foreach ($calcsTablesIDs as $tableId) {
+                        if ($this->Table->getUser()->isTableInAccess($tableId)) {
+                            $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
+                            die;
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     /**
@@ -845,10 +852,10 @@ class TableController extends interfaceController
         return $Actions;
     }
 
-    protected function clearTotum($request): void
+    protected function clearTotum($request, $actionTable = false): void
     {
         $this->Config = $this->Config->getClearConf();
         $this->Totum = new Totum($this->Config, $this->User);
-        $this->checkTableByUri($request);
+        $this->checkTableByUri($request, $actionTable);
     }
 }

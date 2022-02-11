@@ -15,7 +15,10 @@ class WriteTableActions extends ReadTableActions
 {
     public function checkUnic()
     {
-        return $this->Table->checkUnic($this->post['fieldName'] ?? '', $this->post['fieldVal'] ?? '');
+        if($this->Table->isField('visible', 'web', $fieldName = ($this->post['fieldName'] ?? '')) && $this->Table->getFields()[$fieldName]['type']==='uniq'){
+            return $this->Table->checkUnic($fieldName, $this->post['fieldVal'] ?? '');
+        }
+        throw new errorException($fieldName.' is not field of type unique');
     }
 
     public function add()
@@ -157,6 +160,8 @@ class WriteTableActions extends ReadTableActions
         }
         $ids = !empty($this->post['duplicate_ids']) ? json_decode($this->post['duplicate_ids'], true) : [];
         if ($ids) {
+            $this->Table->checkIsUserCanViewIds('web', $ids);
+
             if (preg_match('/^\s*(a\d+)?=\s*:\s*[^\s]/', $this->Table->getTableRow()['on_duplicate'])) {
                 try {
                     $Calc = new CalculateAction($this->Table->getTableRow()['on_duplicate']);

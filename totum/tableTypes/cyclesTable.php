@@ -11,20 +11,11 @@ namespace totum\tableTypes;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Cycle;
+use totum\common\FormatParamsForSelectFromTable;
 use totum\common\sql\SqlException;
 
 class cyclesTable extends RealTables
 {
-    protected function reCalculate($inVars = [])
-    {
-        if (in_array($inVars['channel'] ?? null, ['web', 'edit'])) {
-            if ($this->getTableRow()['cycles_access_type'] === '1' && isset($this->fields['creator_id']) && !$this->getUser()->isCreator()) {
-                $this->elseWhere['creator_id'] = $this->User->getConnectedUsers();
-            }
-        }
-        parent::reCalculate($inVars);
-    }
-
     public function isCalcsTableFromThisCyclesTable(mixed $table): bool
     {
         $tableRow = $this->getTotum()->getTableRow($table);
@@ -114,25 +105,14 @@ class cyclesTable extends RealTables
 
     public function getUserCyclesCount()
     {
-        return $this->model->executePrepared(
-            true,
-            ['creator_id' => $this->User->getConnectedUsers()],
-            'count(*)'
-        )->fetchColumn(0);
+        return $this->countByParams((new FormatParamsForSelectFromTable())->where('creator_id',
+            $this->User->getConnectedUsers())->params()['where']);
     }
 
-    public function getUserCycles($userId)
+    public function getUserCycleId()
     {
-        return $this->loadRowsByParams([]);
-    }
-
-    protected function loadRowsByParams($params, $order = null, $offset = 0, $limit = null)
-    {
-        /*Вопрос насколько тут нужно проверять вебность интерфейса*/
-        if (!$this->User->isCreator() && $this->tableRow['cycles_access_type'] === '1' && $this->User->getInterface() === 'web') {
-            $params[] = ['field' => 'creator_id', 'operator' => '=', 'value' => $this->User->getConnectedUsers()];
-        }
-        return parent::loadRowsByParams($params, $order, $offset, $limit);
+        return $this->getByParams((new FormatParamsForSelectFromTable())->field('id')->where('creator_id',
+            $this->User->getConnectedUsers())->params(), 'field');
     }
 
     protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck = false)

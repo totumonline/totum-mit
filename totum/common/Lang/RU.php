@@ -67,7 +67,7 @@ class RU implements LangInterface
         'The row with %s was not found in table %s.' => 'Строка с %s не найдена в таблице %s.',
         'Row not found' => 'Строка не найдена',
         'Row %s not found' => 'Строка %s не найдена',
-        'The string %s does not exist or is not available for your role.' => 'Строка %s не существует или недоступна для вашей роли.',
+        'The row %s does not exist or is not available for your role.' => 'Строка %s не существует или недоступна для вашей роли.',
 
 
         'For lists comparisons, only available =, ==, !=, !==.' => 'Для сравнения листов доступны только =, ==, !=, !==.',
@@ -322,6 +322,7 @@ class RU implements LangInterface
         'Csv download of this table is not allowed for your role.' => 'Csv-выгрузка этой таблицы не разрешена для вашей роли.',
         'The name of the field is not set.' => 'Не задано имя поля',
         'Access to the field is denied' => 'Доступ к полю запрещен',
+        'Access to edit %s field is denied' => 'Доступ к редактированию поля %s запрещен',
         'Interface Error' => 'Ошибка интерфейса',
         'Temporary table storage time has expired' => 'Время хранения временной таблицы истекло',
         'Field not of type select/tree' => 'Поле не типа селект/дерево',

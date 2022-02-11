@@ -729,7 +729,7 @@ class Select extends Field
             }
         }
 
-        if ($val === '' && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] === true)) {
+        if ($val === '' && !($this->data['category'] === 'filter' && ($this->data['selectFilterWithEmpty'] ?? false) === true)) {
             $val = null;
         }
     }

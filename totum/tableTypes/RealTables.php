@@ -21,8 +21,6 @@ use totum\models\Table;
 
 abstract class RealTables extends aTable
 {
-    protected $elseWhere = ['is_del' => false];
-
     protected $header = [];
     protected $cachedUpdate;
     protected $caches = [];
@@ -713,7 +711,7 @@ abstract class RealTables extends aTable
 
 
             if ($settings['copy_data'] !== 'none') {
-                $where = $this->elseWhere;
+                $where = ['is_del' => false];
                 if ($settings['copy_data'] === 'ids') {
                     $intervals = $this->_getIntervals($settings['intervals']);
                     $whereids = '';
@@ -872,10 +870,7 @@ abstract class RealTables extends aTable
 
 
         if ($duplicate) {
-            if ($notLoadedDuplicates = array_diff($duplicate['ids'], array_keys($this->tbl['rows']))) {
-                $notLoadedDuplicatesRows = $this->model->getAllIndexedById(['id' => $duplicate['ids']] + $this->elseWhere);
-                $this->rowsOperations('Load', null, $notLoadedDuplicatesRows);
-            }
+            $this->loadRowsByIds($duplicate['ids']);
 
             foreach ($duplicate['ids'] as $baseRowId) {
                 $row = $this->duplicateRow(
@@ -1144,13 +1139,13 @@ abstract class RealTables extends aTable
 
             if ($result = $this->model->update(
                 $changedSaveData,
-                ['id' => $oldRow['id']] + $this->elseWhere,
+                ['id' => $oldRow['id'], 'is_del' => false],
                 $oldRow
             )
             ) {
                 $row = $this->model->executePrepared(
                     true,
-                    ['id' => $oldRow['id']] + $this->elseWhere,
+                    ['id' => $oldRow['id'], 'is_del' => false],
                     '*',
                     null,
                     '0,1'

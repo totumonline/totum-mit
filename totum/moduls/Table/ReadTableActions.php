@@ -1257,7 +1257,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             return false;
         }
         if ($type === 'tree') {
-            return $this->Table->getFields()['tree']['treeViewType'] === 'other';
+            return $this->getPageViewType()==='tree' && $this->Table->getFields()['tree']['treeViewType'] === 'other';
         }
         return true;
     }

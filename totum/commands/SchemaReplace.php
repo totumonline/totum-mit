@@ -34,6 +34,10 @@ class SchemaReplace extends Command
             '',
             InputOption::VALUE_NONE,
             'Do not switch off crons in replaced schema.');
+        $this->addOption('without-host',
+            '',
+            InputOption::VALUE_NONE,
+            'Do not add new host in Conf.php');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -62,7 +66,7 @@ class SchemaReplace extends Command
                         break;
                     }
                 }
-                if (!$exists) {
+                if (!$exists && !$input->getArgument('without-host')) {
                     $helper = $this->getHelper('question');
                     $question = new Question('Please enter the name of the new host: ');
 

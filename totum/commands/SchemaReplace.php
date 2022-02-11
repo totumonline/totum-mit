@@ -66,7 +66,7 @@ class SchemaReplace extends Command
                         break;
                     }
                 }
-                if (!$exists && !$input->getArgument('without-host')) {
+                if (!$exists && !$input->getOption('without-host')) {
                     $helper = $this->getHelper('question');
                     $question = new Question('Please enter the name of the new host: ');
 

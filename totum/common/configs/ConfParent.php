@@ -545,25 +545,6 @@ abstract class ConfParent
             $sql = $this->getSql(false);
         }
 
-        $checkError = function ($prep) use ($params, $name, $sql) {
-            if ($prep->errorCode() === '42P01') {
-                $sql->exec(
-                    <<<SQL
-create table "_globvars"
-(
-    name     text                                                      not null,
-    value     jsonb,
-    blocked     timestamp,
-    dt        timestamp default ('now'::text)::timestamp without time zone not null
-)
-SQL
-                );
-                $sql->exec('create UNIQUE INDEX _globvars_name_index on _globvars (name)');
-                return $this->globVar($name, $params);
-            } else {
-                throw new SqlException($prep->errorInfo()[1]);
-            }
-        };
         $getPrepareSelect = function () use (&$prepareSelect, $sql) {
             if (!$prepareSelect) {
                 $prepareSelect = $sql->getPrepared('select value, dt from _globvars where name = ?');
@@ -613,10 +594,7 @@ ON CONFLICT (name) DO UPDATE
         };
 
 
-        $returnData = function ($prepare) use ($checkError) {
-            if ($prepare->errorCode() !== '00000') {
-                return $checkError($prepare);
-            }
+        $returnData = function ($prepare) {
             if ($data = $prepare->fetch()) {
                 if ($params['date'] ?? false) {
                     return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];
@@ -628,49 +606,67 @@ ON CONFLICT (name) DO UPDATE
             }
         };
 
-        if (key_exists('value', $params)) {
-            $getPrepareInsertOrUpdate()->execute([$name, json_encode(
-                ['v' => $params['value']],
-                JSON_UNESCAPED_UNICODE
-            )]);
-            return $returnData($prepareInsertOrUpdate);
-        } elseif (key_exists('default', $params)) {
-            $getPrepareSelectDefault()->execute([$name, json_encode(
-                ['v' => $params['default']],
-                JSON_UNESCAPED_UNICODE
-            )]);
-            return $returnData($prepareSelectDefault);
+        try {
 
-        } elseif (key_exists('block', $params)) {
-            if (!$params['block']) {
-                $getPrepareSelectBlockedFalse()->execute([$name]);
-                return $returnData($prepareSelectBlockFalse);
-            } else {
-                while (true) {
-                    $prepareSelectBlocked = $getPrepareSelectBlocked((float)$params['block'] . ' second');
-                    $prepareSelectBlocked->execute(['name' => $name]);
+            if (key_exists('value', $params)) {
+                $getPrepareInsertOrUpdate()->execute([$name, json_encode(
+                    ['v' => $params['value']],
+                    JSON_UNESCAPED_UNICODE
+                )]);
+                return $returnData($prepareInsertOrUpdate);
+            } elseif (key_exists('default', $params)) {
+                $getPrepareSelectDefault()->execute([$name, json_encode(
+                    ['v' => $params['default']],
+                    JSON_UNESCAPED_UNICODE
+                )]);
 
-                    if ($prepareSelectBlocked->errorCode() !== '00000') {
-                        return $checkError($prepareSelectBlocked);
-                    }
+                return $returnData($prepareSelectDefault);
 
-                    if ($data = $prepareSelectBlocked->fetch()) {
-                        if ($data['was_blocked']) {
-                            if ($params['date'] ?? false) {
-                                return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];
-                            } else {
-                                return json_decode($data['value'], true)['v'];
+            } elseif (key_exists('block', $params)) {
+                if (!$params['block']) {
+                    $getPrepareSelectBlockedFalse()->execute([$name]);
+                    return $returnData($prepareSelectBlockFalse);
+                } else {
+                    while (true) {
+                        $prepareSelectBlocked = $getPrepareSelectBlocked((float)$params['block'] . ' second');
+                        $prepareSelectBlocked->execute(['name' => $name]);
+
+                        if ($data = $prepareSelectBlocked->fetch()) {
+                            if ($data['was_blocked']) {
+                                if ($params['date'] ?? false) {
+                                    return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];
+                                } else {
+                                    return json_decode($data['value'], true)['v'];
+                                }
                             }
+                        } else {
+                            return null;
                         }
-                    } else {
-                        return null;
                     }
                 }
-            }
-        } else {
-            $getPrepareSelect()->execute([$name]);
+            } else {
+                $getPrepareSelect()->execute([$name]);
 
-            return $returnData($prepareSelect);
+                return $returnData($prepareSelect);
+            }
+        } catch (\PDOException $exception) {
+            if ($exception->getCode() === '42P01') {
+                $sql->exec(
+                    <<<SQL
+create table "_globvars"
+(
+    name     text                                                      not null,
+    value     jsonb,
+    blocked     timestamp,
+    dt        timestamp default ('now'::text)::timestamp without time zone not null
+)
+SQL
+                );
+                $sql->exec('create UNIQUE INDEX _globvars_name_index on _globvars (name)');
+                return $this->globVar($name, $params);
+            } else {
+                throw new SqlException($exception->getMessage());
+            }
         }
     }
 

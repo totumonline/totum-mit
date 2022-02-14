@@ -522,6 +522,11 @@ class ReadTableActions extends Actions
 
             $data['treeCounts'][$branch['v']] = $this->Table->countByParams([...$params, ['field' => 'tree', 'value' => $branch['v'], 'operator' => '=']]);
             if ($treeIds) {
+                foreach ($this->Table->getVisibleFields('web', true)['column'] as $f) {
+                    if ($f['type'] === 'select'){
+                        Field::init($f, $this->Table)->emptyCommonSelectViewList();
+                    }
+                }
                 $rows = $this->Table->getSortedFilteredRows('web', 'web', $treeIds)['rows'];
                 $data['rows'] = array_merge($data['rows'], $rows);
             }

@@ -36,6 +36,11 @@ class Select extends Field
         }
     }
 
+    public function emptyCommonSelectViewList()
+    {
+        $this->commonSelectViewList = null;
+    }
+
     public function cropSelectListForWeb($list, $checkedVals, $q = '', $parentId = null)
     {
         $previewdata = $list['previewdata'] ?? false;

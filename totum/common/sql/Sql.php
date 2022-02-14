@@ -270,6 +270,7 @@ class Sql
         $this->lastQuery = ['str' => $query_string, 'error' => null, 'num' => ($this->lastQuery['num'] + 1)];
 
         $microTime = microtime(1);
+
         if ($exec) {
             $r = $this->getPDO()->exec($query_string);
             if ($this->PDO->errorInfo()[0] !== '00000') {
@@ -281,6 +282,7 @@ class Sql
                 $this->errorHandler($this->getPDO()->errorCode(), $query_string);
             }
         }
+
 
         $query_time_pad = str_pad(round(microtime(1) - $microTime, 3), 5, '0', STR_PAD_LEFT);
 
@@ -309,10 +311,14 @@ class Sql
             );
             $this->lastQuery['error'] = $error;
 
-            if ($errorCode === '40P01'){
+            if ($errorCode === '40P01') {
                 sleep(3);
                 $exp = new tableSaveOrDeadLockException($error);
-            }else {
+            } else {
+                if (str_contains($error, 'idle-in-transaction')) {
+                    $this->startedTransactionsCounter = 0;
+                    $error=$this->Lang->translate('A database transaction was closed before the main process was completed.');
+                }
                 $exp = new SqlException($error);
                 $exp->addSqlErrorCode($errorCode);
                 $exp->addPath($query_string);

@@ -286,6 +286,7 @@ class RU implements LangInterface
 
 
         'Json not received or incorrectly formatted' => 'Json не получен или неверно оформлен',
+        'A database transaction was closed before the main process was completed.' => 'Транзакция базы данных была закрыта до завершения основного процесса.',
         'No auth section found' => 'Секция auth не найдена',
         'The login attribute of the auth section was not found' => 'Атрибут login секции auth не найден',
         'The password attribute of the auth section was not found' => 'Атрибут password секции auth не найден',

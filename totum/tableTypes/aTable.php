@@ -179,6 +179,11 @@ abstract class aTable
         return false;
     }
 
+    public function setNewTotum(Totum $Totum)
+    {
+        $this->Totum = $Totum;
+    }
+
     public function setRestoreView(bool $true)
     {
         $this->restoreView = $true;

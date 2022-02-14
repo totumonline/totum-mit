@@ -523,7 +523,7 @@ class ReadTableActions extends Actions
             $data['treeCounts'][$branch['v']] = $this->Table->countByParams([...$params, ['field' => 'tree', 'value' => $branch['v'], 'operator' => '=']]);
             if ($treeIds) {
                 foreach ($this->Table->getVisibleFields('web', true)['column'] as $f) {
-                    if ($f['type'] === 'select'){
+                    if ($f['type'] === 'select') {
                         Field::init($f, $this->Table)->emptyCommonSelectViewList();
                     }
                 }
@@ -1142,7 +1142,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if ($this->Totum->getUser()->isCreator()) {
                     $error .= ' <br/> ' . $e->getPathMess();
                 }
-                errorException::criticalException($e, $this->Totum);
+                $this->Totum->transactionRollback();
+                $Conf = $this->Totum->getConfig()->getClearConf();
+                $this->Totum = new Totum($Conf, $this->User);
+                $this->Table->setNewTotum($this->Totum);
+                throw new criticalErrorException($error);
             }
         } else {
             $this->Table->reCalculateFilters('web', true, $addFilters);
@@ -1190,7 +1194,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $result = array_merge($result, $this->getTableClientData(0, $this->isPagingView() ? 0 : null, false));
 
         }
-
         if ($result['rows'] && ($result['f']['order'] ?? false)) {
             $rows = [];
             $rows_other = [];
@@ -1207,7 +1210,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $result['rows'] = array_merge($rows, $rows_other);
             unset($result['f']['order']);
         }
-
         return $result;
     }
 

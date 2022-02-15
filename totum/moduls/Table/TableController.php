@@ -148,7 +148,7 @@ class TableController extends interfaceController
             $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         }
 
-        if ($this->User->isCreator() && $Actions?->withLog && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
+        if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig())) && $Actions?->withLog && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
             $this->CalculateLog->addParam('result', 'done');
 
             if (in_array('flds', $types)) {
@@ -601,14 +601,16 @@ class TableController extends interfaceController
             }
             ini_set('xdebug.var_display_max_depth', '20');
 
-            if (($types = $this->Totum->getCalculateLog()->getTypes())) {
-                if (in_array('flds', $types)) {
-                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
-                } else {
-                    $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
-                    // $result['treeLogs'] = $this->CalculateLog->getLodTree();
-                }
+
+        }
+
+        if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig()) ) && ($types = $this->Totum->getCalculateLog()->getTypes())) {
+            if (in_array('flds', $types)) {
+                $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
+            } else {
+                $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
+                // $result['treeLogs'] = $this->CalculateLog->getLodTree();
             }
         }
 
@@ -620,6 +622,10 @@ class TableController extends interfaceController
         }
         if ($links = $this->Totum->getInterfaceDatas()) {
             $result['interfaceDatas'] = $links;
+        }
+
+        if (!$this->User->isCreator() && Auth::isShadowedCreator($this->Totum->getConfig())) {
+            $result['shadowedCreator'] = true;
         }
 
         $this->__addAnswerVar('error', $error ?? $result['error'] ?? null);

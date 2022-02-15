@@ -28,7 +28,7 @@ class ReadTableActions extends Actions
     {
         $tFormat = [];
         if ($this->Table->getTableRow()['table_format'] && $this->Table->getTableRow()['table_format'] != 'f1=:') {
-            $Log = $this->Table->calcLog(['name' => 'Table format']);
+            $Log = $this->Table->calcLog(['name' => 'TABLE FORMAT']);
 
             $calc = new CalculcateFormat($this->Table->getTableRow()['table_format']);
             $tFormat = $calc->getFormat(

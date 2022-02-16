@@ -269,11 +269,11 @@ class Comments extends Field
         return $commentArray;
     }
 
-    /*TODO переписать на нормальное обращение через модель*/
     private function getViewed($row_id = null)
     {
-        return $this->table->getTotum()->getConfig()->getSql()->getField('select nums from ' . static::table_viewed
-                . ' where ' . $this->getViewedWhere($row_id)) ?? 0;
+        $Model = $this->table->getTotum()->getModel(static::table_viewed, true);
+
+        return $Model->getPrepared($this->getViewedWhere($row_id), 'nums')['nums'] ?? 0;
     }
 
     public function setViewed(int $nums, $row_id)
@@ -312,27 +312,40 @@ class Comments extends Field
 
     private function getViewedWhere($row_id = null)
     {
+        $where = $this->getWhereForTableField($row_id);
+        $where['user_id'] = $this->table->getUser()->getId();
+        return $where;
+    }
+
+    private function getWhereForTableField($row_id = null): array
+    {
+        $where = [];
         /*Для линкованных полей*/
         if (!empty($this->data['linkTableName']) && !empty($this->data['linkFieldName'])) {
             $LinkedTable = $this->table->getTotum()->getTableRow($this->data['linkTableName']);
-            $where[] = 'table_id = ' . $LinkedTable['id'];
+            $where['table_id'] = $LinkedTable['id'];
             if ($LinkedTable['type'] === 'calcs') {
-                $where[] = 'cycle_id=' . ($this->table->getTableRow()['type'] === 'calcs' ? $this->table->getCycle()->getId() : $row_id);
+                $where['cycle_id'] = ($this->table->getTableRow()['type'] === 'calcs' ? $this->table->getCycle()->getId() : $row_id);
             }
-            $where[] = 'field_name=$$' . $this->data['linkFieldName'] . '$$';
+            $where['field_name'] = $this->data['linkFieldName'];
         } else {
-            $where[] = 'table_id = ' . $this->table->getTableRow()['id'];
+            $where['table_id'] = $this->table->getTableRow()['id'];
             if ($this->table->getTableRow()['type'] === 'calcs') {
-                $where[] = 'cycle_id=' . $this->table->getCycle()->getId();
+                $where['cycle_id'] = $this->table->getCycle()->getId();
             }
             if ($row_id) {
-                $where[] = 'row_id=' . $row_id;
+                $where['row_id'] = $row_id;
             }
-            $where[] = 'field_name=$$' . $this->data['name'] . '$$';
+            $where['field_name'] = $this->data['name'];
         }
-
-        $where[] = 'user_id=$$' . $this->table->getUser()->getId() . '$$';
-        $where = implode(' AND ', $where);
         return $where;
+    }
+
+    public function getViewedForUsers($users, $row_id)
+    {
+        $Model = $this->table->getTotum()->getModel(static::table_viewed, true);
+        $where = $this->getWhereForTableField($row_id);
+        $where['user_id'] = $users;
+        return $Model->getAllPrepared($where, 'user_id, nums') ?: [];
     }
 }

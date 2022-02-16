@@ -2,6 +2,7 @@
 
 namespace totum\common;
 
+use totum\common\configs\ConfParent;
 use totum\common\Lang\RU;
 use totum\config\Conf;
 
@@ -15,6 +16,7 @@ class Auth
     ];
     public static $userManageRoles = [-1];
     public static $userManageTables = ['users', 'auth_log', 'ttm__users_online'];
+    protected static bool $isShadowedCreatorVal;
 
     public static function checkUserPass($string, $hash)
     {
@@ -93,8 +95,8 @@ class Auth
     public static function getUserManageTables(Conf $Config, User $User)
     {
         $tables = Auth::$userManageTables;
-        if(in_array(-2, $User->getRoles())){
-            $tables[]='ttm__user_log';
+        if (in_array(-2, $User->getRoles())) {
+            $tables[] = 'ttm__user_log';
         }
         return $Config->getModel('tables')->getAll(['name' => $tables], 'name, title', 'sort');
     }
@@ -253,5 +255,16 @@ class Auth
     public static function isUserNotItself(): bool
     {
         return !empty($_SESSION['ShadowUserId']) && $_SESSION['ShadowUserId'] != $_SESSION['userId'];
+    }
+
+    public static function getShadowedUser($Config): ?User
+    {
+        if ($_SESSION['ShadowUserId']) {
+            return static::loadAuthUser($Config, $_SESSION['ShadowUserId'], false);
+        }
+        return null;
+    }
+    public static function isShadowedCreator(Conf $Conf){
+        return static::$isShadowedCreatorVal??(static::$isShadowedCreatorVal = static::isUserNotItself() && static::getShadowedUser($Conf)?->isCreator());
     }
 }

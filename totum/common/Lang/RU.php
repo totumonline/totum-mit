@@ -23,6 +23,7 @@ class RU implements LangInterface
         'Scheme string is empty.' => 'Строка схемы пуста.',
         'The function is only available for cycles tables.' => 'Функция доступна только для таблиц циклов.',
         'Using a comparison type in a filter of list/row is not allowed' => 'Использование типа сравнения при фильтрации list/row не разрешено',
+        'Using a comparison type in a search in list/row is not allowed' => 'Использование типа сравнения при поиске в list/row не разрешено',
 
         'You see the contents of the table calculated and saved before the last transaction with the error.' => 'Вы видите содержимое таблицы, вычисленное и сохраненное перед последней транзакцией с ошибкой.',
         'System error. Action type not specified.' => 'Системная ошибка. Не указан тип действия.',
@@ -67,7 +68,7 @@ class RU implements LangInterface
         'The row with %s was not found in table %s.' => 'Строка с %s не найдена в таблице %s.',
         'Row not found' => 'Строка не найдена',
         'Row %s not found' => 'Строка %s не найдена',
-        'The string %s does not exist or is not available for your role.' => 'Строка %s не существует или недоступна для вашей роли.',
+        'The row %s does not exist or is not available for your role.' => 'Строка %s не существует или недоступна для вашей роли.',
 
 
         'For lists comparisons, only available =, ==, !=, !==.' => 'Для сравнения листов доступны только =, ==, !=, !==.',
@@ -286,6 +287,7 @@ class RU implements LangInterface
 
 
         'Json not received or incorrectly formatted' => 'Json не получен или неверно оформлен',
+        'A database transaction was closed before the main process was completed.' => 'Транзакция базы данных была закрыта до завершения основного процесса.',
         'No auth section found' => 'Секция auth не найдена',
         'The login attribute of the auth section was not found' => 'Атрибут login секции auth не найден',
         'The password attribute of the auth section was not found' => 'Атрибут password секции auth не найден',
@@ -322,9 +324,11 @@ class RU implements LangInterface
         'Csv download of this table is not allowed for your role.' => 'Csv-выгрузка этой таблицы не разрешена для вашей роли.',
         'The name of the field is not set.' => 'Не задано имя поля',
         'Access to the field is denied' => 'Доступ к полю запрещен',
+        'Access to edit %s field is denied' => 'Доступ к редактированию поля %s запрещен',
         'Interface Error' => 'Ошибка интерфейса',
         'Temporary table storage time has expired' => 'Время хранения временной таблицы истекло',
         'Field not of type select/tree' => 'Поле не типа селект/дерево',
+        'Field not of type comments' => 'Поле не типа комментарии',
         'The tree index is not passed' => 'Не передан индекс дерева',
         'Access to the logs is denied' => 'Доступ к логам запрещен',
         'No manual changes were made in the field' => 'Ручных изменений по полю не производилось',

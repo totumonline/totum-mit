@@ -102,7 +102,7 @@ class AnController extends interfaceController
                 $result['links'] = $links;
             }
             if ($panels = $this->Totum->getPanelLinks()) {
-                $result['panels'] = $panels;
+                $result['showPanels'] = $panels;
             }
             if ($links = $this->Totum->getInterfaceDatas()) {
                 $result['interfaceDatas'] = $links;

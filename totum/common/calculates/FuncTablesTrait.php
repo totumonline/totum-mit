@@ -4,6 +4,7 @@ namespace totum\common\calculates;
 
 use PDO;
 use totum\common\errorException;
+use totum\common\Field;
 use totum\models\TablesFields;
 use totum\tableTypes\calcsTable;
 use totum\tableTypes\RealTables;
@@ -258,6 +259,77 @@ SQL;
     function funcSelectList(string $params): array
     {
         return $this->select($params, 'list');
+    }
+
+    protected
+    function funcSelectUnreadComments(string $params): array
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkListParam($params, ['users']);
+
+        if (empty($params['users'])) {
+            return [];
+        }
+        foreach ($params['users'] as &$user) {
+            $user = (int)$user;
+        }
+        unset($user);
+
+
+        if ($params['id'] ?? null) {
+            $params['where'] = ['field' => 'id', 'operator' => '=', 'value' => $params['id']];
+        }
+
+        $val = $this->select($params, 'field') ?? [];
+
+        if (empty($val)) {
+            $vals = [];
+            foreach ($params['users'] as $user) {
+                $vals[] = ['user' => $user, 'num' => 0, 'comments' => []];
+            }
+            return $vals;
+        }
+
+        $lastCommentUser = $val[array_key_last($val)][1];
+
+        if (count($params['users']) === 1 && $lastCommentUser === $params['users'][0]) {
+            return [['user' => $params['users'][0], 'num' => 0, 'comments' => []]];
+        }
+
+        $Table = $this->getSourceTable($params);
+        if ($Table->getFields()[$params['field']]['type'] !== 'comments') {
+            throw new errorException($this->translate('Field not of type comments'));
+        }
+
+        if (empty($params['id'])) {
+            $params['id'] = null;
+        } else {
+            $params['id'] = (int)$params['id'];
+        }
+
+        $Comment = Field::init($Table->getFields()[$params['field']], $Table);
+        $nums = $Comment->getViewedForUsers($params['users'], $params['id']);
+
+        if (empty($nums)) {
+            $userNums = [];
+        } else {
+            $userNums = array_combine(array_column($nums, 'user_id'), $nums);
+        }
+
+        $vals = [];
+        $countVals = count($val);
+        foreach ($params['users'] as $user) {
+            if ($lastCommentUser === $user) {
+                $vals[] = ['user' => $user, 'num' => 0, 'comments' => []];
+            } else {
+                for ($i = ($userNums[$user]['nums'] ?? 1) - 1; $i < $countVals && $val[$i][1] === $user; $i++) {
+                }
+                $comments = $val;
+                array_splice($comments, 0, $i);
+                $vals[] = ['user' => $user, 'num' => ($countVals - $i), 'comments' => $comments];
+            }
+        }
+        return $vals;
     }
 
     protected

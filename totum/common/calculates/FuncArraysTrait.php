@@ -503,19 +503,64 @@ trait FuncArraysTrait
 
     protected function funcListSearch(string $params): array
     {
-        $params = $this->getParamsArray($params, []);
+        $params = $this->getParamsArray($params, [], ['key']);
         $this->__checkListParam($params['list'], 'list');
 
+        $key = &$params['key'];
+        /*str|num type*/
+        {
+            if (str_ends_with($key, 'str')) {
+                $sorttype = 'str';
+            } elseif (str_ends_with($key, 'num')) {
+                $sorttype = 'num';
+            } else {
+                $sorttype = null;
+            }
+
+            if (!empty($sorttype)) {
+                $key = substr($key, 0, -3);
+            }
+            $key = $this->getExecParamVal($key, 'key', true);
+            $key['type'] = $sorttype;
+            unset($key, $sorttype);
+        }
         $this->__checkNotEmptyParams($params, 'key');
 
+        $operator = $params['key']['operator'];
+        $value = $params['key']['value'];
+        $type = $params['key']['type'] ?? null;
+
+
+        $getCompare = function ($v) use ($operator, $value, $type) {
+            if ($type ?? false) {
+                if (is_array($value) || is_array($v)) {
+                    throw new errorException($this->translate('Using a comparison type in a search in list/row is not allowed'));
+                }
+                switch ($type) {
+                    case 'str':
+                        $value = '_' . strval($value);
+                        $v = '_' . strval($v);
+                        break;
+                    case 'num':
+                        $value = (float)$value;
+                        $v = (float)$v;
+                        break;
+                }
+                return match ($v <=> $value) {
+                    0 => in_array($operator, ['>=', '<=', '=', '==']),
+                    1 => in_array($operator, ['>=', '>', '!=', '!==']),
+                    default => in_array($operator, ['<=', '<', '!=', '!==']),
+                };
+            }
+
+
+            return Calculate::compare($operator, $v, $value, $this->getLangObj());
+        };
 
         switch ($params['key']['field']) {
             case 'value':
-                $filter = function ($k, $v) use ($params) {
-                    return Calculate::compare($params['key']['operator'],
-                        $v,
-                        $params['key']['value'],
-                        $this->getLangObj());
+                $filter = function ($k, $v) use ($getCompare, $params) {
+                    return $getCompare($v);
                 };
                 break;
             default:
@@ -525,7 +570,7 @@ trait FuncArraysTrait
                     $params['item'] = $params['key']['field'];
                 }
 
-                $filter = function ($k, $v) use ($params) {
+                $filter = function ($k, $v) use ($getCompare, $params) {
                     if (!is_array($v)) {
                         throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
                     } elseif (!array_key_exists(
@@ -534,10 +579,7 @@ trait FuncArraysTrait
                     )) {
                         throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
                     }
-                    return Calculate::compare($params['key']['operator'],
-                        $v[$params['item']],
-                        $params['key']['value'],
-                        $this->getLangObj());
+                    return $getCompare($v[$params['item']]);
                 };
                 break;
 
@@ -612,9 +654,9 @@ trait FuncArraysTrait
                     $param,
                     $matches
                 )) {
-                    $type = match ($matches[0]){
-                        'str'=>SORT_STRING,
-                        'num'=>SORT_NUMERIC,
+                    $type = match ($matches[0]) {
+                        'str' => SORT_STRING,
+                        'num' => SORT_NUMERIC,
                     };
                     $param = substr($param, 0, -3);
                 }

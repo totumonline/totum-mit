@@ -112,6 +112,7 @@ class CalculateLog
                 $section = 'actions';
                 break;
             case 'SELECTS AND FORMATS':
+            case 'TABLE FORMAT':
             case 'SELECTS AND FORMATS ROWS':
             case 'SELECTS AND FORMATS OF OTHER NON-ROWS PARTS':
                 $section = 'views';

@@ -21,12 +21,12 @@ trait FuncNumbersTrait
             if ($val > 0) {
                 if ($nextDigit = ($mod[$dectimal + 2] ?? 0)) {
                     if ($type === 'up' || ($type != 'down' && $nextDigit >= 5)) {
-                        $val = bcadd($val, 1 / (10 ** $dectimal), $dectimal);
+                        $val = bcadd($val, number_format(1 / (10 ** $dectimal), $dectimal, '.', ''), $dectimal);
                     }
                 }
             } elseif ($val < 0 && ($nextDigit = ($mod[$dectimal + 3] ?? 0))) {
                 if ($type === 'down' || ($type !== 'up' && $nextDigit >= 5)) {
-                    $val = bcsub($val, 1 / (10 ** $dectimal), $dectimal);
+                    $val = bcsub($val, number_format(1 / (10 ** $dectimal), $dectimal, '.', ''), $dectimal);
                 }
             }
 

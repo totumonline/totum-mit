@@ -985,38 +985,42 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['field'], ['field']);
 
         $this->__checkNotEmptyParams($params, ['table']);
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
+        $tableDestRow = $this->__checkTableIdOrName($params['table'], 'table');
 
         $link = '/Table/';
         $q_params = [];
 
         if ($this->Table->getTableRow()['type'] === 'cycles' && str_starts_with($this->varName,
-                'tab_') && !empty($this->row['id']) && $tableRow['type'] != 'calcs') {
+                'tab_') && !empty($this->row['id']) && $tableDestRow['type'] != 'calcs') {
 
-            $link .= $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $this->row['id'] . '/' . $tableRow['id'];
-            $linkedTable = $this->Table->getTotum()->getTable($tableRow);
+            $link .= $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . ($params['cycle'] ?: $this->row['id']) . '/' . $tableDestRow['id'];
+            $linkedTable = $this->Table->getTotum()->getTable($tableDestRow);
             $q_params['b'] = $this->varName;
 
-        } elseif ($tableRow['type'] === 'calcs') {
-            if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
-                if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
-                    $Cycle_id = $this->Table->getCycle()->getId();
-                } elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
-                    $Cycle_id = $this->row['id'];
-                } else {
+        } elseif ($tableDestRow['type'] === 'calcs') {
+            if ($topTableRow = $this->Table->getTotum()->getTableRow($tableDestRow['tree_node_id'])) {
+
+                if (!empty($params['cycle'])) {
                     $this->__checkNumericParam($params['cycle'], 'cycle');
                     $Cycle_id = $params['cycle'];
+                } elseif ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableDestRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId()) {
+                    $Cycle_id = $this->Table->getCycle()->getId();
+                } elseif ($this->Table->getTableRow()['type'] === 'cycles' && (int)$tableDestRow['tree_node_id'] === $this->Table->getTableRow()['id'] && !empty($this->row['id'])) {
+                    $Cycle_id = $this->row['id'];
+                } else {
+                    $this->__checkNotEmptyParams($params, 'cycle');
                 }
 
-                $link .= $topTableRow['top'] . '/' . $topTableRow['id'] . '/' . $Cycle_id . '/' . $tableRow['id'];
-                $Cycle = $this->Table->getTotum()->getCycle($Cycle_id, $tableRow['tree_node_id']);
-                $linkedTable = $Cycle->getTable($tableRow);
+                $link .= $topTableRow['top'] . '/' . $topTableRow['id'] . '/' . $Cycle_id . '/' . $tableDestRow['id'];
+                $Cycle = $this->Table->getTotum()->getCycle($Cycle_id, $tableDestRow['tree_node_id']);
+                $linkedTable = $Cycle->getTable($tableDestRow);
+
             } else {
                 throw new errorException($this->translate('The cycles table is specified incorrectly.'));
             }
         } else {
-            $linkedTable = $this->Table->getTotum()->getTable($tableRow);
-            $link .= ($tableRow ['top'] ?: 0) . '/' . $tableRow['id'];
+            $linkedTable = $this->Table->getTotum()->getTable($tableDestRow);
+            $link .= ($tableDestRow ['top'] ?: 0) . '/' . $tableDestRow['id'];
         }
 
         $fields = $linkedTable->getFields();
@@ -1064,7 +1068,7 @@ class CalculateAction extends Calculate
         $this->Table->getTotum()->addToInterfaceLink(
             $link,
             $params['target'] ?? 'self',
-            $params['title'] ?? $tableRow['title'],
+            $params['title'] ?? $tableDestRow['title'],
             null,
             $params['width'] ?? null,
             $params['refresh'] ?? false,

@@ -147,7 +147,22 @@ trait WebInterfaceTrait
         }
         $inVars['remove'] = $remove;
         $inVars['restore'] = $restore;
+
+
         $inVars['duplicate'] = $duplicate;
+        if ($inVars['duplicate']) {
+            foreach ($inVars['duplicate']['replaces']??[] as $replaces) {
+                foreach ($replaces ?? [] as $k => $v) {
+                    if (!$this->isField('visible',
+                            'web',
+                            $k) || $this->getFields()[$k]['type'] !== 'unic') {
+                        throw new errorException($this->translate('Access to edit %s field is denied', $k));
+                    }
+                }
+            }
+        }
+
+
         $inVars['reorder'] = $reorder;
 
         if (!empty($data['addAfter'])) {
@@ -295,7 +310,9 @@ trait WebInterfaceTrait
                 } else {
                     $updated = json_decode($this->updated, true);
 
-                    if ($checkQuestion(2, $matchCode[1] !== (string)$updated['code'], $this->translate('Table was changed'))) {
+                    if ($checkQuestion(2,
+                        $matchCode[1] !== (string)$updated['code'],
+                        $this->translate('Table was changed'))) {
                         return $question;
                     }
                 }
@@ -318,7 +335,7 @@ trait WebInterfaceTrait
 
 //Тот ли проект
                 if (!isset($csvArray[$rowNumProject][0]) || !preg_match(
-                        '/^(\d+|'.$this->translate('Out of cycles').')$/',
+                        '/^(\d+|' . $this->translate('Out of cycles') . ')$/',
                         $csvArray[$rowNumProject][0],
                         $matchCode
                     )
@@ -337,7 +354,8 @@ trait WebInterfaceTrait
 //Ручные значения
                 if (($string = $csvArray[$rowNumSectionHandl][0] ?? '') !== $this->translate('Manual Values')) {
                     return ['error' => $NotCorrectFormat . $this->translate('in row %s',
-                            $rowNumSectionHandl + 1) . ' '.$this->translate('no section header %s', $this->translate('Manual Values'))];
+                            $rowNumSectionHandl + 1) . ' ' . $this->translate('no section header %s',
+                            $this->translate('Manual Values'))];
                 }
                 if (!in_array(
                     ($string = strtolower($csvArray[$rowNumSectionHandl + 2][0] ?? '')),
@@ -345,14 +363,15 @@ trait WebInterfaceTrait
                 )
                 ) {
                     return ['error' => $NotCorrectFormat . $this->translate('in row %s',
-                            $rowNumSectionHandl + 1) . ' '.$this->translate('no 0/1/2 edit switch')];
+                            $rowNumSectionHandl + 1) . ' ' . $this->translate('no 0/1/2 edit switch')];
                 }
                 $import['codedFields'] = $string;
 
 //Хэдер
                 if (($string = $csvArray[$rowNumSectionHeader][0] ?? '') !== $this->translate('Header')) {
                     return ['error' => $NotCorrectFormat . $this->translate('in row %s',
-                            $rowNumSectionHeader + 1) . ' '.$this->translate('no section header %s', $this->translate('Header'))];
+                            $rowNumSectionHeader + 1) . ' ' . $this->translate('no section header %s',
+                            $this->translate('Header'))];
                 }
                 $headerFields = $csvArray[$rowNumSectionHeader + 2];
 
@@ -373,12 +392,13 @@ trait WebInterfaceTrait
 //Фильтр
                 if (($string = $csvArray[$rowNumFilter][0] ?? '') !== $this->translate('Filter')) {
                     return ['error' => $NotCorrectFormat . $this->translate('in row %s',
-                            $rowNumFilter + 1). ' '.$this->translate('no section header %s', $this->translate('Filter'))];
+                            $rowNumFilter + 1) . ' ' . $this->translate('no section header %s',
+                            $this->translate('Filter'))];
                 }
                 if (!empty($sortedVisibleFields['filter'])) {
                     if (empty($filterData = $csvArray[$rowNumFilter + 1][0])) {
                         return ['error' => $NotCorrectFormat . $this->translate('in row %s',
-                                $rowNumFilter + 2) . ' '.$this->translate('no filter data')];
+                                $rowNumFilter + 2) . ' ' . $this->translate('no filter data')];
                     }
                     //Вероятно не нужно. Блокирующие фильтры все равно не пропустят
                     //$this->setFilters($filterData, true);
@@ -388,7 +408,8 @@ trait WebInterfaceTrait
 //Строчная часть
                 if (($string = $csvArray[$rowNumSectionRows][0] ?? '') !== $this->translate('Rows part')) {
                     return ['error' => $NotCorrectFormat . $this->translate('in row %s',
-                            $rowNumSectionRows + 1). ' '.$this->translate('no section header %s', $this->translate('Rows part'))];
+                            $rowNumSectionRows + 1) . ' ' . $this->translate('no section header %s',
+                            $this->translate('Rows part'))];
                 }
                 $numRow = $rowNumSectionRows + 3;
                 $rowCount = count($csvArray);

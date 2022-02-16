@@ -91,7 +91,7 @@ trait ParsesTrait
 
             if ($isInCodeNamed) {
                 /*codeBlockEnd*/
-                if ($row === '```') {
+                if (trim($row) === '```') {
                     $isInCodeNamed = $codeType = null;
                     $lineName = trim($matches['1']);
                     if (str_starts_with($lineName, '~')) {

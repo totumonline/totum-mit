@@ -133,7 +133,7 @@ class TableController extends interfaceController
                 $result['links'] = $links;
             }
             if ($panels = $this->Totum->getPanelLinks()) {
-                $result['panels'] = $panels;
+                $result['showPanels'] = $panels;
             }
             if ($links = $this->Totum->getInterfaceDatas()) {
                 $result['interfaceDatas'] = $links;
@@ -148,7 +148,7 @@ class TableController extends interfaceController
             $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         }
 
-        if ($this->User->isCreator() && $Actions?->withLog && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
+        if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig())) && $Actions?->withLog && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
             $this->CalculateLog->addParam('result', 'done');
 
             if (in_array('flds', $types)) {
@@ -267,6 +267,7 @@ class TableController extends interfaceController
                     , 'href' => '#'
                     , 'text' => $this->Cycle->getRowName()
                     , 'type' => 'cycle_name'
+                    , 'li_attr' => ['class' => 'nopoiner']
                     , 'parent' => ($this->anchorId ? 'tree' . $this->anchorId : 'table' . $cyclesTableId)
                     , 'state' => [
                         'selected' => false
@@ -320,11 +321,6 @@ class TableController extends interfaceController
                 /*Вкладка*/
                 if (is_array($tName)) {
                     $tree[] = $tName;
-                    if (!$isCycleRowConnected && !empty($cycleRow)) {
-                        $isCycleRowConnected = true;
-                        $cycleRow['href'] = $tName['id'];
-                        $cycleRow['type'] .= '_tab';
-                    }
                 } elseif ($tableRow = $this->Totum->getTableRow($tName)) {
                     $tId = $tableRow['id'];
                     if (array_key_exists($tId, $this->User->getTreeTables())) {
@@ -349,14 +345,6 @@ class TableController extends interfaceController
                             $tbl['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
                         }
                         $tree[] = $tbl;
-                        if (!$isCycleRowConnected && !empty($cycleRow)) {
-                            $isCycleRowConnected = true;
-                            if ($this->anchorId) {
-                                $cycleRow['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
-                            } else {
-                                $cycleRow['href'] = $cyclesTableId . '/' . $this->Cycle->getId() . '/' . $tId;
-                            }
-                        }
                     }
                 }
             }
@@ -547,35 +535,8 @@ class TableController extends interfaceController
 
     public function actionTable(ServerRequestInterface $request)
     {
-        $this->checkTableByUri($request);
-
-        if (!$this->Table) {
-            return;
-        }
         try {
-            /*Для таблиц циклов с одним циклом на пользователя*/
-            if ($this->Table->getUser()->isOneCycleTable($this->Table->getTableRow())) {
-                $cyclesCount = $this->Table->getUserCyclesCount();
-                if ($cyclesCount === 0) {
-                    $this->Table->reCalculateFromOvers(['add' => []]);
-                    $cyclesCount = 1;
-                }
-                if ($cyclesCount === 1) {
-                    $Cycle = $this->Totum->getCycle(
-                        $this->Table->getUserCycles($this->Table->getUser()->getId())[0],
-                        $this->Table->getTableRow()['id']
-                    );
-                    $calcsTablesIDs = $Cycle->getTableIds();
-                    if (!empty($calcsTablesIDs)) {
-                        foreach ($calcsTablesIDs as $tableId) {
-                            if ($this->Table->getUser()->isTableInAccess($tableId)) {
-                                $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
-                                die;
-                            }
-                        }
-                    }
-                }
-            }
+            $this->checkTableByUri($request, true);
         } catch (criticalErrorException $e) {
             $error = $this->translate('Error: %s', $e->getMessage());
             if ($this->User && $this->User->isCreator() && $e->getPathMess()) {
@@ -583,14 +544,16 @@ class TableController extends interfaceController
             }
         }
 
-
+        if (!$this->Table) {
+            return;
+        }
         /*Основная часть отдачи таблицы*/
         if (empty($error)) {
             try {
                 $Actions = $this->getTableActions($request, 'getFullTableData');
                 $result = $Actions->getFullTableData(true);
             } catch (criticalErrorException $exception) {
-                $this->clearTotum($request);
+                $this->clearTotum($request, true);
                 $Actions = $this->getTableActions($request, 'getFullTableData');
                 $error = $exception->getMessage();
                 if ($this->User && $this->User->isCreator() && $exception->getPathMess()) {
@@ -638,14 +601,16 @@ class TableController extends interfaceController
             }
             ini_set('xdebug.var_display_max_depth', '20');
 
-            if (($types = $this->Totum->getCalculateLog()->getTypes())) {
-                if (in_array('flds', $types)) {
-                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
-                } else {
-                    $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
-                    // $result['treeLogs'] = $this->CalculateLog->getLodTree();
-                }
+
+        }
+
+        if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig()) ) && ($types = $this->Totum->getCalculateLog()->getTypes())) {
+            if (in_array('flds', $types)) {
+                $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
+            } else {
+                $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
+                // $result['treeLogs'] = $this->CalculateLog->getLodTree();
             }
         }
 
@@ -653,17 +618,21 @@ class TableController extends interfaceController
             $result['links'] = $links;
         }
         if ($panels = $this->Totum->getPanelLinks()) {
-            $result['panels'] = $panels;
+            $result['showPanels'] = $panels;
         }
         if ($links = $this->Totum->getInterfaceDatas()) {
             $result['interfaceDatas'] = $links;
+        }
+
+        if (!$this->User->isCreator() && Auth::isShadowedCreator($this->Totum->getConfig())) {
+            $result['shadowedCreator'] = true;
         }
 
         $this->__addAnswerVar('error', $error ?? $result['error'] ?? null);
         $this->__addAnswerVar('tableConfig', $result);
     }
 
-    protected function checkTableByUri(ServerRequestInterface $request)
+    protected function checkTableByUri(ServerRequestInterface $request, $actionTable = false)
     {
         if (!preg_match('/^(\d+)\//', $this->tableUri, $branchMatches)) {
             return;
@@ -825,7 +794,39 @@ class TableController extends interfaceController
         if ($this->Table) {
             $this->CalculateLog = $this->Table->getCalculateLog();
             Conf::$CalcLogs = $this->CalculateLog;
+
+
+            /*Для таблиц циклов с одним циклом на пользователя*/
+            if ($this->Table->getUser()->isOneCycleTable($this->Table->getTableRow())) {
+                $cyclesCount = $this->Table->getUserCyclesCount();
+                if ($cyclesCount === 0) {
+                    if (!$actionTable) {
+                        throw new errorException('Not correct request. Reload table page');
+                    }
+                    $this->Table->reCalculateFromOvers(['add' => []]);
+                    $cyclesCount = 1;
+                }
+                if ($cyclesCount === 1) {
+                    if (!$actionTable) {
+                        throw new errorException('Not correct request. Reload table page');
+                    }
+                    $Cycle = $this->Totum->getCycle(
+                        $this->Table->getUserCycleId(),
+                        $this->Table->getTableRow()['id']
+                    );
+                    $calcsTablesIDs = $Cycle->getTableIds();
+                    if (!empty($calcsTablesIDs)) {
+                        foreach ($calcsTablesIDs as $tableId) {
+                            if ($this->Table->getUser()->isTableInAccess($tableId)) {
+                                $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
+                                die;
+                            }
+                        }
+                    }
+                }
+            }
         }
+
     }
 
     /**
@@ -857,10 +858,10 @@ class TableController extends interfaceController
         return $Actions;
     }
 
-    protected function clearTotum($request): void
+    protected function clearTotum($request, $actionTable = false): void
     {
         $this->Config = $this->Config->getClearConf();
         $this->Totum = new Totum($this->Config, $this->User);
-        $this->checkTableByUri($request);
+        $this->checkTableByUri($request, $actionTable);
     }
 }

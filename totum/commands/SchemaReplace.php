@@ -34,6 +34,10 @@ class SchemaReplace extends Command
             '',
             InputOption::VALUE_NONE,
             'Do not switch off crons in replaced schema.');
+        $this->addOption('without-host',
+            '',
+            InputOption::VALUE_NONE,
+            'Do not add new host in Conf.php');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -62,7 +66,7 @@ class SchemaReplace extends Command
                         break;
                     }
                 }
-                if (!$exists) {
+                if (!$exists && !$input->getOption('without-host')) {
                     $helper = $this->getHelper('question');
                     $question = new Question('Please enter the name of the new host: ');
 
@@ -146,7 +150,7 @@ class SchemaReplace extends Command
         $pathPsql = $Conf->getSshPostgreConnect('psql');
         $Conf->getSql(true, false);
         $result = `$pathPsql -1 -v ON_ERROR_STOP=1 -f $tmpFileName | grep ERROR`;
-        $output->writeln('sql data loaded' . ($result ? ':' . $result : ''));
+        $output->writeln('Sql data loaded' . ($result ? ' with:' . $result : ''));
 
         unlink($tmpFileName);
 
@@ -173,6 +177,10 @@ class SchemaReplace extends Command
             }
         }
 
-        $output->writeln('Done');
+        if ($result) {
+            $output->writeln('We found some errors in process');
+        } else {
+            $output->writeln('Done');
+        }
     }
 }

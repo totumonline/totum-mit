@@ -36,6 +36,11 @@ class Select extends Field
         }
     }
 
+    public function emptyCommonSelectViewList()
+    {
+        $this->commonSelectViewList = null;
+    }
+
     public function cropSelectListForWeb($list, $checkedVals, $q = '', $parentId = null)
     {
         $previewdata = $list['previewdata'] ?? false;
@@ -729,7 +734,7 @@ class Select extends Field
             }
         }
 
-        if ($val === '' && !($this->data['category'] === 'filter' && $this->data['selectFilterWithEmpty'] === true)) {
+        if ($val === '' && !($this->data['category'] === 'filter' && ($this->data['selectFilterWithEmpty'] ?? false) === true)) {
             $val = null;
         }
     }

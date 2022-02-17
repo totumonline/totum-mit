@@ -89,7 +89,14 @@ class CalculateAction extends Calculate
                         JSON_UNESCAPED_UNICODE));
 
                     $path = $this->Table->getTotum()->getConfig()->getBaseDir();
-                    return `cd {$path} && bin/totum exec {$this->Table->getUser()->getId()} {$data} {$test}`;
+
+                    $schema = '';
+
+                    if(method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')){
+                        $schema = '--schema "'.$this->Table->getTotum()->getConfig()->getSchema().'"';
+                    }
+
+                    return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} {$test}`;
 
                 } else {
 

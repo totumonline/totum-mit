@@ -89,7 +89,14 @@ class CalculateAction extends Calculate
                         JSON_UNESCAPED_UNICODE));
 
                     $path = $this->Table->getTotum()->getConfig()->getBaseDir();
-                    return `cd {$path} && bin/totum exec {$this->Table->getUser()->getId()} {$data} {$test}`;
+
+                    $schema = '';
+
+                    if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
+                        $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
+                    }
+
+                    return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} {$test}`;
 
                 } else {
 
@@ -992,7 +999,7 @@ class CalculateAction extends Calculate
 
         if ($this->Table->getTableRow()['type'] === 'cycles' && str_starts_with($this->varName,
                 'tab_') && !empty($this->row['id']) && $tableDestRow['type'] != 'calcs') {
-
+            $params['cycle'] = $params['cycle'] ?? null;
             $link .= $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . ($params['cycle'] ?: $this->row['id']) . '/' . $tableDestRow['id'];
             $linkedTable = $this->Table->getTotum()->getTable($tableDestRow);
             $q_params['b'] = $this->varName;

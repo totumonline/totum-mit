@@ -152,10 +152,7 @@ class Calculate
             case 'double':
             case 'string':
                 if (is_numeric($n)) {
-                    if (str_contains(strval($n), 'E')) {
-                        $n = number_format($n, 12, '.', '');
-                    }
-                    return bcadd($n, 0, 10);
+                    return bcadd(number_format((float)$n, 12, '.', ''), 0, 10);
                 }
                 return $n;
             case 'array':

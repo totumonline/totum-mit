@@ -842,14 +842,23 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
 
         $settings = json_decode($this->post['settings'], true);
-        $tableAll = ['<h1>' . $this->Table->getTableRow()['title'] . '</h1>'];
+
+
+
 
         $sosiskaMaxWidth = $settings['sosiskaMaxWidth'];
         $fields = array_intersect_key($this->Table->getFields(), $settings['fields']);
 
         $fieldNames = array_keys($fields);
-
         $ids = $this->Table->loadFilteredRows('web', $settings['ids'] ?? []);
+        $title = $this->Table->getTableRow()['title'];
+        $tableFormat = $this->getTableFormat($ids);
+        if($tableFormat['tabletitle']??false){
+            $title = $tableFormat['tabletitle'];
+        }
+
+        $tableAll = ['<h1>' . htmlspecialchars($title) . '</h1>'];
+
         $data = ['params' => $this->Table->getTbl()['params'], 'rows' => []];
         foreach ($settings['ids'] ?? [] as $id) {
             if (in_array($id, $ids)) {

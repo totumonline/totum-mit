@@ -274,13 +274,13 @@ SQL;
             $user = (int)$user;
         }
         unset($user);
-
+        $selectParams = array_intersect_key($params, array_flip(['table', 'cycle', 'field']));
 
         if ($params['id'] ?? null) {
-            $params['where'] = ['field' => 'id', 'operator' => '=', 'value' => $params['id']];
+            $selectParams['where'] = [['field' => 'id', 'operator' => '=', 'value' => $params['id']]];
         }
 
-        $val = $this->select($params, 'field') ?? [];
+        $val = $this->select($selectParams, 'field') ?? [];
 
         if (empty($val)) {
             $vals = [];

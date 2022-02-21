@@ -67,7 +67,7 @@ class Field
     {
         return match ($type) {
             'select', 'tree' => !!$isMulty,
-            'listRow', 'fieldParams', 'fieldParamsResult', 'file' => true,
+            'listRow', 'fieldParams', 'fieldParamsResult', 'file', 'comments' => true,
             default => false,
         };
     }

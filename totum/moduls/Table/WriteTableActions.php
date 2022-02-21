@@ -15,7 +15,7 @@ class WriteTableActions extends ReadTableActions
 {
     public function checkUnic()
     {
-        if($this->Table->isField('visible', 'web', $fieldName = ($this->post['fieldName'] ?? '')) && $this->Table->getFields()[$fieldName]['type']==='uniq'){
+        if($this->Table->isField('visible', 'web', $fieldName = ($this->post['fieldName'] ?? '')) && $this->Table->getFields()[$fieldName]['type']==='unic'){
             return $this->Table->checkUnic($fieldName, $this->post['fieldVal'] ?? '');
         }
         throw new errorException($fieldName.' is not field of type unique');

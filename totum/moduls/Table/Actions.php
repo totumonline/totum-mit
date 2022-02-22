@@ -302,7 +302,7 @@ class Actions
 
                 } /*Проверка результата*/
                 else {
-                    $Field->checkSelectval('web', $this->post['val'], $row, $Table->getTbl());
+                    $Field->checkSelectVal('web', $this->post['val'], $row, $Table->getTbl());
                 }
 
             }

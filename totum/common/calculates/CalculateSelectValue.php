@@ -10,6 +10,13 @@ namespace totum\common\calculates;
 
 class CalculateSelectValue extends CalculateSelect
 {
+    protected bool $returnHiddenData = false;
+
+    public function hiddenInPreparedList(bool $val)
+    {
+        $this->returnHiddenData = $val;
+    }
+
     protected function funcSelectListAssoc($params)
     {
         $params = $this->getParamsArray($params, ['where', 'order']);
@@ -31,7 +38,6 @@ class CalculateSelectValue extends CalculateSelect
             'value' => $this->newVal['v']
         ];
 
-
         return parent::funcSelectRowListForSelect($params);
     }
 
@@ -40,8 +46,14 @@ class CalculateSelectValue extends CalculateSelect
         $selectList = [];
         unset($rows['previewdata']);
 
-        foreach ($rows as $row) {
-            $selectList[$row['value']] = $row['title'];
+        if ($this->returnHiddenData) {
+            foreach ($rows as $row) {
+                $selectList[$row['value']] = $row['is_del'];
+            }
+        } else {
+            foreach ($rows as $row) {
+                $selectList[$row['value']] = $row['title'];
+            }
         }
         return $selectList;
     }

@@ -87,7 +87,7 @@ class Select extends Field
         };
 
         foreach ($list as $k => $v) {
-            if (($v[1] ?? 0) === 1) {
+            if (($v[1] ?? 0) === 1 && !in_array($k, $checkedVals)) {
                 unset($list[$k]);
             }
         }
@@ -98,7 +98,7 @@ class Select extends Field
                 $qfunc = function ($v) use ($qs) {
                     $v = str_ireplace('ё', 'е', $v);
                     foreach ($qs as $q) {
-                        if ($q !== "" && mb_stripos($v, $q) === false) {
+                        if ($q !== '' && mb_stripos($v, $q) === false) {
                             return false;
                         }
                     }
@@ -335,7 +335,7 @@ class Select extends Field
             }
         }
 
-        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "selectList", 'field' => $this->data['name']]);
+        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'selectList', 'field' => $this->data['name']]);
 
         $list = [];
 
@@ -742,7 +742,7 @@ class Select extends Field
     public function add($channel, $inNewVal, $row = [], $oldTbl = [], $tbl = [], $isCheck = false, $vars = [])
     {
         if (!$isCheck) {
-            $this->checkSelectval($channel, $inNewVal, $row, $tbl);
+            $this->checkSelectVal($channel, $inNewVal, $row, $tbl);
         }
 
         return parent::add($channel,
@@ -766,7 +766,7 @@ class Select extends Field
             $isCheck);
 
         if ($changeFlag === static::CHANGED_FLAGS['changed'] && $newVal !== ($oldRow[$this->data['name']]['v'] ?? null)) {
-            $this->checkSelectval($channel, $newVal, $row, $tbl);
+            $this->checkSelectVal($channel, $newVal, $row, $tbl, $oldRow);
         }
 
         return $r;
@@ -841,17 +841,21 @@ class Select extends Field
         return $modifyVal;
     }
 
-    public function checkSelectval($channel, $newVal, array $row, array $tbl)
+    public function checkSelectVal($channel, $newVal, array $row, array $tbl, array $oldRow = [])
     {
         if (!empty($this->data['checkSelectValues']) && $channel !== 'inner') {
             if (($newVal === [] || ($newVal ?? '') === '')) {
                 return;
             }
-
+            if (is_null($this->CalculateCodeSelectValue)) {
+                $this->CalculateCodeSelectValue = new CalculateSelectValue($this->data['codeSelect']);
+            }
+            $this->CalculateCodeSelectValue->hiddenInPreparedList(true);
             $list = $this->calculateSelectValueList(['v' => $newVal], $row, $tbl);
+            $this->CalculateCodeSelectValue->hiddenInPreparedList(false);
 
-            $check = function ($v) use ($list) {
-                if (!key_exists($v, $list)) {
+            $check = function ($v) use ($oldRow, $list) {
+                if (!key_exists($v, $list) || ($list[$v] && !in_array($v, (array)($oldRow[$this->data['name']]['v']??[])))) {
                     throw new criticalErrorException($this->translate('This value is not available for entry in field %s.',
                         $this->data['title']));
                 }

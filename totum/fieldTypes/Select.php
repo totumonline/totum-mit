@@ -50,6 +50,8 @@ class Select extends Field
 
         $checkedNum = 0;
 
+        $checkedVals = (array)($checkedVals ?? []);
+
         //Наверх выбранные;
         if (!empty($checkedVals) && count($list) > $selectLength) {
             if (empty($this->data['multiple'])) {
@@ -855,7 +857,8 @@ class Select extends Field
             $this->CalculateCodeSelectValue->hiddenInPreparedList(false);
 
             $check = function ($v) use ($oldRow, $list) {
-                if (!key_exists($v, $list) || ($list[$v] && !in_array($v, (array)($oldRow[$this->data['name']]['v']??[])))) {
+                if (!key_exists($v, $list) || ($list[$v] && !in_array($v,
+                            (array)($oldRow[$this->data['name']]['v'] ?? [])))) {
                     throw new criticalErrorException($this->translate('This value is not available for entry in field %s.',
                         $this->data['title']));
                 }

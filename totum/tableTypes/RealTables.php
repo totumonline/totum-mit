@@ -433,11 +433,15 @@ abstract class RealTables extends aTable
                         }
                     }
                 }
-               if(!empty($field) && !empty($row)){
-                   errorException::criticalException($this->translate('Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data', [$field, $this->getTableRow()['name'], $row['id']]), $this->Totum);
-               }else{
-                   errorException::criticalException($this->translate('One of number fields of table [[%s]] contains non-numeric data. We cann\'t find what and where', $this->getTableRow()['name']), $this->Totum);
-               }
+                if (!empty($field) && !empty($row)) {
+                    errorException::criticalException($this->translate('Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data',
+                        [$field, $this->getTableRow()['name'], $row['id']]),
+                        $this->Totum);
+                } else {
+                    errorException::criticalException($this->translate('One of number fields of table [[%s]] contains non-numeric data. We cann\'t find what and where',
+                        $this->getTableRow()['name']),
+                        $this->Totum);
+                }
             }
             throw $exception;
         }
@@ -876,7 +880,7 @@ abstract class RealTables extends aTable
                 $row = $this->duplicateRow(
                     $channel,
                     $this->tbl['rows'][$baseRowId],
-                    ($duplicate['replaces'][$baseRowId] ?? []),
+                    (empty($duplicate['replaces'][$baseRowId]) || !is_array($duplicate['replaces'][$baseRowId]) ? [] : $duplicate['replaces'][$baseRowId]),
                     $addAfter
                 );
                 if (!is_a($this, cyclesTable::class)) {
@@ -1184,7 +1188,7 @@ abstract class RealTables extends aTable
         return $oldRow;
     }
 
-    protected function duplicateRow($channel, $baseRow, $replaces, $addAfter)
+    protected function duplicateRow($channel, $baseRow, array $replaces, $addAfter)
     {
 
 

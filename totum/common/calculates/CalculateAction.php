@@ -1422,7 +1422,11 @@ class CalculateAction extends Calculate
                 if (!$table) {
                     return;
                 }
-                $fields = $this->__getActionFields($params['field'], 'Duplicate');
+                if (empty($params['field'])) {
+                    $fields = [];
+                } else {
+                    $fields = $this->__getActionFields($params['field'], 'Duplicate');
+                }
 
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);

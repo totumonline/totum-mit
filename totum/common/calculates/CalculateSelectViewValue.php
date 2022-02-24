@@ -33,13 +33,7 @@ class CalculateSelectViewValue extends CalculateSelect
         if ($this->columnVals) {
             $val = ($this->columnVals)();
         } elseif (!empty($this->newVal['c'])) {
-            if (is_array($this->newVal['c']) && is_array($this->newVal['v'])) {
-                $val = array_merge($this->newVal['v'], $this->newVal['c']);
-            } elseif (is_array($this->newVal['v'])) {
-                $val = array_merge($this->newVal['v'], [$this->newVal['c']]);
-            } else {
-                $val = array_merge($this->newVal['c'], [$this->newVal['v']]);
-            }
+            $val = array_merge((array)$this->newVal['v'], (array)$this->newVal['c']);
         } else {
             $val = $this->newVal['v'];
         }

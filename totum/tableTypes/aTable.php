@@ -1184,6 +1184,10 @@ CODE;;
         }
 
         foreach ($params['field'] as $fName) {
+            if(!is_string($fName)){
+                throw new errorException($this->translate('Not correct field name in query to [[%s]] table.',
+                    [$this->tableRow['name']]));
+            }
             if (!array_key_exists($fName, $fields) && !in_array($fName, Model::serviceFields)) {
                 throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
                     [$fName, $this->tableRow['name']]));

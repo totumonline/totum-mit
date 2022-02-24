@@ -47,7 +47,7 @@ class User extends Model
     {
         $decoded=[];
         foreach ($params as $key => $param) {
-            if ($decode = json_decode($param, true)) {
+            if (!Model::isServiceField($key) && ($decode = json_decode($param, true))) {
                 $decoded[$key] = $decode['v'];
             } else {
                 $decoded[$key] = $param;

@@ -181,10 +181,11 @@ class JsonController extends Controller
                     )) !== 3) {
                     $this->throwError(9);
                 }
-                $params[] = $where;
+                $params['where'][] = $where;
             }
+            $params['field']='id';
             /*TODO ограничение по фильтру*/
-            $ids = $this->Table->getByParams($params);
+            $ids = $this->Table->getByParams($params, 'list');
             $inVars['modify'] = array_map(
                 function () {
                     return [];

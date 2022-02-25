@@ -676,9 +676,11 @@ class ReadTableActions extends Actions
                             $result['chdata']['nsorted_ids'] = array_column($result['chdata']['rows'], 'id');
                         }
                         break;
-                    case 'paging':
-                        $params = $this->Table->filtersParamsForLoadRows('web');
-                        $result['allCount'] = $params === false ? 0 : $this->Table->countByParams($params);
+                    default:
+                        if ($this->isPagingView()) {
+                            $params = $this->Table->filtersParamsForLoadRows('web');
+                            $result['allCount'] = $params === false ? 0 : $this->Table->countByParams($params);
+                        }
                         break;
                 }
         }
@@ -844,8 +846,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $settings = json_decode($this->post['settings'], true);
 
 
-
-
         $sosiskaMaxWidth = $settings['sosiskaMaxWidth'];
         $fields = array_intersect_key($this->Table->getFields(), $settings['fields']);
 
@@ -853,7 +853,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $ids = $this->Table->loadFilteredRows('web', $settings['ids'] ?? []);
         $title = $this->Table->getTableRow()['title'];
         $tableFormat = $this->getTableFormat($ids);
-        if($tableFormat['tabletitle']??false){
+        if ($tableFormat['tabletitle'] ?? false) {
             $title = $tableFormat['tabletitle'];
         }
 

@@ -16,7 +16,7 @@ if (empty($tableConfig)) {
                         }
 
                         if (!empty($html)) {
-                            echo '<li><a data-toggle="tab" href="#description">'.$this->translate('Description').'</a></li>';
+                            echo '<li><a data-toggle="tab" href="#description">' . $this->translate('Description') . '</a></li>';
                         }
                         ?>
                     </ul>
@@ -25,9 +25,9 @@ if (empty($tableConfig)) {
                         <?php
                         foreach ($tmp_tables as $i => $_t) {
                             $_title = htmlspecialchars($_t['title']);
-                            $iframe="";
-                            if ($i===0) {
-                                $iframe='<iframe src="/Table/0/'.$_t['id'].'" frameborder="0"></iframe>';
+                            $iframe = "";
+                            if ($i === 0) {
+                                $iframe = '<iframe src="/Table/0/' . $_t['id'] . '" frameborder="0"></iframe>';
                             }
                             echo <<<HTML
 <div id="table{$_t['id']}" class="tab-pane fade in active">{$iframe}</div>
@@ -41,18 +41,18 @@ HTML;
                 </div>
                 <script>
 
-                    $('#tables_tabls iframe').on('load', function(){
+                    $('#tables_tabls iframe').on('load', function () {
                         let _window = this.contentWindow;
-                        let body=$(_window.document.body).addClass('notification-table');
+                        let body = $(_window.document.body).addClass('notification-table');
                         /*setTimeout(()=>{
                            $(this).height(body.find('#table .pcTable-scrollwrapper').height());
                         });*/
                     })
 
                     $('#tables_tabls a').click(function () {
-                        let target=$($(this).attr('href'));
-                        if(!target.find('iframe').length && $(this).data('table_id')){
-                            let iframe=$('<iframe src="/Table/0/'+$(this).data('table_id')+'" frameborder="0"></iframe>');
+                        let target = $($(this).attr('href'));
+                        if (!target.find('iframe').length && $(this).data('table_id')) {
+                            let iframe = $('<iframe src="/Table/0/' + $(this).data('table_id') + '" frameborder="0"></iframe>');
                             target.append(iframe)
                         }
                     })
@@ -69,7 +69,7 @@ HTML;
 
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <?=$this->translate('Choose a table')?>
+                    <?= $this->translate('Choose a table') ?>
                 </div>
             </div>
 
@@ -78,7 +78,29 @@ HTML;
         echo '<div id="page-tree"></div>';
     }
     return;
-} ?>
+
+}
+$FullLogs = $tableConfig['FullLOGS'] ?? null;
+if ($FullLogs) {
+    try {
+        $FullLogs = json_encode($FullLogs, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    } catch (\Exception $exception) {
+        $FullLogs = '{"text":"We cannot display the log because it is too nested. Perhaps your code has very deep recursion."}';
+    }
+}
+$Logs = $tableConfig['LOGS'] ?? null;
+if ($Logs) {
+    try {
+        $Logs = json_encode($Logs, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    } catch (\Exception $exception) {
+        $Logs = '{"text":"We cannot display the log because it is too nested. Perhaps your code has very deep recursion."}';
+    }
+}
+
+
+unset($tableConfig['FullLOGS']);
+unset($tableConfig['LOGS']);
+?>
 <div id="table"></div>
 <script>
     var TableModel = App.models.table(window.location.href, {'updated': <?=($tableConfig['updated'])?><?=($tableConfig['tableRow']['sess_hash'] ?? null) ? ', sess_hash: "' . $tableConfig['tableRow']['sess_hash'] . '"' : ''?>})
@@ -86,6 +108,8 @@ HTML;
 <script>
     window.top_branch = <?=$this->branchId?>;
     let TableConfig = <?=json_encode($tableConfig, JSON_UNESCAPED_UNICODE);?>;
+    <?=$FullLogs ? 'TableConfig.FullLOGS=' . $FullLogs : ''?>;
+    <?=$Logs ? 'TableConfig.Logs=' . $Logs : ''?>;
 
     TableConfig.model = TableModel;
     $(function () {

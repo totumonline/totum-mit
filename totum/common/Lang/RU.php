@@ -52,6 +52,7 @@ class RU implements LangInterface
         'Parametr [[%s]] is required and should be a string.' => 'Параметр [[%s]] обязателен и должен быть строкой.',
         'The %s parameter is required and must start with %s.' => 'Параметр %s обязателен и должен начитаться с %s.',
         'The %s parameter should not be an array.' => 'Параметр %s не должен быть массивом.',
+        'The value of the number field should not be an array.' => 'Значение поля число не должно быть массивом.',
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',

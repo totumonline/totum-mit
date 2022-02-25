@@ -49,7 +49,11 @@ class Number extends Field
                 $sign = '+';
                 $diffVal *= -1;
             }
-        } elseif (preg_match(
+        }
+        elseif (is_array($modifyVal)){
+            throw new errorException($this->translate('The value of the number field should not be an array.'));
+        }
+        elseif (preg_match(
                 '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
                 $modifyVal,
                 $matches

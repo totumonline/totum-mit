@@ -34,6 +34,11 @@ class Number extends Field
             $sign = $modifyVal->sign;
             $diffVal = $modifyVal->val;
             $percent = $modifyVal->percent;
+
+            if (is_array($diffVal)){
+                throw new errorException($this->translate('The value of the number field should not be an array.'));
+            }
+
             if (!$percent && preg_match('/%$/', $diffVal)) {
                 $diffVal = substr($diffVal, 0, -1);
                 $percent = true;

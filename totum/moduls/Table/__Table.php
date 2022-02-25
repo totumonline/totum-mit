@@ -85,7 +85,7 @@ if ($FullLogs) {
     try {
         $FullLogs = json_encode($FullLogs, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     } catch (\Exception $exception) {
-        $FullLogs = '{"text":"We cannot display the log because it is too nested. Perhaps your code has very deep recursion."}';
+        $FullLogs = '[{"text":"We cannot display the log because it is too nested. Perhaps your code has very deep recursion."}]';
     }
 }
 $Logs = $tableConfig['LOGS'] ?? null;

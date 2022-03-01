@@ -41,6 +41,7 @@ class RU implements LangInterface
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 
         'Language %s not found.'=>'Язык %s не найден.',
+        'You cannot create query to PostgreSql with 65000 and more parameters.'=>'Вы не можете создать запрос к PostgreSql >= 65000 параметров.',
 
         'For temporary tables only.' => 'Только для временных таблиц',
         'For simple and cycles tables only.' => 'Только для простых таблиц и таблиц циклов.',

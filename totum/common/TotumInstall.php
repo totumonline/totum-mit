@@ -112,16 +112,24 @@ CONF;
         }
 
 
+        $mail = 'use WithPhpMailerTrait;';
+        $useMail = 'use totum\common\configs\WithPhpMailerTrait;';
+        if (($post['mail'] ?? false) === 'smtp') {
+            $mail = 'use WithPhpMailerSmtpTrait;';
+            $useMail = 'use totum\common\configs\WithPhpMailerSmtpTrait;';
+        }
+
+
         $this->confClassCode = <<<CONF
 
 namespace totum\config;
 
-use totum\common\configs\WithPhpMailerTrait;
+$useMail
 use totum\common\configs\ConfParent;
 use totum\common\configs\MultiTrait;
 
 class Conf extends ConfParent{
-    use WithPhpMailerTrait;
+    $mail
     
     $multyPhp
     

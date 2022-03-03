@@ -46,6 +46,7 @@ class TotumInstall
         if (is_array($Config)) {
             $this->installSettings = $Config;
             $this->Config = $this->createConfig($Config, $this->installSettings['host'] ?? $_SERVER['HTTP_HOST']);
+
             $this->User = new User(['login' => $user, 'roles' => ['1'], 'id' => 1], $this->Config);
         } else {
             $this->Config = $Config;
@@ -112,18 +113,39 @@ CONF;
         }
 
 
+        $mail = 'use WithPhpMailerTrait;';
+        $useMail = 'use totum\common\configs\WithPhpMailerTrait;';
+        if (($post['mail'] ?? false) === 'smtp') {
+            $mail = <<<PHP
+
+        use WithPhpMailerSmtpTrait;
+        
+        protected \$SmtpData = [
+                'host' => 'ttm-smtp',
+                'port' => 25,
+                'login' => '',
+                'pass' => '',
+            ];
+PHP;
+            $useMail = 'use totum\common\configs\WithPhpMailerSmtpTrait;';
+        }
+
+
         $this->confClassCode = <<<CONF
 
 namespace totum\config;
 
-use totum\common\configs\WithPhpMailerTrait;
+$useMail
 use totum\common\configs\ConfParent;
 use totum\common\configs\MultiTrait;
 
 class Conf extends ConfParent{
-    use WithPhpMailerTrait;
-    
     $multyPhp
+    
+    
+    $mail
+    
+    
     
     
     
@@ -157,7 +179,7 @@ class Conf extends ConfParent{
 CONF;
 
         eval($this->confClassCode);
-        $Conf = new Conf('dev', false);
+        $Conf = new Conf();
         if ($post['multy'] === '1') {
             $Conf->setHostSchema($host);
         }

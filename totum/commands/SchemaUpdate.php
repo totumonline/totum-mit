@@ -40,7 +40,7 @@ class SchemaUpdate extends Command
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
         }
-        $Conf = new Conf('dev');
+        $Conf = new Conf();
         if (is_callable([$Conf, 'setHostSchema'])) {
             if ($schema = $input->getOption('schema')) {
                 $Conf->setHostSchema(null, $schema);

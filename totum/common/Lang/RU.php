@@ -41,6 +41,7 @@ class RU implements LangInterface
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 
         'Language %s not found.'=>'Язык %s не найден.',
+        'You cannot create query to PostgreSql with 65000 and more parameters.'=>'Вы не можете создать запрос к PostgreSql >= 65000 параметров.',
 
         'For temporary tables only.' => 'Только для временных таблиц',
         'For simple and cycles tables only.' => 'Только для простых таблиц и таблиц циклов.',
@@ -52,6 +53,7 @@ class RU implements LangInterface
         'Parametr [[%s]] is required and should be a string.' => 'Параметр [[%s]] обязателен и должен быть строкой.',
         'The %s parameter is required and must start with %s.' => 'Параметр %s обязателен и должен начитаться с %s.',
         'The %s parameter should not be an array.' => 'Параметр %s не должен быть массивом.',
+        'The value of the number field should not be an array.' => 'Значение поля число не должно быть массивом.',
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',

@@ -1702,6 +1702,11 @@ abstract class RealTables extends aTable
                                     if ($q) {
                                         $q .= ' OR ';
                                     }
+
+                                    if(count($value)>65000){
+                                        throw new errorException($this->translate('You cannot create query to PostgreSql with 65000 and more parameters.'));
+                                    }
+
                                     $q .= $fieldQuoted . ' IN (?' . str_repeat(
                                             ',?',
                                             count($value) - 1

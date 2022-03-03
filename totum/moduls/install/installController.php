@@ -49,8 +49,11 @@ class installController extends interfaceController
                 }
             }
         }
+
         if ($done) {
             static::$contentTemplate = dirname(__FILE__) . DIRECTORY_SEPARATOR . '__done.php';
+        } elseif (file_exists($filename = __DIR__ . '/../../../Conf.php')) {
+            static::$contentTemplate = dirname(__FILE__) . DIRECTORY_SEPARATOR . '__formForDocker.php';
         } else {
             static::$contentTemplate = dirname(__FILE__) . DIRECTORY_SEPARATOR . '__form.php';
         }

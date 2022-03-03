@@ -55,7 +55,7 @@ class Select extends Field
         //Наверх выбранные;
         if (!empty($checkedVals) && count($list) > $selectLength) {
             if (empty($this->data['multiple'])) {
-                $mm = $checkedVals;
+                $mm = $checkedVals[0];
                 if (!is_array($mm) && array_key_exists($mm, $list) && $list[$mm][1] === 0) {
                     $v = $list[$mm];
                     unset($list[$mm]);
@@ -63,6 +63,7 @@ class Select extends Field
                     $checkedNum++;
                 }
             } else {
+
                 foreach ((array)$checkedVals as $mm) {
                     if (!is_array($mm) && array_key_exists($mm, $list) && $list[$mm][1] === 0) {
                         $v = $list[$mm];

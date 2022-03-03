@@ -34,7 +34,7 @@
 
     $post['db_host'] = 'ttm-postgres';
     $post['db_user_login'] = 'totum';
-    $post['db_user_password'] = 'TotumBasePass';
+    $post['db_user_password'] = $post['db_user_password']??'TotumBasePass';
     $post['db_name'] = 'totum';
 
 
@@ -98,7 +98,7 @@
                 }
                 ,
                 {
-                    type: 'input', name: 'db_user_password', disabled: true, label: "Password", required: true
+                    type: 'input', name: 'db_user_password', label: "Password", required: true
                 }
                 ,
 

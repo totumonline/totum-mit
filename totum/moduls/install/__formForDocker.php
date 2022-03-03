@@ -21,7 +21,7 @@
         $post[$k] = strip_tags($val);
     }
     $post['lang'] = $post['lang'] ?? 'en';
-    $post['multy'] = $post['multy'] ?? '0';
+    $post['multy'] = '1';
     $post['schema_exists'] = '0';
     $post['psql'] = 'psql';
     $post['pg_dump'] = 'pg_dump';
@@ -72,7 +72,7 @@
                     type: 'input', name: 'mail', hidden: true
                 },
                 {
-                    type: 'select', id: "multy", name: 'multy', label: "", vals: [
+                    type: 'select', id: "multy",disabled: true, name: 'multy', label: "", vals: [
                         {name: "Single installation", val: '0'},
                         {name: "Multiple installation", val: '1'},
                     ]

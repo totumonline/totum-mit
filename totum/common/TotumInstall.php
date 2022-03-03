@@ -165,7 +165,7 @@ class Conf extends ConfParent{
 CONF;
 
         eval($this->confClassCode);
-        $Conf = new Conf('dev', false);
+        $Conf = new Conf();
         if ($post['multy'] === '1') {
             $Conf->setHostSchema($host);
         }

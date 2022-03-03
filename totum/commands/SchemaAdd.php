@@ -32,7 +32,7 @@ class SchemaAdd extends Command
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
         }
-        $Conf=new Conf('dev');
+        $Conf=new Conf();
 
         if (!$input->getArgument('name')) {
             throw new errorException('Enter schema name');

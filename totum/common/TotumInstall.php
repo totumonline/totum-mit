@@ -121,7 +121,7 @@ CONF;
         use WithPhpMailerSmtpTrait;
         
         protected \$SmtpData = [
-                'host' => 'ssl://ttm-smtp',
+                'host' => 'ttm-smtp',
                 'port' => 25,
                 'login' => '',
                 'pass' => '',

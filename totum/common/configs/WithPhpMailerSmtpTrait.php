@@ -9,13 +9,6 @@ trait WithPhpMailerSmtpTrait
 {
     abstract protected function getDefaultSender();
 
-    protected $SmtpData = [
-        'host' => 'ssl://ttm-smtp',
-        'port' => 25,
-        'login' => '',
-        'pass' => '',
-    ];
-
     public function sendMail($to, $title, $body, $attachments = [], $from = null)
     {
         list($body, $attachments) = $this->mailBodyAttachments($body, $attachments);

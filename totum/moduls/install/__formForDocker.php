@@ -23,8 +23,8 @@
     $post['lang'] = $post['lang'] ?? 'en';
     $post['multy'] = '0';
     $post['schema_exists'] = '0';
-    $post['psql'] = '';
-    $post['pg_dump'] = '';
+    $post['psql'] = 'psql';
+    $post['pg_dump'] = 'pg_dump';
     $post['consol'] = '1';
 
     $post['admin_email'] = $post['admin_email'] ?? '';
@@ -72,7 +72,7 @@
                     type: 'input', name: 'mail', hidden: true
                 },
                 {
-                    type: 'select', id: "multy", disabled: true, name: 'multy', label: "", vals: [
+                    type: 'select', id: "multy", name: 'multy', label: "", vals: [
                         {name: "Single installation", val: '0'},
                         {name: "Multiple installation", val: '1'},
                     ]
@@ -103,18 +103,11 @@
                 ,
 
                 {
-                    type: 'select', name: 'consol', disabled: true, label: "PostgreSql console utilities", vals: [
-                        {name: "With console utilities", val: '0'},
-                        {name: "Without console utilities", val: '1'},
-                    ]
+                    type: 'input', name: 'pg_dump', disabled: true, label: "pg_dump"
                 }
                 ,
                 {
-                    type: 'input', name: 'pg_dump', hidden: true, label: "pg_dump"
-                }
-                ,
-                {
-                    type: 'input', name: 'psql', hidden: true, label: "psql"
+                    type: 'input', name: 'psql', disabled: true, label: "psql"
                 }
                 ,
                 {

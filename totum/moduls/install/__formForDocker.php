@@ -21,7 +21,7 @@
         $post[$k] = strip_tags($val);
     }
     $post['lang'] = $post['lang'] ?? 'en';
-    $post['multy'] = '0';
+    $post['multy'] = $post['multy'] ?? '0';
     $post['schema_exists'] = '0';
     $post['psql'] = 'psql';
     $post['pg_dump'] = 'pg_dump';

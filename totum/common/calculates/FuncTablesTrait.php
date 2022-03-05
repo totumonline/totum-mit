@@ -318,24 +318,17 @@ SQL;
 
         $vals = [];
         $countVals = count($val);
-
-
         foreach ($params['users'] as $user) {
-            if ($lastCommentUser === $user) {
-                $vals[] = ['user' => $user, 'num' => 0, 'comments' => []];
-            } else {
-                $lastViewedUserComment = ($userNums[$user]['nums'] ?? 1) - 1;
-
-                for ($i = $countVals - 1 ; $i > $lastViewedUserComment; $i--) {
-                    if($val[$i][1] === $user){
-                        $i++;
-                        break;
-                    }
+            $lastViewedUserComment = ($userNums[$user]['nums'] ?? 0) - 1;
+            for ($i = $countVals - 1; $i > $lastViewedUserComment; $i--) {
+                if ($val[$i][1] === $user) {
+                    break;
                 }
-                $comments = $val;
-                array_splice($comments, 0, $i);
-                $vals[] = ['user' => $user, 'num' => ($countVals - $i), 'comments' => $comments];
             }
+            $i++;
+            $comments = $val;
+            array_splice($comments, 0, $i);
+            $vals[] = ['user' => $user, 'num' => count($comments), 'comments' => $comments];
         }
         return $vals;
     }

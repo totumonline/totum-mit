@@ -122,7 +122,7 @@ CONF;
         
         protected \$SmtpData = [
                 'host' => 'ttm-smtp',
-                'port' => 25,
+                'port' => 2525,
                 'login' => '',
                 'pass' => '',
             ];

@@ -1068,8 +1068,7 @@ trait FuncArraysTrait
                         $_v = $this->__getValue($action[1]);
 
                         if (key_exists($k, $list) && !is_null($list[$k]) && !is_array($list[$k]) && !ctype_digit($k)) {
-                            ;
-                            throw new errorException($this->translate('The value by %s key is not a row/list'));
+                            throw new errorException($this->translate('The value by %s key is not a row/list', $k));
                         }
 
                         $list[$k][$_k] = $_v;

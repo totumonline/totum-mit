@@ -954,13 +954,6 @@ abstract class RealTables extends aTable
         }
 
         $this->loadRowsByIds($modifiedIds);
-        if (!empty($this->tableRow['with_order_field'])) {
-            $ns = [];
-            foreach ($modifiedIds as $mid) {
-                $ns[] = $this->tbl['rows'][$mid]['n'];
-            }
-            array_multisort($ns, $modifiedIds);
-        }
 
         if (count($modifiedIds) > 1) {
             if ($this->orderFieldName === 'id') {
@@ -981,7 +974,6 @@ abstract class RealTables extends aTable
                 array_multisort($ordArray, $modifiedIds);
             }
         }
-
 
         foreach ($modifiedIds as $id) {
             if (!empty($this->tbl['rows'][$id])) {

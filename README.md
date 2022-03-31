@@ -33,7 +33,7 @@
 
 \>
 
-# Programmable database for non-programmers
+# Business database for non-programmers
 
 ##### Universal UI, simple code-based logic, automatic actions, access rights, logging, API and lots of other stuff 👍
 
@@ -323,7 +323,7 @@ In addition, the database underlying Totum allows it to be clustered across mult
 
 ## How to try?
 
-#### Welcome to the demo server — [demo.totum.online](https://demoru.totum.online) 🎉
+#### Welcome to the demo server — [demo.totum.online](https://demo.totum.online) 🎉
 
 \>
 

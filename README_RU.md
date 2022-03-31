@@ -1,12 +1,12 @@
-#### Сайт RU — [totum.online](https://totum.online)
+#### Сайт RU — [ru.totum.online](https://ru.totum.online)
 
-#### Демо-сервер — [demo.totum.online](https://demo.totum.online)
+#### Демо-сервер — [demoru.totum.online](https://demoru.totum.online)
 
 \>
 
-#### Документация — [docs.totum.online](https://docs.totum.online)
+#### Документация — [ru.docs.totum.online](https://ru.docs.totum.online)
 
-#### Учебный курс — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀
+#### Учебный курс — [ru.docs.totum.online/training-course](https://ru.docs.totum.online/training-course) 🚀
 
 #### Форум на русском — [вопросы, ответы, предложения, анонсы ](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions) 🔥
 
@@ -321,17 +321,17 @@ Totum — self hosted. Вы можете настроить любые поли�
 
 ## Как попробовать?
 
-#### Добро пожаловать на демо-сервер — [demo.totum.online](https://demoru.totum.online) 🎉
+#### Добро пожаловать на демо-сервер — [demoru.totum.online](https://demoru.totum.online) 🎉
 
 \>
 
-#### Сайт RU — [totum.online](https://totum.online)
+#### Сайт RU — [ru.totum.online](https://ru.totum.online)
 
 \>
 
-#### Документация — [docs.totum.online](https://docs.totum.online)
+#### Документация — [ru.docs.totum.online](https://ru.docs.totum.online)
 
-#### Учебный курс — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀
+#### Учебный курс — [ru.docs.totum.online/training-course](https://ru.docs.totum.online/training-course) 🚀
 
 #### Форум на русском — [вопросы, ответы, предложения, анонсы ](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions) 🔥
 

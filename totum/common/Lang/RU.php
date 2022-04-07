@@ -56,7 +56,11 @@ class RU implements LangInterface
         'The value of the number field should not be an array.' => 'Значение поля число не должно быть массивом.',
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
+
+
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',
+
+        'The [[%s]] parameter must be plain row/list without nested row/list.' => 'Параметр [[%s]] должен быть простым row/list без вложенных row/list.',
 
 
         'Calling a third-party script.' => 'Обращение к стороннему скрипту.',

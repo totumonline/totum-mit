@@ -2585,7 +2585,7 @@ CODE;;
             }
         }
         foreach ($params as $f => $valueList) {
-            if ($this->fields[$f]['category'] !== 'column') {
+            if (($this->fields[$f]['category'] ?? null) !== 'column') {
                 throw new errorException($this->translate('The function is used to change the rows part of the table.'));
             }
 

@@ -284,6 +284,12 @@ trait FuncArraysTrait
         $this->__checkListParam($params['list'], 'list');
         $this->__checkNotArrayParams($params, ['str']);
 
+        foreach ($params['list'] as $str) {
+            if (is_array($str)) {
+                throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.', 'list'));
+            }
+        }
+
         return implode(($params['str'] ?? ''), $params['list']);
     }
 

@@ -34,7 +34,7 @@ abstract class ConfParent
     protected $tmpTableChangesDirPath = 'totumTmpfiles/tmpTableChangesDirPath/';
     protected $logsDir = 'myLogs/';
 
-    public static $MaxFileSizeMb = 10;
+    public static $MaxFileSizeMb = 40000;
     public static $timeLimit = 30;
 
 

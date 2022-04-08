@@ -176,7 +176,7 @@ class Tree extends Field
         return $this->getSelectValue($val, $row, $tbl);
     }
 
-    public function calculateSelectList(array &$val, $row, $tbl = [])
+    public function calculateSelectList(array &$val, $row, $tbl = [], $vars = [])
     {
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectList)) {
@@ -196,7 +196,8 @@ class Tree extends Field
                     $row,
                     [],
                     $tbl,
-                    $this->table
+                    $this->table,
+                    $vars
                 );
 
                 if ($error = $this->CalculateCodeSelect->getError()) {

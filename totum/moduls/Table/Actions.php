@@ -291,15 +291,16 @@ class Actions
                 /*Запрос селекта*/
                 if (key_exists('search', $this->post)) {
 
-                    $val = ['v' => $this->post['search']['checkedVals'] ?? ($data['multiple'] ? [] : null)];
+                    $val = ['v' => $this->post['search']['checkedVals'] ?? (empty($data['multiple']) ? [] : null)];
                     $list = $Field->calculateSelectList($val,
                         $row,
-                        $Table->getTbl());
+                        $Table->getTbl(),
+                        $data['vars'] ?? []);
 
                     return $Field->cropSelectListForWeb($list, $val['v'], $this->post['search']['q']);
                 } /*Проверка результата*/
                 else {
-                    $Field->checkSelectVal('web', $this->post['val'], $row, $Table->getTbl());
+                    $Field->checkSelectVal('web', $this->post['val'], $row, $Table->getTbl(), [], ($data['vars'] ?? []));
                 }
 
             }

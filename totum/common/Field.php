@@ -653,10 +653,11 @@ class Field
      * @param array $val
      * @param $row
      * @param array $tbl
+     * @param array $vars
      * @return array $list
      * @throws errorException
      */
-    public function calculateSelectList(array &$val, $row, $tbl = [])
+    public function calculateSelectList(array &$val, $row, $tbl = [], $vars = [])
     {
         throw new errorException('This is not select field');
     }

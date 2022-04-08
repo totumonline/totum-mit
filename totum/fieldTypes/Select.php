@@ -245,7 +245,7 @@ class Select extends Field
         return $htmls;
     }
 
-    protected function calculateSelectValueList(array $val, $row, $tbl = [])
+    protected function calculateSelectValueList(array $val, $row, $tbl = [], $vars = [])
     {
         if (!empty($this->data['values'])) {
             $list = [];
@@ -270,7 +270,8 @@ class Select extends Field
                 $row,
                 [],
                 $tbl,
-                $this->table
+                $this->table,
+                $vars
             );
         }
 
@@ -330,7 +331,7 @@ class Select extends Field
         return $this->getSelectValue($val, $row, $tbl);
     }
 
-    public function calculateSelectList(array &$val, $row, $tbl = [])
+    public function calculateSelectList(array &$val, $row, $tbl = [], $vars = [])
     {
         if (empty($this->data['codeSelectIndividual'])) {
             if (!is_null($this->commonSelectList)) {
@@ -362,7 +363,8 @@ class Select extends Field
                     $row,
                     [],
                     $tbl,
-                    $this->table
+                    $this->table,
+                    $vars
                 );
                 if ($error = $this->CalculateCodeSelect->getError()) {
                     $val['e'] = (empty($val['e']) ? '' : $val['e'] . '; ') . $error;
@@ -844,7 +846,7 @@ class Select extends Field
         return $modifyVal;
     }
 
-    public function checkSelectVal($channel, $newVal, array $row, array $tbl, array $oldRow = [])
+    public function checkSelectVal($channel, $newVal, array $row, array $tbl, array $oldRow = [], $vars = [])
     {
         if (!empty($this->data['checkSelectValues']) && $channel !== 'inner') {
             if (($newVal === [] || ($newVal ?? '') === '')) {
@@ -854,7 +856,10 @@ class Select extends Field
                 $this->CalculateCodeSelectValue = new CalculateSelectValue($this->data['codeSelect']);
             }
             $this->CalculateCodeSelectValue->hiddenInPreparedList(true);
-            $list = $this->calculateSelectValueList(['v' => $newVal], $row, $tbl);
+            $list = $this->calculateSelectValueList(['v' => $newVal], $row, $tbl, $vars);
+            if(is_string($list)){
+                throw new errorException($list);
+            }
             $this->CalculateCodeSelectValue->hiddenInPreparedList(false);
 
             $check = function ($v) use ($oldRow, $list) {

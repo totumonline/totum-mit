@@ -440,11 +440,12 @@ class CalculateAction extends Calculate
         $data = [];
         $data['table']['name'] = $LinkedTable->getTableRow()['name'];
         $data['table']['field'] = $params['field'];
-        if ($params['id']) {
+        if ($params['id'] ?? 0) {
             $data['table']['id'] = $params['id'];
         }
+
         switch ($LinkedTable->getTableRow()['type']) {
-            case 'calc':
+            case 'calcs':
                 $data['table']['extra'] = $LinkedTable->getCycle()->getId();
                 break;
             case 'tmp':

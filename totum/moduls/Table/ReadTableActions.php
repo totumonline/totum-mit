@@ -184,7 +184,7 @@ class ReadTableActions extends Actions
                     $LinkedTable->loadFilteredRows('inner', [$data['table']['id']]);
                     $item = $LinkedTable->getTbl()['rows'][$data['table']['id']];
                 } else {
-                    $item = $LinkedTable->getTbl()['pararms'];
+                    $item = $LinkedTable->getTbl()['params'];
                 }
 
                 if (!empty($this->post['search']['comment'])) {
@@ -1443,8 +1443,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $result['withCsvButtons'] = $this->Table->isUserCanAction('csv');
         $result['withCsvEditButtons'] = $this->Table->isUserCanAction('csv_edit');
-        $result['tableRow'] = $this->tableRowForClient($this->Table->getTableRow());
+        $result['tableRow'] = $this->tableRowForClient($this->Table->getTableRow(), $visibleFields);
+
+
         $result['fields'] = $this->fieldsForClient($visibleFields);
+
+
         if ($this->Table->getTableRow()['type'] === 'calcs') {
             $result['tableRow']['fields_sets'] = $this->Table->changeFieldsSets();
             $result['tableRow']['cycle_id'] = $this->Table->getCycle()->getId();
@@ -1886,7 +1890,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
      * @param $tableRow
      * @return array
      */
-    protected function tableRowForClient($tableRow)
+    protected function tableRowForClient($tableRow, $visibleFields = null)
     {
         $fields = ['title', 'updated', 'type', 'id', 'tree_node_id', 'sess_hash', 'description', 'fields_sets', 'panel', 'order_field',
             'order_desc', 'fields_actuality', 'with_order_field', 'main_field', 'delete_timer', '__version', 'pagination',
@@ -1911,10 +1915,15 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
 
 
-        if (($tableRow['panels_view'] ?? null) && $tableRow['panels_view']['state'] === 'panel') {
-            $_tableRow['panels_view'] = $tableRow['panels_view'];
+        if (($tableRow['panels_view'] ?? null) && $visibleFields) {
+            if ($tableRow['panels_view']['state'] === 'panel') {
+                $_tableRow['panels_view'] = $tableRow['panels_view'];
+            }
+            $_tableRow['panels_view']['fields'] = array_filter($_tableRow['panels_view']['fields'],
+                function ($field) use ($visibleFields) {
+                    return key_exists($field['field'], $visibleFields);
+                });
         }
-
         if ($this->Table->getTableRow()['type'] === 'calcs') {
             $_tableRow['fields_sets'] = $this->Table->changeFieldsSets();
             $_tableRow['cycle_id'] = $this->Table->getCycle()->getId();

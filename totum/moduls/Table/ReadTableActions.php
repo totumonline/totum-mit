@@ -184,7 +184,7 @@ class ReadTableActions extends Actions
                     $LinkedTable->loadFilteredRows('inner', [$data['table']['id']]);
                     $item = $LinkedTable->getTbl()['rows'][$data['table']['id']];
                 } else {
-                    $item = $LinkedTable->getTbl()['pararms'];
+                    $item = $LinkedTable->getTbl()['params'];
                 }
 
                 if (!empty($this->post['search']['comment'])) {

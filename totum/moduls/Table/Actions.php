@@ -258,10 +258,8 @@ class Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
 
-            if (key_exists('cycle_id', $data['env'])) {
-                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
-            } elseif (key_exists('hash', $data['env'])) {
-                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
+           if (key_exists('extra', $data['env'])) {
+                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['extra']);
             } else {
                 $Table = $this->Totum->getTable($data['env']['table']);
             }

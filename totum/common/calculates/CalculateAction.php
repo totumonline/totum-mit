@@ -443,8 +443,9 @@ class CalculateAction extends Calculate
         if ($params['id'] ?? 0) {
             $data['table']['id'] = $params['id'];
         }
+
         switch ($LinkedTable->getTableRow()['type']) {
-            case 'calc':
+            case 'calcs':
                 $data['table']['extra'] = $LinkedTable->getCycle()->getId();
                 break;
             case 'tmp':

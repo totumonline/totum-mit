@@ -109,7 +109,7 @@ unset($tableConfig['LOGS']);
     window.top_branch = <?=$this->branchId?>;
     let TableConfig = <?=json_encode($tableConfig, JSON_UNESCAPED_UNICODE);?>;
     <?=$FullLogs ? 'TableConfig.FullLOGS=' . $FullLogs : ''?>;
-    <?=$Logs ? 'TableConfig.Logs=' . $Logs : ''?>;
+    <?=$Logs ? 'TableConfig.LOGS=' . $Logs : ''?>;
 
     TableConfig.model = TableModel;
     $(function () {

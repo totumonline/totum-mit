@@ -538,13 +538,21 @@ class Field
                     $newVal = ['v' => $newVal, 'h' => true];
 
                     if (!($newVal['v'] === '' && $this->data['type'] === 'select' && !empty($this->data['withEmptyVal']))) {
-                        $newVal['v'] =
-                            $this->modifyValue(
-                                $newVal['v'],
-                                $oldVal['v'] ?? null,
-                                $isCheck,
-                                $row
-                            );
+                        try {
+                            $newVal['v'] =
+                                $this->modifyValue(
+                                    $newVal['v'],
+                                    $oldVal['v'] ?? null,
+                                    $isCheck,
+                                    $row
+                                );
+                        } catch (\Exception $e) {
+                            if (method_exists($e, 'addPath')) {
+                                $e->addPath($this->translate('field [[%s]] of [[%s]] table',
+                                        [$this->data['name'], $this->table->getTableRow()['name']]) . (!empty($row['id']) ? ' id ' . $row['id'] : ''));
+                            }
+                            throw $e;
+                        }
                     }
 
                     break;

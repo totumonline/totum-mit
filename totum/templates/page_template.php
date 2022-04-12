@@ -18,9 +18,9 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=0e1dfdd"></script>
+    <script src="/js/main.js?v=c158652"></script>
     <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?13"></script>
-    <script>App.lang=App.langs["<?= $this->Config->getLang() ?>"]</script>
+    <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]; App.dS = "<?=$this->Config->getSettings('numbers_format')['dectimalSeparator'] ?? ','?>"</script>
 
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

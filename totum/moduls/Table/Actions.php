@@ -143,6 +143,11 @@ class Actions
         $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'), 'exec');
     }
 
+    public function getDectimalSeparator()
+    {
+        return ['val' => $this->Totum->getConfig()->getSettings('numbers_format')['dectimalSeparator'] ?? ','];
+    }
+
     public function loadUserButtons()
     {
         $result = null;
@@ -258,7 +263,7 @@ class Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
 
-           if (key_exists('extra', $data['env'])) {
+            if (key_exists('extra', $data['env'])) {
                 $Table = $this->Totum->getTable($data['env']['table'], $data['env']['extra']);
             } else {
                 $Table = $this->Totum->getTable($data['env']['table']);
@@ -298,7 +303,12 @@ class Actions
                     return $Field->cropSelectListForWeb($list, $val['v'], $this->post['search']['q']);
                 } /*Проверка результата*/
                 else {
-                    $Field->checkSelectVal('web', $this->post['val'], $row, $Table->getTbl(), [], ($data['vars'] ?? []));
+                    $Field->checkSelectVal('web',
+                        $this->post['val'],
+                        $row,
+                        $Table->getTbl(),
+                        [],
+                        ($data['vars'] ?? []));
                 }
 
             }

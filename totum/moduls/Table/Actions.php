@@ -143,11 +143,6 @@ class Actions
         $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'), 'exec');
     }
 
-    public function getDectimalSeparator()
-    {
-        return ['val' => $this->Totum->getConfig()->getSettings('numbers_format')['dectimalSeparator'] ?? ','];
-    }
-
     public function loadUserButtons()
     {
         $result = null;

@@ -1818,6 +1818,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         break;
                     }
                 }
+            } elseif ($field['type'] === 'number') {
+                $field['dectimalSeparator'] = $field['dectimalSeparator'] ?? $this->Totum->getConfig()->getSettings('numbers_format')['dectimalSeparator'] ?? ',';
             }
 
 

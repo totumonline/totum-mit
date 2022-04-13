@@ -1818,6 +1818,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                         break;
                     }
                 }
+            } elseif ($field['type'] === 'number') {
+                $field['dectimalSeparator'] = $field['dectimalSeparator'] ?? $this->Totum->getConfig()->getSettings('numbers_format')['dectimalSeparator'] ?? ',';
             }
 
 
@@ -1910,7 +1912,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         foreach (Totum::TABLE_CODE_PARAMS as $name) {
             if (key_exists($name, $_tableRow)) {
                 $_tableRow[$name] = trim($_tableRow[$name]);
-                $_tableRow[$name] = !(!$_tableRow[$name] || preg_match('/^[a-z0-9]{0,4}=:$/', $_tableRow[$name]));
+                $_tableRow[$name] = !!preg_match('/^\s*[a-z0-9]*\=\:\s*[^\s]+/mu', $_tableRow[$name]);
             }
         }
 

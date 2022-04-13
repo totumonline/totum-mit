@@ -69,6 +69,11 @@ trait FuncNumbersTrait
     protected function funcNumFormat(string $params): string
     {
         $params = $this->getParamsArray($params);
+
+        if(is_null($params['num']) || $params['num'] ===''){
+            return '';
+        }
+
         $this->__checkRequiredParams($params, ['num']);
         $this->__checkNotArrayParams($params, ['num', 'dectimals', 'decsep', 'thousandssep', 'unittype', 'prefix']);
         $this->__checkNumericParam($params['num'], 'num');

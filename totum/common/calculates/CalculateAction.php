@@ -467,6 +467,9 @@ class CalculateAction extends Calculate
                 $v = [];
             }
         }
+        if ($fieldData['type'] === 'number') {
+            $fieldData['dectimalSeparator'] = $fieldData['dectimalSeparator'] ?? $this->Table->getTotum()->getConfig()->getSettings('numbers_format')['dectimalSeparator'] ?? ',';
+        }
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'editField',

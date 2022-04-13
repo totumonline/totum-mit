@@ -286,7 +286,8 @@ trait FuncArraysTrait
 
         foreach ($params['list'] as $str) {
             if (is_array($str)) {
-                throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.', 'list'));
+                throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.',
+                    'list'));
             }
         }
 
@@ -1070,6 +1071,11 @@ trait FuncArraysTrait
 
                 try {
                     if (count($action) > 1) {
+                        if (!key_exists(0, $action) || !key_exists(1, $action)) {
+                            throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                                'in action ' . ($a + 1)));
+                        }
+
                         $_k = $this->__getValue($action[0]);
                         $_v = $this->__getValue($action[1]);
 

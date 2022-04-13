@@ -63,7 +63,7 @@
 
 \>
 
-![main](https://totum.totum.online/fls/365_400_file.png)
+![main](https://totum.ewr1.vultrobjects.com/365_416_file.png)
 
 \>
 
@@ -100,7 +100,7 @@
 
 \>
 
-![Using](https://totum.totum.online/fls/365_401_file.png)
+![Using](https://totum.ewr1.vultrobjects.com/365_441_file.png)
 
 \>
 
@@ -116,7 +116,7 @@ The developer can instantly hide the developer UI elements to see what the solut
 
 \>
 
-![uniform interface](https://totum.totum.online/fls/365_283_file.png)
+![uniform interface](https://totum.ewr1.vultrobjects.com/365_436_file.png)
 
 \>
 
@@ -178,7 +178,7 @@ Use a variety of ready-made elements:
 
 \>
 
-![numbers](https://totum.totum.online/fls/365_399_file.png)
+![numbers](https://totum.ewr1.vultrobjects.com/365_442_file.png)
 
 \>
 
@@ -206,7 +206,7 @@ After a little customisation, tables can be automatically presented in more than
 
 #### Kanban
 
-![kanban](https://totum.totum.online/fls/365_402_file.png)
+![kanban](https://totum.ewr1.vultrobjects.com/365_443_file.png)
 
 \>
 

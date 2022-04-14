@@ -8,6 +8,12 @@
 
 \>
 
+#### About Totum: [video on YouTube —>](https://www.youtube.com/watch?v=pnKm1RA4NYE)
+
+#### 1-Click Docker install: [video on YouTube —>](https://www.youtube.com/watch?v=ZztzQ53kMQQ)
+
+\>
+
 #### Documentaion — [docs.totum.online](https://docs.totum.online)
 
 #### Training course — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀

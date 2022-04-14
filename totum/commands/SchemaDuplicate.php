@@ -68,6 +68,8 @@ class SchemaDuplicate extends Command
             }
         }
 
+        set_time_limit(0);
+
         `$pgDump -O --schema '{$baseName}' --no-tablespaces {$exclude} | grep -v '^--' > "{$tmpFilenameOld}"`;
         if (filesize($tmpFilenameOld) < 20) {
             $output->writeln(file_get_contents($tmpFilenameOld));

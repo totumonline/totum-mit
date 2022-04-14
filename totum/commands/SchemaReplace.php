@@ -103,6 +103,9 @@ class SchemaReplace extends Command
             throw new errorException('File not exists');
         }
 
+        set_time_limit(0);
+
+
         $tmpFileName = tempnam($Conf->getTmpDir(), 'schemaReplace.' . $schemaName . '-dest');
         if (!($handleTmp = @fopen($tmpFileName, 'a'))) {
             throw new errorException('Temporary file ' . $tmpFileName . ' not writeable');

@@ -59,6 +59,7 @@ class RU implements LangInterface
 
 
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',
+        'Comment field contains incorrect type data as a value.' => 'Поле комментария содержит в качестве значения данные неправильного типа.',
 
         'The [[%s]] parameter must be plain row/list without nested row/list.' => 'Параметр [[%s]] должен быть простым row/list без вложенных row/list.',
 

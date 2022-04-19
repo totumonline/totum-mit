@@ -160,6 +160,10 @@ class Comments extends Field
     {
         $val = $val ?? [];
 
+        if(!is_array($val)){
+            throw new errorException($this->translate('Comment field contains incorrect type data as a value.'));
+        }
+
         foreach ($val as $i => &$comment) {
             $commentIn = $comment;
             $comment = $this->prepareComment($comment, false, $n);

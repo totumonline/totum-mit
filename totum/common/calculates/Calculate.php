@@ -151,7 +151,7 @@ class Calculate
             case 'integer':
             case 'double':
             case 'string':
-                if (is_numeric($n)) {
+                if (is_numeric($n) && !is_infinite($n)) {
                     return bcadd(number_format((float)$n, 12, '.', ''), 0, 10);
                 }
                 return $n;

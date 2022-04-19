@@ -136,7 +136,7 @@ class Number extends Field
         $modifyVal = $this->modifyNumberValue($modifyVal, $oldVal);
 
         if (!is_null($modifyVal) && $modifyVal !== '') {
-            if (!is_numeric($modifyVal)) {
+            if (!is_numeric($modifyVal) || is_infinite($modifyVal)) {
                 throw new errorException($this->translate('The value of the %s field must be numeric.',
                     $this->data['title']));
             }

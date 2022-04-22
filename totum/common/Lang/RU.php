@@ -198,7 +198,11 @@ class RU implements LangInterface
         'Authorization lost.' => 'Потеряна авторизация.',
         'Scheme file not found.' => 'Файл схемы не найден.',
         'Scheme not found.' => 'Схема не найдена.',
+        'Scheme file is empty' => 'Файл схемы пуст',
         'Wrong format scheme file.' => 'Файл схемы неверного формата.',
+
+        'Translates file not found.' => 'Файл перевода не найден.',
+        'Translates file is empty' => 'Файл перевода пуст',
         'Wrong format file' => 'Файл неверного формата',
 
         'Administrator' => 'Администратор',
@@ -252,6 +256,7 @@ class RU implements LangInterface
         'You cannot delete system tables.' => 'Нельзя удалять системные таблицы.',
         'You cannot delete system fields.' => 'Нельзя удалять системные поля.',
         'The [[%s]] field is already present in the table.' => 'Поле [[%s]] уже есть в таблице.',
+        'The [[%s]] field is already present in the [[%s]] table.' => 'Поле [[%s]] уже есть в таблице [[%s]].',
         'Fill in the field parameters.' => 'Заполните параметры поля.',
         'You can\'t make a boss of someone who is in a subordinate' => 'Нельзя сделать начальником того, кто есть в подчиненных',
         'Log is empty.' => 'Log пуст.',

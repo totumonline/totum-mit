@@ -198,13 +198,68 @@ CONF;
         if (!is_file($path)) {
             throw new errorException($this->translate('Scheme file not found.'));
         }
-        if (!($filedata = gzdecode(file_get_contents($path)))) {
+
+        if (!($filedata = file_get_contents($path))) {
+            throw new errorException($this->translate('Scheme file is empty'));
+        }
+
+        if (!($filedata = gzdecode($filedata))) {
             throw new errorException($this->translate('Wrong format scheme file.'));
         }
         if (!($schema = json_decode($filedata, true))) {
             throw new errorException($this->translate('Wrong format scheme file.'));
         }
         return $schema;
+    }
+
+    public function getTranslatesFromFile($path)
+    {
+        if (!is_file($path)) {
+            throw new errorException($this->translate('Translates file not found.'));
+        }
+
+        if (!($filedata = file_get_contents($path))) {
+            throw new errorException($this->translate('Translates file is empty'));
+        }
+
+        if (!($schema = json_decode($filedata, true))) {
+            throw new errorException($this->translate('Wrong format file.'));
+        }
+        return $schema;
+    }
+
+    public function schemaTranslate($data, $pathToLang, $pathToBackLang = null)
+    {
+        $translates = [];
+        if ($pathToLang) {
+            $translates = $this->getTranslatesFromFile($pathToLang);
+            if ($pathToBackLang) {
+                $translates = $translates + $this->getTranslatesFromFile($pathToBackLang);
+            }
+        }
+
+        if ($translates) {
+            $translate = function ($v) use (&$translate, $translates) {
+                if (is_array($v)) {
+                    $vt = [];
+                    foreach ($v as $k => $_v) {
+                        $vt[$translate($k)] = $translate($_v);
+                    }
+                    return $vt;
+                } elseif (is_string($v)) {
+                    return preg_replace_callback("~\{\{[/a-zA-Z0-9,?'!_\-]+\}\}~",
+                        function ($template) use ($translates) {
+                            if (!key_exists($template[0], $translates)) {
+                                var_dump($template[0]);
+                            }
+                            return $translates[$template[0]] ?? $template[0];
+                        },
+                        $v);
+                } else return $v;
+            };
+            $data = $translate($data);
+        }
+        return $data;
     }
 
     public function systemTableFieldsApply($fields, $tableId)
@@ -301,7 +356,10 @@ CONF;
         $this->consoleLog('Upload start sql');
         $this->applySql($getFilePath('start.sql'));
 
-        $data = $this->getDataFromFile($getFilePath('start_' . strtolower($this->Totum->getConfig()->getLang()) . '.json.gz.ttm'));
+        $data = $this->getDataFromFile($getFilePath('start.json.gz.ttm'));
+        $lang = strtolower($this->Totum->getConfig()->getLang());
+
+        $data = $this->schemaTranslate($data, $getFilePath($lang . '.json'), $lang !== 'en' ? $getFilePath('en.json') : null);
 
         $this->consoleLog('Install base tables');
         $baseTablesIds = $this->installBaseTables($data);

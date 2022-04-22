@@ -1169,6 +1169,11 @@ class Calculate
 
             $this->__processParamItems($paramArray['items'],
                 function ($item, $isSection) use (&$r, &$itemsNames) {
+                    if(is_array($item)){
+                        throw new errorException($this->translate('The key must be an one value',
+                            $item));
+                    }
+
                     $itemsNames .= "[$item]";
 
                     if ($isSection) {

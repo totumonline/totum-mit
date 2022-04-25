@@ -75,6 +75,7 @@ class Totum
      */
     protected $CalculateLog;
     protected $fieldObjectsCachesVar;
+    protected array $orderFieldCodeErrors = [];
 
 
     /**
@@ -98,6 +99,18 @@ class Totum
     public static function isRealTable($tableRow)
     {
         return is_subclass_of(static::getTableClass($tableRow), RealTables::class);
+    }
+
+    public function addOrderFieldCodeError(aTable $Table, string $nameVar)
+    {
+        $this->orderFieldCodeErrors[$Table->getTableRow()['name']][$nameVar] = 1;
+    }
+    /**
+     * @return array
+     */
+    public function getOrderFieldCodeErrors(): array
+    {
+        return $this->orderFieldCodeErrors;
     }
 
     public function getInterfaceDatas()

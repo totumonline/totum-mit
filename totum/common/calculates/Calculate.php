@@ -1114,6 +1114,7 @@ class Calculate
                             if (in_array($nameVar, Model::serviceFields)) {
                                 $rowVar = null;
                             } else {
+                                $this->Table->getTotum()->addOrderFieldCodeError($this->Table, $nameVar);
                                 $rowVar = ['v' => null];
                             }
                         } elseif (key_exists($nameVar, $this->Table->getSortedFields()['filter'])) {

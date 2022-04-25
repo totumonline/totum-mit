@@ -707,7 +707,7 @@ SQL
 
         return $this->translate('Page processing time: %s sec.<br/>
     RAM: %sM. of %s.<br/>
-    Sql Schema: %s, V %s<br/>.',
+    Sql Schema: %s, V %s<br/>',
             [$genTime, $mb, $memory_limit, $SchemaName, $version]);
     }
 

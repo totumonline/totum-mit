@@ -1009,7 +1009,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if ($columnFooters = array_filter(
                     $fields,
                     function ($field) use ($fields) {
-                        if ($field['category'] === 'footer' && $field['column'] && array_key_exists(
+                        if ($field['category'] === 'footer' && !empty($field['column']) && array_key_exists(
                                 $field['column'],
                                 $fields
                             )) {

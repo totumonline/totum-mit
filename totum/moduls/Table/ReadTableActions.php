@@ -1228,6 +1228,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($this->isPagingView() && $this->Totum->getMessenger()->isFormatUseRows()) {
             $result['formatUseRows'] = true;
         }
+        if($this->Totum->getConfig()->getSettings('h_hide_teh_plate')){
+            $result['hide_teh_plate'] = true;
+        }
 
         return $result;
     }

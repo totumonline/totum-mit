@@ -49,6 +49,7 @@ class Totum
      * @var Conf
      */
     private $Config;
+    private TotumMessenger $Messenger;
     /**
      * @var User
      */
@@ -105,6 +106,13 @@ class Totum
     {
         $this->orderFieldCodeErrors[$Table->getTableRow()['name']][$nameVar] = 1;
     }
+
+    
+    public function getMessenger()
+    {
+        return $this->Messenger = $this->Messenger ?? new TotumMessenger();
+    }
+
     /**
      * @return array
      */

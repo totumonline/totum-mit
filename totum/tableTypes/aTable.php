@@ -1184,7 +1184,7 @@ CODE;;
         }
 
         foreach ($params['field'] as $fName) {
-            if(!is_string($fName)){
+            if (!is_string($fName)) {
                 throw new errorException($this->translate('Not correct field name in query to [[%s]] table.',
                     [$this->tableRow['name']]));
             }
@@ -1281,6 +1281,9 @@ CODE;;
     {
         return function () use ($rowIds): array {
             $rows = [];
+
+            $this->getTotum()->getMessenger()->formatUseRows(true);
+
             if ($rowIds) {
                 $rowIds = $this->loadFilteredRows('web', $rowIds);
                 foreach ($rowIds as $id) {

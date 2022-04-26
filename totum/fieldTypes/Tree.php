@@ -663,15 +663,18 @@ class Tree extends Field
     protected function getDefaultValue()
     {
         if (!empty($this->data['multiple'])) {
-            if ($default = json_decode($this->data['default'], true)) {
+            if ($default = json_decode(($this->data['default'] ?? '[]'), true)) {
                 if (!is_array($default)) {
                     $default = [$default];
                 }
             } else {
-                $default = [$this->data['default']];
+                $default = [];
+                if (key_exists('default', $this->data)) {
+                    $default = [$this->data['default']];
+                }
             }
         } else {
-            $default = $this->data['default'];
+            $default = $this->data['default'] ?? '';
         }
         return $default;
     }

@@ -296,6 +296,10 @@ CONF;
         $Sql->transactionStart();
 
         $this->consoleLog('Check/create schema');
+        if($this->Config->getSchema()==='public'){
+            throw new errorException($this->translate('You can\'t install totum in schema "public"'));
+        }
+
         $this->checkSchemaExists($post['schema_exists']);
 
         $this->consoleLog('Upload start sql');

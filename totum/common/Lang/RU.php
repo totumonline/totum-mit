@@ -29,7 +29,7 @@ class RU implements LangInterface
 
         'You see the contents of the table calculated and saved before the last transaction with the error.' => 'Вы видите содержимое таблицы, вычисленное и сохраненное перед последней транзакцией с ошибкой.',
         'System error. Action type not specified.' => 'Системная ошибка. Не указан тип действия.',
-        'Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data'=>'Поле [[%s]] таблицы [[%s]] в строке с id [[%s]] содержит нечисловую информацию',
+        'Field [[%s]] of table [[%s]] in row with id [[%s]] contains non-numeric data' => 'Поле [[%s]] таблицы [[%s]] в строке с id [[%s]] содержит нечисловую информацию',
         'Scheme source not defined.' => 'Не определен источник схемы.',
         'Fill in the parameter [[%s]].' => 'Заполните параметр [[%s]].',
         'Parametr [[%s]] is required.' => 'Параметр [[%s]] обязателен.',
@@ -40,8 +40,8 @@ class RU implements LangInterface
         'The parameter [[%s]] should be of type string.' => 'Параметр [[%s]] должен быть типа строка.',
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 
-        'Language %s not found.'=>'Язык %s не найден.',
-        'You cannot create query to PostgreSql with 65000 and more parameters.'=>'Вы не можете создать запрос к PostgreSql >= 65000 параметров.',
+        'Language %s not found.' => 'Язык %s не найден.',
+        'You cannot create query to PostgreSql with 65000 and more parameters.' => 'Вы не можете создать запрос к PostgreSql >= 65000 параметров.',
 
         'For temporary tables only.' => 'Только для временных таблиц',
         'For simple and cycles tables only.' => 'Только для простых таблиц и таблиц циклов.',
@@ -135,8 +135,8 @@ class RU implements LangInterface
         'No characters selected for generation.' => 'Не выбраны символы для генерации.',
         'For selecting by %s field should be passed only single value or list, not row' => 'Для выбора по %s полю должно передаваться только одно значение или list, а не row',
 
-        'The value by %s key is not a row/list'=>'Значение по ключу %s - не row/list',
-        'The key must be an one value'=>'Ключ должен быть единичным значением',
+        'The value by %s key is not a row/list' => 'Значение по ключу %s - не row/list',
+        'The key must be an one value' => 'Ключ должен быть единичным значением',
 
         'There is no NowField enabled in this type of code. We\'ll fix it - write us.' => 'В этом типе кода не подключен NowField. Мы исправимся - напишите нам.',
         '[[%s]] is available only for the calculation table in the cycle.' => '[[%s]] доступно только для расчетной таблицы в цикле.',
@@ -158,7 +158,7 @@ class RU implements LangInterface
         'The code should return [[%s]].' => 'Код должен возвращать [[%s]].',
         'The [[insert]] field should return list - Table [[%s]]' => 'Поле [[insert]] должно возвращать list  - Таблица [[%s]]',
         'The [[insert]] field should return a list with unique values - Table [[%s]]' => 'Поле [[insert]] должно возвращать list с уникальными значениями  - Таблица [[%s]]',
-        'This value is not available for entry in field %s.'=>'Это значение не доступно для ввода в поле %s.',
+        'This value is not available for entry in field %s.' => 'Это значение не доступно для ввода в поле %s.',
 
         'Format sections' => 'Секции форматирования',
 
@@ -173,8 +173,8 @@ class RU implements LangInterface
     Sql схема: %s, V %s<br/>',
 
 
-        'Order field calculation errors'=>'Ошибки порядка расчета полей',
-        'in %s table in fields:'=>'в таблице %s в полях: ',
+        'Order field calculation errors' => 'Ошибки порядка расчета полей',
+        'in %s table in fields:' => 'в таблице %s в полях: ',
 
         'Settings for sending mail are not set.' => 'Настройки для отправки почты не заданы.',
         'The path to ssh script %s is not set.' => 'Не задан путь к ssh скрипту %s.',
@@ -211,6 +211,7 @@ class RU implements LangInterface
         'The cycles table for the adding calculation table [[%s]] is not set.' => 'Не задана таблица циклов для добавляемой расчетной таблицы [[%s]].',
         'The format of the schema name is incorrect. Small English letters, numbers and - _' => 'Формат имени схемы неверен. Строчные английские буквы, цифры и - _',
         'A scheme exists - choose another one to install.' => 'Схема существует - выберите другую для установки.',
+        'You can\'t install totum in schema "public"' => 'Нельзя устанавливать Тотум в схему public',
         'Category [[%s]] not found for replacement.' => 'Категория [[%s]] не найдена для замены.',
         'Role [[%s]] not found for replacement.' => 'Категория [[%s]] не найдена для замены.',
         'Branch [[%s]] not found for replacement.' => 'Ветка [[%s]] не найдена для замены.',

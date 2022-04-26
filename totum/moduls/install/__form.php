@@ -67,7 +67,7 @@
                     {name: "Multiple installation", val: '1'},
                 ]
             },
-            {type: 'input', name: 'db_schema', label: "Schema"},
+            {type: 'input', name: 'db_schema', label: "Schema (not public)", pattern: "^(?!public$).*$"},
             {
                 type: 'select', name: 'schema_exists', label: "", vals: [
                     {name: "Deploy only in the new", val: '0'},
@@ -141,6 +141,9 @@
                         if (param.errorid) {
                             $('<div class="error">').attr('id', param.errorid).insertAfter(input)
                         }
+                        if(param.pattern){
+                            input.attr('pattern', param.pattern)
+                        }
                         break;
                 }
                 mark = div;
@@ -184,8 +187,8 @@
 
         $('#multy').on('change', function () {
             if ($(this).val() === '0') {
-                $('input[name="db_schema"]').val("public");
-                $('select[name="schema_exists"]').val("1");
+                $('input[name="db_schema"]').val("totum");
+                $('select[name="schema_exists"]').val("0");
             } else {
                 $('input[name="db_schema"]').val("new_totum");
                 $('select[name="schema_exists"]').val("0");

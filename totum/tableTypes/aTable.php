@@ -1290,10 +1290,11 @@ CODE;;
                     $row = $this->getTbl()['rows'][$id];
                     unset($row['_E']);
                     foreach ($row as $k => $v) {
-                        $row[$k] = match ($k) {
-                            'id' => $v,
-                            default => $v['v'] ?? null
-                        };
+                        if (Model::isServiceField($k)) {
+                            $row[$k] = $v;
+                        } else {
+                            $row[$k] = $v['v'] ?? null;
+                        }
                     }
                     $rows[] = $row;
                 }

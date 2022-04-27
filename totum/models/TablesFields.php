@@ -52,7 +52,7 @@ class TablesFields extends Model
         if (key_exists('name', $params)) {
             $name = json_decode($params['name'], true)['v'];
             if ($this->getPrepared(['table_name' => $oldRow['table_name']['v'], 'name' => $name])) {
-                throw new errorException($this->translate('The [[%s]] field is already present in the table.', $name));
+                throw new errorException($this->translate('The [[%s]] field is already present in the [[%s]] table.', [$name, $oldRow['table_name']['v']]));
             }
             $tableRow = $this->Totum->getTableRow($oldRow['table_name']['v']);
 
@@ -126,7 +126,7 @@ class TablesFields extends Model
         $category = $decodedVars['category'];
 
         if ($this->fieldExits($decodedVars['table_id'], $decodedVars['name'], $decodedVars['version'])) {
-            throw new errorException($this->translate('The [[%s]] field is already present in the table.', $name));
+            throw new errorException($this->translate('The [[%s]] field is already present in the [[%s]] table.', [$name, $decodedVars['table_id']]));
         }
 
         /*$this->checkParams($vars, $tableRowId);*/

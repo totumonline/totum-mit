@@ -610,30 +610,38 @@ class Calculate
                     return '""';
                 }
                 $qoute = $this->CodeStrings[$m[1]][0];
+
                 switch ($qoute) {
                     case '"':
                     case "'":
                         return $qoute . substr($this->CodeStrings[$m[1]], 1) . $qoute;
-                    default:
-                        $back_replace_strings = function ($str) {
-                            return preg_replace_callback(
-                                '/"(\d+)"/',
-                                function ($matches) {
-                                    if ($matches[1] === '') {
-                                        return '""';
-                                    }
-                                    return '"' . $this->CodeStrings[$matches[1]] . '"';
-                                },
-                                $str
-                            );
-                        };
-
-                        $replaced = $back_replace_strings($this->CodeStrings[$m[1]]);
-                        return substr($this->CodeStrings[$m[1]], 0, 4) . '`' . substr(
-                                $replaced,
-                                4
-                            ) . '`';
                 }
+
+                if (str_starts_with($this->CodeStrings[$m[1]], 'json')) {
+                    return $this->CodeStrings[$m[1]];
+                }
+
+                if (str_starts_with($this->CodeStrings[$m[1]], 'str')) {
+                    $typeLength = 3;
+                } else {
+                    $typeLength = 4;
+                }
+                $type = substr($this->CodeStrings[$m[1]], 0, $typeLength);
+
+                $back_replace_strings = function ($str) {
+                    return preg_replace_callback(
+                        '/"(\d+)"/',
+                        function ($matches) {
+                            return '"' . substr($this->CodeStrings[$matches[1]], 1) . '"';
+                        },
+                        $str
+                    );
+                };
+
+                $replaced = $back_replace_strings($this->CodeStrings[$m[1]]);
+                return $type . '`' . substr($replaced, $typeLength) . '`';
+
+
             },
             $code
         );
@@ -1170,7 +1178,7 @@ class Calculate
 
             $this->__processParamItems($paramArray['items'],
                 function ($item, $isSection) use (&$r, &$itemsNames) {
-                    if(is_array($item)){
+                    if (is_array($item)) {
                         throw new errorException($this->translate('The key must be an one value',
                             $item));
                     }

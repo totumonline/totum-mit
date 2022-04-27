@@ -148,17 +148,11 @@ class TableController extends interfaceController
             $result = ['error' => $exception->getMessage() . ($this->User->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         }
 
-        if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig())) && $Actions?->withLog && $this->CalculateLog && ($types = $this->Totum->getCalculateLog()->getTypes())) {
+        if ($this->CalculateLog) {
             $this->CalculateLog->addParam('result', 'done');
-
-            if (in_array('flds', $types)) {
-                $result['FieldLOGS'] = $this->CalculateLog->getFieldLogs();
-            } else {
-                $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-                //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
-                $result['FullLOGS'] = [$this->CalculateLog->getLogsForJsTree($this->Totum->getLangObj())];
-            }
         }
+
+        $this->addLogs($result);
 
 
         return $result;
@@ -604,15 +598,7 @@ class TableController extends interfaceController
 
         }
 
-        if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig()) ) && ($types = $this->Totum->getCalculateLog()->getTypes())) {
-            if (in_array('flds', $types)) {
-                $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
-            } else {
-                $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-                $result['FullLOGS'] = [$this->CalculateLog->getLogsForjsTree($this->Totum->getLangObj())];
-                // $result['treeLogs'] = $this->CalculateLog->getLodTree();
-            }
-        }
+        $this->addLogs($result);
 
         if ($links = $this->Totum->getInterfaceLinks()) {
             $result['links'] = $links;
@@ -863,5 +849,39 @@ class TableController extends interfaceController
         $this->Config = $this->Config->getClearConf();
         $this->Totum = new Totum($this->Config, $this->User);
         $this->checkTableByUri($request, $actionTable);
+    }
+
+    protected function addLogs(array &$result)
+    {
+        if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig()))) {
+
+            $addOrderErrors = function ($orderCodeErrors) {
+                $text = $this->translate('Order field calculation errors');
+
+                $i = 0;
+                foreach ($orderCodeErrors as $table => $fields) {
+                    if (++$i > 1) {
+                        $text .= ', ';
+                    } else $text .= ' ';
+                    $text .= $this->translate('in %s table in fields:', $table).' '. implode(', ', array_keys($fields));
+                }
+                return ['text' => $text, 'icon' => 'fa fa-exclamation-triangle'];
+            };
+
+            if ($types = $this->Totum->getCalculateLog()->getTypes()) {
+                if (in_array('flds', $types)) {
+                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
+                } else {
+                    $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                    //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
+                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForJsTree($this->Totum->getLangObj())];
+                    if ($orderCodeErrors = $this->Totum->getOrderFieldCodeErrors()) {
+                        $result['FullLOGS'][] = $addOrderErrors($orderCodeErrors);
+                    }
+                }
+            } elseif ($orderCodeErrors = $this->Totum->getOrderFieldCodeErrors()) {
+                $result['FullLOGS'][] = $addOrderErrors($orderCodeErrors);
+            }
+        }
     }
 }

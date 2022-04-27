@@ -485,8 +485,13 @@ class ReadTableActions extends Actions
         }
 
         $data = $this->Table->getSortedFilteredRows('web', 'web', [], $lastId, $prevLastId, $onPage);
-        $data['f'] = $this->getTableFormat(array_column($data['rows'], 'id'));
 
+        $rowIds = array_column($data['rows'], 'id');
+        $data['f'] = $this->getTableFormat($rowIds);
+
+        if ($this->post['recFormats'] ?? false) {
+            $data['params'] = $this->addValuesAndFormatsOfParams($this->Table->getTbl()['params'], $rowIds)['params'];
+        }
 
         return $data;
     }
@@ -1009,7 +1014,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if ($columnFooters = array_filter(
                     $fields,
                     function ($field) use ($fields) {
-                        if ($field['category'] === 'footer' && $field['column'] && array_key_exists(
+                        if ($field['category'] === 'footer' && !empty($field['column']) && array_key_exists(
                                 $field['column'],
                                 $fields
                             )) {
@@ -1219,6 +1224,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $result['rows'] = array_merge($rows, $rows_other);
             unset($result['f']['order']);
         }
+
+        if ($this->isPagingView() && $this->Totum->getMessenger()->isFormatUseRows()) {
+            $result['formatUseRows'] = true;
+        }
+        if($this->Totum->getConfig()->getSettings('h_hide_teh_plate')){
+            $result['hide_teh_plate'] = true;
+        }
+
         return $result;
     }
 

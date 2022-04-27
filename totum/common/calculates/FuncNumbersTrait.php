@@ -2,6 +2,8 @@
 
 namespace totum\common\calculates;
 
+use totum\common\errorException;
+
 trait FuncNumbersTrait
 {
 
@@ -32,6 +34,16 @@ trait FuncNumbersTrait
 
             return bcadd($val, 0, $dectimal);
         };
+
+        if (is_numeric($val)) {
+            if (!is_infinite($val)) {
+                $val = number_format((float)$val, 12, '.', '');
+            } else {
+                throw new errorException('Infinite value in round operation');
+            }
+        } else {
+            throw new errorException('Not number value in round operation');
+        }
 
         if (bccomp($val, 0, 10) === 0) {
         } elseif (!empty($step)) {
@@ -70,7 +82,7 @@ trait FuncNumbersTrait
     {
         $params = $this->getParamsArray($params);
 
-        if(is_null($params['num']) || $params['num'] ===''){
+        if (is_null($params['num']) || $params['num'] === '') {
             return '';
         }
 

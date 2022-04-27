@@ -60,11 +60,11 @@ class Text extends Field
                 break;
             case 'print':
 
-                if (($isBig = mb_strlen($valArray['v']) > $this->data['viewTextMaxLength']) && !($this->data['printTextfull']??false)) {
+                if (($isBig = mb_strlen($valArray['v']) > $this->data['viewTextMaxLength']) && !($this->data['printTextfull'] ?? false)) {
                     $valArray['v'] = mb_substr($valArray['v'], 0, $this->data['viewTextMaxLength']) . '...';
                 }
                 $valArray['v'] = htmlspecialchars($valArray['v']);
-                if ($this->data['textType']==='text') {
+                if ($this->data['textType'] === 'text') {
                     $valArray['v'] = nl2br($valArray['v']);
                 }
 
@@ -78,7 +78,7 @@ class Text extends Field
     protected function getDefaultValue()
     {
         if ($this->data['textType'] === 'json') {
-            return json_decode($this->data['default'], true) ?? $this->data['default'];
+            return json_decode($this->data['default'] ?? '', true) ?? $this->data['default'] ?? '';
         }
         return parent::getDefaultValue();
     }
@@ -108,7 +108,7 @@ class Text extends Field
     {
         if (is_object($modifyVal)) {
             if ($modifyVal->sign === '+') {
-                $modifyVal =  $oldVal.(string)$modifyVal->val;
+                $modifyVal = $oldVal . (string)$modifyVal->val;
             } else {
                 $modifyVal = (string)$modifyVal->val;
             }

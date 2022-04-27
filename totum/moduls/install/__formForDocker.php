@@ -229,7 +229,7 @@
 
         $('#multy').on('change', function () {
             if ($(this).val() === '0') {
-                $('input[name="db_schema"]').val("public");
+                $('input[name="db_schema"]').val("totum");
                 $('select[name="schema_exists"]').val("1");
             } else {
                 $('input[name="db_schema"]').val("new_totum");

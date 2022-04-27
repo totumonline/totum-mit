@@ -27,7 +27,7 @@ use totum\tableTypes\tmpTable;
  */
 class Totum
 {
-    public const VERSION = '2.3.38.20';
+    public const VERSION = '2.3.39.0';
 
 
     public const TABLE_CODE_PARAMS = ['row_format', 'table_format', 'on_duplicate', 'default_action'];
@@ -49,6 +49,7 @@ class Totum
      * @var Conf
      */
     private $Config;
+    private TotumMessenger $Messenger;
     /**
      * @var User
      */
@@ -75,6 +76,7 @@ class Totum
      */
     protected $CalculateLog;
     protected $fieldObjectsCachesVar;
+    protected array $orderFieldCodeErrors = [];
 
 
     /**
@@ -98,6 +100,25 @@ class Totum
     public static function isRealTable($tableRow)
     {
         return is_subclass_of(static::getTableClass($tableRow), RealTables::class);
+    }
+
+    public function addOrderFieldCodeError(aTable $Table, string $nameVar)
+    {
+        $this->orderFieldCodeErrors[$Table->getTableRow()['name']][$nameVar] = 1;
+    }
+
+    
+    public function getMessenger()
+    {
+        return $this->Messenger = $this->Messenger ?? new TotumMessenger();
+    }
+
+    /**
+     * @return array
+     */
+    public function getOrderFieldCodeErrors(): array
+    {
+        return $this->orderFieldCodeErrors;
     }
 
     public function getInterfaceDatas()

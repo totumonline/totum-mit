@@ -780,15 +780,18 @@ class Select extends Field
     protected function getDefaultValue()
     {
         if (!empty($this->data['multiple'])) {
-            if ($default = json_decode($this->data['default'] ?? "", true)) {
+            if ($default = json_decode($this->data['default'] ?? '[]', true)) {
                 if (!is_array($default)) {
                     $default = [$default];
                 }
             } else {
-                $default = [$this->data['default'] ?? ""];
+                $default = [];
+                if (key_exists('default', $this->data)) {
+                    $default = [$this->data['default']];
+                }
             }
         } else {
-            $default = $this->data['default'] ?? "";
+            $default = $this->data['default'] ?? '';
         }
         return $default;
     }
@@ -857,7 +860,7 @@ class Select extends Field
             }
             $this->CalculateCodeSelectValue->hiddenInPreparedList(true);
             $list = $this->calculateSelectValueList(['v' => $newVal], $row, $tbl, $vars);
-            if(is_string($list)){
+            if (is_string($list)) {
                 throw new errorException($list);
             }
             $this->CalculateCodeSelectValue->hiddenInPreparedList(false);

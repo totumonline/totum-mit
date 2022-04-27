@@ -5,7 +5,7 @@ namespace totum\common;
 class TotumMessenger
 {
 
-    private bool $formatUseRows;
+    private bool $formatUseRows = false;
 
     public function formatUseRows(bool $formatUseRows): void
     {

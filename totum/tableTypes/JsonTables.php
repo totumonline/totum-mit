@@ -769,6 +769,39 @@ abstract class JsonTables extends aTable
             }
         };
 
+
+        if (key_exists('tree', $this->fields) && !empty($this->fields['tree']['treeViewCalc'])) {
+            $Field = Field::init($this->fields['tree'], $this);
+
+            foreach ($this->tbl['rows'] as $row) {
+                $savedRow = $this->savedTbl['rows'][$row['id']] ?? [];
+                if (($row['tree']['v'] ?? $savedRow['tree']['v'] ?? null) === null) {
+                    $level = 0;
+                } else {
+                    $level = $Field->getLevelValue(
+                        $savedRow['tree']['v'] ?? null,
+                        $savedRow,
+                        $this->tbl
+                    );
+                }
+                $sortData[$level][] = $row;
+            }
+            if ($this->fields['tree']['treeViewCalc'] === 'endtoroot') {
+                krsort($sortData);
+            } else {
+                ksort($sortData);
+            }
+            $newModifyedRows = [];
+            foreach ($sortData as $rows) {
+                foreach ($rows as $row) {
+                    $newModifyedRows[$row['id']] = $row;
+                }
+            }
+            $this->tbl['rows'] = $newModifyedRows;
+            unset($newModifyedRows);
+        }
+
+
         if (!empty($this->tableRow['calculate_by_columns'])) {
             $footerColumns = $this->getFooterColumns($this->sortedFields['footer'] ?? []);
 
@@ -839,6 +872,15 @@ abstract class JsonTables extends aTable
         }
         if (key_exists('insertedId', $this->tbl)) {
             $this->tbl['rowInserted'] = $this->tbl['rows'][$this->tbl['insertedId']];
+        }
+
+        if (key_exists('tree', $this->fields) && !empty($this->fields['tree']['treeViewCalc'])) {
+            if ($this->tableRow['order_field'] === 'n') {
+                $ns = array_column($this->tbl['rows'], 'n');
+                array_multisort($ns, $this->tbl['rows']);
+            } else {
+                ksort($this->tbl['rows']);
+            }
         }
     }
 

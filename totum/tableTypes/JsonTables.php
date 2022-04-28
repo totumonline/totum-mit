@@ -878,6 +878,7 @@ abstract class JsonTables extends aTable
             if ($this->tableRow['order_field'] === 'n') {
                 $ns = array_column($this->tbl['rows'], 'n');
                 array_multisort($ns, $this->tbl['rows']);
+                $this->tbl['rows'] = array_combine(array_column( $this->tbl['rows'], 'id'), $this->tbl['rows']);
             } else {
                 ksort($this->tbl['rows']);
             }

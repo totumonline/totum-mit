@@ -351,7 +351,7 @@ CONF;
         $Sql->transactionStart();
 
         $this->consoleLog('Check/create schema');
-        if($this->Config->getSchema()==='public'){
+        if ($this->Config->getSchema() === 'public') {
             throw new errorException($this->translate('You can\'t install totum in schema "public"'));
         }
 
@@ -363,7 +363,9 @@ CONF;
         $data = $this->getDataFromFile($getFilePath('start.json.gz.ttm'));
         $lang = strtolower($this->Totum->getConfig()->getLang());
 
-        $data = $this->schemaTranslate($data, $getFilePath($lang . '.json'), $lang !== 'en' ? $getFilePath('en.json') : null);
+        $data = $this->schemaTranslate($data,
+            $getFilePath($lang . '.json'),
+            $lang !== 'en' ? $getFilePath('en.json') : null);
 
         $this->consoleLog('Install base tables');
         $baseTablesIds = $this->installBaseTables($data);
@@ -990,7 +992,7 @@ CONF;
                                                 $keys[$key],
                                                 JSON_UNESCAPED_UNICODE
                                             );
-                                        } elseif ($key !== 'id') {
+                                        } elseif ($key !== 'id' && (is_int($keys[$key]) || is_float($keys[$key]))) {
                                             $keys[$key] = strval($keys[$key]);
                                         }
                                     }

@@ -2053,9 +2053,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if ($changedIds['deleted']) {
                 $return['chdata']['deleted'] = array_keys($changedIds['deleted']);
+                if($pageIds){
+                    $pageIds = array_diff($pageIds, array_keys($changedIds['deleted']));
+                }
             }
             if ($changedIds['restored']) {
                 $return['chdata']['deleted'] = array_keys($changedIds['restored']);
+                $pageIds = array_diff($pageIds, array_keys($changedIds['restored']));
             }
 
             //Отправка на клиент изменений, селектов и форматов

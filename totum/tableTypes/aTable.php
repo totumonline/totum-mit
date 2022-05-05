@@ -1335,7 +1335,7 @@ CODE;;
             $RowFormatCalculate = new CalculcateFormat($this->tableRow['row_format']);
         }
         $data['rows'] = ($data['rows'] ?? []);
-        /*TODO вынести это наружу*/
+
         $ids = array_unique(array_merge($this->webIdInterval, array_column($data['rows'], 'id')));
 
 
@@ -1364,7 +1364,7 @@ CODE;;
                     }
                 } else {
                     foreach ($data['rows'] as $row) {
-                        if (!key_exists($fName, $row)) {
+                        if (empty($row[$fName])) {
                             continue;
                         }
                         if (!is_array($row[$fName]['v']) && !key_exists($row[$fName]['v'], $indexedVals)) {
@@ -2325,7 +2325,15 @@ CODE;;
             $getRows = function ($filteredIds) {
                 $rows = [];
                 foreach ($filteredIds as $id) {
-                    $rows[] = $this->tbl['rows'][$id];
+                    $row = $this->tbl['rows'][$id];
+                    if ($this->restoreView && is_a($this, JsonTables::class)) {
+                        foreach ($this->sortedFields['column'] as $fName => $field) {
+                            if(empty($row[$fName])){
+                                $row[$fName] = ['v' => null];
+                            }
+                        }
+                    }
+                    $rows[] = $row;
                 }
                 return $rows;
             };

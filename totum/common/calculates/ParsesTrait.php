@@ -265,7 +265,9 @@ trait ParsesTrait
             return $actions;
         };
 
-        $checkValue = function ($varIn, $onlyBool = true) {
+        $numCode = 0;
+
+        $checkValue = function ($varIn, $onlyBool = true) use (&$numCode) {
             if ($varIn === 'false' || $varIn === false) {
                 return false;
             }
@@ -273,7 +275,7 @@ trait ParsesTrait
                 return true;
             }
 
-            $var = $this->execSubCode($varIn, 'CondCode ' . $varIn);
+            $var = $this->execSubCode($varIn, 'CondCode ' . (++$numCode));
 
             if ($onlyBool) {
                 if ($var === 'false' || $var === false) {

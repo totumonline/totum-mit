@@ -956,22 +956,60 @@ abstract class RealTables extends aTable
         $this->loadRowsByIds($modifiedIds);
 
         if (count($modifiedIds) > 1) {
-            if ($this->orderFieldName === 'id') {
-                sort($modifiedIds);
-            } else {
-                $ordArray = [];
-                foreach ($modifiedIds as $i => $id) {
-                    if (!empty($this->tbl['rows'][$id])) {
-                        $val = $this->tbl['rows'][$id][$this->orderFieldName];
-                        if (!Model::isServiceField($this->orderFieldName)) {
-                            $val = $val['v'];
+
+            $sortModifiedIds = function ($modifiedIds) {
+                if ($this->orderFieldName === 'id') {
+                    sort($modifiedIds);
+                } else {
+                    $ordArray = [];
+                    foreach ($modifiedIds as $i => $id) {
+                        if (!empty($this->tbl['rows'][$id])) {
+                            $val = $this->tbl['rows'][$id][$this->orderFieldName];
+                            if (!Model::isServiceField($this->orderFieldName)) {
+                                $val = $val['v'];
+                            }
+                            $ordArray[] = $val;
+                        } else {
+                            unset($modifiedIds[$i]);
                         }
-                        $ordArray[] = $val;
+                    }
+                    array_multisort($ordArray, $modifiedIds);
+                }
+                return $modifiedIds;
+            };
+
+
+            if (key_exists('tree', $this->fields) && !empty($this->fields['tree']['treeViewCalc'])) {
+                $Field = Field::init($this->fields['tree'], $this);
+
+                foreach ($modifiedIds as $id) {
+                    $row = $this->tbl['rows'][$id];
+                    if (($row['tree']['v'] ?? null) === null) {
+                        $level = 0;
                     } else {
-                        unset($modifiedIds[$i]);
+                        $level = $Field->getLevelValue(
+                            $row['tree']['v'],
+                            $row,
+                            $this->tbl
+                        );
+                    }
+                    $sortData[$level][] = $id;
+                }
+                if ($this->fields['tree']['treeViewCalc'] === 'endtoroot') {
+                    krsort($sortData);
+                } else {
+                    ksort($sortData);
+                }
+                $newModifyedIds = [];
+                foreach ($sortData as $ids) {
+                    foreach ($sortModifiedIds($ids) as $id) {
+                        $newModifyedIds[] = $id;
                     }
                 }
-                array_multisort($ordArray, $modifiedIds);
+                $modifiedIds = $newModifyedIds;
+
+            } else {
+                $modifiedIds = $sortModifiedIds($modifiedIds);
             }
         }
 
@@ -1695,7 +1733,7 @@ abstract class RealTables extends aTable
                                         $q .= ' OR ';
                                     }
 
-                                    if(count($value)>65000){
+                                    if (count($value) > 65000) {
                                         throw new errorException($this->translate('You cannot create query to PostgreSql with 65000 and more parameters.'));
                                     }
 

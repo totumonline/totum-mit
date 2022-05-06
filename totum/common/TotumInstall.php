@@ -159,6 +159,8 @@ class Conf extends ConfParent{
     
     const LANG="{$post['lang']}";
     
+    //protected \$execSSHOn = true;
+    
     /***getSchemas***/
     static function getSchemas()
     {

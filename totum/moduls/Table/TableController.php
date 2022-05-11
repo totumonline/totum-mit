@@ -863,18 +863,21 @@ class TableController extends interfaceController
                     if (++$i > 1) {
                         $text .= ', ';
                     } else $text .= ' ';
-                    $text .= $this->translate('in %s table in fields:', $table).' '. implode(', ', array_keys($fields));
+                    $text .= $this->translate('in %s table in fields:', $table) . ' ' . implode(', ',
+                            array_keys($fields));
                 }
                 return ['text' => $text, 'icon' => 'fa fa-exclamation-triangle'];
             };
 
             if ($types = $this->Totum->getCalculateLog()->getTypes()) {
-                if (in_array('flds', $types)) {
+                if (in_array('flds', $types) && $this->CalculateLog) {
                     $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
                 } else {
-                    $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
-                    //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
-                    $result['FullLOGS'] = [$this->CalculateLog->getLogsForJsTree($this->Totum->getLangObj())];
+                    if ($this->CalculateLog) {
+                        $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);
+                        //$result['TREELOGS'] = $this->CalculateLog->getLodTree();
+                        $result['FullLOGS'] = [$this->CalculateLog->getLogsForJsTree($this->Totum->getLangObj())];
+                    }
                     if ($orderCodeErrors = $this->Totum->getOrderFieldCodeErrors()) {
                         $result['FullLOGS'][] = $addOrderErrors($orderCodeErrors);
                     }

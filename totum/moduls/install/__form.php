@@ -38,7 +38,7 @@
     <form method="post" id="form" action="/" style="width: 500px; margin: auto; padding-bottom: 100px" data-consol="0">
         <div style="padding-bottom: 40px; padding-top: 10px; font-size: 55px;"><img src="/imgs/365_100_file.png"></div>
         <div id="mark"></div>
-        <div id="submit_div"><input type="submit" value="Создать конфиг и залить схему"
+        <div id="submit_div"><input type="submit" value="Create config and upload scheme"
                                     style="color: #fff; margin-top: 20px;"
                                     class="btn btn-danger" id="submit"/></div>
     </form>
@@ -47,18 +47,12 @@
         <?='let post = ' . json_encode($post, JSON_UNESCAPED_UNICODE) ?>;
 
 
-        let langs =
-            {
-                create_config: {ru: 'Создать конфиг и залить схему', en: 'Create config and upload scheme'},
-                error_string: {ru: 'Ошибочная строка', en: 'Dbstring is incorrect'},
-            };
-
-
         const params = [
             {
                 type: 'select', id: "langSelect", name: 'lang', label: "", vals: [
                     {name: "Русский язык", val: 'ru'},
                     {name: "English", val: 'en'},
+                    {name: "中国", val: 'zh'},
                 ]
             },
             {
@@ -141,7 +135,7 @@
                         if (param.errorid) {
                             $('<div class="error">').attr('id', param.errorid).insertAfter(input)
                         }
-                        if(param.pattern){
+                        if (param.pattern) {
                             input.attr('pattern', param.pattern)
                         }
                         break;
@@ -150,11 +144,12 @@
             })
         }
 
-        let LANG = 'en';
+        let LANG = '<?=$post['lang']?>';
 
         const SetLang = function (lang) {
             const setLang = () => {
                 App.lang = App.langs[lang];
+                $('#submit').val(App.translate('Create config and upload scheme'));
                 setTimeout(formForm, 20);
             }
             if (!App.langs || !App.langs[lang]) {
@@ -163,7 +158,7 @@
                 setLang();
             }
             LANG = lang;
-            $('#submit').val(langs.create_config[lang] || langs.create_config.en);
+            $('#submit').val(App.translate('Create config and upload scheme'));
         }
         SetLang(post.lang)
 
@@ -206,7 +201,7 @@
                 $('input[name="db_user_password').val(matches.groups.PASS);
                 $(this).val('');
             } else {
-                $('#dbstring_error').text(langs['error_string'][LANG]);
+                $('#dbstring_error').text(App.translate('Dbstring is incorrect'));
             }
 
         });

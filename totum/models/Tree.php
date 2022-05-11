@@ -74,7 +74,7 @@ class Tree extends Model
  UNION 
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
-    WHERE type='link' AND (ARRAY(SELECT * FROM   jsonb_array_elements_text(roles::jsonb) elem ) && ARRAY[{$roles}] OR roles='[]')
+    WHERE is_del = false AND type='link' AND (ARRAY(SELECT * FROM   jsonb_array_elements_text(roles::jsonb) elem ) && ARRAY[{$roles}] OR roles='[]')
 SQL;
         } else {
             $roles = '';
@@ -84,7 +84,7 @@ SQL;
  UNION 
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
-    WHERE type='anchor' AND default_table IN (
+    WHERE is_del = false AND type='anchor' AND default_table IN (
        select id from tables where (ARRAY(SELECT * FROM   jsonb_array_elements_text(edit_roles->'v') ) && ARRAY[{$roles}]::text[]) OR (ARRAY(SELECT * FROM   jsonb_array_elements_text(read_roles->'v') ) && ARRAY[{$roles}]::text[])
     ) 
 SQL;
@@ -92,7 +92,7 @@ SQL;
         $r = $this->Sql->getAll($q = 'WITH RECURSIVE r AS (
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
-    WHERE id IN (select (tree_node_id->>\'v\')::integer from tables where type->>\'v\'!=\'calcs\' AND id in (' . $quotedTables . '))
+    WHERE is_del = false AND id IN (select (tree_node_id->>\'v\')::integer from tables where type->>\'v\'!=\'calcs\' AND id in (' . $quotedTables . '))
    ' . $rolesSql . '
    ' . $anchorsSql . '
     UNION 

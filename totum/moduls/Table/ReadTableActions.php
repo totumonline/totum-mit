@@ -429,20 +429,7 @@ class ReadTableActions extends Actions
                 $file['filestring'] = base64_decode($file['base64']);
                 unset($file['base64']);
             }
-            if (key_exists('cycle_id', $data['env'])) {
-                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
-            } elseif (key_exists('hash', $data['env'])) {
-                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
-            } else {
-                $Table = $this->Totum->getTable($data['env']['table']);
-            }
-
-            $row = [];
-            if (key_exists('id', $data['env'])) {
-                if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
-                    $row = $Table->getTbl()['rows'][$data['env']['id']];
-                }
-            }
+            list($Table, $row) = $this->loadEnvirement($data);
 
             $vars = $data['vars'] ?? [];
             $vars['input'] = $files;

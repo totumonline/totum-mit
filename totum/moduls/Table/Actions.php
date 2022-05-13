@@ -258,20 +258,7 @@ class Actions
         if ($data = $model->getField('tbl', $key)) {
             $data = json_decode($data, true);
 
-            if (key_exists('extra', $data['env'])) {
-                $Table = $this->Totum->getTable($data['env']['table'], $data['env']['extra']);
-            } else {
-                $Table = $this->Totum->getTable($data['env']['table']);
-            }
-
-            $row = [];
-            if (key_exists('id', $data['env'])) {
-                if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
-                    $row = $Table->getTbl()['rows'][$data['env']['id']];
-                }
-            } else {
-                $row = $Table->getTbl()['params'];
-            }
+            list($Table, $row) = $this->loadEnvirement($data);
 
             if (key_exists('type', $data) && $data['type'] === 'select') {
 

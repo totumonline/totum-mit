@@ -7,6 +7,7 @@ use DateTime;
 class ZH implements LangInterface
 {
     use TranslateTrait;
+    use SearchTrait;
 
     public const TRANSLATES = [
         'Deleting' =>'删除',

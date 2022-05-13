@@ -7,6 +7,7 @@ use DateTime;
 class RU implements LangInterface
 {
     use TranslateTrait;
+    use SearchTrait;
 
     public const TRANSLATES = [
         'Deleting' => 'Удаление',
@@ -523,6 +524,9 @@ class RU implements LangInterface
             $s,
             ['а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
         );
+    }
+    public function searchPrepare($string): string{
+        return str_replace('ё', 'е', mb_strtolower(trim((string)$string)));
     }
 
     /**

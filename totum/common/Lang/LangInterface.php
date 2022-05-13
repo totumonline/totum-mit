@@ -13,4 +13,8 @@ interface LangInterface
     public function num2str($num): string;
 
     public function smallTranslit($s): string;
+
+    public function searchPrepare($string): string;
+
+    public function getSearchFunction($q): callable;
 }

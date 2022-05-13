@@ -97,16 +97,7 @@ class Select extends Field
 
         if (count($list) > ($selectLength + $checkedNum)) {
             if ($q) {
-                $qs = explode(' ', str_ireplace('ё', 'е', $q));
-                $qfunc = function ($v) use ($qs) {
-                    $v = str_ireplace('ё', 'е', $v);
-                    foreach ($qs as $q) {
-                        if ($q !== '' && mb_stripos($v, $q) === false) {
-                            return false;
-                        }
-                    }
-                    return true;
-                };
+                $qfunc = $this->table->getTotum()->getLangObj()->getSearchFunction($q);
             }
 
             foreach ($list as $k => $v) {

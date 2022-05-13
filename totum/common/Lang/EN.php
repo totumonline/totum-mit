@@ -8,6 +8,7 @@ class EN implements LangInterface
 {
 
     use TranslateTrait;
+    use SearchTrait;
 
     public const TRANSLATES = [];
 

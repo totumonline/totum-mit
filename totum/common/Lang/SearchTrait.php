@@ -66,9 +66,25 @@ trait SearchTrait
                     return false;
                 });
             },
+            '!^' => function ($v) use ($every, $qs) {
+                $v = $this->searchPrepare($v);
+                $v = explode(' ', $v);
+                return $every($qs->searchArray, function ($q) use ($v) {
+                    foreach ($v as $_v) {
+                        if (mb_strpos($_v, $q) === 0) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+            },
             '^=' => function ($v) use ($qs) {
                 $v = $this->searchPrepare($v);
                 return mb_strpos($v, $qs->searchVar) === 0;
+            },
+            '!^=' => function ($v) use ($qs) {
+                $v = $this->searchPrepare($v);
+                return mb_strpos($v, $qs->searchVar) !== 0;
             },
 
             default => function ($v) use ($qs) {

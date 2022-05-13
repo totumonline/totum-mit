@@ -389,15 +389,10 @@ class Tree extends Field
 
         if (!empty($q)) {
             $ids = [];
-            $q = str_ireplace('ё', 'е', $q);
-
-            $qs = explode(' ', $q);
+            $qFunc = $this->table->getTotum()->getLangObj()->getSearchFunction($q);
             foreach ($list as $id => $v) {
-                $v_t = str_ireplace('ё', 'е', $v[0]);
-                foreach ($qs as $q) {
-                    if ($q !== "" && mb_stripos($v_t, $q) === false) {
-                        continue 2;
-                    }
+                if(!$qFunc($v[0])){
+                    continue;
                 }
                 while ($id = $list[$id][3] ?? null) {
                     $ids[$id] = 1;

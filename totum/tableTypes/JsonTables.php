@@ -1090,7 +1090,7 @@ abstract class JsonTables extends aTable
                             $field['name'],
                             $loadedTbl['rows'][$row['id']]
                         ) &&
-                        key_exists('v', $loadedTbl['rows'][$row['id']][$field['name']])) {
+                        is_array($loadedTbl['rows'][$row['id']][$field['name']]) && key_exists('v', $loadedTbl['rows'][$row['id']][$field['name']])) {
                         if (Calculate::compare(
                             '!==',
                             $loadedTbl['rows'][$row['id']][$field['name']]['v'],

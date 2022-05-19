@@ -2061,12 +2061,22 @@ CODE;;
                 if (!($field[$channelParam] ?? false)) {
                     continue;
                 }
-                if (is_array($this->anchorFilters) && key_exists($field['name'], $this->anchorFilters)) {
-                    $this->tbl['params'][$field['name']] = ['v' => $this->anchorFilters[$field['name']]];
-                } else {
-                    /** @var Field $Field */
-                    $Field = Field::init($field, $this);
 
+                /** @var Field $Field */
+                $Field = Field::init($field, $this);
+
+                if (is_array($this->anchorFilters) && key_exists($field['name'], $this->anchorFilters)) {
+                    $this->tbl['params'][$field['name']] = $Field->modify(
+                        'inner',
+                        Field::CHANGED_FLAGS['changed'],
+                        $this->anchorFilters[$field['name']],
+                        [],
+                        $this->tbl['params'],
+                        $this->tbl,
+                        $this->tbl,
+                        false
+                    );
+                } else {
                     if ($addFilters !== false || !$Field->isWebChangeable('insert') || !key_exists(
                             $field['name'],
                             $params

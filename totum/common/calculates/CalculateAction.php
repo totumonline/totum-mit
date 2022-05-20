@@ -1092,6 +1092,10 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
+        $this->__checkNotEmptyParams($params, ['uri']);
+        $this->__checkNotArrayParams($params, ['uri', 'title']);
+
+
         $link = $params['uri'];
         $title = $params['title'] ?? $this->translate('Calling a third-party script.');
         if (!empty($params['post'])) {

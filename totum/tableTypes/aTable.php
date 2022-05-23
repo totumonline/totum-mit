@@ -570,7 +570,7 @@ abstract class aTable
                 true,
                 $where,
                 'name, category, data, id, title, ord',
-                'ord, id'
+                'ord, name'
             ) as $f) {
                 ;
                 $f = $fields[$f['name']] = static::getFullField($f);

@@ -32,7 +32,7 @@ class GitUpdate extends Command
                     $oldVersion = (string)preg_replace('/^(\d+).*$/', '$1', Totum::VERSION);
                     if ($oldVersion !== $matches[1]) {
                         die('This update will change the major version from '.$oldVersion.' to ' . $matches[1].' '.
-                            'Check server settings and backward compatibility violations at https://github.com/totumonline/totum-mit/UPDATES.md' .
+                            'Check server settings and backward compatibility violations at https://github.com/totumonline/totum-mit/blob/master/UPDATES.md ' .
                             'Use --force if you are sure about the update.');
                     } else {
                         $error = false;

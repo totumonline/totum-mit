@@ -2061,55 +2061,65 @@ CODE;;
                 if (!($field[$channelParam] ?? false)) {
                     continue;
                 }
-                if (is_array($this->anchorFilters) && key_exists($field['name'], $this->anchorFilters)) {
-                    $this->tbl['params'][$field['name']] = ['v' => $this->anchorFilters[$field['name']]];
-                    continue;
-                }
+
                 /** @var Field $Field */
                 $Field = Field::init($field, $this);
 
-                if ($addFilters !== false || !$Field->isWebChangeable('insert') || !key_exists(
-                        $field['name'],
-                        $params
-                    )) {
-                    $this->tbl['params'][$field['name']] = $Field->add(
-                        'inner',
-                        $addFilters[$field['name']] ?? null,
-                        $this->tbl['params'],
-                        $this->tbl,
-                        $this->tbl
-                    );
-                } else {
-                    $changeFlag = $Field->getModifyFlag(
-                        in_array($fName, $params),
-                        $params[$fName] ?? null,
-                        null,
-                        in_array($field['name'], $setValuesToDefaults),
-                        false,
-                        true
-                    );
-
+                if (is_array($this->anchorFilters) && key_exists($field['name'], $this->anchorFilters)) {
                     $this->tbl['params'][$field['name']] = $Field->modify(
                         'inner',
-                        $changeFlag,
-                        $params[$field['name']] ?? null,
+                        Field::CHANGED_FLAGS['changed'],
+                        $this->anchorFilters[$field['name']],
                         [],
                         $this->tbl['params'],
                         $this->tbl,
                         $this->tbl,
                         false
                     );
-                    if (key_exists('h', $this->tbl['params'][$field['name']]) && !key_exists(
-                            'c',
-                            $this->tbl['params'][$field['name']]
+                } else {
+                    if ($addFilters !== false || !$Field->isWebChangeable('insert') || !key_exists(
+                            $field['name'],
+                            $params
                         )) {
-                        unset($this->tbl['params'][$field['name']]['h']);
+                        $this->tbl['params'][$field['name']] = $Field->add(
+                            'inner',
+                            $addFilters[$field['name']] ?? null,
+                            $this->tbl['params'],
+                            $this->tbl,
+                            $this->tbl
+                        );
+                    } else {
+                        $changeFlag = $Field->getModifyFlag(
+                            in_array($fName, $params),
+                            $params[$fName] ?? null,
+                            null,
+                            in_array($field['name'], $setValuesToDefaults),
+                            false,
+                            true
+                        );
+
+                        $this->tbl['params'][$field['name']] = $Field->modify(
+                            'inner',
+                            $changeFlag,
+                            $params[$field['name']] ?? null,
+                            [],
+                            $this->tbl['params'],
+                            $this->tbl,
+                            $this->tbl,
+                            false
+                        );
+                        if (key_exists('h', $this->tbl['params'][$field['name']]) && !key_exists(
+                                'c',
+                                $this->tbl['params'][$field['name']]
+                            )) {
+                            unset($this->tbl['params'][$field['name']]['h']);
+                        }
                     }
                 }
-                $this->calculatedFilters[$channel][$field['name']] = $this->tbl['params'][$field['name']] ?? null;
+                $this->calculatedFilters[$channel][$field['name']] = $this->tbl['params'][$field['name']] ?? ['v' => null];
+
             }
         }
-
         $this->lastFiltersChannel = $channel;
     }
 
@@ -2328,7 +2338,7 @@ CODE;;
                     $row = $this->tbl['rows'][$id];
                     if ($this->restoreView && is_a($this, JsonTables::class)) {
                         foreach ($this->sortedFields['column'] as $fName => $field) {
-                            if(empty($row[$fName])){
+                            if (empty($row[$fName])) {
                                 $row[$fName] = ['v' => null];
                             }
                         }

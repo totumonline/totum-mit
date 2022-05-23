@@ -726,7 +726,11 @@ class Select extends Field
                     $val = strval($val[array_key_first($val)]);
                 }
             } else {
-                $val = strval($val);
+                $val = match ($val) {
+                    true => 'true',
+                    false => 'false',
+                    default => strval($val)
+                };
             }
         }
 

@@ -1092,13 +1092,9 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['post'], ['post']);
 
-        if (empty($params['uri']) || !preg_match(
-                '`https?://`',
-                $params['uri']
-            )) {
-            throw new errorException($this->translate('The %s parameter is required and must start with %s.',
-                ['uri', 'http/https']));
-        }
+        $this->__checkNotEmptyParams($params, ['uri']);
+        $this->__checkNotArrayParams($params, ['uri', 'title']);
+
 
         $link = $params['uri'];
         $title = $params['title'] ?? $this->translate('Calling a third-party script.');

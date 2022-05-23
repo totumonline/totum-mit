@@ -32,23 +32,23 @@ trait SearchTrait
         };
 
         return match ($controlMatches[1] ?? '') {
-            '!==' => function ($v) use ($qs) {
+            '!=' => function ($v) use ($qs) {
                 $v = $this->searchPrepare($v);
                 return $qs->searchVar !== $v;
             },
-            '==' => function ($v) use ($qs) {
+            '=' => function ($v) use ($qs) {
                 $v = $this->searchPrepare($v);
                 return $qs->searchVar === $v;
             },
-            '=' => function ($v) use ($qs) {
+            '~' => function ($v) use ($qs) {
                 $v = $this->searchPrepare($v);
                 return mb_strpos($v, $qs->searchVar) !== false;
             },
-            '!=' => function ($v) use ($qs) {
+            '!~' => function ($v) use ($qs) {
                 $v = $this->searchPrepare($v);
                 return mb_strpos($v, $qs->searchVar) === false;
             },
-            '!', '!~' => function ($v) use ($every, $qs) {
+            '!', '!~~' => function ($v) use ($every, $qs) {
                 $v = $this->searchPrepare($v);
                 return $every($qs->searchArray, function ($q) use ($v) {
                     return mb_strpos($v, $q) === false;
@@ -78,11 +78,11 @@ trait SearchTrait
                     return true;
                 });
             },
-            '^=' => function ($v) use ($qs) {
+            '^~' => function ($v) use ($qs) {
                 $v = $this->searchPrepare($v);
                 return mb_strpos($v, $qs->searchVar) === 0;
             },
-            '!^=' => function ($v) use ($qs) {
+            '!^~' => function ($v) use ($qs) {
                 $v = $this->searchPrepare($v);
                 return mb_strpos($v, $qs->searchVar) !== 0;
             },

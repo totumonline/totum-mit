@@ -662,7 +662,7 @@
     "{{Weak}}": "Weak",
     "{{Wed}}": "Wed",
     "{{Week_days}}": "Week days",
-    "{{When_you_change_the_name_of_the_field_in_the_calculated_tables}}": "When you change the name of <b>ATTENTION!<\/b><br><br>When you change the name of the field in the calculated tables, the data in it are not saved!<br><br>If the table is located in a cycle, the data will be recalculated or lost at the moment the cycle is opened or recalculated by the code!<br><br>For tables with versions the name will be changed for ALL versions!",
+    "{{When_you_change_the_name_of_the_field_in_the_calculated_tables}}": "<b>ATTENTION!<\/b><br><br>When you change the name of the field in the calculated tables, the data in it are not saved!<br><br>If the table is located in a cycle, the data will be recalculated or lost at the moment the cycle is opened or recalculated by the code!<br><br>For tables with versions the name will be changed for ALL versions!",
     "{{Wholly}}": "Wholly",
     "{{Wide_in_p}}": "Wide",
     "{{Width}}": "Width",

@@ -251,9 +251,6 @@ CONF;
                 } elseif (is_string($v)) {
                     return preg_replace_callback("~\{\{[/a-zA-Z0-9,?'!_\-]+\}\}~",
                         function ($template) use ($translates) {
-                            if (!key_exists($template[0], $translates)) {
-                                var_dump($template[0]);
-                            }
                             return $translates[$template[0]] ?? $template[0];
                         },
                         $v);

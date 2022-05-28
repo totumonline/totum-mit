@@ -8,9 +8,9 @@
 
 \>
 
-#### About Totum: [video on YouTube —>](https://www.youtube.com/watch?v=pnKm1RA4NYE)
+#### About Totum: [video on YouTube](https://www.youtube.com/watch?v=pnKm1RA4NYE)
 
-#### 1-Click Docker install: [video on YouTube —>](https://www.youtube.com/watch?v=ZztzQ53kMQQ)
+#### 1-Click Docker install: [video on YouTube](https://www.youtube.com/watch?v=ZztzQ53kMQQ)
 
 \>
 
@@ -79,7 +79,7 @@
 
 \>
 
-#### Data ⟶ Processing ⟶ Actions ⟶ Exchange ⟶ Reports ⟶ Accesses ⟶ Logs
+#### Data >> Processing >> Actions >> Exchange >> Reports >> Accesses >> Logs
 
 \>
 

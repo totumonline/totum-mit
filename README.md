@@ -355,7 +355,7 @@ In addition, the database underlying Totum allows it to be clustered across mult
 
 \>
 
-##### Email — `totum at totum.online`
+#### Email — `totum at totum.online`
 
 \>
 

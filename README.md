@@ -4,13 +4,21 @@
 
 #### Site — [totum.online](https://totum.online)
 
+#### About Totum — [video on YouTube](https://www.youtube.com/watch?v=pnKm1RA4NYE)
+
 #### Demo-server — [demo.totum.online](https://demo.totum.online)
 
 \>
 
-#### About Totum: [video on YouTube](https://www.youtube.com/watch?v=pnKm1RA4NYE)
+#### 1-Click native install on VDS/VPS Ubuntu 20 — [video on YouTube]() | [docks](https://docs.totum.online/ubuntu)
+```
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/autoinstall.sh && sudo bash autoinstall.sh
+```
 
-#### 1-Click Docker install: [video on YouTube](https://www.youtube.com/watch?v=ZztzQ53kMQQ)
+#### 1-Click Docker install on VDS/VPS Ubuntu 20 — [video on YouTube](https://www.youtube.com/watch?v=ZztzQ53kMQQ) | [docks](https://github.com/totumonline/totum-mit-docker)
+```
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/autoinstall.sh && sudo bash autoinstall.sh
+```
 
 \>
 
@@ -24,7 +32,7 @@
 
 \>
 
-##### Email — `totum at totum.online`
+#### Email — `totum at totum.online`
 
 \>
 

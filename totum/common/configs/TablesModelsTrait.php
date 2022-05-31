@@ -118,7 +118,7 @@ trait TablesModelsTrait
             $this->tableRowsByName[$row['name']] = $row;
             $this->tableRowsById[$row['id']] = $row;
         }else{
-            return null;
+            throw new errorException($this->translate('Table [[%s]] is not found.', $table));
         }
         return $row;
     }

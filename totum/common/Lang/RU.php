@@ -107,6 +107,10 @@ class RU implements LangInterface
         'Function [[%s]] is not found.' => 'Функция [[%s]] не найдена.',
         'Table [[%s]] is not found.' => 'Таблица [[%s]] не найдена.',
         'Table is not found.' => 'Таблица не найдена.',
+
+        'May be insert row has expired.' => 'Возможно, истек срок жизни строки добавления.',
+        'The storage time of the temporary object has expired.' => 'Время хранения временного объекта истекло.',
+
         'File [[%s]] is not found.' => 'Файл [[%s]] не найден.',
         'Cycle [[%s]] is not found.' => 'Цикл [[%s]] не найден.',
         'Cycle [[%s]] in table [[%s]] is not found.' => 'Цикл [[%s]] в таблице [[%s]] не найден.',
@@ -525,7 +529,9 @@ class RU implements LangInterface
             ['а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
         );
     }
-    public function searchPrepare($string): string{
+
+    public function searchPrepare($string): string
+    {
         return str_replace('ё', 'е', mb_strtolower(trim((string)$string)));
     }
 

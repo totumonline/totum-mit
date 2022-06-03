@@ -4,19 +4,30 @@
 
 \>
 
+#### 1-Click установка на VDS/VPS с Ubuntu 20 — [video on YouTube](https://www.youtube.com/watch?v=b52vZaiJJEI) | [docs](https://ru.docs.totum.online/ubuntu)
+```
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/autoinstall.sh && sudo bash autoinstall.sh
+```
+
+#### 1-Click Docker установка на VDS/VPS с Ubuntu 20 — [video on YouTube](https://www.youtube.com/watch?v=8ceECigkjjk) | [docs](https://github.com/totumonline/totum-mit-docker/blob/main/README_RU.md)
+```
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/autoinstall.sh && sudo bash autoinstall.sh
+```
+\>
+
 #### Документация — [ru.docs.totum.online](https://ru.docs.totum.online)
 
 #### Учебный курс — [ru.docs.totum.online/training-course](https://ru.docs.totum.online/training-course) 🚀
 
 #### Форум на русском — [вопросы, ответы, предложения, анонсы ](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions) 🔥
 
-#### Telegram техподдержка — `@alexeypolunin`
+#### Telegram техподдержка — [@alexeypolunin](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions/20)
 
 \>
 
 #### issue на русском — [идите сюда](https://github.com/totumonline/totum-ru-issues-and-discussions)
 
-##### Email — `totum at totum.online`
+#### Email — `totum at totum.online`
 
 \>
 
@@ -335,13 +346,13 @@ Totum — self hosted. Вы можете настроить любые поли�
 
 #### Форум на русском — [вопросы, ответы, предложения, анонсы ](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions) 🔥
 
-#### Telegram техподдержка — `@alexeypolunin`
+#### Telegram техподдержка — [@alexeypolunin](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions/20)
 
 \>
 
 #### issue на русском — [идите сюда](https://github.com/totumonline/totum-ru-issues-and-discussions)
 
-##### Email — `totum at totum.online`
+#### Email — `totum at totum.online`
 
 \>
 

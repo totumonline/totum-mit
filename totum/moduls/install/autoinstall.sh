@@ -218,6 +218,7 @@ sudo systemctl disable apache2
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_fpm.conf
 sudo chown root:root ./totum_fpm.conf
 sudo mv ./totum_fpm.conf /etc/php/8.0/fpm/pool.d/totum.conf
+sudo sed -i "s:Europe/London:${TOTUMTIMEZONE}:g" /etc/php/8.0/fpm/pool.d/totum.conf
 sudo mkdir /var/lib/php/sessions_totum
 sudo chown root:root /var/lib/php/sessions_totum
 chmod 1733 /var/lib/php/sessions_totum

@@ -113,7 +113,6 @@ class TableController extends interfaceController
                 true))['code'] != $request->getParsedBody()['tableData']['updated']['code']) {
             $tableChanged = $oldUpdated;
         }
-
         $Actions = null;
 
         try {
@@ -770,7 +769,7 @@ class TableController extends interfaceController
                     case 'anchor':
                         $this->anchorId = $this->branchId;
                         $this->branchId = $branchData['top'];
-                        $this->Table = $this->Totum->getTable($branchData['default_table']);
+                        $checkTreeTable($branchData['default_table']);
                         $this->Table->setAnchorFilters(json_decode($branchData['filters'] ?? '[]', true));
                         break;
                 }

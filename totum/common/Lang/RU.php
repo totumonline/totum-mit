@@ -403,7 +403,8 @@ class RU implements LangInterface
         'Client side error' => 'Ошибка клиентской части',
         'Logic error n: %s' => 'Ошибка логики n: %s',
         'Adding row error' => 'Ошибка добавления строки',
-        'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей'
+        'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей',
+        'Data parameter  / data values must be numeric.'=>'Параметр data / его вложенные значения должны быть числовыми'
 
 
     ];

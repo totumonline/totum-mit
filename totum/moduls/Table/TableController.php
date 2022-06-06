@@ -152,7 +152,7 @@ class TableController extends interfaceController
             $this->CalculateLog->addParam('result', 'done');
         }
 
-        $this->addLogs($result);
+        $this->addLogs($result, true);
 
 
         return $result;
@@ -598,7 +598,7 @@ class TableController extends interfaceController
 
         }
 
-        $this->addLogs($result);
+        $this->addLogs($result, false);
 
         if ($links = $this->Totum->getInterfaceLinks()) {
             $result['links'] = $links;
@@ -851,7 +851,7 @@ class TableController extends interfaceController
         $this->checkTableByUri($request, $actionTable);
     }
 
-    protected function addLogs(array &$result)
+    protected function addLogs(array &$result, bool $ajax)
     {
         if (($this->User->isCreator() || Auth::isShadowedCreator($this->Totum->getConfig()))) {
 
@@ -871,7 +871,11 @@ class TableController extends interfaceController
 
             if ($types = $this->Totum->getCalculateLog()->getTypes()) {
                 if (in_array('flds', $types) && $this->CalculateLog) {
-                    $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
+                    if ($ajax) {
+                        $result['FieldLOGS'] = $this->CalculateLog->getFieldLogs();
+                    } else {
+                        $result['FieldLOGS'] = [['data' => $this->CalculateLog->getFieldLogs(), 'name' => $this->translate('Calculating the table')]];
+                    }
                 } else {
                     if ($this->CalculateLog) {
                         $result['LOGS'] = $this->CalculateLog->getLogsByElements($this->Table->getTableRow()['id']);

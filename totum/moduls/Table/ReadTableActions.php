@@ -44,7 +44,7 @@ class ReadTableActions extends Actions
             $tFormat['refreshOrder'] = true;
         }
 
-        if (($this->Table->getTableRow()['panels_view']['kanban_html_type'] ?? false) === 'show') {
+        if (($this->Table->getTableRow()['panels_view']['kanban_html_type'] ?? false) === 'show' && !empty($this->Table->getTableRow()['panels_view']['kanban'])) {
             $tFormat['kanban_html'] = $this->__getKanbanHtml();
         }
 
@@ -72,6 +72,7 @@ class ReadTableActions extends Actions
         $fCalc->setStartSections(['=']);
         $Log = $this->Table->calcLog(['name' => 'Kanban format']);
         try {
+            $htmls = [];
             foreach ($this->kanban_bases as $base) {
                 $htmls[$base] = $fCalc->exec(['name' => '_KANBAN_FORMAT'],
                     [],
@@ -1215,7 +1216,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         if ($this->isPagingView() && $this->Totum->getMessenger()->isFormatUseRows()) {
             $result['formatUseRows'] = true;
         }
-        if($this->Totum->getConfig()->getSettings('h_hide_teh_plate')){
+        if ($this->Totum->getConfig()->getSettings('h_hide_teh_plate')) {
             $result['hide_teh_plate'] = true;
         }
 
@@ -2040,7 +2041,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             if ($changedIds['deleted']) {
                 $return['chdata']['deleted'] = array_keys($changedIds['deleted']);
-                if($pageIds){
+                if ($pageIds) {
                     $pageIds = array_diff($pageIds, array_keys($changedIds['deleted']));
                 }
             }

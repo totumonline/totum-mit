@@ -41,7 +41,7 @@ class AdminTableActions extends WriteTableActions
         if (!empty($this->post['tableId']) && $row = $this->Totum->getTableRow($this->post['tableId'])) {
             return [$this->post['param'] => $row[$this->post['param']]];
         }
-        throw new errorException('Table not found');
+        throw new errorException($this->translate('Table is not found.').' '.$this->translate('May be insert row has expired.'));
     }
 
     public function getAllTables()

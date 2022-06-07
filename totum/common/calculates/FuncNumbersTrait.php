@@ -78,6 +78,30 @@ trait FuncNumbersTrait
             10));
     }
 
+    protected function funcNumTransform(string $params)
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkRequiredParams($params, ['data']);
+
+        $func = function ($data) use (&$func) {
+            if (is_array($data)) {
+                foreach ($data as $k => &$v) {
+                    $v = $func($v);
+                }
+                unset($v);
+            } else {
+                if (!is_numeric($data)) {
+                    throw new errorException($this->translate('Data parameter  / data values must be numeric.'));
+                }
+                $data += 0;
+            }
+            return $data;
+        };
+
+
+        return $func($params['data']);
+    }
+
     protected function funcNumFormat(string $params): string
     {
         $params = $this->getParamsArray($params);

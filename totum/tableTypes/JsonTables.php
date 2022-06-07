@@ -130,12 +130,19 @@ abstract class JsonTables extends aTable
                 /*Это верхний уровень сохранения пересчетов для этой таблицы*/
 
                 $this->isOnSaving = true;
+                $oldTbl = $this->loadedTbl;
+
+                if ($this->Cycle) {
+                    $this->Cycle->saveTables();
+                    $this->updateReceiverTables($level);
+                } else {
+                    $this->saveTable();
+                }
 
                 foreach ($this->tbl['rows'] as $id => $row) {
-                    $oldRow = ($this->loadedTbl['rows'][$id] ?? []);
+                    $oldRow = ($oldTbl['rows'][$id] ?? []);
                     if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
                         $this->changeIds['deleted'][$id] = null;
-                        $this->changeInOneRecalcIds['deleted'][$id] = null;
                     } elseif (!empty($oldRow) && empty($row['is_del'])) {
                         //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
                         if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
@@ -153,27 +160,17 @@ abstract class JsonTables extends aTable
                     }
                 }
 
-                if ($this->Cycle) {
-                    $this->Cycle->saveTables();
-                    $this->updateReceiverTables($level);
-                } else {
-                    $this->saveTable();
-                }
-
-                $this->loadedTbl['rows'] = $this->loadedTbl['rows'] ?? [];
+                $this->loadedTbl['rows'] = $oldTbl['rows'] ?? [];
                 $deleted = array_flip(array_keys(array_diff_key(
-                    $this->loadedTbl['rows'],
+                    $oldTbl['rows'],
                     $this->tbl['rows']
                 )));
                 $added = array_flip(array_keys(array_diff_key(
                     $this->tbl['rows'],
-                    $this->loadedTbl['rows']
+                    $oldTbl['rows']
                 )));
                 $this->changeIds['deleted'] = $this->changeIds['deleted'] + $deleted;
                 $this->changeIds['added'] = $this->changeIds['added'] + $added;
-
-                $this->changeInOneRecalcIds['deleted'] = $deleted;
-                $this->changeInOneRecalcIds['added'] = $added;
 
                 $this->isOnSaving = false;
             }
@@ -1230,6 +1227,9 @@ abstract class JsonTables extends aTable
                         case '=':
                             $value = (array)$value;
                             foreach ($value as &$val) {
+                                if(is_array($val)){
+                                    throw new errorException($this->translate('An invalid value for id filtering was passed to the select function.'));
+                                }
                                 $val = strval($val);
                             }
                             unset($val);

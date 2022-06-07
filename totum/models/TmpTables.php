@@ -3,6 +3,7 @@
 
 namespace totum\models;
 
+use totum\common\errorException;
 use totum\common\Model;
 
 class TmpTables extends Model
@@ -74,9 +75,16 @@ class TmpTables extends Model
                 date('Y-m-d H:i'), $table_name, $User->getId(), $hash
             ]
         );
-        if ($json_decode) {
-            return json_decode($smtp->fetchColumn(), true);
+
+        $data = $smtp->fetchColumn();
+
+        if(empty($data)){
+            throw new errorException($this->translate('The storage time of the temporary object has expired.'));
         }
-        return $smtp->fetchColumn();
+
+        if ($json_decode) {
+            return json_decode($data, true);
+        }
+        return $data;
     }
 }

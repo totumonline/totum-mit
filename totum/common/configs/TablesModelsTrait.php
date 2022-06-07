@@ -80,7 +80,7 @@ trait TablesModelsTrait
      * @param int|string $table
      * @return array|null
      */
-    public function getTableRow(int|string $table, $force = false): ?array
+    public function getTableRow($table, $force = false): ?array
     {
         if(empty($table)){
             throw new errorException($this->translate('Fill in the parameter [[%s]].', 'name of table'));
@@ -118,7 +118,7 @@ trait TablesModelsTrait
             $this->tableRowsByName[$row['name']] = $row;
             $this->tableRowsById[$row['id']] = $row;
         }else{
-            return null;
+            throw new errorException($this->translate('Table [[%s]] is not found.', $table));
         }
         return $row;
     }

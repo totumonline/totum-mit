@@ -404,7 +404,8 @@ class RU implements LangInterface
         'Logic error n: %s' => 'Ошибка логики n: %s',
         'Adding row error' => 'Ошибка добавления строки',
         'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей',
-        'Data parameter  / data values must be numeric.'=>'Параметр data / его вложенные значения должны быть числовыми'
+        'Data parameter  / data values must be numeric.'=>'Параметр data / его вложенные значения должны быть числовыми',
+        'An invalid value for id filtering was passed to the select function.' => 'В select функцию было передано недопустимое значение для фильтрации по id.'
 
 
     ];

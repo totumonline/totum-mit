@@ -1227,6 +1227,9 @@ abstract class JsonTables extends aTable
                         case '=':
                             $value = (array)$value;
                             foreach ($value as &$val) {
+                                if(is_array($val)){
+                                    throw new errorException($this->translate('An invalid value for id filtering was passed to the select function.'));
+                                }
                                 $val = strval($val);
                             }
                             unset($val);

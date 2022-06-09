@@ -59,7 +59,7 @@ echo -e "\e[43;1;35m   This install script will help you to install Totum online
 echo -e "\e[43;1;35m                                                                         \033[0m"
 echo -e "\e[43;1;35m   on clean Ubuntu 20 with SSL certificate and DKIM.                     \033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   For sucsess you have to \e[43;1;31mDELEGATE A VALID DOMAIN \033[0m\e[43;1;35mto this server.       \033[0m"
+echo -e "\e[43;1;35m   For success you have to \e[43;1;31mDELEGATE A VALID DOMAIN \033[0m\e[43;1;35mto this server.       \033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
 echo -e "\e[43;1;35m   If you not shure about you domain — cansel this install and check:    \033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
@@ -87,11 +87,11 @@ fi
 
 TOTUMTIMEZONE=$(tzselect)
 
-read -p "Create pass for database: " TOTUMBASEPASS
+read -p "Create password for database: " TOTUMBASEPASS
 
-read -p "Enter you email: " CERTBOTEMAIL
+read -p "Enter your email: " CERTBOTEMAIL
 
-read -p "Create Totum superuser pass: " TOTUMADMINPASS
+read -p "Create Totum superuser password: " TOTUMADMINPASS
 
 read -p "Enter domain without http/https delegated! to this server like totum.online: " CERTBOTDOMAIN
 
@@ -204,7 +204,7 @@ sudo apt update
 sudo apt -y install software-properties-common
 sudo add-apt-repository -y ppa:ondrej/php
 sudo apt update
-apt -y install git unzip curl nano htop wget mc
+sudo apt -y install git unzip curl nano htop wget mc
 
 sudo useradd -s /bin/bash -m totum
 
@@ -212,7 +212,7 @@ sudo timedatectl set-timezone $TOTUMTIMEZONE
 
 # Install PHP
 
-apt -y install php8.0 php8.0-bcmath php8.0-cli php8.0-curl php8.0-fpm php8.0-gd php8.0-mbstring php8.0-opcache php8.0-pgsql php8.0-xml php8.0-zip php8.0-soap
+sudo apt -y install php8.0 php8.0-bcmath php8.0-cli php8.0-curl php8.0-fpm php8.0-gd php8.0-mbstring php8.0-opcache php8.0-pgsql php8.0-xml php8.0-zip php8.0-soap
 sudo service apache2 stop
 sudo systemctl disable apache2
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_fpm.conf

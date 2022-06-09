@@ -178,6 +178,11 @@ class CalculateSelect extends Calculate
                 , 'is_del' => $row['is_del']
                 , 'title' => $row[$params['field']]];
 
+            if (is_array($row[$params['parent']])) {
+                throw new errorException($this->translate('The %s field value should not be an array.',
+                    $params['parent']));
+            }
+
             $r['parent'] = ($row[$params['parent']] ?? null) ? $treeListPrep . $row[$params['parent']] : null;
 
             if (key_exists($row[$params['bfield']], $disabled)) {

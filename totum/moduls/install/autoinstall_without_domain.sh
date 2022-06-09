@@ -232,7 +232,7 @@ sudo bash -c "echo -e '* * * * * cd /home/totum/totum-mit/ && bin/totum schemas-
 # Replace Sendmail trait by SMTP trait
 
 sudo sed -i "s:use WithPhpMailerTrait;:use WithPhpMailerSmtpTrait;\nprotected \$SmtpData = [\n'host' => 'YOU_HOST_HERE',\n'port' => 25,\n'login' => 'YOU_LOGIN_HERE',\n'pass' => 'YOU_PASS_HERE',\n];:g" /home/totum/totum-mit/Conf.php
-sudo sed -i "s:use totum\common\configs\WithPhpMailerTrait;:use totum\common\configs\WithPhpMailerSmtpTrait;:g" /home/totum/totum-mit/Conf.php
+sudo sed -i "s:WithPhpMailerTrait;:WithPhpMailerSmtpTrait;:g" /home/totum/totum-mit/Conf.php
 
 
 # Show notification about DKIM and SPF

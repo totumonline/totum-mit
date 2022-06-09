@@ -87,6 +87,7 @@ fi
 
 TOTUMTIMEZONE=$(tzselect)
 
+
 read -p "Create password for database: " TOTUMBASEPASS
 
 read -p "Enter your email: " CERTBOTEMAIL

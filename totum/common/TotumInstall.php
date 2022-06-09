@@ -502,7 +502,13 @@ CONF;
         unset($val);
 
         try {
-            if ($selectTableRow = $this->Totum->getTableRow($schemaRow['name'])) /* Изменение */ {
+            $selectTableRow = $this->Totum->getTableRow($schemaRow['name']);
+        } catch (errorException) {
+            $selectTableRow = null;
+        }
+
+        try {
+            if ($selectTableRow) /* Изменение */ {
                 $this->consoleLog('Update settings table "' . $schemaRow['name'] . '"', 3);
 
                 $Log = $this->calcLog(['name' => "UPDATE SETTINGS TABLE {$schemaRow['name']}"]);

@@ -54,6 +54,7 @@ class RU implements LangInterface
         'Parametr [[%s]] is required and should be a string.' => 'Параметр [[%s]] обязателен и должен быть строкой.',
         'The %s parameter is required and must start with %s.' => 'Параметр %s обязателен и должен начитаться с %s.',
         'The %s parameter should not be an array.' => 'Параметр %s не должен быть массивом.',
+        'The %s field value should not be an array.' => 'Значение поля %s не должено быть массивом.',
         'The value of the number field should not be an array.' => 'Значение поля число не должно быть массивом.',
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
@@ -404,7 +405,7 @@ class RU implements LangInterface
         'Logic error n: %s' => 'Ошибка логики n: %s',
         'Adding row error' => 'Ошибка добавления строки',
         'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей',
-        'Data parameter  / data values must be numeric.'=>'Параметр data / его вложенные значения должны быть числовыми',
+        'Data parameter  / data values must be numeric.' => 'Параметр data / его вложенные значения должны быть числовыми',
         'An invalid value for id filtering was passed to the select function.' => 'В select функцию было передано недопустимое значение для фильтрации по id.'
 
 

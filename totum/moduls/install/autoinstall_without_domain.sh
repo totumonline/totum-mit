@@ -87,11 +87,11 @@ CERTBOTDOMAIN=$(curl ifconfig.me/ip)
 
 TOTUMTIMEZONE=$(tzselect)
 
-read -p "Create pass for database: " TOTUMBASEPASS
+read -p "Create password for database: " TOTUMBASEPASS
 
-read -p "Enter you email: " CERTBOTEMAIL
+read -p "Enter your email: " CERTBOTEMAIL
 
-read -p "Create Totum superuser pass: " TOTUMADMINPASS
+read -p "Create Totum superuser password: " TOTUMADMINPASS
 
 echo
 echo "1) EN"
@@ -171,7 +171,7 @@ sudo apt update
 sudo apt -y install software-properties-common
 sudo add-apt-repository -y ppa:ondrej/php
 sudo apt update
-apt -y install git unzip curl nano htop wget mc
+sudo apt -y install git unzip curl nano htop wget mc
 
 sudo useradd -s /bin/bash -m totum
 
@@ -179,7 +179,7 @@ sudo timedatectl set-timezone $TOTUMTIMEZONE
 
 # Install PHP
 
-apt -y install php8.0 php8.0-bcmath php8.0-cli php8.0-curl php8.0-fpm php8.0-gd php8.0-mbstring php8.0-opcache php8.0-pgsql php8.0-xml php8.0-zip php8.0-soap
+sudo apt -y install php8.0 php8.0-bcmath php8.0-cli php8.0-curl php8.0-fpm php8.0-gd php8.0-mbstring php8.0-opcache php8.0-pgsql php8.0-xml php8.0-zip php8.0-soap
 sudo service apache2 stop
 sudo systemctl disable apache2
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_fpm.conf
@@ -187,7 +187,7 @@ sudo chown root:root ./totum_fpm.conf
 sudo mv ./totum_fpm.conf /etc/php/8.0/fpm/pool.d/totum.conf
 sudo mkdir /var/lib/php/sessions_totum
 sudo chown root:root /var/lib/php/sessions_totum
-chmod 1733 /var/lib/php/sessions_totum
+sudo chmod 1733 /var/lib/php/sessions_totum
 sudo rm /etc/php/8.0/fpm/pool.d/www.conf
 sudo service php8.0-fpm restart
 

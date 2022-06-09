@@ -221,7 +221,7 @@ sudo mv ./totum_fpm.conf /etc/php/8.0/fpm/pool.d/totum.conf
 sudo sed -i "s:Europe/London:${TOTUMTIMEZONE}:g" /etc/php/8.0/fpm/pool.d/totum.conf
 sudo mkdir /var/lib/php/sessions_totum
 sudo chown root:root /var/lib/php/sessions_totum
-chmod 1733 /var/lib/php/sessions_totum
+sudo chmod 1733 /var/lib/php/sessions_totum
 sudo rm /etc/php/8.0/fpm/pool.d/www.conf
 sudo service php8.0-fpm restart
 

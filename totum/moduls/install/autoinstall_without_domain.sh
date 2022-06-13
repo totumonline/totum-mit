@@ -85,6 +85,30 @@ fi
 
 CERTBOTDOMAIN=$(curl ifconfig.me/ip)
 
+echo
+echo -e "Server IP detected as \033[1m>>> ${CERTBOTDOMAIN} <<<\033[0m "
+echo
+read -p "If it right type A or type your custom IP or localhost for access to Totum after install: " CERTBOTDOMAIN_CHECK
+echo
+
+if [[ $CERTBOTDOMAIN_CHECK = "A" ]]
+then
+echo
+echo -e "IP selected as \033[1m${CERTBOTDOMAIN}\033[0m"
+echo
+elif [[ $TOTUMRUN = "a" ]]
+then
+echo
+echo -e "IP selected as \033[1m${CERTBOTDOMAIN}\033[0m"
+echo
+else
+echo
+CERTBOTDOMAIN=${CERTBOTDOMAIN_CHECK}
+echo -e "IP selected as \033[1m${CERTBOTDOMAIN}\033[0m"
+echo
+fi
+
+
 TOTUMTIMEZONE=$(tzselect)
 
 read -p "Create password for database: " TOTUMBASEPASS

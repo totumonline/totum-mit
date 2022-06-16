@@ -35,7 +35,6 @@ then
   echo -e "AND FOLLOW THE ON-SCREEN INSTRUCTIONS TO SETUP THE CORRECT LOCALE\033[0m"
   echo
   read -p "If you ready to go, type (A) we will download and run setlocale.sh: " TOTUMLOCALE
-exit 0
 else
   echo
   echo "Locale is OK. Let's go..."

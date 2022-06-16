@@ -25,6 +25,38 @@ else
   echo
 fi
 
+if [[ $(sudo locale | grep -c 'LANG=en_US.UTF-8') -ne 1 ]]
+then
+  echo
+  echo -e "\e[40;1;37mTHIS SERVER HAVE NOT \e[40;1;31men_US.UTF-8\e[40;1;37m LOCALE. YOU HAVE TO EXECUTE:"
+  echo
+  echo -e "sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh" 
+  echo
+  echo -e "AND FOLLOW THE ON-SCREEN INSTRUCTIONS TO SETUP THE CORRECT LOCALE\033[0m"
+  echo
+  read -p "If you ready to go, type (A) we will download and run setlocale.sh: " TOTUMLOCALE
+exit 0
+else
+  echo
+  echo "Locale is OK. Let's go..."
+  echo
+fi
+
+if [[ $TOTUMLOCALE = "A" ]]
+then
+echo
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh
+echo
+elif [[ $TOTUMLOCALE = "a" ]]
+then
+echo
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh
+echo
+else
+echo
+  exit 0
+fi
+
 
 echo -e "\e[40;1;37m                                                                         \033[0m"
 echo -e "\e[40;1;37m                       ..       .*:-.                                    \033[0m"

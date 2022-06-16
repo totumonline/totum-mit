@@ -30,6 +30,9 @@ fi
 
 sudo dpkg-reconfigure locales
 
-read -p "Licale is set. Press Enter and server will be rebooted. New locale will be applyed only after reboot! Press [Enter]:" TOTUMRUN
+echo "Licale is set. Press Enter and server will be rebooted. New locale will be applyed only after reboot!"
+echo "After reboot run the installation script again."
+echo
+read -p "Press [Enter]:" TOTUMRUN
 
 sudo reboot

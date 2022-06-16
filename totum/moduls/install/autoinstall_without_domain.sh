@@ -36,9 +36,7 @@ then
   echo
   read -p "If you ready to go, type (A) we will download and run setlocale.sh: " TOTUMLOCALE
 else
-  echo
-  echo "Locale is OK. Let's go..."
-  echo
+  TOTUMLOCALE="RUN"
 fi
 
 if [[ $TOTUMLOCALE = "A" ]]
@@ -50,6 +48,11 @@ elif [[ $TOTUMLOCALE = "a" ]]
 then
 echo
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh
+echo
+elif [[ $TOTUMLOCALE = "a" ]]
+then
+echo
+echo "Locale is OK. Let's go..."
 echo
 else
 echo

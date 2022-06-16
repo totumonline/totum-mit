@@ -49,7 +49,7 @@ then
 echo
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh
 echo
-elif [[ $TOTUMLOCALE = "a" ]]
+elif [[ $TOTUMLOCALE = "RUN" ]]
 then
 echo
 echo "Locale is OK. Let's go..."
@@ -100,7 +100,7 @@ echo -e "\e[43;1;35m                                                            
 echo -e "\e[43;1;35m- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\033[0m"
 echo
 
-read -p "If you ready to go, type (A) or cancel (Ctrl + C) and check you domain with ping: " TOTUMRUN
+read -p "If you ready to go, type (A) or cancel (Ctrl + C): " TOTUMRUN
 
 if [[ $TOTUMRUN = "A" ]]
 then

@@ -87,22 +87,20 @@ echo -e "\e[40;1;37m                            -******::****:**:               
 echo -e "\e[40;1;37m                                                                         \033[0m"
 echo -e "\e[43;1;35m- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   TOTUM AUTOINSTALL SCRIPT                                              \033[0m"
+echo -e "\e[43;1;35m   TOTUM AUTOINSTALL SCRIPT !WITHOUT DOMAIN!                             \033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   This install script will help you to install Totum online             \033[0m"
+echo -e "\e[43;1;35m   This install script will help you to install Totum online             \033[0m" 
 echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   on clean Ubuntu 20 with SSL certificate and DKIM.                     \033[0m"
+echo -e "\e[43;1;35m   on clean Ubuntu 20 without SSL and valid domain.                      \033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   For success you have to \e[43;1;31mDELEGATE A VALID DOMAIN \033[0m\e[43;1;35mto this server.       \033[0m"
+echo -e "\e[43;1;35m   For email you need to configure you SMTP in Conf.php in               \033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   If you not shure about you domain — cansel this install and check:    \033[0m"
-echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;31m   ping YOU_DOMAIN                                                       \033[0m"
+echo -e "\e[43;1;31m   /home/totum/totum-mit/Conf.php                                        \033[0m"
 echo -e "\e[43;1;35m                                                                         \033[0m"
 echo -e "\e[43;1;35m- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\033[0m"
 echo
 
-read -p "If you ready to go, type (A) or cancel (Ctrl + C) and check you domain with ping: " TOTUMRUN
+read -p "If you ready to go, type (A) or cancel (Ctrl + C): " TOTUMRUN
 
 if [[ $TOTUMRUN = "A" ]]
 then
@@ -119,16 +117,39 @@ echo
   exit 0
 fi
 
-TOTUMTIMEZONE=$(tzselect)
+CERTBOTDOMAIN=$(curl ifconfig.me/ip)
 
+echo
+echo -e "Server IP detected as \033[1m>>> ${CERTBOTDOMAIN} <<<\033[0m "
+echo
+read -p "If it right type A or type your custom IP or localhost for access to Totum after install: " CERTBOTDOMAIN_CHECK
+echo
+
+if [[ $CERTBOTDOMAIN_CHECK = "A" ]]
+then
+echo
+echo -e "IP selected as \033[1m${CERTBOTDOMAIN}\033[0m"
+echo
+elif [[ $TOTUMRUN = "a" ]]
+then
+echo
+echo -e "IP selected as \033[1m${CERTBOTDOMAIN}\033[0m"
+echo
+else
+echo
+CERTBOTDOMAIN=${CERTBOTDOMAIN_CHECK}
+echo -e "IP selected as \033[1m${CERTBOTDOMAIN}\033[0m"
+echo
+fi
+
+
+TOTUMTIMEZONE=$(tzselect)
 
 read -p "Create password for database: " TOTUMBASEPASS
 
 read -p "Enter your email: " CERTBOTEMAIL
 
 read -p "Create Totum superuser password: " TOTUMADMINPASS
-
-read -p "Enter domain without http/https delegated! to this server like totum.online: " CERTBOTDOMAIN
 
 echo
 echo "1) EN"
@@ -164,7 +185,7 @@ echo -e "\033[1mEmail:\033[0m " $CERTBOTEMAIL
 echo
 echo -e "\033[1mPass for Totum admin:\033[0m " $TOTUMADMINPASS
 echo
-echo -e "\033[1mDomain:\033[0m " $CERTBOTDOMAIN
+echo -e "\033[1mInstall ip:\033[0m " $CERTBOTDOMAIN
 echo
 echo -e "\033[1mLang:\033[0m " $TOTUMLANG
 echo
@@ -188,13 +209,6 @@ echo
   exit 0
 fi
 
-if [[ $(sudo certbot --version 2>&1 | grep -c 'command not found') -eq 1 ]]
-then
-sudo apt -y install certbot
-else
-echo "Certbot are installed."
-fi
-
 echo
 echo -e "\033[41m Please answer YES to the following two questions. To continue, press [Enter]: \033[0m"
 echo
@@ -208,30 +222,6 @@ sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 sudo apt -y install iptables-persistent
 
 sudo service netfilter-persistent save
-
-echo
-echo "Check domain..."
-echo
-
-CERTBOTANSWER=$(sudo certbot certonly --standalone --dry-run --register-unsafely-without-email --agree-tos -d $CERTBOTDOMAIN)
-
-if [[ $(echo $CERTBOTANSWER | grep -c 'The dry run was successful.') -eq 1 ]]
-then
-echo
-echo "Domain is OK!"
-echo
-else
-echo
-echo "Certbot did't get certificate for you domain:"
-echo
-echo $CERTBOTDOMAIN
-echo
-echo "Check DNS for you domain and try again! If you setup NS or DNS less than 3 hours ago, maybe these changes have not reached the Let's encrypt servers. Wait one hour and try again"
-echo
-echo $CERTBOTANSWER
-echo
-  exit 0
-fi
 
 # Prepare
 
@@ -253,7 +243,6 @@ sudo systemctl disable apache2
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_fpm.conf
 sudo chown root:root ./totum_fpm.conf
 sudo mv ./totum_fpm.conf /etc/php/8.0/fpm/pool.d/totum.conf
-sudo sed -i "s:Europe/London:${TOTUMTIMEZONE}:g" /etc/php/8.0/fpm/pool.d/totum.conf
 sudo mkdir /var/lib/php/sessions_totum
 sudo chown root:root /var/lib/php/sessions_totum
 sudo chmod 1733 /var/lib/php/sessions_totum
@@ -298,74 +287,17 @@ sudo -u totum bash -c "/home/totum/totum-mit/bin/totum install --pgdump=pg_dump 
 
 sudo bash -c "echo -e '* * * * * cd /home/totum/totum-mit/ && bin/totum schemas-crons\n*/10 * * * * cd /home/totum/totum-mit/ && bin/totum clean-tmp-dir\n*/10 * * * * cd /home/totum/totum-mit/ && bin/totum clean-schemas-tmp-tables' | crontab -u totum -"
 
+# Replace Sendmail trait by SMTP trait
 
-# Obtain SSL cert 
-
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/certbot/etc_letsencrypt/cli.ini
-sudo chown root:root ./cli.ini
-sudo mv ./cli.ini /etc/letsencrypt/cli.ini
-
-sudo certbot register --email $CERTBOTEMAIL --agree-tos --no-eff-email
-sudo certbot certonly -d $CERTBOTDOMAIN
-
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_nginx_SSL.conf
-sudo chown root:root ./totum_nginx_SSL.conf
-sudo mv ./totum_nginx_SSL.conf /etc/nginx/sites-available/totum.online.conf
-
-
-SSLDOMAIN=$(sudo find /etc/letsencrypt/live/* -type d)
-SSLDOMAIN=$(basename $SSLDOMAIN)
-sudo sed -i "s:YOU_DOMAIN:${SSLDOMAIN}:g" /etc/nginx/sites-available/totum.online.conf
-sudo sed -i "s:/var/www/:/home/totum/:g" /etc/nginx/sites-available/totum.online.conf
-
-sudo service nginx restart
-
-sudo bash -c "echo -e '49 */12 * * * certbot renew --quiet --allow-subset-of-names' | crontab -u root -"
-
-# Install Exim
-
-sudo apt -y install exim4
-
-# Create DKIM
-
-sudo mkdir /home/totum/dkim
-cd /home/totum/dkim
-sudo openssl genrsa -out private.pem 1024
-sudo openssl rsa -pubout -in private.pem -out public.pem
-sudo openssl pkey -in private.pem -out domain.key
-sudo chown -R Debian-exim:Debian-exim /home/totum/dkim
-sudo chmod 644 domain.key
-sudo cat public.pem | sudo bash -c "tr -d '\n' > key_for_dkim.txt"
-sudo sed -i "s:-----BEGIN PUBLIC KEY-----::g" key_for_dkim.txt
-sudo sed -i "s:-----END PUBLIC KEY-----::g" key_for_dkim.txt
-DKIMKEY=$(sudo cat key_for_dkim.txt)
-sudo bash -c "echo -e 'Add TXT record for DKIM:\n\nmail._domainkey.${CERTBOTDOMAIN}\n\nv=DKIM1; k=rsa; t=s; p=PUBLIC_KEY\n\nAdd TXT record for SPF:\n\nv=spf1 ip4:$(curl ifconfig.me/ip) ~all\n\nMost hoster's have port 25 for sending emails blocked by default to combat spam - check with your hoster's support to see what you need to do to get them to unblock your emails.' > TXT_record_for_domain.txt"
-sudo sed -i "s:PUBLIC_KEY:${DKIMKEY}:g" TXT_record_for_domain.txt
-cd ~
-
-# config Exim4 here
-
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/exim4.conf.template
-sudo chown root:root ./exim4.conf.template
-sudo mv ./exim4.conf.template /etc/exim4/exim4.conf.template
-
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/update-exim4.conf.conf
-sudo chown root:root ./update-exim4.conf.conf
-sudo mv ./update-exim4.conf.conf /etc/exim4/update-exim4.conf.conf
-
-sudo echo "${CERTBOTDOMAIN}" > /etc/mailname
-
-sudo update-exim4.conf
-sudo service exim4 restart
+sudo sed -i "s:use WithPhpMailerTrait;:use WithPhpMailerSmtpTrait;\nprotected \$SmtpData = [\n'host' => 'YOU_HOST_HERE',\n'port' => 25,\n'login' => 'YOU_LOGIN_HERE',\n'pass' => 'YOU_PASS_HERE',\n];:g" /home/totum/totum-mit/Conf.php
+sudo sed -i "s:WithPhpMailerTrait;:WithPhpMailerSmtpTrait;:g" /home/totum/totum-mit/Conf.php
 
 # Show notification about DKIM and SPF
 
 echo
 echo -e "\033[41m --- IMPORTANT! --- \033[40m"
 echo
-
-sudo cat /home/totum/dkim/TXT_record_for_domain.txt
-
+echo -e "For SMTP setup open /home/totum/totum-mit/Conf.php and fill SMTP settings!"
 echo
 echo -e "\033[0m\033[41m ------ END! ------ \033[0m"
 echo
@@ -376,5 +308,5 @@ echo
 echo
 echo -e "\033[32m ------ DONE! ------ \033[0m"
 echo
-echo -e "\033[32m NOW YOU CAN OPEN YOU BROWSER AT \033[0mhttps://"$CERTBOTDOMAIN "\033[32mAND LOGIN AS \033[0madmin \033[32mAND \033[0m"$TOTUMADMINPASS
+echo -e "\033[32m NOW YOU CAN OPEN YOU BROWSER AT \033[0mhttp://"$CERTBOTDOMAIN "\033[32mAND LOGIN AS \033[0madmin \033[32mAND \033[0m"$TOTUMADMINPASS
 echo

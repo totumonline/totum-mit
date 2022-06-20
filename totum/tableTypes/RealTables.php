@@ -1482,7 +1482,7 @@ abstract class RealTables extends aTable
             }
 
             if (!array_key_exists($fieldName, $fields) && !Model::isServiceField($fieldName)) {
-                throw new errorException($this->translate('The %s field in %s of the table does not exist',
+                throw new errorException($this->translate('The %s field in %s table does not exist',
                     [$fieldName, $this->tableRow['name']]));
             }
 

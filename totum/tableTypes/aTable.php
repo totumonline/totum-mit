@@ -2790,7 +2790,7 @@ CODE;;
     {
         if (is_string($field)) {
             if (!key_exists($field, $this->fields)) {
-                throw new errorException($this->translate('The %s field in %s of the table does not exist',
+                throw new errorException($this->translate('The %s field in %s table does not exist',
                     [$field, $this->getTableRow()['title']]));
             }
             $field = $this->fields[$field];

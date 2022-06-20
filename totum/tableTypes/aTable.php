@@ -1842,7 +1842,7 @@ CODE;;
             $params[] = ['field' => 'id', 'operator' => '=', 'value' => $idsFilter];
         }
 
-        if ($channel == 'web' && !$this->User->isCreator() && $this->tableRow['cycles_access_type'] === '1') {
+        if ($channel == 'web' && !$this->User->isCreator() && $this->tableRow['type'] === 'cycles' && $this->tableRow['cycles_access_type'] === '1') {
             $params[] = ['field' => 'creator_id', 'operator' => '=', 'value' => $this->User->getConnectedUsers()];
         }
 

@@ -6,11 +6,22 @@
     <?php
     $host = 'http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/';
     ?>
-    <meta name="viewport" content="width=900, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible"
+          content="ie=edge">
     <meta property="og:image" content="<?= $host ?>imgs/hand.png"/>
     <meta property="og:url" content="<?= $host ?>"/>
     <meta property="og:title" content=""/>
     <meta property="og:description" content=""/>
+
+    <style>
+        #form.ttm-form {
+            width: 100%; min-height: 200px; max-width: 600px; margin: auto
+        }
+    </style>
+
 </head>
 <body id="pk"
       class="lock">
@@ -18,7 +29,7 @@
     <?=$this->translate('To work with the system you need to enable JavaScript in your browser settings')?>
 </noscript>
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
-<div class="page_content">
+<div id="form">
     <script>
         let num = "79";
         (function (src, cssSrc, address, post, get, input) {

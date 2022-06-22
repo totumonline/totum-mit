@@ -30,7 +30,7 @@
 
             newScript.onerror = (event) => {
                 console.log(event)
-                div.innerHTML = '<div><?=$this->translate('It didn\'t load :(')?>></div>';
+                div.innerHTML = '<div><?=$this->translate('It did not load :(')?>></div>';
             };
             newScript.onload = (event) => {
                 address = src.match(/^(.*?\/)[^\/]*$/)[1] + address;

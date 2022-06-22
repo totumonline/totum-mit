@@ -221,7 +221,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
         $result['t']['s'] = $result['t']['sections'] ?? [];
         unset($result['t']['sections']);
 
-        $tableJsonFromRow['p'] = array_intersect_key($tableJsonFromRow['p'], $this->clientFields);
+        $tableJsonFromRow['p'] = array_intersect_key(($tableJsonFromRow['p'] ?? []), $this->clientFields);
 
         unset($tableJsonFromRow['t']['s']['quickMain']['title'], $tableJsonFromRow['t']['s']['quickMain']['ok_message']);
         return array_replace_recursive($tableJsonFromRow, $result);

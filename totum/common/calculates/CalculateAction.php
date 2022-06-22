@@ -245,7 +245,7 @@ class CalculateAction extends Calculate
         }
     }
 
-    public function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, $table, string $type, $var = [])
+    public function execAction($varName, $oldRow, $newRow, $oldTbl, $newTbl, aTable $table, string $type, $var = [])
     {
         $var['tpa'] = $type;
         $r = $this->exec(['name' => $varName], ['v' => null], $oldRow, $newRow, $oldTbl, $newTbl, $table, $var);

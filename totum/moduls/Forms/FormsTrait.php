@@ -82,14 +82,14 @@ trait FormsTrait
 
         $sections = [];
         foreach ($this->clientFields as $field) {
-            switch ($field["category"]) {
-                case "footer":
+            switch ($field['category']) {
+                case 'footer':
                     /*if ($field['column']) {
                         $field["category"] = "rows_footer";
                     }*/
                 case 'param':
 
-                    if ($field["tableBreakBefore"] && ($field["sectionTitle"] ?? false)) {
+                    if (($field["tableBreakBefore"] ?? false) && ($field["sectionTitle"] ?? false)) {
                         $name = null;
                         if (preg_match('/\*\*.*?name\s*:\s*([a-z_\-0-9]+)/i', $field['sectionTitle'], $matches)) {
                             $name = $matches[1];
@@ -156,9 +156,9 @@ trait FormsTrait
 
     public function getTableData($withRecalculate = true)
     {
-        $result = parent::getFullTableData($withRecalculate);
+            $result = parent::getFullTableData($withRecalculate);
 
-        $formats = $this->getTableFormats($this->Table->getTbl()['rows']);
+            $formats = $this->getTableFormats($this->Table->getTbl()['rows']);
         $data['params'] = array_intersect_key($this->Table->getTbl()['params'], $formats['p']);
 
         $data['rows'] = [];
@@ -227,7 +227,7 @@ trait FormsTrait
 
                         $value['v_'] = [];
                         foreach ($value['v'] as $val) {
-                            $value['v_'][] = $this->getHttpFilePath() . $val['file'];
+                            $value['v_'][] = $this->getHttpFilePath() . ($val['file'] ?? $val['name']);
                         }
                         unset($val);
                         break;

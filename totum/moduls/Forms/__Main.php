@@ -20,7 +20,7 @@
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <div class="page_content">
     <script>
-        let num = "78";
+        let num = "79";
         (function (src, cssSrc, address, post, get, input) {
             let div = document.currentScript.parentNode;
             let path = "<?=$path?>";

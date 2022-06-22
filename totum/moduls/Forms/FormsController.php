@@ -19,6 +19,7 @@ use totum\config\Conf;
 use totum\config\totum\moduls\Forms\ReadTableActionsForms;
 use totum\config\totum\moduls\Forms\WriteTableActionsForms;
 use totum\fieldTypes\Select;
+use totum\models\TmpTables;
 use totum\moduls\Table\Actions;
 use totum\tableTypes\aTable;
 use totum\tableTypes\tmpTable;
@@ -170,7 +171,7 @@ class FormsController extends interfaceController
                 ['where' => [
                     ['field' => 'path_code', 'operator' => '=', 'value' => $form],
                     ['field' => 'on_off', 'operator' => '=', 'value' => true]],
-                    'field' => ['table_name', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code', 'field_code_formats']],
+                    'field' => ['table_name', 'type', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code', 'field_code_formats']],
                 'row'
             );
 
@@ -191,41 +192,43 @@ class FormsController extends interfaceController
             throw new errorException($this->translate('Form configuration error - user denied access to the table'));
         }
 
-        $extradata = null;
         $post = json_decode((string)$request->getBody(), true) ?? [];
         $extradata = $post['sess_hash'] ?? null;
-        if ($tableRow['type'] === 'tmp' && $extradata) {
-            if (!tmpTable::checkTableExists($tableRow['name'], $extradata, $this->Totum)) {
-                $extradata = null;
+
+        if ($tableRow['type'] === 'tmp') {
+            if ($extradata) {
+                if (!tmpTable::checkTableExists($tableRow['name'], $extradata, $this->Totum)) {
+                    $extradata = null;
+                }
             }
         }
 
         $this->Table = $this->Totum->getTable($tableRow, $extradata);
-
         $this->onlyRead = ($this->Totum->getUser()->getTables()[$this->Table->getTableRow()['id']] ?? null) !== 1;
+
 
         if (!$extradata) {
             $add_tbl_data = [];
-            $add_tbl_data["params"] = [];
+            $add_tbl_data['params'] = [];
             if (key_exists('h_get', $this->Table->getFields())) {
-                $add_tbl_data["params"]['h_get'] = $post['data']['get'] ?? [];
+                $add_tbl_data['params']['h_get'] = $post['data']['get'] ?? [];
             }
             if (key_exists('h_post', $this->Table->getFields())) {
-                $add_tbl_data["params"]['h_post'] = $post['data']['post'] ?? [];
+                $add_tbl_data['params']['h_post'] = $post['data']['post'] ?? [];
             }
             if (key_exists('h_input', $this->Table->getFields())) {
-                $add_tbl_data["params"]['h_input'] = $post['data']['input'] ?? '';
+                $add_tbl_data['params']['h_input'] = $post['data']['input'] ?? '';
             }
-            
+
             if (!empty($post['data']['get']['d']) && ($d = Crypt::getDeCrypted(
-                $post['data']['get']['d'],
-                $this->Config->getCryptSolt()
-            )) && ($d = json_decode($d, true))) {
+                    $post['data']['get']['d'],
+                    $this->Config->getCryptSolt()
+                )) && ($d = json_decode($d, true))) {
                 if (!empty($d['d'])) {
-                    $add_tbl_data["tbl"] = $d['d'];
+                    $add_tbl_data['tbl'] = $d['d'];
                 }
                 if (!empty($d['p'])) {
-                    $add_tbl_data["params"] = $d['p'] + $add_tbl_data["params"];
+                    $add_tbl_data['params'] = $d['p'] + $add_tbl_data['params'];
                 }
             }
             if ($add_tbl_data && $this->Table->getTableRow()['type'] === 'tmp') {
@@ -266,8 +269,17 @@ class FormsController extends interfaceController
             $Actions = new Actions($request, $this->modulePath, null, $this->Totum);
             $error = $this->translate('Table is not found.');
         } elseif (!$this->onlyRead) {
-            $Actions = new WriteTableActionsForms($request, $this->modulePath, $this->Table, null);
-            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.', $method);
+            if ($this->FormsTableData['type'] === 'quick' && $this->Table->getTableRow()['type']!=='tmp') {
+                $Actions = new InsertTableActionsForms($request, $this->modulePath, $this->Table);
+                $error = $this->translate('Method [[%s]] in this module for quick tables is not defined.',
+                    $method);
+                $Actions->checkMethodIsAvailable($method, $error);
+            } else {
+                $Actions = new WriteTableActionsForms($request, $this->modulePath, $this->Table, null);
+                $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.',
+                    $method);
+            }
+
         } else {
             $Actions = new ReadTableActionsForms($request, $this->modulePath, $this->Table, null);
             $error = $this->translate('Your access to this table is read-only. Contact administrator to make changes.');

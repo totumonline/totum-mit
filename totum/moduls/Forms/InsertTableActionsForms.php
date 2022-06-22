@@ -282,7 +282,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
                     $sections['param'][] = ['name' => $name, 'title' => $field['sectionTitle'], 'fields' => []];
                 } elseif (empty($sections['param'])) {
                     $sections['param'][] = ['name' => 'quickMain',
-                        'title' => $this->FormsTableData['t']['s']['quickMain']['title'] ?? 'test**name:quickMain;maxwidth:600;nextline:true;fill:true',
+                        'title' => $this->FormsTableData['format_static']['t']['s']['quickMain']['title'] ?? '**name:quickMain;maxwidth:600;nextline:true;fill:true',
                         'fields' => []];
                 }
 

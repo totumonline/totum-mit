@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head lang="ru">
     <script>App = {}</script>
-    <link rel="shortcut icon" type="image/png" href="/fls/297_favicon.png"/>
+    <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>
     <title><?= !empty($title) ? $title . ' — ' : '' ?>Totum</title>
     <?php
     $host = 'http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/';

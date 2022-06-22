@@ -17,6 +17,10 @@
     <meta property="og:description" content=""/>
 
     <style>
+        body{
+            background: url(/imgs/mailttm.png) no-repeat center center fixed;
+            background-size: cover;
+        }
         #form.ttm-form {
             width: 100%; min-height: 200px; max-width: 600px; margin: auto
         }

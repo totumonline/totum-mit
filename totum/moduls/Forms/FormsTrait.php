@@ -9,6 +9,7 @@ use totum\common\calculates\CalculcateFormat;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Totum;
+use totum\fieldTypes\File;
 use totum\fieldTypes\Select;
 use totum\moduls\Table\WriteTableActions;
 use totum\tableTypes\aTable;
@@ -156,9 +157,9 @@ trait FormsTrait
 
     public function getTableData($withRecalculate = true)
     {
-            $result = parent::getFullTableData($withRecalculate);
+        $result = parent::getFullTableData($withRecalculate);
 
-            $formats = $this->getTableFormats($this->Table->getTbl()['rows']);
+        $formats = $this->getTableFormats($this->Table->getTbl()['rows']);
         $data['params'] = array_intersect_key($this->Table->getTbl()['params'], $formats['p']);
 
         $data['rows'] = [];
@@ -226,8 +227,8 @@ trait FormsTrait
                         );
 
                         $value['v_'] = [];
-                        foreach ($value['v'] as $val) {
-                            $value['v_'][] = $this->getHttpFilePath() . ($val['file'] ?? $val['name']);
+                        foreach (($value['v'] ?? []) as $val) {
+                            $value['v_'][] = !empty($val['file']) ? $this->getHttpFilePath() . $val['file'] : (File::isImage($val['name']) ? 'data:image/jpg;base64,' . base64_encode(file_get_contents($this->Totum->getConfig()->getTmpDir() . File::getTmpThumbName($val['tmpfile']))) : $val['name']);
                         }
                         unset($val);
                         break;

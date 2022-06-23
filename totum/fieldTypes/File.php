@@ -91,55 +91,73 @@ class File extends Field
         }
     }
 
-    public static function checkAndCreateThumb($tmpFileName, $name)
+    public static function isImage($name): bool|string
     {
         if (in_array(
             $ext = preg_replace('/^.*\.([a-z0-9]{2,5})$/', '$1', strtolower($name)),
             ['jpg', 'jpeg', 'png']
         )) {
-            $thumbName = $tmpFileName . '_thumb.jpg';
-            if ($ext === 'png') {
-                $source = imagecreatefrompng($tmpFileName);
+            return $ext;
+        }
+        return false;
+    }
+
+    protected static function getThumb($tmpFileName, $ext): \GdImage|bool
+    {
+        if ($ext === 'png') {
+            $source = imagecreatefrompng($tmpFileName);
+        } else {
+            $source = imagecreatefromjpeg($tmpFileName);
+        }
+        // получение нового размера
+        list($width, $height) = getimagesize($tmpFileName);
+
+        $newwidth = 290;
+        $newheight = $height * $newwidth / $width;
+
+
+        $thumb = imagecreatetruecolor($newwidth, $newheight);
+        imagefill($thumb, 0, 0, imagecolorallocate($thumb, 255, 255, 255));
+
+        if ($newwidth > $width && $newheight > $height) {
+            if ($height < 100) {
+                $newheight = 100;
             } else {
-                $source = imagecreatefromjpeg($tmpFileName);
+                $newheight = $height + 10;
             }
-            // получение нового размера
-            list($width, $height) = getimagesize($tmpFileName);
-
-            $newwidth = 290;
-            $newheight = $height * $newwidth / $width;
-
 
             $thumb = imagecreatetruecolor($newwidth, $newheight);
             imagefill($thumb, 0, 0, imagecolorallocate($thumb, 255, 255, 255));
 
-            if ($newwidth > $width && $newheight > $height) {
-                if ($height < 100) {
-                    $newheight = 100;
-                } else {
-                    $newheight = $height + 10;
-                }
+            imagecopyresampled(
+                $thumb,
+                $source,
+                round(($newwidth - $width) / 2),
+                round(($newheight - $height) / 2),
+                0,
+                0,
+                $width,
+                $height,
+                $width,
+                $height
+            );
+        } else {
+            imagecopyresampled($thumb, $source, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+        }
+        return $thumb;
+    }
 
-                $thumb = imagecreatetruecolor($newwidth, $newheight);
-                imagefill($thumb, 0, 0, imagecolorallocate($thumb, 255, 255, 255));
-
-                imagecopyresampled(
-                    $thumb,
-                    $source,
-                    round(($newwidth - $width) / 2),
-                    round(($newheight - $height) / 2),
-                    0,
-                    0,
-                    $width,
-                    $height,
-                    $width,
-                    $height
-                );
-            } else {
-                imagecopyresampled($thumb, $source, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
-            }
+    protected static function checkAndCreateThumb($tmpFileName, $name)
+    {
+        if ($ext = static::isImage($name)) {
+            $thumbName = static::getTmpThumbName($tmpFileName);
+            $thumb = static::getThumb($tmpFileName, $ext);
             imagejpeg($thumb, $thumbName, 100);
         }
+    }
+
+    public static function getTmpThumbName($tmpFileName){
+        return $tmpFileName . '_thumb.jpg';
     }
 
     /*TODO переделать на использование входящего контекста*/

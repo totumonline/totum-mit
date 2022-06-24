@@ -228,7 +228,24 @@ trait FormsTrait
 
                         $value['v_'] = [];
                         foreach (($value['v'] ?? []) as $val) {
-                            $value['v_'][] = !empty($val['file']) ? $this->getHttpFilePath() . $val['file'] : (File::isImage($val['name']) ? 'data:image/jpg;base64,' . base64_encode(file_get_contents($this->Totum->getConfig()->getTmpDir() . File::getTmpThumbName($val['tmpfile']))) : $val['name']);
+
+                            if (File::isImage($val['name'])) {
+                                if (!empty($val['file'])) {
+                                    $filePath = $this->Totum->getConfig()->getFilesDir() . File::getTmpThumbName($val['file']);
+                                    if (!is_file($filePath)) {
+                                        $file = File::getContent($val['file'], $this->Totum->getConfig());
+                                    } else {
+                                        $file = file_get_contents($filePath);
+                                    }
+                                } else {
+                                    $file = file_get_contents($this->Totum->getConfig()->getTmpDir() . File::getTmpThumbName($val['tmpfile']));
+                                }
+                                $thumb = 'data:image/jpg;base64,' . base64_encode($file);
+                            } else {
+                                $thumb = 'data:text/plain;base64,' . base64_encode('emptyfile');
+                            }
+
+                            $value['v_'][] = $thumb;
                         }
                         unset($val);
                         break;

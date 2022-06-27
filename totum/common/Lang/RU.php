@@ -59,6 +59,7 @@ class RU implements LangInterface
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
 
+        'The module is not available for this host.'=>'Модуль недоступен для этого хоста.',
 
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',
         'Comment field contains incorrect type data as a value.' => 'Поле комментария содержит в качестве значения данные неправильного типа.',

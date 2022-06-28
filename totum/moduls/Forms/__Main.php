@@ -35,7 +35,7 @@
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <div id="form">
     <script>
-        let num = "82";
+        let num = "83";
         (function (src, cssSrc, address, post, get, input) {
             let div = document.currentScript.parentNode;
             let path = "<?=$path?>";

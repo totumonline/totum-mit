@@ -262,6 +262,11 @@ class InsertTableActionsForms extends WriteTableActionsForms
                 unset($clientFields[$f]);
             }
 
+            if(!empty($field['help'])){
+                $field['help'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $field['help']);
+                $field['help'] = preg_replace('`\s*<hide/?>\s*`su', '', $field['help']);
+            }
+
         }
         unset($field);
 

@@ -317,7 +317,7 @@ class ZH implements LangInterface
         'Field [[%s]] is not allowed to be edited via Api' =>'字段 [[%s]] 不允许通过 Api 编辑',
         'The [[%s]] field must contain multiple select' =>'[[%s]] 字段必须包含多选',
         'The [[%s]] field must contain a string' =>'[[%s]] 字段必须包含字符串',
-        'The %s field in %s of the table does not exist' =>'表 %s 中的 %s 字段不存在',
+        'The %s field in %s table does not exist' =>'表 %s 中的 %s 字段不存在',
         'You are not allowed to add to this table' =>'您无权添加到此表',
         'You are not allowed to delete from this table' =>'您无权从此表中删除',
         'You are not allowed to sort in this table' =>'您不允许在此表中排序',

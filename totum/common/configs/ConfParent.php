@@ -277,8 +277,6 @@ abstract class ConfParent
     }
 
     /**
-     * TODO connect method to index.php
-     *
      * @return string
      */
     public function getAnonymModul()
@@ -715,4 +713,10 @@ SQL
     {
         return $this->getLangObj()->translate($str, $vars);
     }
+
+    public function getHiddenHosts(): array
+    {
+        return [];
+    }
+
 }

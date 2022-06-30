@@ -302,12 +302,11 @@ class Cycle
             $dataWithOrd[$ord] = $r['table_name'];
         }
         ksort($dataWithOrd, SORT_NUMERIC);
-        if (count($this->getTableIds()) != $dataWithOrd) {
-            foreach ($this->getTableIds() as $id) {
-                $row = $this->Totum->getTableRow($id);
-                if (!in_array($row['name'], $dataWithOrd)) {
-                    $dataWithOrd[] = $row['name'];
-                }
+
+        foreach ($this->getTableIds() as $id) {
+            $row = $this->Totum->getTableRow($id);
+            if (!in_array($row['name'], $dataWithOrd)) {
+                $dataWithOrd[] = $row['name'];
             }
         }
 

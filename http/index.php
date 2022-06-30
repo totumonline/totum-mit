@@ -27,6 +27,10 @@ if (empty($module)) {
 }
 $controllerClass = 'totum\\moduls\\' . $module . '\\' . $module . 'Controller';
 if (class_exists($controllerClass)) {
+    if(!empty($Config->getHiddenHosts()[$Config->getFullHostName()]) && empty($Config->getHiddenHosts()[$Config->getFullHostName()][$module])){
+        die($Config->getLangObj()->translate('The module is not available for this host.'));
+    }
+
     /*
      * @var Controller $Controller
      * */

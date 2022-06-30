@@ -59,6 +59,7 @@ class RU implements LangInterface
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
 
+        'The module is not available for this host.'=>'Модуль недоступен для этого хоста.',
 
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',
         'Comment field contains incorrect type data as a value.' => 'Поле комментария содержит в качестве значения данные неправильного типа.',
@@ -68,7 +69,7 @@ class RU implements LangInterface
 
         'Calling a third-party script.' => 'Обращение к стороннему скрипту.',
         'Not for the temporary table.' => 'Не для временной таблицы.',
-        'The [[%s]] field is not found in the [[%s]] table.' => 'Поле [[%s]] не надено в таблице [[%s]].',
+        'The [[%s]] field is not found in the [[%s]] table.' => 'Поле [[%s]] не найдено в таблице [[%s]].',
         'Function [[linkToEdit]] not available for [[%s]] field type.' => 'Функция [[linkToEdit]] не доступна для типа поля [[%s]].',
         'The %s field must be numeric.' => 'Поле %s должно быть числовым.',
         'The value of the %s field must be numeric.' => 'Значение поля %s должно быть числовым.',
@@ -330,7 +331,7 @@ class RU implements LangInterface
         'Field [[%s]] is not allowed to be edited via Api' => 'Поле [[%s]] запрещено для редактирования через Api',
         'The [[%s]] field must contain multiple select' => 'Поле [[%s]] должно содержать множественный селект',
         'The [[%s]] field must contain a string' => 'Поле [[%s]] должно содержать строку',
-        'The %s field in %s of the table does not exist' => 'Поля %s в %s таблицы не существует',
+        'The %s field in %s table does not exist' => 'Поля %s в %s таблицы не существует',
         'You are not allowed to add to this table' => 'Добавление в эту таблицу вам запрещено',
         'You are not allowed to delete from this table' => 'Удаление из этой таблицы вам запрещено',
         'You are not allowed to sort in this table' => 'Сортировка в этой таблице вам запрещена',

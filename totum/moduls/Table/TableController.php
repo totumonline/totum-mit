@@ -314,30 +314,35 @@ class TableController extends interfaceController
                 /*Вкладка*/
                 if (is_array($tName)) {
                     $tree[] = $tName;
-                } elseif ($tableRow = $this->Totum->getTableRow($tName)) {
-                    $tId = $tableRow['id'];
-                    if (array_key_exists($tId, $this->User->getTreeTables())) {
-                        $tbl = [
-                            'id' => 'table' . $tId
-                            , 'href' => $cyclesTableId . '/' . $this->Cycle->getId() . '/' . $tId
-                            , 'text' => $tableRow['title']
-                            , 'icon' => ($tableRow['icon'] ?? null)
-                            , 'type' => 'table_calcs'
-                            , 'parent' => $idHref
-                            , 'isCycleTable' => true
-                            , 'isOneUserCycle' => $isOneTable
-                            , 'state' => [
-                                'selected' => ($this->Table?->getTableRow()['id'] ?? 0) === $tId
-                            ]
-                        ];
-                        if ($this->User->isCreator()) {
-                            $tbl['name'] = $tableRow['name'];
+                } else {
+                    try {
+                        if ($tableRow = $this->Totum->getTableRow($tName)) {
+                            $tId = $tableRow['id'];
+                            if (array_key_exists($tId, $this->User->getTreeTables())) {
+                                $tbl = [
+                                    'id' => 'table' . $tId
+                                    , 'href' => $cyclesTableId . '/' . $this->Cycle->getId() . '/' . $tId
+                                    , 'text' => $tableRow['title']
+                                    , 'icon' => ($tableRow['icon'] ?? null)
+                                    , 'type' => 'table_calcs'
+                                    , 'parent' => $idHref
+                                    , 'isCycleTable' => true
+                                    , 'isOneUserCycle' => $isOneTable
+                                    , 'state' => [
+                                        'selected' => ($this->Table?->getTableRow()['id'] ?? 0) === $tId
+                                    ]
+                                ];
+                                if ($this->User->isCreator()) {
+                                    $tbl['name'] = $tableRow['name'];
+                                }
+                                if ($this->anchorId) {
+                                    unset($tbl['href']);
+                                    $tbl['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
+                                }
+                                $tree[] = $tbl;
+                            }
                         }
-                        if ($this->anchorId) {
-                            unset($tbl['href']);
-                            $tbl['link'] = $this->modulePath . $this->anchorId . '/' . $this->Cycle->getId() . '/' . $tId;
-                        }
-                        $tree[] = $tbl;
+                    } catch (errorException $e) {
                     }
                 }
             }
@@ -413,8 +418,12 @@ class TableController extends interfaceController
             $this->__addAnswerVar('topBranches', $this->getTopBranches(), true);
             $this->__addAnswerVar('totumFooter', $this->Config->getTotumFooter());
 
+            try {
+                $this->setTreeData();
+            } catch (errorException $errorException) {
+                $this->__addAnswerVar('error', $errorException->getMessage());
+            }
 
-            $this->setTreeData();
 
             if (isset($this->Table)) {
                 $this->__addAnswerVar('title', $this->Table->getTableRow()['title'], true);

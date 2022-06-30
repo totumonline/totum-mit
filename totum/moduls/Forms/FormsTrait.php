@@ -9,6 +9,7 @@ use totum\common\calculates\CalculcateFormat;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Totum;
+use totum\fieldTypes\File;
 use totum\fieldTypes\Select;
 use totum\moduls\Table\WriteTableActions;
 use totum\tableTypes\aTable;
@@ -82,14 +83,14 @@ trait FormsTrait
 
         $sections = [];
         foreach ($this->clientFields as $field) {
-            switch ($field["category"]) {
-                case "footer":
+            switch ($field['category']) {
+                case 'footer':
                     /*if ($field['column']) {
                         $field["category"] = "rows_footer";
                     }*/
                 case 'param':
 
-                    if ($field["tableBreakBefore"] && ($field["sectionTitle"] ?? false)) {
+                    if (($field["tableBreakBefore"] ?? false) && ($field["sectionTitle"] ?? false)) {
                         $name = null;
                         if (preg_match('/\*\*.*?name\s*:\s*([a-z_\-0-9]+)/i', $field['sectionTitle'], $matches)) {
                             $name = $matches[1];
@@ -226,8 +227,25 @@ trait FormsTrait
                         );
 
                         $value['v_'] = [];
-                        foreach ($value['v'] as $val) {
-                            $value['v_'][] = $this->getHttpFilePath() . $val['file'];
+                        foreach (($value['v'] ?? []) as $val) {
+
+                            if (File::isImage($val['name'])) {
+                                if (!empty($val['file'])) {
+                                    $filePath = $this->Totum->getConfig()->getFilesDir() . File::getTmpThumbName($val['file']);
+                                    if (!is_file($filePath)) {
+                                        $file = File::getContent($val['file'], $this->Totum->getConfig());
+                                    } else {
+                                        $file = file_get_contents($filePath);
+                                    }
+                                } else {
+                                    $file = file_get_contents($this->Totum->getConfig()->getTmpDir() . File::getTmpThumbName($val['tmpfile']));
+                                }
+                                $thumb = 'data:image/jpg;base64,' . base64_encode($file);
+                            } else {
+                                $thumb = 'data:text/plain;base64,' . base64_encode('emptyfile');
+                            }
+
+                            $value['v_'][] = $thumb;
                         }
                         unset($val);
                         break;

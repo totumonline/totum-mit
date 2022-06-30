@@ -22,12 +22,16 @@
             background-size: cover;
         }
         #form.ttm-form {
-            width: 100%; min-height: 200px; max-width: 600px; margin: auto;
-            background-color: #fff;
+            width: 100%;
+            min-height: 200px;
+            max-width: 600px;
+            margin: auto;
             padding-top: 20px;
             border-radius: 10px;
             margin-top: 20px;
             box-shadow: 0 5px 10px rgb(0, 0, 0 , 20%);
+            backdrop-filter: blur(10px);
+            background: rgb(255 255 255 / 39%);
         }
     </style>
 

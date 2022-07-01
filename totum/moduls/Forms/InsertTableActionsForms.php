@@ -96,7 +96,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
             $this->post['clearField'] ?? null)]];
 
         $formats = $this->getTableFormats([]);
-        $data['params']=$data['rows'][0];
+        $data['params'] = $data['rows'][0];
         unset($data['rows']);
         $data = $this->getValuesForClient($data, $formats, []);
         $data['params'] = ['__save' => ['v' => null]] + $data['params'];
@@ -262,7 +262,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
                 unset($clientFields[$f]);
             }
 
-            if(!empty($field['help'])){
+            if (!empty($field['help'])) {
                 $field['help'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $field['help']);
                 $field['help'] = preg_replace('`\s*<hide/?>\s*`su', '', $field['help']);
             }
@@ -287,7 +287,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
                     $sections['param'][] = ['name' => $name, 'title' => $field['sectionTitle'], 'fields' => []];
                 } elseif (empty($sections['param'])) {
                     $sections['param'][] = ['name' => 'quickMain',
-                        'title' => $this->FormsTableData['format_static']['t']['s']['quickMain']['title'] ?? '**name:quickMain;maxwidth:600;nextline:true;fill:true',
+                        'title' => $this->FormsTableData['format_static']['t']['s']['quickMain']['title'] ?? '**name:quickMain;maxwidth:620;nextline:true;fill:true',
                         'fields' => []];
                 }
 

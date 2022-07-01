@@ -31,7 +31,7 @@
             margin-top: 20px;
             box-shadow: 0 5px 10px rgb(0, 0, 0 , 20%);
             backdrop-filter: blur(10px);
-            background: rgb(255 255 255 / 39%);
+            background: rgb(255 255 255 / 90%);
         }
     </style>
 
@@ -44,7 +44,7 @@
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <div id="form">
     <script>
-        let num = "84";
+        let num = "85";
         (function (src, cssSrc, address, post, get, input) {
             let div = document.currentScript.parentNode;
             let path = "<?=$path?>";

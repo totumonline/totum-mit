@@ -41,6 +41,10 @@ class FormsController extends interfaceController
     private $_INPUT;
     private $clientFields;
     /**
+     * @var false|mixed|string
+     */
+    protected array $extraParams=[];
+    /**
      * @var array
      */
     private $sections;
@@ -84,6 +88,11 @@ class FormsController extends interfaceController
 
             try {
                 $this->FormsTableData = $this->checkTableByStr($requestTable);
+                $this->__addAnswerVar('settings', [
+                    '__browser_title' => $this->FormsTableData['format_static']['t']['f']['t'] ?? null,
+                    '__background' => $this->FormsTableData['format_static']['t']['f']['b'] ?? null,
+                ]);
+
                 $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);
 
                 if (!$User) {
@@ -154,8 +163,7 @@ class FormsController extends interfaceController
         } catch (criticalErrorException $exception) {
             $result = ['error' => $exception->getMessage() . ($this->Totum->getUser()->isCreator() && is_callable([$exception, 'getPathMess']) ? '<br/>' . $exception->getPathMess() : '')];
         }
-
-        return $result;
+        return ['settings' => $this->answerVars['settings']] + $result;
     }
 
     public function actionMain()
@@ -203,13 +211,24 @@ class FormsController extends interfaceController
             }
         }
 
+        if (!$extradata && ($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
+            if (empty($post['data']['get']['p']) || !($params = @Crypt::getDeCrypted($post['data']['get']['p'],
+                    $this->Config->getCryptSolt()
+                ))) {
+                throw new errorException('Для работы формы необходимы параметры ссылки');
+            } else {
+                $this->extraParams = json_decode($params, true);
+            }
+        }
+
         $this->Table = $this->Totum->getTable($tableRow, $extradata);
         $this->onlyRead = ($this->Totum->getUser()->getTables()[$this->Table->getTableRow()['id']] ?? null) !== 1;
 
 
-        if (!$extradata) {
+        if (!$extradata && $tableRow['type'] === 'tmp') {
             $add_tbl_data = [];
             $add_tbl_data['params'] = [];
+
             if (key_exists('h_get', $this->Table->getFields())) {
                 $add_tbl_data['params']['h_get'] = $post['data']['get'] ?? [];
             }
@@ -231,7 +250,7 @@ class FormsController extends interfaceController
                     $add_tbl_data['params'] = $d['p'] + $add_tbl_data['params'];
                 }
             }
-            if ($add_tbl_data && $this->Table->getTableRow()['type'] === 'tmp') {
+            if ($add_tbl_data) {
                 $this->Table->addData($add_tbl_data);
             }
         }
@@ -269,7 +288,7 @@ class FormsController extends interfaceController
             $Actions = new Actions($request, $this->modulePath, null, $this->Totum);
             $error = $this->translate('Table is not found.');
         } elseif (!$this->onlyRead) {
-            if ($this->FormsTableData['type'] === 'quick' && $this->Table->getTableRow()['type']!=='tmp') {
+            if ($this->FormsTableData['type'] === 'quick' && $this->Table->getTableRow()['type'] !== 'tmp') {
                 $Actions = new InsertTableActionsForms($request, $this->modulePath, $this->Table);
                 $error = $this->translate('Method [[%s]] in this module for quick tables is not defined.',
                     $method);

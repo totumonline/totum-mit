@@ -43,7 +43,7 @@ class FormsController extends interfaceController
     /**
      * @var false|mixed|string
      */
-    protected array $extraParams=[];
+    protected array $extraParams = [];
     /**
      * @var array
      */
@@ -179,17 +179,17 @@ class FormsController extends interfaceController
                 ['where' => [
                     ['field' => 'path_code', 'operator' => '=', 'value' => $form],
                     ['field' => 'on_off', 'operator' => '=', 'value' => true]],
-                    'field' => ['table_name', 'type', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code', 'field_code_formats']],
+                    'field' => ['path_code', 'table_name', 'type', 'call_user', 'css', 'format_static', 'fields_else_params', 'section_statuses_code', 'field_code_formats']],
                 'row'
             );
 
             if (!$tableData) {
-                throw new errorException($this->translate('Access to the table is denied.'));
+                throw new errorException($this->translate('Access to the form is denied.'));
             } else {
                 return $tableData;
             }
         } else {
-            throw new errorException($this->translate('Wrong path to the table'));
+            throw new errorException($this->translate('Wrong path to the form'));
         }
     }
 
@@ -211,13 +211,21 @@ class FormsController extends interfaceController
             }
         }
 
-        if (!$extradata && ($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
-            if (empty($post['data']['get']['p']) || !($params = @Crypt::getDeCrypted($post['data']['get']['p'],
+        if (!$extradata) {
+            if (!empty($post['data']['get']['d']) && ($params = @Crypt::getDeCrypted($post['data']['get']['d'],
                     $this->Config->getCryptSolt()
                 ))) {
-                throw new errorException('Для работы формы необходимы параметры ссылки');
-            } else {
                 $this->extraParams = json_decode($params, true);
+
+                if (($this->extraParams['t'] ?? false) !== $this->FormsTableData['path_code']) {
+                    throw new errorException('Неверные параметры ссылки');
+                }
+            }
+
+            if (($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
+                if (empty($this->extraParams)) {
+                    throw new errorException('Для работы формы необходимы параметры ссылки');
+                }
             }
         }
 
@@ -239,10 +247,7 @@ class FormsController extends interfaceController
                 $add_tbl_data['params']['h_input'] = $post['data']['input'] ?? '';
             }
 
-            if (!empty($post['data']['get']['d']) && ($d = Crypt::getDeCrypted(
-                    $post['data']['get']['d'],
-                    $this->Config->getCryptSolt()
-                )) && ($d = json_decode($d, true))) {
+            if ($d = $this->extraParams) {
                 if (!empty($d['d'])) {
                     $add_tbl_data['tbl'] = $d['d'];
                 }

@@ -102,7 +102,6 @@ class InsertTableActionsForms extends WriteTableActionsForms
         $data['params'] = ['__save' => ['v' => null]] + $data['params'];
 
 
-
         $this->addLoadedSelects($data);
         $data['f'] = $formats;
         return ['chdata' => $data, 'sess_hash' => $this->insertHash];
@@ -303,15 +302,28 @@ class InsertTableActionsForms extends WriteTableActionsForms
             'add' => $this->insertHash
         ]);
 
-        $CA = new CalculateAction('=: linktodatahtml(title: ""; html: $#html)');
-        $CA->execAction('CODE',
-            [],
-            [],
-            [],
-            [],
-            $this->Table,
-            'exec',
-            ['html' => $this->FormsTableData['format_static']['t']['s']['quickMain']['ok_message'] ?? 'OK']);
+        if ($this->FormsTableData['format_static']['t']['s']['quickMain']['code_when_saved']) {
+            $CA = new CalculateAction($this->FormsTableData['format_static']['t']['s']['quickMain']['code_when_saved']);
+            $CA->execAction('CODE',
+                [],
+                [],
+                [],
+                [],
+                $this->Table,
+                'exec',
+                ['rowId' => array_key_first($this->Table->getChangeIds()['added'])]);
+        } else {
+
+            $CA = new CalculateAction('=: linktodatahtml(title: ""; html: $#html)');
+            $CA->execAction('CODE',
+                [],
+                [],
+                [],
+                [],
+                $this->Table,
+                'exec',
+                ['html' => $this->FormsTableData['format_static']['t']['s']['quickMain']['ok_message'] ?? 'OK']);
+        }
         $this->createNewInsertRow();
         $this->setInsertRowData();
 

@@ -146,7 +146,8 @@ class AnController extends interfaceController
     {
         if (!$this->onlyRead) {
             $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
-            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.', $method);
+            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.',
+                $method);
         } else {
             $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
             $error = $this->translate('Your access to this table is read-only. Contact administrator to make changes.');
@@ -190,10 +191,18 @@ class AnController extends interfaceController
                             if (key_exists('h_input', $this->Table->getFields())) {
                                 $add_tbl_data["params"]['h_input'] = (string)$request->getBody();
                             }
-                            if (!empty($d = ($this->Request->getQueryParams()['d']??null)) && ($d = Crypt::getDeCrypted(
-                                $d,
-                                $this->Config->getCryptSolt()
-                            )) && ($d = json_decode($d, true))) {
+                            if (!empty($d = ($this->Request->getQueryParams()['d'] ?? null)) && ($d = Crypt::getDeCrypted(
+                                    $d,
+                                    $this->Config->getCryptSolt()
+                                )) && ($d = json_decode($d, true))) {
+
+                                if (($d['t'] ?? false) != $this->Table->getTableRow()['id']) {
+                                    $this->__addAnswerVar('error',
+                                        $this->translate('Invalid link parameters.'));
+                                    $this->Table = null;
+                                    return;
+                                }
+
                                 if (!empty($d['d'])) {
                                     $add_tbl_data["tbl"] = $d['d'];
                                 }

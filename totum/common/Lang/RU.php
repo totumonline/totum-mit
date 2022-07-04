@@ -283,9 +283,9 @@ class RU implements LangInterface
         'Form is not found.' => 'Форма не найдена',
 
         'Invalid link parameters.'=>'Неверные параметры ссылки.',
+        'Access to tables in a loop through this module is not available.'=>'Доступ к таблицам в цикле через этот модуль недоступен.',
 
         'Access to the cycle is denied.' => 'Доступ к циклу запрещен.',
-        'Access via module for temporary tables only' => 'Доступ через модуль только для временных таблиц',
         'Table access error' => 'Ошибка доступа к таблице',
         'Wrong path to the table' => 'Неверный путь к таблице',
         'Wrong path to the form' => 'Неверный путь к форме',

@@ -853,8 +853,8 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
-        if ($tableRow['type'] !== 'tmp') {
-            throw new errorException($this->translate('For temporary tables only.'));
+        if ($tableRow['type'] === 'calcs') {
+            throw new errorException($this->translate('Access to tables in a cycle through this module is not available.'));
         }
         $d = [];
         if (!empty($params['data'])) {

@@ -170,7 +170,7 @@ class AnController extends interfaceController
                 $tableRow = $this->Totum->getTableRow($tableId);
                 $extradata = null;
                 if ($tableRow['type'] === 'calcs') {
-                    $this->__addAnswerVar('error', $this->translate('Access to tables in a loop through this module is not available.'));
+                    $this->__addAnswerVar('error', $this->translate('Access to tables in a cycle through this module is not available.'));
                 } else {
                     $this->onlyRead = $this->User->getTables()[$tableId] === 0;
                     if ($this->isAjax && $tableRow['type']==='tmp' && empty($this->Request->getParsedBody()['tableData']['sess_hash'] ?? null)) {

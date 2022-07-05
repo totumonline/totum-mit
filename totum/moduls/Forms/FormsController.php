@@ -209,25 +209,39 @@ class FormsController extends interfaceController
                     $extradata = null;
                 }
             }
-        }
+            if (($post['method'] ?? null) === 'getTableData') {
+                $get = $post['data']['get'];
+                if (!empty($get['d']) && ($params = @Crypt::getDeCrypted($get['d'],
+                        $this->Totum->getConfig()->getCryptSolt()
+                    ))) {
+                    $this->extraParams = json_decode($params, true);
 
-        if (!$extradata) {
-            if (!empty($post['data']['get']['d']) && ($params = @Crypt::getDeCrypted($post['data']['get']['d'],
-                    $this->Config->getCryptSolt()
-                ))) {
-                $this->extraParams = json_decode($params, true);
+                    if (($this->extraParams['t'] ?? false) !== $this->FormsTableData['path_code']) {
+                        throw new errorException('Неверные параметры ссылки');
+                    }
+                }
 
-                if (($this->extraParams['t'] ?? false) !== $this->FormsTableData['path_code']) {
-                    throw new errorException('Неверные параметры ссылки');
+                if (($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
+                    if (empty($this->extraParams)) {
+                        throw new errorException('Для работы формы необходимы параметры ссылки');
+                    }
                 }
             }
 
-            if (($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
-                if (empty($this->extraParams)) {
-                    throw new errorException('Для работы формы необходимы параметры ссылки');
+        } /*elseif ($tableRow['type'] === 'simple') {
+            if ($extradata) {
+                try{
+                    TmpTables::init($this->Totum->getConfig())->getByHash(
+                        TmpTables::SERVICE_TABLES['insert_row'],
+                        $this->Totum->getUser(),
+                        $extradata,
+                    );
+                }catch (errorException){
+                    $extradata = null;
                 }
             }
-        }
+        }*/
+
 
         $this->Table = $this->Totum->getTable($tableRow, $extradata);
         $this->onlyRead = ($this->Totum->getUser()->getTables()[$this->Table->getTableRow()['id']] ?? null) !== 1;

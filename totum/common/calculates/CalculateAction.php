@@ -916,6 +916,47 @@ class CalculateAction extends Calculate
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
     }
+    protected function funcLinkToQuickForm($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        $this->__checkRequiredParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['path']);
+
+        $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
+            ['where' => [
+                ['field' => 'path_code', 'operator' => '=', 'value' => $params['path']]
+            ],
+                'field' => ['type']],
+            'row'
+        );
+
+        if (!$formData) {
+            throw new errorException($this->translate('Form is not found.'));
+        }
+        if ($formData['type'] != 'quick') {
+            throw new errorException($this->translate('For quick forms only.'));
+        }
+        $d = [];
+
+        if (!empty($params['fields'])) {
+            $d['f'] = $params['fields'];
+        }
+        if (!empty($params['fixed'])) {
+            $d['x'] = $params['fixed'];
+        }
+
+        $t = $params['path'];
+        if ($d) {
+            $d['t'] = $params['path'];
+
+            $t .= '?d=' . urlencode(Crypt::getCrypted(
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
+        }
+        return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+    }
 
     protected function funcEncriptedFormParams($params)
     {

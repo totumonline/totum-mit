@@ -285,6 +285,8 @@ class RU implements LangInterface
         'Invalid link parameters.'=>'Неверные параметры ссылки.',
         'Access to tables in a cycle through this module is not available.'=>'Доступ к таблицам в цикле через этот модуль недоступен.',
 
+        'For quick forms only.'=>'Только для быстрых форм.',
+
         'Access to the cycle is denied.' => 'Доступ к циклу запрещен.',
         'Table access error' => 'Ошибка доступа к таблице',
         'Wrong path to the table' => 'Неверный путь к таблице',

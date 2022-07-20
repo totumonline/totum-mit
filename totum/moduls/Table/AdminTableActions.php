@@ -41,7 +41,7 @@ class AdminTableActions extends WriteTableActions
         if (!empty($this->post['tableId']) && $row = $this->Totum->getTableRow($this->post['tableId'])) {
             return [$this->post['param'] => $row[$this->post['param']]];
         }
-        throw new errorException($this->translate('Table is not found.').' '.$this->translate('May be insert row has expired.'));
+        throw new errorException($this->translate('Table is not found.') . ' ' . $this->translate('May be insert row has expired.'));
     }
 
     public function getAllTables()
@@ -202,6 +202,41 @@ CODE;
 
 
         return ['value' => $this->Table->getByParams(['field' => 'id', 'where' => $data])];
+    }
+
+    public function formsLinks()
+    {
+        switch ($this->post['type'] ?? null) {
+            case 'quick':
+
+                $CA = new CalculateAction('=: linkToDataTable(table: "ttm__add_quick_form"; target: "iframe"; width: 750; title: $#title; params: $#data)');
+                $CA->execAction('CODE',
+                    [],
+                    [],
+                    [],
+                    $this->Table->getTbl(),
+                    $this->Table,
+                    'exec',
+                    ['title' => $this->translate('Add quick form'), 'data'=>['h_table_name'=>$this->Table->getTableRow()['name']]]
+                );
+
+
+                break;
+            case 'forms':
+                $CA = new CalculateAction('=: linkToTable(table: "ttm__forms"; target: "self"; title: $#title; filter: "fl_table_prefilter_in_forms"="' . $this->Table->getTableRow()['name'] . '")');
+                $CA->execAction('CODE',
+                    [],
+                    [],
+                    [],
+                    $this->Table->getTbl(),
+                    $this->Table,
+                    'exec',
+                    ['title' => $this->translate('%s table forms', $this->Table->getTableRow()['title'])]);
+
+                break;
+            default:
+                throw new errorException('Type Forms Error');
+        }
     }
 
     public function calcFieldsLog()

@@ -286,6 +286,8 @@ class RU implements LangInterface
         'Access to tables in a cycle through this module is not available.'=>'Доступ к таблицам в цикле через этот модуль недоступен.',
 
         'For quick forms only.'=>'Только для быстрых форм.',
+        '%s table forms'=>'Формы таблицы %s',
+        'Add quick form'=>'Добавить быструю форму',
 
         'Access to the cycle is denied.' => 'Доступ к циклу запрещен.',
         'Table access error' => 'Ошибка доступа к таблице',

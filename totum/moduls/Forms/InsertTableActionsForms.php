@@ -162,6 +162,9 @@ class InsertTableActionsForms extends WriteTableActionsForms
             , 'error' => $error ?? null
             , 'data_params' => $data['params']
             , 'updated' => $this->Table->getSavedUpdated()
+            , 'lang'=>[
+                'name'=>$this->Table->getTotum()->getConfig()->getLang()
+            ]
 
         ];
         return $result;

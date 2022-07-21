@@ -216,7 +216,7 @@ abstract class aTable
         if (is_array($hashData)) {
             $loadData = $hashData;
             $hash = $hashData['_ihash'];
-            if (!empty($hashData['__fixedData'])) {
+            if (key_exists('__fixedData', $hashData)) {
                 $dataToSave['__fixedData'] = $hashData['__fixedData'];
             }
 

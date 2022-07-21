@@ -22,7 +22,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
         FormsTrait::getEditSelect as formsGetEditSelect;
     }
 
-    protected mixed $extraParams;
+    protected mixed $extraParams = null;
 
     /**
      * @var mixed|string

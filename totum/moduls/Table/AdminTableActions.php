@@ -223,7 +223,7 @@ CODE;
 
                 break;
             case 'forms':
-                $CA = new CalculateAction('=: linkToTable(table: "ttm__forms"; target: "self"; title: $#title; filter: "fl_table_prefilter_in_forms"="' . $this->Table->getTableRow()['name'] . '")');
+                $CA = new CalculateAction('=: linkToTable(table: "ttm__forms"; target: "iframe"; width: 750; title: $#title; filter: "fl_table_prefilter_in_forms"="' . $this->Table->getTableRow()['name'] . '")');
                 $CA->execAction('CODE',
                     [],
                     [],

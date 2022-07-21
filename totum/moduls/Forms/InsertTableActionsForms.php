@@ -162,8 +162,8 @@ class InsertTableActionsForms extends WriteTableActionsForms
             , 'error' => $error ?? null
             , 'data_params' => $data['params']
             , 'updated' => $this->Table->getSavedUpdated()
-            , 'lang'=>[
-                'name'=>$this->Table->getTotum()->getConfig()->getLang()
+            , 'lang' => [
+                'name' => $this->Table->getTotum()->getConfig()->getLang()
             ]
 
         ];
@@ -333,7 +333,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
             'add' => $this->insertHash
         ]);
 
-        if ($this->FormsTableData['format_static']['t']['s']['quickMain']['code_when_saved']) {
+        if ($this->FormsTableData['format_static']['t']['s']['quickMain']['code_when_saved'] ?? false) {
             $CA = new CalculateAction($this->FormsTableData['format_static']['t']['s']['quickMain']['code_when_saved']);
             $CA->execAction('CODE',
                 [],
@@ -359,7 +359,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
         $this->setInsertRowData();
 
         $data = ['rows' => [$this->getInsertRow($this->insertRowData,
-            $this->insertRowData['__fixedData']['f'] + $this->insertRowData['__fixedData']['x'],
+            ($this->insertRowData['__fixedData']['f']??[]) + ($this->insertRowData['__fixedData']['x'] ?? []),
             [])]];
 
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);

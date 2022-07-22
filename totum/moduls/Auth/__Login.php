@@ -7,7 +7,7 @@ use totum\config\Conf;
 
 <div id="auth_form"
      class="center-block"
-     style="width: 350px; margin-top: 10vh; display: none;">
+     style="display: none;">
     <style>
         #top_line, .Tree {
             display: none;
@@ -19,6 +19,10 @@ use totum\config\Conf;
 
         input.error {
             border-color: red;
+        }
+        body{
+            background: url(/imgs/mailttm.png) no-repeat center center fixed;
+            background-size: cover;
         }
     </style>
 

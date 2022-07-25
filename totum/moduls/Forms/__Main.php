@@ -35,6 +35,8 @@
         }
     </style>
 
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
+
 </head>
 <body id="pk"
       class="lock">

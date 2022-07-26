@@ -290,7 +290,7 @@ class RU implements LangInterface
         'Add form' => 'Добавить форму',
         'This is not a simple table. Quick forms are only available for simple tables.' => 'Это не простая таблица. Быстрые формы доступны только для простых таблиц.',
         'The quick table is not available in read-only mode.' => 'Быстрая таблица недоступна в режиме только для чтения.',
-
+        'The form requires link parameters to work.'=>'Для работы формы необходимы параметры ссылки.',
 
         'Access to the cycle is denied.' => 'Доступ к циклу запрещен.',
         'Table access error' => 'Ошибка доступа к таблице',

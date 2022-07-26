@@ -133,7 +133,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
 
             if (($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
                 if (empty($this->extraParams)) {
-                    throw new errorException('Для работы формы необходимы параметры ссылки');
+                    throw new errorException('The form requires link parameters to work.');
                 }
             }
         }

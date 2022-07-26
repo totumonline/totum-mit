@@ -224,7 +224,7 @@ class FormsController extends interfaceController
 
                 if (($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
                     if (empty($this->extraParams)) {
-                        throw new errorException('Для работы формы необходимы параметры ссылки');
+                        throw new errorException($this->translate('The form requires link parameters to work.'));
                     }
                 }
             }

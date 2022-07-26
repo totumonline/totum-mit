@@ -218,7 +218,7 @@ class FormsController extends interfaceController
                     $this->extraParams = json_decode($params, true);
 
                     if (($this->extraParams['t'] ?? false) !== $this->FormsTableData['path_code']) {
-                        throw new errorException('Неверные параметры ссылки');
+                        throw new errorException($this->translate('Incorrect link parameters'));
                     }
                 }
 

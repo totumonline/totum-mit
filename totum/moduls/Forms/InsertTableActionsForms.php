@@ -127,7 +127,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
                 $this->extraParams = json_decode($params, true);
 
                 if (($this->extraParams['t'] ?? false) !== $this->FormsTableData['path_code']) {
-                    throw new errorException('Неверные параметры ссылки');
+                    throw new errorException($this->translate('Incorrect link parameters'));
                 }
             }
 
@@ -265,8 +265,8 @@ class InsertTableActionsForms extends WriteTableActionsForms
         $clientFields['__save'] = [
             'type' => 'button',
             'insertable' => true,
-            'title' => 'Сохранить',
-            'buttonText' => 'Сохранить',
+            'title' => $this->translate('Save'),
+            'buttonText' => $this->translate('Save'),
             'name' => '__save',
             'category' => 'column',
             'ord' => 100000,

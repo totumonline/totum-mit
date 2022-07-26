@@ -339,7 +339,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
                 [],
                 [],
                 [],
-                [],
+                $this->Table->getTbl(),
                 $this->Table,
                 'exec',
                 ['rowId' => array_key_first($this->Table->getChangeIds()['added'])]);
@@ -359,7 +359,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
         $this->setInsertRowData();
 
         $data = ['rows' => [$this->getInsertRow($this->insertRowData,
-            ($this->insertRowData['__fixedData']['f']??[]) + ($this->insertRowData['__fixedData']['x'] ?? []),
+            ($this->insertRowData['__fixedData']['f'] ?? []) + ($this->insertRowData['__fixedData']['x'] ?? []),
             [])]];
 
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);

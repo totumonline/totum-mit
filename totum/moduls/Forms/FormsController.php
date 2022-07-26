@@ -307,24 +307,29 @@ class FormsController extends interfaceController
         if (!$this->Table) {
             $Actions = new Actions($request, $this->modulePath, null, $this->Totum);
             $error = $this->translate('Table is not found.');
-        } elseif (!$this->onlyRead) {
-            if ($this->FormsTableData['type'] === 'quick' && $this->Table->getTableRow()['type'] !== 'tmp') {
-                $Actions = new InsertTableActionsForms($request, $this->modulePath, $this->Table);
-                $error = $this->translate('Method [[%s]] in this module for quick tables is not defined.',
-                    $method);
-                $Actions->checkMethodIsAvailable($method, $error);
+        } elseif ($this->FormsTableData['type'] === 'quick') {
+            if (!$this->onlyRead) {
+                if ($this->Table->getTableRow()['type'] !== 'simple') {
+                    $error = $this->translate('This is not a simple table. Quick forms are only available for simple tables.');
+                } else {
+                    $Actions = new InsertTableActionsForms($request, $this->modulePath, $this->Table);
+                    $error = $this->translate('Method [[%s]] in this module for quick tables is not defined.',
+                        $method);
+                    $Actions->checkMethodIsAvailable($method, $error);
+                }
             } else {
-                $Actions = new WriteTableActionsForms($request, $this->modulePath, $this->Table, null);
-                $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.',
-                    $method);
+                $error = $this->translate('The quick table is not available in read-only mode.');
             }
-
+        } elseif (!$this->onlyRead) {
+            $Actions = new WriteTableActionsForms($request, $this->modulePath, $this->Table, null);
+            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.',
+                $method);
         } else {
             $Actions = new ReadTableActionsForms($request, $this->modulePath, $this->Table, null);
             $error = $this->translate('Your access to this table is read-only. Contact administrator to make changes.');
         }
 
-        if (!is_callable([$Actions, $method])) {
+        if (empty($Actions) || !is_callable([$Actions, $method])) {
             throw new errorException($error);
         }
         return $Actions;

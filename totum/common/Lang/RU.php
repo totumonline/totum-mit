@@ -60,7 +60,7 @@ class RU implements LangInterface
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
 
-        'The module is not available for this host.'=>'Модуль недоступен для этого хоста.',
+        'The module is not available for this host.' => 'Модуль недоступен для этого хоста.',
 
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',
         'Comment field contains incorrect type data as a value.' => 'Поле комментария содержит в качестве значения данные неправильного типа.',
@@ -282,12 +282,15 @@ class RU implements LangInterface
         'Access to the form is denied.' => 'Доступ к форме запрещен.',
         'Form is not found.' => 'Форма не найдена',
 
-        'Invalid link parameters.'=>'Неверные параметры ссылки.',
-        'Access to tables in a cycle through this module is not available.'=>'Доступ к таблицам в цикле через этот модуль недоступен.',
+        'Invalid link parameters.' => 'Неверные параметры ссылки.',
+        'Access to tables in a cycle through this module is not available.' => 'Доступ к таблицам в цикле через этот модуль недоступен.',
 
-        'For quick forms only.'=>'Только для быстрых форм.',
-        '%s table forms'=>'Формы таблицы %s',
-        'Add form'=>'Добавить форму',
+        'For quick forms only.' => 'Только для быстрых форм.',
+        '%s table forms' => 'Формы таблицы %s',
+        'Add form' => 'Добавить форму',
+        'This is not a simple table. Quick forms are only available for simple tables.' => 'Это не простая таблица. Быстрые формы доступны только для простых таблиц.',
+        'The quick table is not available in read-only mode.' => 'Быстрая таблица недоступна в режиме только для чтения.',
+
 
         'Access to the cycle is denied.' => 'Доступ к циклу запрещен.',
         'Table access error' => 'Ошибка доступа к таблице',

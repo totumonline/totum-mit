@@ -18,15 +18,16 @@
 
     <style>
         body{
-            background: url(/imgs/mailttm.png) no-repeat center center fixed;
+            background: url(/imgs/mailttm.png?1) no-repeat center center fixed;
             background-size: cover;
         }
         #form.ttm-form {
             width: 100%;
             min-height: 200px;
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             padding-top: 20px;
+            padding-bottom: 20px;
             border-radius: 10px;
             margin-top: 20px;
             box-shadow: 0 5px 10px rgb(0, 0, 0 , 20%);

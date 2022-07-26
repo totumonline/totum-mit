@@ -6,6 +6,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\criticalErrorException;
+use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Totum;
 use totum\config\totum\moduls\Forms\FormsTrait;
@@ -21,11 +22,14 @@ class InsertTableActionsForms extends WriteTableActionsForms
         FormsTrait::getEditSelect as formsGetEditSelect;
     }
 
+    protected mixed $extraParams = null;
+
     /**
      * @var mixed|string
      */
     private string $insertHash;
     private $insertRowData = null;
+    private bool $isJustCreated = false;
 
     public function __construct(ServerRequestInterface $Request, string $modulePath, aTable $Table = null, Totum $Totum = null)
     {
@@ -64,8 +68,9 @@ class InsertTableActionsForms extends WriteTableActionsForms
             [],
             true
         ));
-        $this->insertRowData = null;
+        $this->insertRowData = ['__fixedData' => $this->insertRowData['__fixedData'] ?? []];
         $this->insertHash = $hash;
+        $this->isJustCreated = true;
     }
 
     public function getEditSelect($data = null, $q = null, $parentId = null, $type = null)
@@ -90,17 +95,18 @@ class InsertTableActionsForms extends WriteTableActionsForms
     {
         $data = is_string($this->post['data']) ? json_decode($this->post['data'], true) : $this->post['data'];
 
+        $data['params'] = $this->insertRowData['__fixedData'] + $data['params'];
+
         $data = ['rows' => [$this->getInsertRow($this->insertRowData,
             $data['params'] ?? [],
             [],
             $this->post['clearField'] ?? null)]];
 
         $formats = $this->getTableFormats([]);
-        $data['params']=$data['rows'][0];
+        $data['params'] = $data['rows'][0];
         unset($data['rows']);
         $data = $this->getValuesForClient($data, $formats, []);
         $data['params'] = ['__save' => ['v' => null]] + $data['params'];
-
 
 
         $this->addLoadedSelects($data);
@@ -110,6 +116,27 @@ class InsertTableActionsForms extends WriteTableActionsForms
 
     public function getTableData($withRecalculate = true)
     {
+
+        $post = json_decode($this->Request->getBody(), true);
+
+        if (($post['method'] ?? null) === 'getTableData') {
+            $get = $post['data']['get'];
+            if (!empty($get['d']) && ($params = @Crypt::getDeCrypted($get['d'],
+                    $this->Totum->getConfig()->getCryptSolt()
+                ))) {
+                $this->extraParams = json_decode($params, true);
+
+                if (($this->extraParams['t'] ?? false) !== $this->FormsTableData['path_code']) {
+                    throw new errorException($this->translate('Incorrect link parameters'));
+                }
+            }
+
+            if (($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
+                if (empty($this->extraParams)) {
+                    throw new errorException('The form requires link parameters to work.');
+                }
+            }
+        }
 
         if (!empty($error)) {
             $result['error'] = $error;
@@ -135,6 +162,9 @@ class InsertTableActionsForms extends WriteTableActionsForms
             , 'error' => $error ?? null
             , 'data_params' => $data['params']
             , 'updated' => $this->Table->getSavedUpdated()
+            , 'lang' => [
+                'name' => $this->Table->getTotum()->getConfig()->getLang()
+            ]
 
         ];
         return $result;
@@ -235,8 +265,8 @@ class InsertTableActionsForms extends WriteTableActionsForms
         $clientFields['__save'] = [
             'type' => 'button',
             'insertable' => true,
-            'title' => 'Сохранить',
-            'buttonText' => 'Сохранить',
+            'title' => $this->translate('Save'),
+            'buttonText' => $this->translate('Save'),
             'name' => '__save',
             'category' => 'column',
             'ord' => 100000,
@@ -262,7 +292,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
                 unset($clientFields[$f]);
             }
 
-            if(!empty($field['help'])){
+            if (!empty($field['help'])) {
                 $field['help'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $field['help']);
                 $field['help'] = preg_replace('`\s*<hide/?>\s*`su', '', $field['help']);
             }
@@ -287,7 +317,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
                     $sections['param'][] = ['name' => $name, 'title' => $field['sectionTitle'], 'fields' => []];
                 } elseif (empty($sections['param'])) {
                     $sections['param'][] = ['name' => 'quickMain',
-                        'title' => $this->FormsTableData['format_static']['t']['s']['quickMain']['title'] ?? '**name:quickMain;maxwidth:600;nextline:true;fill:true',
+                        'title' => $this->FormsTableData['format_static']['t']['s']['quickMain']['title'] ?? '**name:quickMain;maxwidth:620;nextline:true;fill:true',
                         'fields' => []];
                 }
 
@@ -303,20 +333,33 @@ class InsertTableActionsForms extends WriteTableActionsForms
             'add' => $this->insertHash
         ]);
 
-        $CA = new CalculateAction('=: linktodatahtml(title: ""; html: $#html)');
-        $CA->execAction('CODE',
-            [],
-            [],
-            [],
-            [],
-            $this->Table,
-            'exec',
-            ['html' => $this->FormsTableData['format_static']['t']['s']['quickMain']['ok_message'] ?? 'OK']);
+        if ($this->FormsTableData['format_static']['t']['s']['quickMain']['code_when_saved'] ?? false) {
+            $CA = new CalculateAction($this->FormsTableData['format_static']['t']['s']['quickMain']['code_when_saved']);
+            $CA->execAction('CODE',
+                [],
+                [],
+                [],
+                $this->Table->getTbl(),
+                $this->Table,
+                'exec',
+                ['rowId' => array_key_first($this->Table->getChangeIds()['added'])]);
+        } else {
+
+            $CA = new CalculateAction('=: linktodatahtml(title: ""; html: $#html)');
+            $CA->execAction('CODE',
+                [],
+                [],
+                [],
+                [],
+                $this->Table,
+                'exec',
+                ['html' => $this->FormsTableData['format_static']['t']['s']['quickMain']['ok_message'] ?? 'OK']);
+        }
         $this->createNewInsertRow();
         $this->setInsertRowData();
 
         $data = ['rows' => [$this->getInsertRow($this->insertRowData,
-            [],
+            ($this->insertRowData['__fixedData']['f'] ?? []) + ($this->insertRowData['__fixedData']['x'] ?? []),
             [])]];
 
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);
@@ -331,9 +374,20 @@ class InsertTableActionsForms extends WriteTableActionsForms
 
     public function checkInsertRow()
     {
+        $insertData = $this->post['data'];
+
+        if ($this->extraParams) {
+            if ($this->isJustCreated) {
+                if ($this->extraParams['f'] ?? false) {
+                    $insertData = $this->extraParams['f'] + $insertData;
+                }
+            }
+            $this->insertRowData['__fixedData'] = ['f' => $this->extraParams['f'] ?? [], 'x' => $this->extraParams['x'] ?? []];
+            $insertData = $this->insertRowData['__fixedData']['f'] + $this->insertRowData['__fixedData']['x'] + $insertData;
+        }
 
         $data = ['rows' => [$this->getInsertRow($this->insertRowData,
-            $this->post['data'],
+            $insertData,
             [],
             $this->post['clearField'] ?? null)]];
 

@@ -109,7 +109,7 @@ class AnController extends interfaceController
             }
             $this->Totum->transactionCommit();
         } catch (errorException $exception) {
-            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() ? "<br/>" . $exception->getPathMess() : '')];
+            $result = ['error' => $exception->getMessage() . ($this->User->isCreator() ? '<br/>' . $exception->getPathMess() : '')];
         }
         return $result;
     }
@@ -120,11 +120,11 @@ class AnController extends interfaceController
             return;
         }
         try {
-            $Actions = $this->getTableActions($this->Request, "getFullTableData");
+            $Actions = $this->getTableActions($this->Request, 'getFullTableData');
             $result = $Actions->getFullTableData(true);
         } catch (criticalErrorException $exception) {
             $this->clearTotum($request);
-            $Actions = $this->getTableActions($this->Request, "getFullTableData");
+            $Actions = $this->getTableActions($this->Request, 'getFullTableData');
             $error = $exception->getMessage();
             $result = $Actions->getFullTableData(false);
         }
@@ -146,7 +146,8 @@ class AnController extends interfaceController
     {
         if (!$this->onlyRead) {
             $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
-            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.', $method);
+            $error = $this->translate('Method [[%s]] in this module is not defined or has admin level access.',
+                $method);
         } else {
             $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
             $error = $this->translate('Your access to this table is read-only. Contact administrator to make changes.');
@@ -168,37 +169,45 @@ class AnController extends interfaceController
             } else {
                 $tableRow = $this->Totum->getTableRow($tableId);
                 $extradata = null;
-                if ($tableRow['type'] !== 'tmp') {
-                    $this->__addAnswerVar('error', $this->translate('Access via module for temporary tables only'));
+                if ($tableRow['type'] === 'calcs') {
+                    $this->__addAnswerVar('error', $this->translate('Access to tables in a cycle through this module is not available.'));
                 } else {
                     $this->onlyRead = $this->User->getTables()[$tableId] === 0;
-                    if ($this->isAjax && empty($this->Request->getParsedBody()['tableData']['sess_hash'] ?? null)) {
+                    if ($this->isAjax && $tableRow['type']==='tmp' && empty($this->Request->getParsedBody()['tableData']['sess_hash'] ?? null)) {
                         $this->__addAnswerVar('error', $this->translate('Table access error'));
                     } else {
                         $extradata = $this->Request->getParsedBody()['tableData']['sess_hash'] ?? $_GET['sess_hash'] ?? null;
                         $this->Table = $this->Totum->getTable($tableRow, $extradata);
-                        if (!$this->isAjax && !$extradata) {
+                        if ( $tableRow['type']==='tmp' && !$this->isAjax && !$extradata) {
                             $add_tbl_data = [];
-                            $add_tbl_data["params"] = [];
-                            $add_tbl_data["tbl"] = [];
+                            $add_tbl_data['params'] = [];
+                            $add_tbl_data['tbl'] = [];
                             if (key_exists('h_get', $this->Table->getFields())) {
-                                $add_tbl_data["params"]['h_get'] = $request->getQueryParams();
+                                $add_tbl_data['params']['h_get'] = $request->getQueryParams();
                             }
                             if (key_exists('h_post', $this->Table->getFields())) {
-                                $add_tbl_data["params"]['h_post'] = $request->getParsedBody();
+                                $add_tbl_data['params']['h_post'] = $request->getParsedBody();
                             }
                             if (key_exists('h_input', $this->Table->getFields())) {
-                                $add_tbl_data["params"]['h_input'] = (string)$request->getBody();
+                                $add_tbl_data['params']['h_input'] = (string)$request->getBody();
                             }
-                            if (!empty($d = ($this->Request->getQueryParams()['d']??null)) && ($d = Crypt::getDeCrypted(
-                                $d,
-                                $this->Config->getCryptSolt()
-                            )) && ($d = json_decode($d, true))) {
+                            if (!empty($d = ($this->Request->getQueryParams()['d'] ?? null)) && ($d = Crypt::getDeCrypted(
+                                    $d,
+                                    $this->Config->getCryptSolt()
+                                )) && ($d = json_decode($d, true))) {
+
+                                if (($d['t'] ?? false) != $this->Table->getTableRow()['id']) {
+                                    $this->__addAnswerVar('error',
+                                        $this->translate('Invalid link parameters.'));
+                                    $this->Table = null;
+                                    return;
+                                }
+
                                 if (!empty($d['d'])) {
-                                    $add_tbl_data["tbl"] = $d['d'];
+                                    $add_tbl_data['tbl'] = $d['d'];
                                 }
                                 if (!empty($d['p'])) {
-                                    $add_tbl_data["params"] = $d['p'] + $add_tbl_data["params"];
+                                    $add_tbl_data['params'] = $d['p'] + $add_tbl_data['params'];
                                 }
                             }
                             if ($add_tbl_data) {

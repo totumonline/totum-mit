@@ -97,10 +97,7 @@ class TableController extends interfaceController
             );
         }
 
-        $this->__addAnswerVar(
-            'html',
-            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $this->Config->getSettings('main_page'))
-        );
+        $this->__addAnswerVar('html', $this->Config->getSettings('main_page'));
     }
 
     public function actionAjaxActions(ServerRequestInterface $request)
@@ -687,10 +684,7 @@ class TableController extends interfaceController
                 );
                 switch ($branchData['type']) {
                     case null:
-                        $this->__addAnswerVar(
-                            'html',
-                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
-                        );
+                        $this->__addAnswerVar('html', $branchData['html']);
                         break;
                     case 'anchor':
                         $this->anchorId = $this->branchId;

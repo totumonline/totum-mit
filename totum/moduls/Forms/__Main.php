@@ -18,18 +18,25 @@
 
     <style>
         body{
-            background: url(/imgs/mailttm.png) no-repeat center center fixed;
+            background: url(/imgs/mailttm.png?1) no-repeat center center fixed;
             background-size: cover;
         }
         #form.ttm-form {
-            width: 100%; min-height: 200px; max-width: 600px; margin: auto;
-            background-color: #fff;
+            width: 100%;
+            min-height: 200px;
+            max-width: 620px;
+            margin: auto;
             padding-top: 20px;
+            padding-bottom: 20px;
             border-radius: 10px;
             margin-top: 20px;
             box-shadow: 0 5px 10px rgb(0, 0, 0 , 20%);
+            backdrop-filter: blur(10px);
+            background: rgb(255 255 255 / 90%);
         }
     </style>
+
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
 
 </head>
 <body id="pk"
@@ -40,7 +47,8 @@
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <div id="form">
     <script>
-        let num = "84";
+        window.MAIN_HOST_FORM = true;
+        let num = "86";
         (function (src, cssSrc, address, post, get, input) {
             let div = document.currentScript.parentNode;
             let path = "<?=$path?>";

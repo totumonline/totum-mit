@@ -14,6 +14,7 @@ use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Lang\RU;
+use totum\common\Model;
 use totum\common\Totum;
 use totum\common\TotumInstall;
 use totum\models\TmpTables;
@@ -852,8 +853,8 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
 
-        if ($tableRow['type'] !== 'tmp') {
-            throw new errorException($this->translate('For temporary tables only.'));
+        if ($tableRow['type'] === 'calcs') {
+            throw new errorException($this->translate('Access to tables in a cycle through this module is not available.'));
         }
         $d = [];
         if (!empty($params['data'])) {
@@ -864,12 +865,97 @@ class CalculateAction extends Calculate
         }
         $t = $tableRow['id'];
         if ($d) {
+            $d['t'] = $tableRow['id'];
+
             $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
                     json_encode($d, JSON_UNESCAPED_UNICODE),
                     $this->Table->getTotum()->getConfig()->getCryptSolt()
                 ));
         }
-        return $this->Table->getTotum()->getConfig()->getAnonymHost() . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
+        return $this->Table->getTotum()->getConfig()->getAnonymHost('An') . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
+    }
+
+    protected function funcLinkToForm($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        $this->__checkRequiredParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['path']);
+
+        $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
+            ['where' => [
+                ['field' => 'path_code', 'operator' => '=', 'value' => $params['path']]
+            ],
+                'field' => ['type']],
+            'row'
+        );
+
+        if (!$formData) {
+            throw new errorException($this->translate('Form is not found.'));
+        }
+        if ($formData['type'] != '') {
+            throw new errorException($this->translate('For temporary tables forms only.'));
+        }
+        $d = [];
+
+        if (!empty($params['data'])) {
+            $d['d'] = $params['data'];
+        }
+        if (!empty($params['params'])) {
+            $d['p'] = $params['params'];
+        }
+
+        $t = $params['path'];
+        if ($d) {
+            $d['t'] = $params['path'];
+
+            $t .= '?d=' . urlencode(Crypt::getCrypted(
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
+        }
+        return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+    }
+    protected function funcLinkToQuickForm($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        $this->__checkRequiredParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['path']);
+
+        $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
+            ['where' => [
+                ['field' => 'path_code', 'operator' => '=', 'value' => $params['path']]
+            ],
+                'field' => ['type']],
+            'row'
+        );
+
+        if (!$formData) {
+            throw new errorException($this->translate('Form is not found.'));
+        }
+        if ($formData['type'] != 'quick') {
+            throw new errorException($this->translate('For quick forms only.'));
+        }
+        $d = [];
+
+        if (!empty($params['fields'])) {
+            $d['f'] = $params['fields'];
+        }
+        if (!empty($params['fixed'])) {
+            $d['x'] = $params['fixed'];
+        }
+
+        $t = $params['path'];
+        if ($d) {
+            $d['t'] = $params['path'];
+
+            $t .= '?d=' . urlencode(Crypt::getCrypted(
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
+        }
+        return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
     }
 
     protected function funcEncriptedFormParams($params)

@@ -45,6 +45,7 @@ class RU implements LangInterface
         'You cannot create query to PostgreSql with 65000 and more parameters.' => 'Вы не можете создать запрос к PostgreSql >= 65000 параметров.',
 
         'For temporary tables only.' => 'Только для временных таблиц',
+        'For temporary tables forms only.' => 'Только для форм временных таблиц.',
         'For simple and cycles tables only.' => 'Только для простых таблиц и таблиц циклов.',
         'The table has no n-sorting.' => 'Таблица не имеет n-сортировки.',
         'The table [[%s]] has no n-sorting.' => 'Таблица [[%s]] не имеет n-сортировки.',
@@ -59,7 +60,7 @@ class RU implements LangInterface
         'The %s parameter must be a number.' => 'Параметр %s должен быть числом.',
         'The value of key %s is not a number.' => 'Значение ключа %s не является числом.',
 
-        'The module is not available for this host.'=>'Модуль недоступен для этого хоста.',
+        'The module is not available for this host.' => 'Модуль недоступен для этого хоста.',
 
         'The [[%s]] parameter is not correct.' => 'Параметр [[%s]] не корректен.',
         'Comment field contains incorrect type data as a value.' => 'Поле комментария содержит в качестве значения данные неправильного типа.',
@@ -278,10 +279,25 @@ class RU implements LangInterface
         'Method [[%s]] in this module is not defined.' => 'Метод [[%s]] в этом модуле не определен.',
         'Your access to this table is read-only. Contact administrator to make changes.' => 'Ваш доступ к этой таблице - только на чтение. Обратитесь к администратору для внесения изменений.',
         'Access to the table is denied.' => 'Доступ к таблице запрещен.',
+        'Access to the form is denied.' => 'Доступ к форме запрещен.',
+        'Form is not found.' => 'Форма не найдена',
+
+        'Invalid link parameters.' => 'Неверные параметры ссылки.',
+        'Access to tables in a cycle through this module is not available.' => 'Доступ к таблицам в цикле через этот модуль недоступен.',
+
+        'For quick forms only.' => 'Только для быстрых форм.',
+        '%s table forms' => 'Формы таблицы %s',
+        'Add form' => 'Добавить форму',
+        'This is not a simple table. Quick forms are only available for simple tables.' => 'Это не простая таблица. Быстрые формы доступны только для простых таблиц.',
+        'The quick table is not available in read-only mode.' => 'Быстрая таблица недоступна в режиме только для чтения.',
+        'The form requires link parameters to work.' => 'Для работы формы необходимы параметры ссылки.',
+        'Incorrect link parameters' => 'Неверные параметры ссылки',
+        'Save' => 'Сохранить',
+
         'Access to the cycle is denied.' => 'Доступ к циклу запрещен.',
-        'Access via module for temporary tables only' => 'Доступ через модуль только для временных таблиц',
         'Table access error' => 'Ошибка доступа к таблице',
         'Wrong path to the table' => 'Неверный путь к таблице',
+        'Wrong path to the form' => 'Неверный путь к форме',
         'Write access to the table is denied' => 'Доступ к таблице на запись запрещен',
         'Login/Email' => 'Логин/Email',
         'Log in' => 'Вход',

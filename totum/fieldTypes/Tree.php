@@ -357,7 +357,7 @@ class Tree extends Field
                 }
 
                 if ($parent && key_exists($parent, $list)) {
-                    foreach ($list[$parent]["children"] as $id) {
+                    foreach ($list[$parent]['children'] ?? [] as $id) {
                         $addInArrays($id, true, $formDeepLevel);
                     }
                 }
@@ -391,7 +391,7 @@ class Tree extends Field
             $ids = [];
             $qFunc = $this->table->getTotum()->getLangObj()->getSearchFunction($q);
             foreach ($list as $id => $v) {
-                if(!$qFunc($v[0])){
+                if (!$qFunc($v[0])) {
                     continue;
                 }
                 while ($id = $list[$id][3] ?? null) {

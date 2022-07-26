@@ -268,7 +268,6 @@ class ZH implements LangInterface
         'Your access to this table is read-only. Contact administrator to make changes.' =>'您对该表的访问是只读的。联系管理员进行更改。',
         'Access to the table is denied.' =>'对表的访问被拒绝。',
         'Access to the cycle is denied.' =>'拒绝访问循环。',
-        'Access via module for temporary tables only' =>'仅通过模块访问临时表',
         'Table access error' =>'表访问错误',
         'Wrong path to the table' =>'无效的表格路径',
         'Write access to the table is denied' =>'对表的写访问被拒绝',

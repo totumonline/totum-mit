@@ -7,7 +7,7 @@ use totum\config\Conf;
 
 <div id="auth_form"
      class="center-block"
-     style="width: 350px; margin-top: 10vh; display: none;">
+     style="display: none;">
     <style>
         #top_line, .Tree {
             display: none;
@@ -20,12 +20,15 @@ use totum\config\Conf;
         input.error {
             border-color: red;
         }
+        body{
+            background: url(/imgs/mailttm.png) no-repeat center center fixed;
+            background-size: cover;
+        }
     </style>
 
     <div style="text-align: center; font-size: 30px; padding-bottom: 2vh;padding-top: 2vh;"
          class="login-brand"><?= $schema_name ?> </div>
-    <div class="center-block"
-         style="width: 300px; ">
+    <div class="center-block">
         <form method="post"
               id='form'>
             <div class="form-group"><label><?=$this->translate('Login/Email')?>:</label><input type="text"

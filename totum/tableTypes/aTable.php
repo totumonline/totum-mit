@@ -211,9 +211,15 @@ abstract class aTable
             $this->checkTableUpdated($tableData);
         }
 
+        $dataToSave = [];
+
         if (is_array($hashData)) {
             $loadData = $hashData;
             $hash = $hashData['_ihash'];
+            if (key_exists('__fixedData', $hashData)) {
+                $dataToSave['__fixedData'] = $hashData['__fixedData'];
+            }
+
         } elseif ($hash = $hashData) {
             $this->insertRowHash = $hash;
             $loadData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
@@ -237,7 +243,6 @@ abstract class aTable
         $this->reCalculate(['channel' => 'web', 'add' => [$data], 'isCheck' => true]);
 
 
-        $dataToSave = [];
         foreach ($this->tbl['rowInserted'] as $k => $v) {
             if (is_array($v)) {
                 if (!empty($v['h']) || empty($this->getFields()[$k]['code'])

@@ -217,7 +217,7 @@ CODE;
                     $this->Table->getTbl(),
                     $this->Table,
                     'exec',
-                    ['title' => $this->translate('Add quick form'), 'data'=>['h_table_name'=>$this->Table->getTableRow()['name']]]
+                    ['title' => $this->translate('Add form'), 'data'=>['h_table_name'=>$this->Table->getTableRow()['name']]]
                 );
 
 

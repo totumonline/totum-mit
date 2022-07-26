@@ -91,6 +91,7 @@ class FormsController extends interfaceController
                 $this->__addAnswerVar('settings', [
                     '__browser_title' => $this->FormsTableData['format_static']['t']['f']['t'] ?? null,
                     '__background' => $this->FormsTableData['format_static']['t']['f']['b'] ?? null,
+                    '__form_width' => $this->FormsTableData['format_static']['t']['f']['m'] ?? null,
                 ]);
 
                 $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);

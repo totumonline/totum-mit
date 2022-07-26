@@ -24,7 +24,7 @@
         #form.ttm-form {
             width: 100%;
             min-height: 200px;
-            max-width: 800px;
+            max-width: 620px;
             margin: auto;
             padding-top: 20px;
             padding-bottom: 20px;
@@ -47,6 +47,7 @@
 <div id="big_loading" style="display: none;"><i class="fa fa-cog fa-spin fa-3x"></i></div>
 <div id="form">
     <script>
+        window.MAIN_HOST_FORM = true;
         let num = "85";
         (function (src, cssSrc, address, post, get, input) {
             let div = document.currentScript.parentNode;

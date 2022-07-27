@@ -916,6 +916,7 @@ class CalculateAction extends Calculate
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
     }
+
     protected function funcLinkToQuickForm($params)
     {
         $params = $this->getParamsArray($params);
@@ -984,11 +985,13 @@ class CalculateAction extends Calculate
 
         $width = $params['width'] ?? 600;
 
+        $htmlspecialchars = htmlspecialchars(is_array($params['text']) ?
+            'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
+            $params['text'] ?? '');
+
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => htmlspecialchars(is_array($params['text']) ?
-                'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
-                $params['text'] ?? '')],
+            ['title' => $title, 'width' => $width, 'text' => $htmlspecialchars, 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }
@@ -1043,7 +1046,7 @@ class CalculateAction extends Calculate
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? ''],
+            ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? '', 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }

@@ -15,11 +15,6 @@
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/autoinstall.sh && sudo bash autoinstall.sh
 ```
 
-#### 1-Click Docker install on VDS/VPS Ubuntu 20 — [video on YouTube](https://www.youtube.com/watch?v=ZztzQ53kMQQ) | [docs](https://github.com/totumonline/totum-mit-docker)
-```
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/autoinstall.sh && sudo bash autoinstall.sh
-```
-
 \>
 
 #### Documentaion — [docs.totum.online](https://docs.totum.online)

@@ -389,6 +389,8 @@ class RU implements LangInterface
         'The structure of the table was changed. Possibly a field order mismatch.' => 'Была изменена структура таблицы. Возможно несовпадение порядка полей.',
         'no indication of a cycle' => 'отсутствует указание на цикл',
         'Table from another cycle or out of cycles' => 'Таблица из другого цикла или вне циклов',
+
+        'There is no calculation table in [[%s]] cycles table.' => 'В таблице циклов [[%s]] нет ни одной расчетной таблицы.',
         'Out of cycles' => 'Вне циклов',
         'Manual Values' => 'Ручные значения',
         'there is no Manual Values section header' => 'отсутствует заголовок секции Ручные значения',

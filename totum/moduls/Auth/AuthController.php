@@ -17,6 +17,9 @@ use totum\common\Totum;
 
 class AuthController extends interfaceController
 {
+    public function action(ServerRequestInterface $request){
+        die('Path is not available');
+    }
     public function actionLogin(ServerRequestInterface $request)
     {
         $post = $request->getParsedBody();

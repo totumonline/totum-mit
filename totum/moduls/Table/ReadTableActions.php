@@ -991,7 +991,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     }
                     foreach ($fields as $field) {
                         if ($field['category'] === 'column') {
-                            $tr .= '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . $row[$field['name']]['v'] . '</span></td>';
+                            $tr .= '<td class="f-' . $field['type'] . ' n-' . $field['name'] . '"><span>' . (is_array($row[$field['name']]['v']) ? json_encode($row[$field['name']]['v'],
+                                    JSON_UNESCAPED_UNICODE) : $row[$field['name']]['v']) . '</span></td>';
                         }
                     }
                     $tr .= '</tr>';

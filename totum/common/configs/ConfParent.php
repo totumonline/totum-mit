@@ -271,14 +271,20 @@ abstract class ConfParent
 
     protected const ANONYM_ALIAS = 'An';
 
-    public function getAnonymHost()
+    public function getAnonymHost($type)
     {
+        if ($hiddenHosts = $this->getHiddenHosts()) {
+            foreach (static::getSchemas() as $host => $schema) {
+                if (key_exists($host,
+                        $hiddenHosts) && ($this->getSchema() === $schema) && ($hiddenHosts[$host][$type] ?? false)) {
+                    return $host;
+                }
+            }
+        }
         return $this->getFullHostName();
     }
 
     /**
-     * TODO connect method to index.php
-     *
      * @return string
      */
     public function getAnonymModul()
@@ -715,4 +721,10 @@ SQL
     {
         return $this->getLangObj()->translate($str, $vars);
     }
+
+    public function getHiddenHosts(): array
+    {
+        return [];
+    }
+
 }

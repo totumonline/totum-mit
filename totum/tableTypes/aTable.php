@@ -211,9 +211,15 @@ abstract class aTable
             $this->checkTableUpdated($tableData);
         }
 
+        $dataToSave = [];
+
         if (is_array($hashData)) {
             $loadData = $hashData;
             $hash = $hashData['_ihash'];
+            if (key_exists('__fixedData', $hashData)) {
+                $dataToSave['__fixedData'] = $hashData['__fixedData'];
+            }
+
         } elseif ($hash = $hashData) {
             $this->insertRowHash = $hash;
             $loadData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
@@ -237,7 +243,6 @@ abstract class aTable
         $this->reCalculate(['channel' => 'web', 'add' => [$data], 'isCheck' => true]);
 
 
-        $dataToSave = [];
         foreach ($this->tbl['rowInserted'] as $k => $v) {
             if (is_array($v)) {
                 if (!empty($v['h']) || empty($this->getFields()[$k]['code'])
@@ -1842,7 +1847,7 @@ CODE;;
             $params[] = ['field' => 'id', 'operator' => '=', 'value' => $idsFilter];
         }
 
-        if ($channel == 'web' && !$this->User->isCreator() && $this->tableRow['cycles_access_type'] === '1') {
+        if ($channel == 'web' && !$this->User->isCreator() && $this->tableRow['type'] === 'cycles' && $this->tableRow['cycles_access_type'] === '1') {
             $params[] = ['field' => 'creator_id', 'operator' => '=', 'value' => $this->User->getConnectedUsers()];
         }
 
@@ -2790,7 +2795,7 @@ CODE;;
     {
         if (is_string($field)) {
             if (!key_exists($field, $this->fields)) {
-                throw new errorException($this->translate('The %s field in %s of the table does not exist',
+                throw new errorException($this->translate('The %s field in %s table does not exist',
                     [$field, $this->getTableRow()['title']]));
             }
             $field = $this->fields[$field];

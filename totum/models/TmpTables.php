@@ -5,6 +5,7 @@ namespace totum\models;
 
 use totum\common\errorException;
 use totum\common\Model;
+use totum\common\User;
 
 class TmpTables extends Model
 {
@@ -66,7 +67,7 @@ class TmpTables extends Model
         );
     }
 
-    public function getByHash($table_name, $User, $hash, $json_decode = true)
+    public function getByHash($table_name, User $User, $hash, $json_decode = true)
     {
         $smtp = $this->executePreparedSimple(
             true,

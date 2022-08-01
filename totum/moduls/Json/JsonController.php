@@ -288,7 +288,7 @@ class JsonController extends Controller
                 foreach ((array)$itemArray['__clears'] as $k) {
                     if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
                         throw new errorException(
-                            $this->translate('The %s field in %s of the table does not exist', [$k, $path]),
+                            $this->translate('The %s field in %s table does not exist', [$k, $path]),
                             10
                         );
                     } else {
@@ -302,7 +302,7 @@ class JsonController extends Controller
                 foreach ((array)$itemArray['__pins'] as $k) {
                     if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
                         throw new errorException(
-                            $this->translate('The %s field in %s of the table does not exist', [$k, $path]),
+                            $this->translate('The %s field in %s table does not exist', [$k, $path]),
                             10
                         );
                     } else {
@@ -315,7 +315,7 @@ class JsonController extends Controller
             foreach ($itemArray as $k => $v) {
                 if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
                     throw new errorException(
-                        $this->translate('The %s field in %s of the table does not exist',[$k, $path]),
+                        $this->translate('The %s field in %s table does not exist',[$k, $path]),
                         10
                     );
                 }

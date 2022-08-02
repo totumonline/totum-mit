@@ -109,7 +109,7 @@ abstract class ConfParent
 
     public function getDefaultSender()
     {
-        return 'no-reply@' . $this->getFullHostName();
+        return $this->getSettings('default_email') ?? 'no-reply@' . $this->getFullHostName();
     }
 
     public function setSessionCookieParams()

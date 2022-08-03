@@ -12,6 +12,25 @@ use totum\tableTypes\RealTables;
 trait FuncTablesTrait
 {
 
+    protected function funcTableUri(string $params): string
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkNotArrayParams($params, ['table', 'cycle', 'protocol']);
+        $this->__checkTableIdOrName($params['table'] ?? '', 'table');
+
+        $protocol = ($params['protocol'] ?? 'https') !== 'http' ? 'https' : 'http';
+        $tableRow = $this->Table->getTotum()->getTableRow($params['table']);
+
+        $tablePath = $tableRow['top'] . '/' . $tableRow['id'];
+        if ($tableRow['type'] === 'calcs') {
+            $this->__checkNotEmptyParams($params, ['cycle']);
+            $top = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])['top'];
+            $tablePath = $top . '/' . $tableRow['tree_node_id'] . '/' . $tableRow['id'] . '/' . $params['cycle'];
+        }
+
+        return $protocol . '://' . $this->Table->getTotum()->getConfig()->getFullHostName() . '/Table/' . $tablePath;
+    }
+
     protected function funcGetTableSource(string $params)
     {
         $params = $this->getParamsArray($params);

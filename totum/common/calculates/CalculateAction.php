@@ -58,74 +58,74 @@ class CalculateAction extends Calculate
     protected function funcExec(string $params): mixed
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $code = $params['code'] ?? $params['kod'] ?? null;
+            $code  = $params['code'] = $params['code'] ?? $params['kod'] ?? null;
 
-            if (empty($code)) {
-                $this->__checkNotEmptyParams($params, ['code']);
-            } else {
-                if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
-                    $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
+            $this->__checkNotEmptyParams($params, ['code']);
+            $this->__checkNotArrayParams($params, ['code']);
+
+
+            if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
+                $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
+            }
+
+            if (key_exists('ssh',
+                    $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
+
+                if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
+                    throw new criticalErrorException($this->translate('Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.'));
                 }
 
-                if (key_exists('ssh',
-                        $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
+                $Vars = [];
+                foreach ($params['var'] ?? [] as $v) {
+                    $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
+                }
 
-                    if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
-                        throw new criticalErrorException($this->translate('Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.'));
-                    }
+                $data = ['code' => $code, 'vars' => $Vars];
+                $test = '> /dev/null 2>&1 &';
+                if ($params['ssh'] === 'test') {
+                    $data['test'] = true;
+                    $test = '2>&1';
+                }
 
+                $data = base64_encode(json_encode($data,
+                    JSON_UNESCAPED_UNICODE));
+
+                $path = $this->Table->getTotum()->getConfig()->getBaseDir();
+
+                $schema = '';
+
+                if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
+                    $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
+                }
+
+                return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} {$test}`;
+
+            } else {
+
+
+                $CA = new static($code);
+                try {
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {
                         $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
                     }
 
-                    $data = ['code' => $code, 'vars' => $Vars];
-                    $test = '> /dev/null 2>&1 &';
-                    if ($params['ssh'] === 'test') {
-                        $data['test'] = true;
-                        $test = '2>&1';
-                    }
+                    $r = $CA->execAction(
+                        $this->varName,
+                        $this->oldRow,
+                        $this->row,
+                        $this->oldTbl,
+                        $this->tbl,
+                        $this->Table,
+                        $this->vars['tpa'],
+                        $Vars
+                    );
+                    $this->newLogParent['children'][] = $CA->getLogVar();
 
-                    $data = base64_encode(json_encode($data,
-                        JSON_UNESCAPED_UNICODE));
-
-                    $path = $this->Table->getTotum()->getConfig()->getBaseDir();
-
-                    $schema = '';
-
-                    if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
-                        $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
-                    }
-
-                    return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} {$test}`;
-
-                } else {
-
-
-                    $CA = new static($code);
-                    try {
-                        $Vars = [];
-                        foreach ($params['var'] ?? [] as $v) {
-                            $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
-                        }
-
-                        $r = $CA->execAction(
-                            $this->varName,
-                            $this->oldRow,
-                            $this->row,
-                            $this->oldTbl,
-                            $this->tbl,
-                            $this->Table,
-                            $this->vars['tpa'],
-                            $Vars
-                        );
-                        $this->newLogParent['children'][] = $CA->getLogVar();
-
-                        return $r;
-                    } catch (errorException $e) {
-                        $this->newLogParent['children'][] = $CA->getLogVar();
-                        throw $e;
-                    }
+                    return $r;
+                } catch (errorException $e) {
+                    $this->newLogParent['children'][] = $CA->getLogVar();
+                    throw $e;
                 }
             }
         }
@@ -516,9 +516,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-                'email',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'email',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -575,9 +575,9 @@ class CalculateAction extends Calculate
 
 
         $toBfl = $params['bfl'] ?? in_array(
-                'soap',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'soap',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,
@@ -916,6 +916,7 @@ class CalculateAction extends Calculate
         }
         return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
     }
+
     protected function funcLinkToQuickForm($params)
     {
         $params = $this->getParamsArray($params);
@@ -984,11 +985,13 @@ class CalculateAction extends Calculate
 
         $width = $params['width'] ?? 600;
 
+        $htmlspecialchars = htmlspecialchars(is_array($params['text']) ?
+            'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
+            $params['text'] ?? '');
+
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => htmlspecialchars(is_array($params['text']) ?
-                'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
-                $params['text'] ?? '')],
+            ['title' => $title, 'width' => $width, 'text' => $htmlspecialchars, 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }
@@ -1043,7 +1046,7 @@ class CalculateAction extends Calculate
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? ''],
+            ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? '', 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }

@@ -1940,8 +1940,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $this->Table->getTableRow()['id'],
                     $this->User->getFavoriteTables()
                 );
+            if ($this->User->isCreator() && in_array($this->Table->getTableRow()['type'], ['tmp', 'simple'])) {
+                $_tableRow  ['__is_in_forms'] = !!$this->Totum->getModel('ttm__forms')->get(['table_name'=>$tableRow['name']], 'id');
+            }
+
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
+
 
         return $_tableRow;
     }

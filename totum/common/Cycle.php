@@ -113,6 +113,12 @@ class Cycle
         $Cycle = $Totum->getCycle($newId, $cyclesTableID);
         $tables = $Cycle->getTableIds();
 
+        if (empty($tables)) {
+            $tableRow = $Totum->getTableRow($cyclesTableID);
+            throw new errorException($Totum->getConfig()->getLangObj()->translate('There is no calculation table in [[%s]] cycles table.',
+                $tableRow['title']));
+        }
+
         /** @var TablesCalcsConnects $modelTablesCalcsConnects */
         $modelTablesCalcsConnects = TablesCalcsConnects::init($Totum->getConfig());
         $modelTablesCalcsConnects->duplicateCycleSources($tables, $oldId, $newId);

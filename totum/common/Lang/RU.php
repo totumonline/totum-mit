@@ -37,7 +37,7 @@ class RU implements LangInterface
         'Each button must contain [[%s]].' => 'Каждая кнопка должна содержать [[%s]].',
         'The parameter [[%s]] should be of type row/list.' => 'Параметр [[%s]] должен быть типа row/list.',
         'The parameter [[%s]] should be of type true/false.' => 'Параметр [[%s]] должен быть типа true/false.',
-        'The parameter [[%s]] should [[not]] be of type row/list.' => 'Параметр [[%s]] [[не]] должен быть типа row/list.',
+        'The parameter [[%s]] should [[not]] be of type row/list.' => 'Параметр [[%s]] не должен быть типа row/list.',
         'The parameter [[%s]] should be of type string.' => 'Параметр [[%s]] должен быть типа строка.',
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 

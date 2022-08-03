@@ -12,7 +12,7 @@ use totum\tableTypes\RealTables;
 trait FuncTablesTrait
 {
 
-    protected function funcTableUri(string $params): string
+    protected function funcTableUrl(string $params): string
     {
         $params = $this->getParamsArray($params);
         $this->__checkNotArrayParams($params, ['table', 'cycle', 'protocol']);
@@ -25,7 +25,7 @@ trait FuncTablesTrait
         if ($tableRow['type'] === 'calcs') {
             $this->__checkNotEmptyParams($params, ['cycle']);
             $top = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])['top'];
-            $tablePath = $top . '/' . $tableRow['tree_node_id'] . '/' . $tableRow['id'] . '/' . $params['cycle'];
+            $tablePath = $top . '/' . $tableRow['tree_node_id'] . '/' . $params['cycle'] . '/' . $tableRow['id'];
         }
 
         return $protocol . '://' . $this->Table->getTotum()->getConfig()->getFullHostName() . '/Table/' . $tablePath;

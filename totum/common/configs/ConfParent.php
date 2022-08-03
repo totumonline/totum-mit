@@ -114,17 +114,11 @@ abstract class ConfParent
 
     public function setSessionCookieParams()
     {
-        $settingsOptions = $this->getSettings('session_cookie_params') ?? [];
-
-        if (!is_array($settingsOptions)) {
-            $settingsOptions = [];
-        }
-        $settingsOptions = $settingsOptions + [
-                'path' => '/',
-                'httponly' => true,
-                'samesite' => 'Lax'
-            ];
-        session_set_cookie_params($settingsOptions);
+        session_set_cookie_params([
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
     }
 
     public function getBaseDir()

@@ -174,7 +174,7 @@ class Conf extends ConfParent{
             'path' => '/',
             /*'secure' => true,*/ //-- uncomment this if your totum always on ssl
             'httponly' => true,
-            'samesite' => 'Strict'
+            'samesite' => 'Lax'
         ]);
     }
 }

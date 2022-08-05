@@ -586,48 +586,52 @@ abstract class aTable
             }
 
             foreach ($links as $f) {
-                if ($linkTableRow = $this->Totum->getConfig()->getTableRow($f['linkTableName'])) {
-                    $linkTableId = $linkTableRow['id'];
+                try {
+                    if ($linkTableRow = $this->Totum->getConfig()->getTableRow($f['linkTableName'])) {
+                        $linkTableId = $linkTableRow['id'];
 
-                    if ($tableId === $linkTableId) {
-                        $fForLink = $fields[$f['linkFieldName']] ?? null;
-                    } elseif ($linkTableRow['type'] === 'calcs') {
-                        if ($this->Totum->getConfig()->getTableRow($tableId)['type'] === 'calcs') {
-                            $_version = $this->Totum->getCycle(
-                                $cycleId,
-                                $linkTableRow['tree_node_id']
-                            )->getVersionForTable($f['linkTableName'])[0];
-                        } else {
-                            $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
-                        }
-
-                        $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
-                    } else {
-                        $fForLink = ($this->loadFields($linkTableId)[$f['linkFieldName']]) ?? null;
-                    }
-
-                    if ($fForLink) {
-                        $fieldFromLinkParams = [];
-                        foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect',
-                                     'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency',
-                                     'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull',
-                                     'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix'
-                                 ] as $fV) {
-                            if (isset($fForLink[$fV])) {
-                                $fieldFromLinkParams[$fV] = $fForLink[$fV];
+                        if ($tableId === $linkTableId) {
+                            $fForLink = $fields[$f['linkFieldName']] ?? null;
+                        } elseif ($linkTableRow['type'] === 'calcs') {
+                            if ($this->Totum->getConfig()->getTableRow($tableId)['type'] === 'calcs') {
+                                $_version = $this->Totum->getCycle(
+                                    $cycleId,
+                                    $linkTableRow['tree_node_id']
+                                )->getVersionForTable($f['linkTableName'])[0];
+                            } else {
+                                $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
                             }
-                        }
-                        if ($fieldFromLinkParams['type'] === 'button') {
-                            $fieldFromLinkParams['codeAction'] = $fForLink['codeAction'];
-                        } elseif ($fieldFromLinkParams['type'] === 'file') {
-                            $fields[$f['name']]['fileDuplicateOnCopy'] = false;
+
+                            $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
+                        } else {
+                            $fForLink = ($this->loadFields($linkTableId)[$f['linkFieldName']]) ?? null;
                         }
 
-                        $fields[$f['name']] = array_merge($fields[$f['name']], $fieldFromLinkParams);
+                        if ($fForLink) {
+                            $fieldFromLinkParams = [];
+                            foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect',
+                                         'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency',
+                                         'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull',
+                                         'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix'
+                                     ] as $fV) {
+                                if (isset($fForLink[$fV])) {
+                                    $fieldFromLinkParams[$fV] = $fForLink[$fV];
+                                }
+                            }
+                            if ($fieldFromLinkParams['type'] === 'button') {
+                                $fieldFromLinkParams['codeAction'] = $fForLink['codeAction'];
+                            } elseif ($fieldFromLinkParams['type'] === 'file') {
+                                $fields[$f['name']]['fileDuplicateOnCopy'] = false;
+                            }
+
+                            $fields[$f['name']] = array_merge($fields[$f['name']], $fieldFromLinkParams);
+                        } else {
+                            $fields[$f['name']]['linkFieldError'] = true;
+                        }
                     } else {
                         $fields[$f['name']]['linkFieldError'] = true;
                     }
-                } else {
+                } catch (errorException) {
                     $fields[$f['name']]['linkFieldError'] = true;
                 }
                 $fields[$f['name']]['code'] = 'Select code';

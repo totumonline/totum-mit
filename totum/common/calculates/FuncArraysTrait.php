@@ -863,14 +863,25 @@ trait FuncArraysTrait
         $keys = array_unique(array_merge(($params['key'] ?? []), ($params['keys'] ?? [])));
 
         if (!empty($keys) && !empty($params['row'])) {
-            if ($params['recursive'] ?? false) {
-                $remover = function ($row) use (&$remover, $keys) {
-                    foreach ($keys as $key) {
-                        unset($row[$key]);
+            $params['recursive'] = match ($params['recursive'] ?? false) {
+                'false', false => false,
+                'true' => true,
+                default => $params['recursive']
+            };
+
+            if ($params['recursive'] !== false) {
+                if (!is_bool($params['recursive'])) {
+                    $params['recursive'] = (array)$params['recursive'];
+                }
+                $remover = function ($row, $level = 0) use ($params, &$remover, $keys) {
+                    if ($params['recursive'] === true || in_array($level, $params['recursive'])) {
+                        foreach ($keys as $key) {
+                            unset($row[$key]);
+                        }
                     }
                     foreach ($row as $k => $item) {
                         if (is_array($item)) {
-                            $row[$k] = $remover($item);
+                            $row[$k] = $remover($item, ($level + 1));
                         }
                     }
                     return $row;
@@ -911,7 +922,14 @@ trait FuncArraysTrait
                 ['to', 'from']));
         }
 
-        $recursive = $params['recursive'] ?? false;
+        $recursive = match ($params['recursive'] ?? false) {
+            'false', false => false,
+            'true' => true,
+            default => $params['recursive']
+        };
+        if (!is_bool($recursive)) {
+            $recursive = (array)$recursive;
+        }
 
 
         if (is_array($params['from']) && is_array($params['to'])) {
@@ -940,15 +958,19 @@ trait FuncArraysTrait
         }
 
 
-        $funcReplace = function ($row) use ($recursive, &$funcReplace, &$funcKeyReplace) {
+        $funcReplace = function ($row, $level = 0) use ($recursive, &$funcReplace, &$funcKeyReplace) {
             $rowOut = [];
             foreach ($row as $k => $v) {
                 if ($recursive && is_array($v)) {
-                    $vOut = $funcReplace($v);
+                    $vOut = $funcReplace($v, ($level + 1));
                 } else {
                     $vOut = $v;
                 }
-                $rowOut[$funcKeyReplace($k)] = $vOut;
+                if ($recursive !== false && ($recursive === true || in_array($level, $recursive))) {
+                    $rowOut[$funcKeyReplace($k)] = $vOut;
+                } else {
+                    $rowOut[$k] = $vOut;
+                }
             }
             return $rowOut;
         };

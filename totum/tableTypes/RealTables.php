@@ -749,7 +749,6 @@ abstract class RealTables extends aTable
                 $orderMinN = $orderMinN2;
             }
         }
-
         /***reorder***/
         if ($reorder) {
 
@@ -765,7 +764,7 @@ abstract class RealTables extends aTable
 
             if ($addAfter !== null) {
                 if ((string)$addAfter === '0') {
-                    $minN = $this->model->executePrepared(true, [], 'n', 'n desc')->fetch();
+                    $minN = $this->model->executePrepared(true, (object)['whereStr' => 'n is not null', 'params' => []], 'n', 'n desc')->fetch();
                     if ($minN['n']) {
                         $nextN = $this->getNextN(null, 0, $minN['n']);
                     } else {

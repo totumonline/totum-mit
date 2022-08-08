@@ -97,6 +97,7 @@ trait WebInterfaceTrait
         ob_start();
         $out = fopen('php://output', 'w');
         foreach ($csv as $fields) {
+
             fputcsv($out, $fields, ';', '"', '\\');
         }
         fclose($out);
@@ -577,6 +578,20 @@ trait WebInterfaceTrait
     {
         $csv = [];
 
+        $getAndCheckVal = function ($valArray, $field, $row){
+            Field::init($field, $this)->addViewValues('csv', $valArray, $row, $this->tbl);
+
+            if(is_array($valArray['v'])){
+                if(key_exists('id', $row)){
+                    throw new errorException($this->translate('Value format error in id %s row field %s', [$row['id'], $field['title']]));
+                }else{
+                    throw new errorException($this->translate('Value format error in field %s', $field['title']));
+                }
+
+            }
+            return $valArray['v'];
+        };
+
         $addTop = function () use (&$csv) {
             //Название таблицы
             $csv[] = [$this->tableRow['title']];
@@ -599,7 +614,7 @@ trait WebInterfaceTrait
 
             $csv[] = ['', '', ''];
         };
-        $addRowsByCategory = function ($categoriFields, $categoryTitle) use (&$csv, $visibleFields) {
+        $addRowsByCategory = function ($categoriFields, $categoryTitle) use ($getAndCheckVal, &$csv, $visibleFields) {
             $csv[] = [$categoryTitle];
 
             $paramNames = [];
@@ -612,8 +627,7 @@ trait WebInterfaceTrait
                 }
                 $valArray = $this->tbl['params'][$field['name']];
 
-                Field::init($field, $this)->addViewValues('csv', $valArray, $this->tbl['params'], $this->tbl);
-                $val = $valArray['v'];
+                $val = $getAndCheckVal($valArray, $field, $this->tbl['params']);
 
                 $paramTitles[] = '' . $field['title'] . '';
                 $paramNames[] = '' . $field['name'] . '';
@@ -634,7 +648,7 @@ trait WebInterfaceTrait
             $csv[] = [empty($_filters) ? '' : Crypt::getCrypted(json_encode($_filters, JSON_UNESCAPED_UNICODE))];
             $csv[] = ['', '', ''];
         };
-        $addFooter = function ($rowParams) use (&$csv, $addRowsByCategory, $visibleFields) {
+        $addFooter = function ($rowParams) use ($getAndCheckVal, &$csv, $addRowsByCategory, $visibleFields) {
             /******Футеры колонок - только в json-таблицах******/
             if (is_a($this, JsonTables::class)) {
                 $columnsFooters = [];
@@ -667,14 +681,7 @@ trait WebInterfaceTrait
                                 continue;
                             }
 
-                            $valArray = $this->tbl['params'][$field['name']];
-                            Field::init($field, $this)->addViewValues(
-                                'csv',
-                                $valArray,
-                                $this->tbl['params'],
-                                $this->tbl
-                            );
-                            $val = $valArray['v'];
+                            $val = $getAndCheckVal($this->tbl['params'][$field['name']], $field, $this->tbl['params']);
 
                             $iFooterCsvHead [] = $field['title'];
                             $iFooterCsvName [] = $field['name'];
@@ -731,9 +738,7 @@ trait WebInterfaceTrait
                 foreach ($this->tbl['rows'] as $row) {
                     $csvRow = ['', $row['id']];
                     foreach ($rowParams as $fName) {
-                        $valArray = $row[$fName];
-                        Field::init($this->fields[$fName], $this)->addViewValues('csv', $valArray, $row, $this->tbl);
-                        $val = $valArray['v'];
+                        $val = $getAndCheckVal($row[$fName], $this->fields[$fName], $row);
                         $csvRow [] = $val;
                     }
                     $csv[] = $csvRow;
@@ -746,9 +751,7 @@ trait WebInterfaceTrait
                 foreach ($this->tbl['rows'] as $row) {
                     $csvRow = [];
                     foreach ($rowParams as $fName) {
-                        $valArray = $row[$fName];
-                        Field::init($this->fields[$fName], $this)->addViewValues('csv', $valArray, $row, $this->tbl);
-                        $val = $valArray['v'];
+                        $val = $getAndCheckVal($row[$fName], $this->fields[$fName], $row);
                         $csvRow [] = $val;
                     }
                     $csv[] = $csvRow;

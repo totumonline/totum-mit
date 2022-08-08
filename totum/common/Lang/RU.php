@@ -425,9 +425,11 @@ class RU implements LangInterface
         'Adding row error' => 'Ошибка добавления строки',
         'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей',
         'Data parameter  / data values must be numeric.' => 'Параметр data / его вложенные значения должны быть числовыми',
-        'An invalid value for id filtering was passed to the select function.' => 'В select функцию было передано недопустимое значение для фильтрации по id.'
+        'An invalid value for id filtering was passed to the select function.' => 'В select функцию было передано недопустимое значение для фильтрации по id.',
 
 
+        'Value format error in id %s row field %s' => 'Ошибка формата значения в строке id %s поля %s',
+        'Value format error in field %s' => 'Ошибка формата значения в поле %s',
     ];
     protected const monthRods = [
         1 => 'января',

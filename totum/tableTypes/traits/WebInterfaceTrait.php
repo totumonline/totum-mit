@@ -152,7 +152,7 @@ trait WebInterfaceTrait
 
         $inVars['duplicate'] = $duplicate;
         if ($inVars['duplicate']) {
-            foreach ($inVars['duplicate']['replaces']??[] as $replaces) {
+            foreach ($inVars['duplicate']['replaces'] ?? [] as $replaces) {
                 foreach ($replaces ?? [] as $k => $v) {
                     if (!$this->isField('visible',
                             'web',
@@ -578,13 +578,18 @@ trait WebInterfaceTrait
     {
         $csv = [];
 
-        $getAndCheckVal = function ($valArray, $field, $row){
+        $useThisField = function ($field) use ($visibleFields) {
+            return in_array($field['name'], $visibleFields) && !in_array($field['type'], ['file', 'button']);
+        };
+
+        $getAndCheckVal = function ($valArray, $field, $row) {
             Field::init($field, $this)->addViewValues('csv', $valArray, $row, $this->tbl);
 
-            if(is_array($valArray['v'])){
-                if(key_exists('id', $row)){
-                    throw new errorException($this->translate('Value format error in id %s row field %s', [$row['id'], $field['title']]));
-                }else{
+            if (is_array($valArray['v'])) {
+                if (key_exists('id', $row)) {
+                    throw new errorException($this->translate('Value format error in id %s row field %s',
+                        [$row['id'], $field['title']]));
+                } else {
                     throw new errorException($this->translate('Value format error in field %s', $field['title']));
                 }
 
@@ -614,7 +619,7 @@ trait WebInterfaceTrait
 
             $csv[] = ['', '', ''];
         };
-        $addRowsByCategory = function ($categoriFields, $categoryTitle) use ($getAndCheckVal, &$csv, $visibleFields) {
+        $addRowsByCategory = function ($categoriFields, $categoryTitle) use ($useThisField, $getAndCheckVal, &$csv, $visibleFields) {
             $csv[] = [$categoryTitle];
 
             $paramNames = [];
@@ -622,7 +627,7 @@ trait WebInterfaceTrait
             $paramTitles = [];
 
             foreach ($categoriFields as $field) {
-                if (!in_array($field['name'], $visibleFields)) {
+                if (!$useThisField($field)) {
                     continue;
                 }
                 $valArray = $this->tbl['params'][$field['name']];
@@ -648,7 +653,7 @@ trait WebInterfaceTrait
             $csv[] = [empty($_filters) ? '' : Crypt::getCrypted(json_encode($_filters, JSON_UNESCAPED_UNICODE))];
             $csv[] = ['', '', ''];
         };
-        $addFooter = function ($rowParams) use ($getAndCheckVal, &$csv, $addRowsByCategory, $visibleFields) {
+        $addFooter = function ($rowParams) use ($useThisField, $getAndCheckVal, &$csv, $addRowsByCategory, $visibleFields) {
             /******Футеры колонок - только в json-таблицах******/
             if (is_a($this, JsonTables::class)) {
                 $columnsFooters = [];
@@ -677,7 +682,7 @@ trait WebInterfaceTrait
                         if (isset($columnsFooters[$fName][$iFooter])) {
                             $field = $columnsFooters[$fName][$iFooter];
 
-                            if (!in_array($field['name'], $visibleFields)) {
+                            if (!$useThisField($field)) {
                                 continue;
                             }
 
@@ -708,7 +713,7 @@ trait WebInterfaceTrait
         $paramNames = ['', ''];
         $rowParams = [];
         foreach ($this->getVisibleFields('web', true)['column'] as $k => $field) {
-            if (!in_array($field['name'], $visibleFields)) {
+            if (!$useThisField($field)) {
                 continue;
             }
 

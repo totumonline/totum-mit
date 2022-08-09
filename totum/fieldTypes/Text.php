@@ -91,7 +91,7 @@ class Text extends Field
                     $val = json_encode($val, JSON_UNESCAPED_UNICODE);
                 }
             } elseif (is_array($val)) {
-                $valTmp = "";
+                $valTmp = '';
                 foreach ($val as $v) {
                     if ($valTmp !== '') {
                         $valTmp .= "\n";

@@ -151,12 +151,12 @@ class CalculateAction extends Calculate
         );
 
         $schema = $this->Table->getTotum()->getConfig()->getSchema();
-        $exclude = "--exclude-table-data='_tmp_tables'";
+        $exclude = "--exclude-table-data='{$schema}._tmp_tables'";
         if (empty($params['withlog'])) {
-            $exclude .= " --exclude-table-data='_log'";
+            $exclude .= " --exclude-table-data='{$schema}._log'";
         }
         if (empty($params['withbfl'])) {
-            $exclude .= " --exclude-table-data='_bfl'";
+            $exclude .= " --exclude-table-data='{$schema}._bfl'";
         }
         exec(
             "$pathDbPsql -O --schema '{$schema}' {$exclude} | grep -v '^--' | gzip > \"{$tmpFilename}\"",

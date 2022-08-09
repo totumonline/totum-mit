@@ -57,16 +57,17 @@ class SchemaDuplicate extends Command
 
         $tmpFilenameOld = tempnam($Conf->getTmpDir(), 'schemaDuplicate.' . $baseName);
 
-        $exclude = "--exclude-table-data='_tmp_tables'";
-        $exclude .= " --exclude-table-data='_bfl'";
+        $exclude = "--exclude-table-data='{$baseName}._tmp_tables'";
+        $exclude .= " --exclude-table-data='{$baseName}._bfl'";
         if ($input->getOption('no-logs')) {
-            $exclude .= " --exclude-table-data='_log'";
+            $exclude .= " --exclude-table-data='{$baseName}._log'";
         }
         if ($input->getOption('no-content')) {
             foreach (explode(',', $input->getOption('no-content')) as $tName) {
-                $exclude .= " --exclude-table-data='$tName'";
+                $exclude .= " --exclude-table-data='{$baseName}.$tName'";
             }
         }
+
 
         set_time_limit(0);
 

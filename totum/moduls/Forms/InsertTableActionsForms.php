@@ -220,10 +220,6 @@ class InsertTableActionsForms extends WriteTableActionsForms
                         if (!key_exists($fieldName, $this->clientFields)) {
                             continue;
                         }
-                        if ($fieldName === 'test') {
-                            var_dump($section['fields']);
-                            die;
-                        }
 
                         if ($getSectionEditType($section['name']) && ($code = $this->FormsTableData['field_code_formats'][$fieldName] ?? $this->Table->getFields()[$fieldName]['format'] ?? null)) {
                             $FieldFormat = $this->CalcFieldFormat[$fieldName]

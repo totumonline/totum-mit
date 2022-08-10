@@ -18,6 +18,23 @@ class Unic extends Field
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
         if (!$isCheck && !is_null($val) && $val !== '') {
+
+            if (!empty($this->data['regexp']) && !preg_match(
+                    '/' . str_replace(
+                        '/',
+                        '\/',
+                        $this->data['regexp']
+                    ) . '/u',
+                    $val
+                )
+            ) {
+                errorException::criticalException(
+                    $this->data['regexpErrorText'] ?? $this->translate('The value of %s field must match the format: %s',
+                        [$this->data['title'], $this->data['regexp']]),
+                    $this->table
+                );
+            }
+
             $where = [
                 ['field' => $this->data['name'], 'operator' => '=', 'value' => $val]
             ];

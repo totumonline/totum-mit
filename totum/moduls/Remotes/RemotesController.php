@@ -75,10 +75,15 @@ class RemotesController extends Controller
                     echo $data;
                     break;
                 default:
-                    foreach ($data['headers'] as $h => $v) {
-                        header($h . ':' . $v);
+                    if (is_array($data)) {
+                        foreach ($data['headers'] ?? [] as $h => $v) {
+                            header((!is_numeric($h) ? $h . ':' : '') . $v);
+                        }
+                        echo $data['body'];
+                    }else{
+                        echo 'Error script answer format';
                     }
-                    echo $data['body'];
+
             }
         } else {
             echo $this->translate('Remote is not active or does not exist');

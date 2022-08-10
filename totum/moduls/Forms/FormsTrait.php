@@ -114,6 +114,87 @@ trait FormsTrait
         $this->sections = $sections;
     }
 
+    protected function fieldFormViewValues(array $field, array &$value, array $row, &$formats, string $fName, bool $isFirstLoad): void
+    {
+        switch ($field['type']) {
+            case 'file':
+                Field::init($field, $this->Table)->addViewValues(
+                    'edit',
+                    $value,
+                    $row,
+                    $this->Table->getTbl()
+                );
+
+                $value['v_'] = [];
+                foreach (($value['v'] ?? []) as $val) {
+
+                    if (File::isImage($val['name'])) {
+                        if (!empty($val['file'])) {
+                            $filePath = $this->Totum->getConfig()->getFilesDir() . File::getTmpThumbName($val['file']);
+                            if (!is_file($filePath)) {
+                                $file = File::getContent($val['file'], $this->Totum->getConfig());
+                            } else {
+                                $file = file_get_contents($filePath);
+                            }
+                        } else {
+                            $file = file_get_contents($this->Totum->getConfig()->getTmpDir() . File::getTmpThumbName($val['tmpfile']));
+                        }
+                        $thumb = 'data:image/jpg;base64,' . base64_encode($file);
+                    } else {
+                        $thumb = 'data:text/plain;base64,' . base64_encode('emptyfile');
+                    }
+
+                    $value['v_'][] = $thumb;
+                }
+                unset($val);
+                break;
+            case 'select':
+                switch (strval($formats['p'][$fName]['viewtype'] ?? null)) {
+                    case 'viewimage':
+                        $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
+                        $fileData = $Field->getPreviewHtml(
+                            $value,
+                            $row,
+                            $this->Table->getTbl(),
+                            true
+                        );
+                        $value['v_'] = $this->getHttpFilePath() . ($fileData[$formats['p'][$fName]['viewdata']['picture_name'] ?? ''][1][0]['file'] ?? '');
+                        break 2;
+                    case '':
+                        Field::init($field, $this->Table)->addViewValues(
+                            'edit',
+                            $value,
+                            $row,
+                            $this->Table->getTbl()
+                        );
+                        break;
+                    default:
+                        if ($isFirstLoad || $field['codeSelectIndividual']) {
+                            $formats['p'][$fName]['selects'] = $this->getEditSelect(
+                                ['field' => $fName, 'item' => array_map(
+                                    function ($val) {
+                                        return $val['v'];
+                                    },
+                                    $row
+                                )],
+                                '',
+                                null,
+                                $formats['p'][$fName]['viewtype']
+                            );
+                        }
+                }
+
+            // no break
+            default:
+                Field::init($field, $this->Table)->addViewValues(
+                    'edit',
+                    $value,
+                    $row,
+                    $this->Table->getTbl()
+                );
+        }
+    }
+
     protected function getTableClientChangedData($data, $force = false)
     {
         $return['chdata']['rows'] = [];
@@ -189,119 +270,34 @@ trait FormsTrait
             /*, 'data' => $data['rows']*/
             , 'data_params' => $data['params']
             , 'updated' => $this->Table->getSavedUpdated()
-            , 'lang'=>[
-                'name'=>$this->Table->getTotum()->getConfig()->getLang()
+            , 'lang' => [
+                'name' => $this->Table->getTotum()->getConfig()->getLang()
             ]
 
         ];
         return $result;
     }
 
-    protected function getValuesForClient($data, &$formats, $isFirstLoad = false)
+    protected function getValuesForClient($data, &$formats, bool $isFirstLoad = false)
     {
-        /*foreach (($data['rows'] ?? []) as $i => $row) {
-
-            $newRow = ['id' => ($row['id'] ?? null)];
-            if (!empty($row['InsDel'])) {
-                $newRow['InsDel'] = true;
-            }
-            foreach ($row as $fName => $value) {
-                if (key_exists($fName, $this->Table->getFields())) {
-                    Field::init($this->Table->getFields()[$fName], $this->Table)->addViewValues('edit',
-                        $value,
-                        $row,
-                        $this->Table->getTbl());
-                    $newRow[$fName] = $value;
-                }
-            }
-            $data['rows'][$i] = $newRow;
-        }*/
         if (!empty($data['params'])) {
             foreach ($data['params'] as $fName => &$value) {
                 $field = $this->Table->getFields()[$fName];
-
-                switch ($field['type']) {
-                    case 'file':
-                        Field::init($field, $this->Table)->addViewValues(
-                            'edit',
-                            $value,
-                            $this->Table->getTbl()['params'],
-                            $this->Table->getTbl()
-                        );
-
-                        $value['v_'] = [];
-                        foreach (($value['v'] ?? []) as $val) {
-
-                            if (File::isImage($val['name'])) {
-                                if (!empty($val['file'])) {
-                                    $filePath = $this->Totum->getConfig()->getFilesDir() . File::getTmpThumbName($val['file']);
-                                    if (!is_file($filePath)) {
-                                        $file = File::getContent($val['file'], $this->Totum->getConfig());
-                                    } else {
-                                        $file = file_get_contents($filePath);
-                                    }
-                                } else {
-                                    $file = file_get_contents($this->Totum->getConfig()->getTmpDir() . File::getTmpThumbName($val['tmpfile']));
-                                }
-                                $thumb = 'data:image/jpg;base64,' . base64_encode($file);
-                            } else {
-                                $thumb = 'data:text/plain;base64,' . base64_encode('emptyfile');
-                            }
-
-                            $value['v_'][] = $thumb;
-                        }
-                        unset($val);
-                        break;
-                    case 'select':
-                        switch (strval($formats['p'][$fName]['viewtype'] ?? null)) {
-                            case 'viewimage':
-                                $Field = Field::init($this->Table->getFields()[$fName], $this->Table);
-                                $fileData = $Field->getPreviewHtml(
-                                    $data['params'][$fName],
-                                    $this->Table->getTbl()['params'],
-                                    $this->Table->getTbl(),
-                                    true
-                                );
-                                $data['params'][$fName]['v_'] = $this->getHttpFilePath() . ($fileData[$formats['p'][$fName]['viewdata']['picture_name'] ?? ''][1][0]['file'] ?? '');
-                                break 2;
-                            case '':
-                                Field::init($field, $this->Table)->addViewValues(
-                                    'edit',
-                                    $value,
-                                    $this->Table->getTbl()['params'],
-                                    $this->Table->getTbl()
-                                );
-                                break;
-                            default:
-                                if ($isFirstLoad || $field['codeSelectIndividual']) {
-                                    $formats['p'][$fName]['selects'] = $this->getEditSelect(
-                                        ['field' => $fName, 'item' => array_map(
-                                            function ($val) {
-                                                return $val['v'];
-                                            },
-                                            $this->Table->getTbl()['params']
-                                        )],
-                                        '',
-                                        null,
-                                        $formats['p'][$fName]['viewtype']
-                                    );
-                                }
-                        }
-
-                    // no break
-                    default:
-                        Field::init($field, $this->Table)->addViewValues(
-                            'edit',
-                            $value,
-                            $this->Table->getTbl()['params'],
-                            $this->Table->getTbl()
-                        );
-                }
+                $row = $this->Table->getTbl()['params'];
+                $this->fieldFormViewValues($field, $value, $row, $formats, $fName, $isFirstLoad);
             }
             unset($value);
         }
-
-
+        if (!empty($data['rows'])) {
+            foreach ($data['rows'] as &$row) {
+                foreach ($row as $fName => &$value) {
+                    $field = $this->Table->getFields()[$fName];
+                    $this->fieldFormViewValues($field, $value, $row, $formats, $fName, $isFirstLoad);
+                }
+                unset($value);
+            }
+            unset($row);
+        }
         return $data;
     }
 

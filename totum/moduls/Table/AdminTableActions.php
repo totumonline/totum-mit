@@ -209,7 +209,7 @@ CODE;
         switch ($this->post['type'] ?? null) {
             case 'quick':
 
-                $CA = new CalculateAction('=: linkToDataTable(table: "ttm__add_quick_form"; target: "iframe"; width: 750; title: $#title; params: $#data)');
+                $CA = new CalculateAction('=: linkToDataTable(table: "ttm__add_quick_form"; target: "iframe"; width: "70vw"; title: $#title; params: $#data)');
                 $CA->execAction('CODE',
                     [],
                     [],
@@ -223,7 +223,7 @@ CODE;
 
                 break;
             case 'forms':
-                $CA = new CalculateAction('=: linkToTable(table: "ttm__forms"; target: "iframe"; width: 750; title: $#title; filter: "fl_table_prefilter_in_forms"="' . $this->Table->getTableRow()['name'] . '")');
+                $CA = new CalculateAction('=: linkToTable(table: "ttm__forms"; target: "iframe"; width: "70vw"; title: $#title; filter: "fl_table_prefilter_in_forms"="' . $this->Table->getTableRow()['name'] . '")');
                 $CA->execAction('CODE',
                     [],
                     [],

@@ -304,7 +304,7 @@ class CalculateAction extends Calculate
         foreach ($params['buttons'] as $btn) {
             foreach ($requiredByttonParams as $req) {
                 if (empty($btn[$req])) {
-                    throw new errorException($this->translate('Each button must contain [[%s]].', $btn[$req]));
+                    throw new errorException($this->translate('Each button must contain [[%s]].', $req));
                 }
             }
             unset($btn['code']);

@@ -424,13 +424,7 @@ class Actions
 
     protected function loadEnvirement(array $data): array
     {
-        if (key_exists('cycle_id', $data['env'])) {
-            $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
-        } elseif (key_exists('hash', $data['env'])) {
-            $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
-        } else {
-            $Table = $this->Totum->getTable($data['env']['table']);
-        }
+        $Table = $this->Totum->getTable($data['env']['table'], $data['env']['extra'] ?? null);
 
         $row = [];
         if (key_exists('id', $data['env'])) {

@@ -1481,7 +1481,7 @@ class Calculate
         $env = [
             'table' => $this->Table->getTableRow()['name']
         ];
-        $env['cycle_id'] = match ($this->Table->getTableRow()['type']) {
+        $env['extra'] = match ($this->Table->getTableRow()['type']) {
             'calcs' => $this->Table->getCycle()->getId(),
             'tmp' => $this->Table->getTableRow()['sess_hash'],
             default => null

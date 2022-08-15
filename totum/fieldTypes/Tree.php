@@ -633,7 +633,7 @@ class Tree extends Field
                 }
             }
         }
-        if ($this->data['multiple']) {
+        if ($this->data['multiple'] ?? false) {
             foreach ($val as &$v) {
                 if (is_int($v)) {
                     $v = strval($v);
@@ -650,7 +650,7 @@ class Tree extends Field
                 $val = strval($val);
             }
         }
-        if ($val === "") {
+        if ($val === '') {
             $val = null;
         }
     }

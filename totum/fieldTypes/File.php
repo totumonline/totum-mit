@@ -24,6 +24,11 @@ class File extends Field
     {
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         switch ($viewType) {
+            case 'web':
+                if (!empty($valArray['e'])) {
+                    $valArray['v'] = [];
+                }
+                break;
             case 'csv':
                 throw new errorException($this->translate('Export via csv is not available for [[%s]] field.', 'file'));
             case 'print':
@@ -156,7 +161,8 @@ class File extends Field
         }
     }
 
-    public static function getTmpThumbName($tmpFileName){
+    public static function getTmpThumbName($tmpFileName)
+    {
         return $tmpFileName . '_thumb.jpg';
     }
 
@@ -210,7 +216,7 @@ class File extends Field
         if (!$isCheck) {
             $deletedFiles = [];
             if (is_object($modifyVal)) {
-                if (empty($oldVal)) {
+                if (empty($oldVal) || !is_array($oldVal)) {
                     $oldVal = array();
                 }
                 $modifyVal = match ($modifyVal->sign) {
@@ -221,11 +227,12 @@ class File extends Field
             } elseif (!empty($oldVal) && is_array($oldVal)) {
                 foreach ($oldVal as $fOld) {
                     foreach ($modifyVal as $file) {
-                        if ($fOld['file'] === ($file['file'] ?? null)) {
+                        if (is_array($fOld) && $fOld['file'] === ($file['file'] ?? null)) {
                             continue 2;
                         }
                     }
-                    if (str_starts_with($fOld['file'] ?? '', $this->_getFprefix($row['id'] ?? null))) {
+                    if (is_array($fOld) && str_starts_with($fOld['file'] ?? '',
+                            $this->_getFprefix($row['id'] ?? null))) {
                         $deletedFiles[] = $fOld;
                     }
                 }
@@ -238,6 +245,7 @@ class File extends Field
         }
         return $modifyVal;
     }
+
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {

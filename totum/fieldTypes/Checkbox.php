@@ -38,15 +38,20 @@ class Checkbox extends Field
                 switch ($valArray['v']) {
                     case true:
                         $val = '✓';
-                        break ;
+                        break;
                     case false:
                         $val = '-';
-                        break ;
+                        break;
                     default:
                         $val = '---';
                 }
                 $valArray['v'] = $val;
 
+                break;
+            case 'web':
+                if (!is_bool($valArray['v'])) {
+                    $valArray['e'] = $this->translate('Field data format error');
+                }
                 break;
             case 'csv':
                 switch ($valArray['v']) {

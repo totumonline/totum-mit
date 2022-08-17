@@ -678,11 +678,11 @@ class Select extends Field
             case 'web':
                 if (empty($valArray['e'])) {
                     if ($this->data['multiple']) {
-                        if($valArray['v'] && (!is_array($valArray['v']) || empty($valArray['v'][0]))){
+                        if ($valArray['v'] && (!is_array($valArray['v']) || empty($valArray['v'][0]))) {
                             $valArray['e'] = $this->translate('Field data format error');
                         }
-                    }else{
-                        if(!is_null($valArray['v']) && !is_string($valArray['v'])){
+                    } else {
+                        if (!is_null($valArray['v']) && !is_string($valArray['v'])) {
                             $valArray['e'] = $this->translate('Field data format error');
                         }
                     }
@@ -711,25 +711,25 @@ class Select extends Field
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
-        if (($this->data['multiple'] ?? false) === true && !is_array($val)) {
-            if (is_numeric($val)) {
-                $val = [strval($val)];
-            } elseif (is_null($val)) {
-                $val = [];
-            } else {
-                if ($v = json_decode($val, true)) {
-                    $val = strval($v);
-                } else {
+        if (($this->data['multiple'] ?? false) === true) {
+            if (!is_array($val)) {
+                if (is_numeric($val)) {
                     $val = [strval($val)];
+                } elseif (is_null($val)) {
+                    $val = [];
+                } else {
+                    if ($v = json_decode($val, true)) {
+                        $val = strval($v);
+                    } else {
+                        $val = [strval($val)];
+                    }
                 }
             }
-        }
-        if ($this->data['multiple'] ?? false) {
             foreach ($val as &$v) {
-                if (is_int($v)) {
-                    $v = strval($v);
-                }
+                $v = is_array($v) ? json_encode($v) : strval($v);
             }
+            unset($v);
+            $val = array_values($val);
         } else {
             if (is_array($val)) {
                 if (count($val) === 0) {

@@ -104,7 +104,7 @@ class FieldParams extends Field
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
         }
 
-        if ($row['name']['v'] === 'tree' &&  $row['category']['v'] === 'column' && $val['treeViewType']['isOn'] === true && $val['type']['Val'] === 'tree') {
+        if ($row['name']['v'] === 'tree' &&  $row['category']['v'] === 'column' && ($val['treeViewType']['isOn'] ?? false) === true && $val['type']['Val'] === 'tree') {
             $val['multiple']['isOn'] = false;
             $val['multiple']['Val'] = false;
             $val['codeSelectIndividual']['isOn'] = false;

@@ -47,7 +47,7 @@ class Password extends Field
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
         if (is_array($val)) {
-            throw new errorException($this->translate('Field data type error'));
+            $val = '';
         }
         if (!$isCheck && strlen($val) !== 32) {
             $val = md5($val);

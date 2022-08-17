@@ -1,5 +1,6 @@
 {
     "{{!_Disable}}": "! Без отслеживания изменений",
+    "{{200_500}}": "200\/500",
     "{{ADD_FORM_BUTTON}}": "ДОБАВИТЬ ФОРМУ",
     "{{ADD}}": "ДОБАВИТЬ",
     "{{API_user}}": "API user",
@@ -482,6 +483,7 @@
     "{{Quick_form_main_section_title}}": "Основной заголовок секции для быстрой формы",
     "{{Read-only_tables}}": "Таблицы только на чтение",
     "{{Recalculation_on_N-order_change}}": "Пересчет при изменении порядка",
+    "{{Redirect_table_in_roles}}": "Таблица редиректа",
     "{{RegExp_value_when_for_display_a_warning}}": "RegExp значения, при котором выводить предупреждение",
     "{{Register_or_restore_your_password_at}}": "Регистрация или восстановление пароля в",
     "{{Remotes_user}}": "Remotes user",
@@ -704,6 +706,7 @@
     "{{Wed}}": "Ср",
     "{{Week_days}}": "Дни недели",
     "{{When_you_change_the_name_of_the_field_in_the_calculated_tables}}": "<b>ВНИМАНИЕ!<\/b><br><br>При изменении name полю в Расчетных таблицах данные в нем не сохраняются!<br><br>Если таблица расположена в цикле, то данные будут пересчитаны или утеряны в момент открытия или пересчета цикла кодом!<br><br>Для таблиц с версиями name будет изменен для ВСЕХ версий!",
+    "{{When_you_change_the_name_of_the_field_in_the_heder_and_footer_in_s_tables}}": "<b>ВНИМАНИЕ!<\/b><br><br>При изменении name полю в Хедере или Футере данные в нем не сохраняются!",
     "{{Wholly}}": "Целиком",
     "{{Wide_in_p}}": "Широкая",
     "{{Width_in_forms}}": "Ширина",

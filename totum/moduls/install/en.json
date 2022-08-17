@@ -1,5 +1,6 @@
 {
     "{{!_Disable}}": "! Disable",
+    "{{200_500}}": "200\/500",
     "{{ADD_FORM_BUTTON}}": "ADD FORM",
     "{{ADD}}": "ADD",
     "{{API_user}}": "API user",
@@ -482,6 +483,7 @@
     "{{Quick_form_main_section_title}}": "Quick form main section title",
     "{{Read-only_tables}}": "Read-only tables",
     "{{Recalculation_on_N-order_change}}": "Recalculation on N-order change",
+    "{{Redirect_table_in_roles}}": "Redirect table",
     "{{RegExp_value_when_for_display_a_warning}}": "RegExp value when for display a warning",
     "{{Register_or_restore_your_password_at}}": "Register or restore your password at",
     "{{Remotes_user}}": "Remotes user",
@@ -704,6 +706,7 @@
     "{{Wed}}": "Wed",
     "{{Week_days}}": "Week days",
     "{{When_you_change_the_name_of_the_field_in_the_calculated_tables}}": "<b>ATTENTION!<\/b><br><br>When you change the name of the field in the calculated tables, the data in it are not saved!<br><br>If the table is located in a cycle, the data will be recalculated or lost at the moment the cycle is opened or recalculated by the code!<br><br>For tables with versions the name will be changed for ALL versions!",
+    "{{When_you_change_the_name_of_the_field_in_the_heder_and_footer_in_s_tables}}": "<b>ATTENTION!<\/b><br><br>When you change the name of the field in the header or footer, the data in it are not saved!",
     "{{Wholly}}": "Wholly",
     "{{Wide_in_p}}": "Wide",
     "{{Width_in_forms}}": "Width",

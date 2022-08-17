@@ -676,6 +676,18 @@ class Select extends Field
                 break;
 
             case 'web':
+                if (empty($valArray['e'])) {
+                    if ($this->data['multiple']) {
+                        if($valArray['v'] && (!is_array($valArray['v']) || empty($valArray['v'][0]))){
+                            $valArray['e'] = $this->translate('Field data format error');
+                        }
+                    }else{
+                        if(!is_null($valArray['v']) && !is_string($valArray['v'])){
+                            $valArray['e'] = $this->translate('Field data format error');
+                        }
+                    }
+                }
+
                 if (array_key_exists('c', $valArray)) {
                     if ($valArray['c'] !== $valArray['v']) {
                         $valArrayTmp = $valArray;

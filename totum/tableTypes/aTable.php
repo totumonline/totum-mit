@@ -614,7 +614,7 @@ abstract class aTable
                             foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect',
                                          'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency',
                                          'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull',
-                                         'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix', 'multiSeparator'
+                                         'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix', 'multiSeparator', 'errorText'
                                      ] as $fV) {
                                 if (isset($fForLink[$fV])) {
                                     $fieldFromLinkParams[$fV] = $fForLink[$fV];

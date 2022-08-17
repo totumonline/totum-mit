@@ -135,6 +135,17 @@ class Number extends Field
         return str_replace(',', '.', $this->data['default'] ?? '');
     }
 
+    protected function addValue($inNewVal, $isCheck, $row)
+    {
+        if (!is_null($inNewVal) && $inNewVal !== '') {
+            if (!is_numeric($inNewVal) || is_infinite($inNewVal)) {
+                throw new errorException($this->translate('The value of the %s field must be numeric.',
+                    $this->data['title']));
+            }
+        }
+        return $inNewVal;
+    }
+
     protected
     function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {

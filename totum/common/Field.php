@@ -462,7 +462,7 @@ class Field
                 throw new errorException($this->translate('Field [[%s]] of table [[%s]] is required.',
                     [$this->data['title'], $this->table->getTableRow()['title']]));
             }
-        }
+        } else $inNewVal = $this->addValue($inNewVal, $isCheck, $row);
 
 
         if ($insertable) {
@@ -677,6 +677,11 @@ class Field
         return $this->data['default'] ?? null;
     }
 
+    protected function addValue($inNewVal, $isCheck, $row)
+    {
+        return $inNewVal;
+    }
+
     protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal)) {
@@ -794,4 +799,6 @@ class Field
             }
         }
     }
+
+
 }

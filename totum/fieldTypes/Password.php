@@ -25,6 +25,12 @@ class Password extends Field
 
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
+
+        if ($viewType === 'web') {
+            if (is_array($valArray['v'])) {
+                $valArray['e'] = $this->translate('Field data type error');
+            }
+        }
         if ($viewType !== 'edit') {
             $valArray['v'] = '';
         }

@@ -8,6 +8,7 @@
 
 namespace totum\fieldTypes;
 
+use totum\common\errorException;
 use totum\common\Field;
 
 class Password extends Field
@@ -16,10 +17,12 @@ class Password extends Field
     {
         return "---";
     }
+
     public function getLogValue($val, $row, $tbl = [])
     {
         return "---";
     }
+
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
         if ($viewType !== 'edit') {
@@ -37,6 +40,9 @@ class Password extends Field
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
+        if (is_array($val)) {
+            throw new errorException($this->translate('Field data type error'));
+        }
         if (!$isCheck && strlen($val) !== 32) {
             $val = md5($val);
         }

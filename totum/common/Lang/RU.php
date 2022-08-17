@@ -26,6 +26,8 @@ class RU implements LangInterface
         'Using a comparison type in a filter of list/row is not allowed' => 'Использование типа сравнения при фильтрации list/row не разрешено',
         'Using a comparison type in a search in list/row is not allowed' => 'Использование типа сравнения при поиске в list/row не разрешено',
 
+        'Field data type error' => 'Неверный тип данных в поле',
+
         'Not correct field name in query to [[%s]] table.' => 'Некорректное имя поля в запросе к таблице [[%s]].',
 
         'You see the contents of the table calculated and saved before the last transaction with the error.' => 'Вы видите содержимое таблицы, вычисленное и сохраненное перед последней транзакцией с ошибкой.',

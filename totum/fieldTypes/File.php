@@ -341,7 +341,7 @@ class File extends Field
             $vals = [];
             foreach ($val as $file) {
                 $fl = [];
-                if (!array_key_exists('name', $file)) {
+                if (!is_array($file) || !array_key_exists('name', $file)) {
                     throw new criticalErrorException($this->translate('The data format is not correct for the File field.'));
                 }
 

@@ -13,6 +13,7 @@ use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\Lang\RU;
+use totum\fieldTypes\Button;
 use totum\fieldTypes\Checkbox;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Date;
@@ -179,7 +180,7 @@ class Field
                         $model = Comments::class;
                         break;
                     case 'button':
-                        $model = Field::class;
+                        $model = Button::class;
                         break;
                     case 'unic':
                         if ($table->getTableRow()['name'] === 'tables' && $fieldData['name'] === 'name') {

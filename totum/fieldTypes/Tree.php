@@ -286,7 +286,7 @@ class Tree extends Field
             }
         } else {
             if (is_array($fVar['v'])) {
-                $paramInXml = $simpleXMLElement->addChild($this->data['name'], json_encode($fVar['v']));
+                $paramInXml = $simpleXMLElement->addChild($this->data['name'], json_encode($fVar['v'], JSON_UNESCAPED_UNICODE));
                 $fVar['e'] = 'list в немульти поле';
             } elseif (!is_null($fVar['v']) && isset($fVar['v_'])) {
                 $paramInXml = $simpleXMLElement->addChild($this->data['name'], $fVar['v']);
@@ -635,16 +635,18 @@ class Tree extends Field
         }
         if ($this->data['multiple'] ?? false) {
             foreach ($val as &$v) {
-                if (is_int($v)) {
+                if (is_array($v)) {
+                    $v = json_encode($v, JSON_UNESCAPED_UNICODE);
+                } elseif (!is_null($v)) {
                     $v = strval($v);
                 }
             }
         } else {
             if (is_array($val)) {
-                if (count($val) === 0) {
+                if (count($val) === 0 || is_null($val[0] ?? null)) {
                     $val = null;
                 } else {
-                    $val = strval($val[0]);
+                    $val = is_array($val[0]) ? json_encode($val[0], JSON_UNESCAPED_UNICODE) : strval($val[0]);
                 }
             } else {
                 $val = strval($val);

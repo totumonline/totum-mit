@@ -715,7 +715,7 @@ class Field
             try {
                 $this->checkValByType($val, $row, $isCheck);
             } catch (errorException $errorException) {
-                $newVal['v'] = $this->data['errorText'];
+                $newVal['v'] = is_a($this, Number::class) ? null : $this->data['errorText'];
                 $newVal['e'] = $errorException->getMessage();
             }
         }

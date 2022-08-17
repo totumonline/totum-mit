@@ -58,6 +58,14 @@ class RemotesController extends Controller
             }
 
             switch ($remote['return']) {
+                case 'error':
+                    if ($error) {
+                        header($_SERVER['SERVER_PROTOCOL'] . ' 500 ' . $error, true, 500);
+                        echo $error;
+                    } else {
+                        echo is_array($data) ? json_encode($data, JSON_UNESCAPED_UNICODE) : $data;
+                    }
+                    break;
                 case 'simple':
                     if ($error) {
                         echo 'error';
@@ -80,7 +88,7 @@ class RemotesController extends Controller
                             header((!is_numeric($h) ? $h . ':' : '') . $v);
                         }
                         echo $data['body'];
-                    }else{
+                    } else {
                         echo 'Error script answer format';
                     }
 

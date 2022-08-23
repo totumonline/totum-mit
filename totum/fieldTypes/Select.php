@@ -536,14 +536,18 @@ class Select extends Field
         }
 
         parent::addViewValues($viewType, $valArray, $row, $tbl);
-        $getSelectData = function ($v, $list) {
+        $getSelectData = function ($v, $list, &$valArray) {
             if (!is_null($list)) {
                 if (is_array($list)) {
                     if (!empty($this->data['multiple'])) {
                         $v_ = [];
                         if ($v !== $this->data['errorText'] && (is_null($v) || is_array($v))) {
                             foreach (($v ?? []) as $_v) {
-                                if (empty($list[$_v])) {
+                                if (is_array($_v)) {
+                                    $v_[] = [json_encode($_v, JSON_UNESCAPED_UNICODE), 1, json_encode($_v,
+                                        JSON_UNESCAPED_UNICODE)];
+                                    $valArray['e'] = $this->translate('Field data type error');
+                                } elseif (empty($list[$_v])) {
                                     $v_[] = [$_v, 1, $_v];
                                 } else {
                                     $v_[] = array_merge($list[$_v], [$_v]);
@@ -599,7 +603,7 @@ class Select extends Field
 
         if (!is_null($list)) {
             if (is_array($list)) {
-                $valArray['v_'] = $getSelectData($valArray['v'], $list);
+                $valArray['v_'] = $getSelectData($valArray['v'], $list, $valArray);
             } else {
                 $valArray['v_'] = [$valArray['v'], 1];
 
@@ -677,7 +681,7 @@ class Select extends Field
 
             case 'web':
                 if (empty($valArray['e'])) {
-                    if ($this->data['multiple']) {
+                    if ($this->data['multiple'] ?? false) {
                         if ($valArray['v'] && (!is_array($valArray['v']) || empty($valArray['v'][0]))) {
                             $valArray['e'] = $this->translate('Field data format error');
                         }
@@ -695,7 +699,7 @@ class Select extends Field
 
                         $list = $this->calculateSelectViewList($valArrayTmp, $row, $tbl);
                         if (is_array($list)) {
-                            $valArray['c_'] = $getSelectData($valArray['c'], $list);
+                            $valArray['c_'] = $getSelectData($valArray['c'], $list, $valArray);
                         } else {
                             $valArray['c_'] = [$this->data['errorText'], 1];
                             if (!array_key_exists('e', $valArray)) {
@@ -735,7 +739,12 @@ class Select extends Field
                 if (count($val) === 0) {
                     $val = null;
                 } else {
-                    $val = strval($val[array_key_first($val)]);
+                    $firstValue = $val[array_key_first($val)];
+                    if (is_array($firstValue)) {
+                        $val = json_encode($firstValue, JSON_UNESCAPED_UNICODE);
+                    } else {
+                        $val = strval($firstValue);
+                    }
                 }
             } else {
                 $val = match ($val) {

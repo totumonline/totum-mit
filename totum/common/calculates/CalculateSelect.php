@@ -211,8 +211,8 @@ class CalculateSelect extends Calculate
                     }
                 }
             };
-
             foreach ((array)$params['roots'] as $root) {
+                $root = $treeListPrep . $root;
                 if (key_exists($root, $TreeRowsIndexed)) {
                     $TreeRowsIndexed[$root]['parent'] = null;
                     $newTreeRows[] = $TreeRowsIndexed[$root];

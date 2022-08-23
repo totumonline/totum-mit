@@ -42,7 +42,7 @@ HTML;
                 <script>
 
                     $('#tables_tabls iframe').on('load', function () {
-                        let _window = this.contentWindow;
+                        let _window =  this.contentWindow;
                         let body = $(_window.document.body).addClass('notification-table');
                         /*setTimeout(()=>{
                            $(this).height(body.find('#table .pcTable-scrollwrapper').height());

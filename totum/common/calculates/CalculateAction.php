@@ -150,7 +150,7 @@ class CalculateAction extends Calculate
                                 $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
                             }
 
-                            return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} > /dev/null 2>&1 &`;
+                            `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} > /dev/null 2>&1 &`;
                         }
                     } else {
                         $CA = new static($code);

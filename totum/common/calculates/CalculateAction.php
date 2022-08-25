@@ -74,6 +74,10 @@ class CalculateAction extends Calculate
                 'on_off' => 'true'
             ], 'id, email');
 
+            if (empty($users)) {
+                return;
+            }
+
             if (!empty($params['ntf'])) {
                 $add = [];
                 foreach ($users as $user) {
@@ -97,7 +101,7 @@ class CalculateAction extends Calculate
                         );
 
                     try {
-                        $r = $this->Table->getTotum()->getConfig()->sendMail(
+                        $this->Table->getTotum()->getConfig()->sendMail(
                             $emails,
                             $params['title'],
                             $params['eml']
@@ -106,7 +110,6 @@ class CalculateAction extends Calculate
                         if ($toBfl) {
                             $this->Table->getTotum()->getOutersLogger()->debug('email', $params);
                         }
-                        return $r;
                     } catch (Exception $e) {
                         if ($toBfl) {
                             $this->Table->getTotum()->getOutersLogger()->error(

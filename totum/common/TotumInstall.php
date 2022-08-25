@@ -159,7 +159,7 @@ class Conf extends ConfParent{
     
     const LANG="{$post['lang']}";
     
-    //protected \$execSSHOn = true;
+    protected \$execSSHOn = 'inner'; //set true if you want to run ssh scripts via execSsh
     
     /***getSchemas***/
     static function getSchemas()

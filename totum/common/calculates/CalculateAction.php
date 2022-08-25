@@ -71,7 +71,7 @@ class CalculateAction extends Calculate
             if (key_exists('ssh',
                     $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
 
-                if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
+                if (!$this->Table->getTotum()->getConfig()->isExecSSHOn('inner')) {
                     throw new criticalErrorException($this->translate('Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.'));
                 }
 

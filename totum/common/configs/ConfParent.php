@@ -215,9 +215,13 @@ abstract class ConfParent
     /**
      * @return bool
      */
-    public function isExecSSHOn(): bool
+    public function isExecSSHOn(bool|string $type): bool
     {
-        return $this->execSSHOn;
+        return match ($type) {
+            true => $this->execSSHOn === true,
+            'inner' => $this->execSSHOn === true || $this->execSSHOn === 'inner',
+            default => false
+        };
     }
 
 

@@ -81,7 +81,7 @@ class CalculateAction extends Calculate
             if (!empty($params['ntf'])) {
                 $add = [];
                 foreach ($users as $user) {
-                    $add[] = ['user_id' => $user['id'], 'title' => $params['title'], 'code' => 'admin_text', 'active' => true];
+                    $add[] = ['user_id' => $user['id'], 'title' => $params['title'], 'code' => 'admin_text', 'vars' => ['text' => $params['ntf']], 'active' => true];
                 }
                 $this->Table->getTotum()->getTable('notifications')->reCalculateFromOvers(
                     ['add' => $add]

@@ -157,6 +157,8 @@ class RU implements LangInterface
         'All list elements must be lists.' => 'Все элементы списка должны быть списками.',
         'None of the elements of the %s parameter array must be a list.' => 'Ни один из элементов массива параметра %s не должен быть списком.',
 
+        'Parameter %s must contain list of numbers' => 'Параметр %s должен содержать список чисел',
+
         'The array element does not fit the filtering conditions - the value is not a list.' => 'Элемент массива не соответствует условиям фильтрации - значение не list.',
         'The array element does not fit the filtering conditions - [[item]] is not found.' => 'Элемент массива не соответствует условиям фильтрации - [[item]] не найден.',
         '[[%s]] is not a multiple parameter.' => '[[%s]] - не множественный параметр.',

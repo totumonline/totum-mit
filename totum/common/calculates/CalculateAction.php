@@ -55,10 +55,136 @@ class CalculateAction extends Calculate
         }
     }
 
+    protected function funcNotificationSend($params)
+    {
+        $params = $this->getParamsArray($params, ['custom'], [], ['custom']);
+
+        $this->__checkNotArrayParams($params, ['title', 'eml', 'ntf']);
+        $this->__checkNotEmptyParams($params, ['title']);
+        if (!empty($params['users'])) {
+            $users = (array)$params['users'];
+            foreach ($users as $user) {
+                if (!is_numeric($user)) {
+                    throw new errorException($this->translate('Parameter %s must contain list of numbers', 'users'));
+                }
+            }
+            $users = $this->Table->getTotum()->getModel('users')->getAll([
+                'id' => $users,
+                'interface' => 'web',
+                'on_off' => 'true'
+            ], 'id, email');
+
+            if (!empty($params['ntf'])) {
+                $add = [];
+                foreach ($users as $user) {
+                    $add[] = ['user_id' => $user['id'], 'title' => $params['title'], 'code' => 'admin_text'];
+                }
+                $this->Table->getTotum()->getTable('notifications')->reCalculateFromOvers(
+                    ['add' => $add]
+                );
+            }
+            if (!empty($params['eml'])) {
+                $emails = [];
+                foreach ($users as $user) {
+                    if (!empty($user['email'])) {
+                        $emails[] = $user['email'];
+                    }
+                }
+                if ($emails) {
+                    $toBfl = $params['bfl'] ?? in_array(
+                            'email',
+                            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+                        );
+
+                    try {
+                        $r = $this->Table->getTotum()->getConfig()->sendMail(
+                            $emails,
+                            $params['title'],
+                            $params['eml']
+                        );
+
+                        if ($toBfl) {
+                            $this->Table->getTotum()->getOutersLogger()->debug('email', $params);
+                        }
+                        return $r;
+                    } catch (Exception $e) {
+                        if ($toBfl) {
+                            $this->Table->getTotum()->getOutersLogger()->error(
+                                'email',
+                                ['error' => $e->getMessage()] + $params
+                            );
+                        }
+                        throw new errorException($e->getMessage());
+                    }
+                }
+            }
+            if (!empty($params['custom'])) {
+                $codes = [];
+                foreach ($this->Table->getTotum()->getModel('ttm__custom_user_notific_codes')->getAll([
+                    'name' => array_column($params['custom'], 'field')
+                ], 'name, code') as $row) {
+                    $codes[$row['name']] = $row['code'];
+                };
+
+                foreach ($params['custom'] as $p) {
+                    $name = $p['field'];
+                    $html = $p['value'];
+                    if (empty($html) || empty($code = $codes[$name] ?? null)) {
+                        continue;
+                    }
+
+                    if ($this->Table->getTotum()->getConfig()->isExecSSHOn('inner')) {
+                        foreach ($users as $user) {
+                            $Vars = ['user' => $user['id'], 'title' => $params['title'], 'html' => $html];
+
+                            $data = ['code' => $code, 'vars' => $Vars];
+
+                            $data = base64_encode(json_encode($data,
+                                JSON_UNESCAPED_UNICODE));
+
+                            $path = $this->Table->getTotum()->getConfig()->getBaseDir();
+
+                            $schema = '';
+
+                            if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
+                                $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
+                            }
+
+                            return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} > /dev/null 2>&1 &`;
+                        }
+                    } else {
+                        $CA = new static($code);
+                        try {
+                            foreach ($users as $user) {
+                                $Vars = ['user' => $user['id'], 'title' => $params['title'], 'html' => $html];
+                                $CA->execAction(
+                                    $this->varName,
+                                    $this->oldRow,
+                                    $this->row,
+                                    $this->oldTbl,
+                                    $this->tbl,
+                                    $this->Table,
+                                    $this->vars['tpa'],
+                                    $Vars
+                                );
+                                $this->newLogParent['children'][] = $CA->getLogVar();
+                            }
+                        } catch (errorException $e) {
+                            $this->newLogParent['children'][] = $CA->getLogVar();
+                            throw $e;
+                        }
+                    }
+                }
+            }
+
+        }
+
+    }
+
     protected function funcExec(string $params): mixed
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $code  = $params['code'] = $params['code'] ?? $params['kod'] ?? null;
+            $code = $params['code'] = $params['code'] ?? $params['kod'] ?? null;
 
             $this->__checkNotEmptyParams($params, ['code']);
             $this->__checkNotArrayParams($params, ['code']);
@@ -516,9 +642,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-            'email',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'email',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -575,9 +701,9 @@ class CalculateAction extends Calculate
 
 
         $toBfl = $params['bfl'] ?? in_array(
-            'soap',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
+                'soap',
+                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+            );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,

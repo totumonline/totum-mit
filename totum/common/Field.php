@@ -13,6 +13,7 @@ use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\calculates\CalculcateFormat;
 use totum\common\Lang\RU;
+use totum\fieldTypes\Button;
 use totum\fieldTypes\Checkbox;
 use totum\fieldTypes\Comments;
 use totum\fieldTypes\Date;
@@ -179,7 +180,7 @@ class Field
                         $model = Comments::class;
                         break;
                     case 'button':
-                        $model = Field::class;
+                        $model = Button::class;
                         break;
                     case 'unic':
                         if ($table->getTableRow()['name'] === 'tables' && $fieldData['name'] === 'name') {
@@ -461,7 +462,7 @@ class Field
                 throw new errorException($this->translate('Field [[%s]] of table [[%s]] is required.',
                     [$this->data['title'], $this->table->getTableRow()['title']]));
             }
-        }
+        } else $inNewVal = $this->addValue($inNewVal, $isCheck, $row);
 
 
         if ($insertable) {
@@ -676,6 +677,11 @@ class Field
         return $this->data['default'] ?? null;
     }
 
+    protected function addValue($inNewVal, $isCheck, $row)
+    {
+        return $inNewVal;
+    }
+
     protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal)) {
@@ -714,7 +720,7 @@ class Field
             try {
                 $this->checkValByType($val, $row, $isCheck);
             } catch (errorException $errorException) {
-                $newVal['v'] = $this->data['errorText'];
+                $newVal['v'] = is_a($this, Number::class) ? null : $this->data['errorText'];
                 $newVal['e'] = $errorException->getMessage();
             }
         }
@@ -793,4 +799,6 @@ class Field
             }
         }
     }
+
+
 }

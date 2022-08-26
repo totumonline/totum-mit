@@ -107,7 +107,7 @@ abstract class interfaceController extends Controller
      * @param null $to
      * @param bool $withPrefix
      */
-    protected function location($to = null, $withPrefix = true)
+    protected function location($to = null, bool $withPrefix = true)
     {
         $to = ($withPrefix ? $this->totumPrefix : '') . ($to ?? '/');
         header('location: ' . $to);

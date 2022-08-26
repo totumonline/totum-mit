@@ -209,7 +209,7 @@ CODE;
         switch ($this->post['type'] ?? null) {
             case 'quick':
 
-                $CA = new CalculateAction('=: linkToDataTable(table: "ttm__add_quick_form"; target: "iframe"; width: "70vw"; title: $#title; params: $#data)');
+                $CA = new CalculateAction('=: linkToDataTable(table: "ttm__add_quick_form"; target: "iframe"; width: "750px"; title: $#title; params: $#data)');
                 $CA->execAction('CODE',
                     [],
                     [],

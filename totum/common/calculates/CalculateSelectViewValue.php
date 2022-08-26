@@ -8,6 +8,8 @@
 
 namespace totum\common\calculates;
 
+use totum\common\errorException;
+
 class CalculateSelectViewValue extends CalculateSelect
 {
     protected function funcSelectListAssoc($params)
@@ -69,6 +71,11 @@ class CalculateSelectViewValue extends CalculateSelect
             }
         } else {
             foreach ($rows as $row) {
+                if(is_array($row['value'])){
+                    throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.', 'value'));
+                }elseif(is_array($row['title'])){
+                    throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.', 'title'));
+                }
                 $selectList[$row['value']] = [$row['title']];                   //0
                 $selectList[$row['value']][] = !empty($row['is_del']) ? 1 : 0;  //1
             }

@@ -514,8 +514,6 @@ SQL;
     }
 
 
-
-
     /*Добавить проверку действие/расчет при добавлении параметра target*/
     protected function funcLinkToForm($params)
     {
@@ -523,6 +521,8 @@ SQL;
 
         $this->__checkRequiredParams($params, ['path']);
         $this->__checkNotArrayParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['protocol', 'target']);
+
 
         $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
             ['where' => [
@@ -556,7 +556,17 @@ SQL;
                     $this->Table->getTotum()->getConfig()->getCryptSolt()
                 ));
         }
-        return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+        $link = $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+
+        if (!empty($params['target'])) {
+            $this->Table->getTotum()->addToInterfaceLink(
+                ($params['protocol'] ?? 'https') . '://' . $link,
+                $params['target']
+            );
+        } else {
+            $protocol = empty($params['protocol']) ? '' : ($params['protocol'] . '://');
+            return $protocol . $link;
+        }
     }
 
     protected function funcLinkToQuickForm($params)
@@ -565,6 +575,8 @@ SQL;
 
         $this->__checkRequiredParams($params, ['path']);
         $this->__checkNotArrayParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['protocol', 'target']);
+
 
         $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
             ['where' => [
@@ -598,13 +610,24 @@ SQL;
                     $this->Table->getTotum()->getConfig()->getCryptSolt()
                 ));
         }
-        return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+        $link = $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+        if (!empty($params['target'])) {
+            $this->Table->getTotum()->addToInterfaceLink(
+                ($params['protocol'] ?? 'https') . '://' . $link,
+                $params['target']
+            );
+        } else {
+            $protocol = empty($params['protocol']) ? '' : ($params['protocol'] . '://');
+            return $protocol . $link;
+        }
+
     }
 
     protected function funcLinkToAnonymTable($params)
     {
         $params = $this->getParamsArray($params);
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
+        $this->__checkNotArrayParams($params, ['protocol', 'target']);
 
         if ($tableRow['type'] === 'calcs') {
             throw new errorException($this->translate('Access to tables in a cycle through this module is not available.'));
@@ -625,6 +648,16 @@ SQL;
                     $this->Table->getTotum()->getConfig()->getCryptSolt()
                 ));
         }
-        return $this->Table->getTotum()->getConfig()->getAnonymHost('An') . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
+        $link = $this->Table->getTotum()->getConfig()->getAnonymHost('An') . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
+        if (!empty($params['target'])) {
+            $this->Table->getTotum()->addToInterfaceLink(
+                ($params['protocol'] ?? 'https') . '://' . $link,
+                $params['target'],
+                $tableRow['title']
+            );
+        } else {
+            $protocol = empty($params['protocol']) ? '' : ($params['protocol'] . '://');
+            return $protocol . $link;
+        }
     }
 }

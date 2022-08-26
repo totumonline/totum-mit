@@ -30,7 +30,8 @@ class Text extends Field
             $paramInXml->addAttribute('error', $fVar['e']);
         }
         if (isset($fVar['c'])) {
-            $paramInXml->addAttribute('c', $fVar['c'] !== $fVar['v'] ? $this->translate('Text modified') : $this->translate('Text unchanged'));
+            $paramInXml->addAttribute('c',
+                $fVar['c'] !== $fVar['v'] ? $this->translate('Text modified') : $this->translate('Text unchanged'));
             $paramInXml->addAttribute('h', isset($fVar['h']) ? '1' : '0');
         }
     }
@@ -53,7 +54,10 @@ class Text extends Field
         switch ($viewType) {
             case 'web':
 
-                if ($this->table->getTableRow()['type'] !== 'tmp' && ($isBig = mb_strlen($valArray['v']) > $this->data['viewTextMaxLength'])) {
+                if (is_array($valArray['v'])) {
+                    $valArray['v'] = null;
+                    $valArray['e'] = $this->translate('Field data type error');
+                } elseif ($this->table->getTableRow()['type'] !== 'tmp' && ($isBig = mb_strlen($valArray['v']) > $this->data['viewTextMaxLength'])) {
                     $valArray['v'] = mb_substr($valArray['v'], 0, $this->data['viewTextMaxLength']) . '...';
                 }
 
@@ -104,6 +108,7 @@ class Text extends Field
             }
         }
     }
+
     protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal)) {

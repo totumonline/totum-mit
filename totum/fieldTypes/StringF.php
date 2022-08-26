@@ -48,6 +48,20 @@ class StringF extends Field
 
         if (is_numeric($val) && !is_string($val)) {
             $val = strval($val);
+        } elseif (is_array($val)) {
+            $val = json_encode($val, JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
+    {
+        parent::addViewValues($viewType, $valArray, $row, $tbl);
+        if (!is_null($valArray['v'])) {
+            if ($viewType == 'web') {
+                if(is_array($valArray['v'])){
+                    $valArray['e']=$this->translate('Field data type error');
+                }
+            }
         }
     }
 }

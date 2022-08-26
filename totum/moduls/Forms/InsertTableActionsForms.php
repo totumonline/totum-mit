@@ -42,6 +42,9 @@ class InsertTableActionsForms extends WriteTableActionsForms
 
         if (empty($hash) || !str_starts_with($hash,
                 'i-') || !($this->insertRowData = $this->getData($hash))) {
+            if ($hash && $this->post['method'] !== 'getTableData') {
+                throw new errorException('Reload');
+            }
             $this->createNewInsertRow();
         } else {
             $this->insertHash = $hash;
@@ -95,7 +98,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
     {
         $data = is_string($this->post['data']) ? json_decode($this->post['data'], true) : $this->post['data'];
 
-        $data['params'] = $this->insertRowData['__fixedData'] + $data['params'];
+        $data['params'] = ($this->insertRowData['__fixedData']['x'] ?? []) + $data['params'];
 
         $data = ['rows' => [$this->getInsertRow($this->insertRowData,
             $data['params'] ?? [],
@@ -133,7 +136,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
 
             if (($this->FormsTableData['format_static']['t']['f']['p'] ?? false)) {
                 if (empty($this->extraParams)) {
-                    throw new errorException('The form requires link parameters to work.');
+                    throw new errorException($this->translate('The form requires link parameters to work.'));
                 }
             }
         }
@@ -151,8 +154,12 @@ class InsertTableActionsForms extends WriteTableActionsForms
         foreach ($this->clientFields as $field) {
             if ($field['category'] === 'column') {
                 $fields[$field['name']] = ['category' => 'param'] + $field;
+                if (array_key_exists($field['name'], $this->insertRowData['__fixedData']['x'] ?? [])) {
+                    $fields[$field['name']]['editable'] = false;
+                }
             }
         }
+
 
         $data['params'] = array_intersect_key($row, $this->clientFields);
 

@@ -609,10 +609,12 @@ abstract class aTable
 
                         if ($fForLink) {
                             $fieldFromLinkParams = [];
+
+                            /*transfered field params for link field*/
                             foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect',
                                          'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency',
                                          'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull',
-                                         'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix'
+                                         'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix', 'multiSeparator', 'errorText'
                                      ] as $fV) {
                                 if (isset($fForLink[$fV])) {
                                     $fieldFromLinkParams[$fV] = $fForLink[$fV];

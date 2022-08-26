@@ -1226,7 +1226,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     protected function getPageViewType(): string
     {
-        if ($this->User->isCreator() && ($this->Cookies['ttm__commonTableView'] ?? false)) {
+        if (($this->post['restoreView'] ?? false) || ($this->User->isCreator() && ($this->Cookies['ttm__commonTableView'] ?? false))) {
             $this->creatorCommonView = true;
             return 'common';
         }

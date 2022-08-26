@@ -33,7 +33,8 @@ class FieldParams extends Field
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         switch ($viewType) {
             case 'csv':
-                throw new errorException($this->translate('Export via csv is not available for [[%s]] field.', 'FieldParams'));
+                throw new errorException($this->translate('Export via csv is not available for [[%s]] field.',
+                    'FieldParams'));
                 break;
             case 'web':
                 $valArray['v'] = $this->translate('Settings field.');
@@ -103,10 +104,17 @@ class FieldParams extends Field
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
         }
 
+        if ($row['name']['v'] === 'tree' &&  $row['category']['v'] === 'column' && ($val['treeViewType']['isOn'] ?? false) === true && $val['type']['Val'] === 'tree') {
+            $val['multiple']['isOn'] = false;
+            $val['multiple']['Val'] = false;
+            $val['codeSelectIndividual']['isOn'] = false;
+            $val['codeSelectIndividual']['Val'] = false;
+        }
+
         if ($category === 'footer' && !is_subclass_of(
-            Totum::getTableClass($tableRow),
-            JsonTables::class
-        )) {
+                Totum::getTableClass($tableRow),
+                JsonTables::class
+            )) {
             throw new errorException($this->translate('You cannot create a [[footer]] field for [[non-calculated]] tables.'));
         }
     }

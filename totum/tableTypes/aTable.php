@@ -2548,8 +2548,14 @@ CODE;;
             && in_array($orderField['type'], ['select', 'tree'])
         ) {
             $sortArray = [];
+
             foreach ($rows as $row) {
                 $sortArray[] = $row[$orderFieldName]['v_'][0] ?? $row[$orderFieldName]['v'];
+                if (is_array($row[$orderFieldName]['v'])) {
+                    $sortArray = array_column($rows, 'id');
+                    $error = 'Sorting available only by single value fiels';
+                    break;
+                }
             }
             array_multisort(
                 $sortArray,

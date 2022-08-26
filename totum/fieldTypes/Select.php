@@ -682,7 +682,7 @@ class Select extends Field
             case 'web':
                 if (empty($valArray['e'])) {
                     if ($this->data['multiple'] ?? false) {
-                        if ($valArray['v'] && (!is_array($valArray['v']) || empty($valArray['v'][0]))) {
+                        if ($valArray['v'] && (!is_array($valArray['v']) || !key_exists(0, $valArray['v']))) {
                             $valArray['e'] = $this->translate('Field data format error');
                         }
                     } else {

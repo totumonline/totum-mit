@@ -95,20 +95,38 @@ class CalculateAction extends Calculate
                     }
                 }
                 if ($emails) {
+                    $template = $this->Table->getTotum()->getConfig()->getModel('print_templates')->get(['name' => 'eml_email'],
+                        'styles, html');
+
+                    $template['body'] = preg_replace_callback(
+                        '/{([a-zA-Z_]+)}/',
+                        function ($match) use ($params) {
+                            return match ($match[1]) {
+                                'Title_of_notification' => $params['title'],
+                                'Text' => $params['eml'],
+                                default => null,
+                            };
+                        },
+                        $template['html']
+                    );
+                    $eml = '<style>' . $template['styles'] . '</style>' . $template['body'];
+
                     $toBfl = $params['bfl'] ?? in_array(
                             'email',
                             $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
                         );
 
                     try {
-                        $this->Table->getTotum()->getConfig()->sendMail(
-                            $emails,
-                            $params['title'],
-                            $params['eml']
-                        );
+                        foreach ($emails as $email) {
+                            $this->Table->getTotum()->getConfig()->sendMail(
+                                $email,
+                                $params['title'],
+                                $eml
+                            );
 
-                        if ($toBfl) {
-                            $this->Table->getTotum()->getOutersLogger()->debug('email', $params);
+                            if ($toBfl) {
+                                $this->Table->getTotum()->getOutersLogger()->debug('email', $params);
+                            }
                         }
                     } catch (Exception $e) {
                         if ($toBfl) {

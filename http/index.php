@@ -5,6 +5,10 @@ use totum\config\Conf;
 
 $GLOBALS['mktimeStart'] = microtime(true);
 
+fwrite(fopen(__DIR__ . '/../ttm.log', 'a'),
+    date('Y-m-d H-i-s ') . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REMOTE_ADDR'] . ' ' . $_SERVER['REQUEST_URI'] . print_R(getallheaders(), 1) . ' ' . print_r($_POST ?? null, 1) . "\n");
+
+
 ignore_user_abort(false);
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -27,7 +31,7 @@ if (empty($module)) {
 }
 $controllerClass = 'totum\\moduls\\' . $module . '\\' . $module . 'Controller';
 if (class_exists($controllerClass)) {
-    if($Config && !empty($Config->getHiddenHosts()[$Config->getFullHostName()]) && empty($Config->getHiddenHosts()[$Config->getFullHostName()][$module])){
+    if ($Config && !empty($Config->getHiddenHosts()[$Config->getFullHostName()]) && empty($Config->getHiddenHosts()[$Config->getFullHostName()][$module])) {
         die($Config->getLangObj()->translate('The module is not available for this host.'));
     }
 
@@ -44,9 +48,9 @@ if (class_exists($controllerClass)) {
 
 } else {
     if ($Config) {
-        $Lang=$Config->getLangObj();
-    }else{
-        $Lang=(new \totum\common\Lang\EN());
+        $Lang = $Config->getLangObj();
+    } else {
+        $Lang = (new \totum\common\Lang\EN());
     }
     echo $Lang->translate('Not found: %s', [htmlspecialchars($controllerClass)]);
 }

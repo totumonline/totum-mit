@@ -10,6 +10,7 @@ namespace totum\fieldTypes;
 
 use totum\common\Auth;
 use totum\common\calculates\Calculate;
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Lang\RU;
@@ -93,12 +94,23 @@ class FieldParams extends Field
         /*$val = json_decode('{"type": {"Val": "fieldParamsResult", "isOn": true}, "width": {"Val": 250, "isOn": true}, "showInWeb": {"Val": false, "isOn": true}}',
             true);*/
 
+        $category = $row['category']['v'];
+        $tableRow = $this->table->getTotum()->getTableRow($row['table_id']['v']);
+
+        if ($category === 'footer' && !is_subclass_of(
+                Totum::getTableClass($tableRow),
+                JsonTables::class
+            )) {
+            throw new criticalErrorException($this->translate('You cannot create a [[footer]] field for [[non-calculated]] tables.'));
+        }
+
         if (empty($val['type']['Val'])) {
+            if(!$isCheck){
+                throw new criticalErrorException($this->translate('Fill in the parameter [[%s]].', 'type'));
+            }
             throw new errorException($this->translate('Fill in the parameter [[%s]].', 'type'));
         }
 
-        $category = $row['category']['v'];
-        $tableRow = $this->table->getTotum()->getTableRow($row['table_id']['v']);
 
         if ($val['type']['Val'] === 'text') {
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
@@ -111,11 +123,6 @@ class FieldParams extends Field
             $val['codeSelectIndividual']['Val'] = false;
         }
 
-        if ($category === 'footer' && !is_subclass_of(
-                Totum::getTableClass($tableRow),
-                JsonTables::class
-            )) {
-            throw new errorException($this->translate('You cannot create a [[footer]] field for [[non-calculated]] tables.'));
-        }
+
     }
 }

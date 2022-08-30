@@ -255,6 +255,8 @@ SQL;
                 }
             }
             if (empty($table)) {
+                $this->__checkNotEmptyParams($params, ['hash']);
+                $this->__checkNotArrayParams($params, ['hash']);
                 $table = $this->Table->getTotum()->getTable($tableRow, $params['hash']);
             }
             $table->reCalculateFromOvers($inVars, $this->Table->getCalculateLog());

@@ -81,6 +81,7 @@ class Select extends Field
         $objMain = [];
         $addInArrays = function ($k, $v) use (&$listMain, &$objMain, &$i) {
             $listMain[] = strval($k);
+            $v[10] = $v[1];
             unset($v[1]);
             if (!empty($v[2]) && is_object($v[2])) {
                 $v[2] = $v[2]();

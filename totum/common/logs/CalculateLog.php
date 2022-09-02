@@ -4,6 +4,7 @@
 namespace totum\common\logs;
 
 use totum\common\calculates\Calculate;
+use totum\common\calculates\CalculateAction;
 use totum\common\Lang\LangInterface;
 use totum\tableTypes\aTable;
 use totum\tableTypes\tmpTable;
@@ -48,6 +49,9 @@ class CalculateLog
 
         if (key_exists('code', $this->params) && is_callable($this->params['code'])) {
             $this->params['code'] = $this->params['code']();
+        }
+        if (!empty($params['calc']) && $params['calc'] === CalculateAction::class) {
+            $this->params['cType'] = 'a';
         }
 
         if ($this->parent = $parent) {
@@ -304,7 +308,8 @@ class CalculateLog
             if (count($ids) > 1 || !key_exists('', $ids)) {
                 foreach ($ids as $id => $row) {
                     if ($id !== '') {
-                        $tree['children'][] = ['text' => $Lang->translate('Row: id %s', (string)$id), 'children' => $row, 'icon' => 'fa fa-folder'];
+                        $tree['children'][] = ['text' => $Lang->translate('Row: id %s',
+                            (string)$id), 'children' => $row, 'icon' => 'fa fa-folder'];
                     } else {
                         array_push($tree['children'], ...$row);
                     }
@@ -353,6 +358,7 @@ class CalculateLog
                         }
                     }
                 }
+
             }
         } else {
             $data = $this->formatLogItem();
@@ -364,6 +370,7 @@ class CalculateLog
             }
             return $data;
         }
+
         return $fields;
     }
 

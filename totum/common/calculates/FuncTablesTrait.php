@@ -155,7 +155,8 @@ SQL;
                     $table,
                     $params['refresh'] ?? false,
                     ['header' => $params['header'] ?? true,
-                        'footer' => $params['footer'] ?? true]
+                        'footer' => $params['footer'] ?? true,
+                        'topbuttons' => $params['topbuttons'] ?? true]
                 );
             }
         }

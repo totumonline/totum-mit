@@ -1209,8 +1209,11 @@ class CalculateAction extends Calculate
             null,
             $params['width'] ?? null,
             $params['refresh'] ?? false,
-            ['header' => $params['header'] ?? true,
-                'footer' => $params['footer'] ?? true]
+            [
+                'header' => $params['header'] ?? true,
+                'footer' => $params['footer'] ?? true,
+                'topbuttons' => $params['topbuttons'] ?? true
+            ]
         );
     }
 

@@ -273,9 +273,15 @@ class Actions
                     'multiple' => $data['multiple'] ?? false,
                 ], $Table);
 
-                /*Запрос селекта*/
-                if (key_exists('search', $this->post)) {
-
+                /*Запрос preview*/
+                if (key_exists('preview', $this->post)) {
+                    if (key_exists('val', $this->post)) {
+                        return ['previews' => $Field->getPreviewHtml(['v' => $this->post['val']],
+                            $row,
+                            $this->Table->getTbl())];
+                    }
+                }/*Запрос селекта*/
+                elseif (key_exists('search', $this->post)) {
                     $val = ['v' => $this->post['search']['checkedVals'] ?? (empty($data['multiple']) ? [] : null)];
                     $list = $Field->calculateSelectList($val,
                         $row,
@@ -283,6 +289,7 @@ class Actions
                         $data['vars'] ?? []);
 
                     return $Field->cropSelectListForWeb($list, $val['v'], $this->post['search']['q']);
+
                 } /*Проверка результата*/
                 else {
                     $Field->checkSelectVal('web',

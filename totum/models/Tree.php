@@ -45,7 +45,8 @@ class Tree extends Model
                 $params = [];
                 $where = ['id' => $id];
                 $treeVRow = $treeVModel->executePrepared(true, $where, 'top')->fetch();
-                $params['top'] = json_encode(['v' => $treeVRow['top']], JSON_UNESCAPED_UNICODE);
+                $params['top'] = json_encode(['v' => $treeVRow['top'] ? (string)$treeVRow['top'] : null],
+                    JSON_UNESCAPED_UNICODE);
                 parent::update($params, $where, null);
             }
         }

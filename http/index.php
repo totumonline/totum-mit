@@ -5,10 +5,6 @@ use totum\config\Conf;
 
 $GLOBALS['mktimeStart'] = microtime(true);
 
-fwrite(fopen(__DIR__ . '/../ttm.log', 'a'),
-    date('Y-m-d H-i-s ') . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REMOTE_ADDR'] . ' ' . $_SERVER['REQUEST_URI'] . print_R(getallheaders(), 1) . ' ' . print_r($_POST ?? null, 1) . "\n");
-
-
 ignore_user_abort(false);
 
 require __DIR__ . '/../vendor/autoload.php';

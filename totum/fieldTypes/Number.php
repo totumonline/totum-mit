@@ -121,7 +121,7 @@ class Number extends Field
                     $valArray['v'] = str_replace('.', ',', $valArray['v']);
                     break;
                 case 'web':
-                    if (!is_numeric($valArray['v'])) {
+                    if (!is_numeric($valArray['v']) && !empty($valArray['v'])) {
                         $valArray['e'] = $this->translate('Field data type error');
                     }
                     break;

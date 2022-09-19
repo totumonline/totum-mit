@@ -177,7 +177,7 @@ class ReadTableActions extends Actions
                 $this->post['shash']))) {
 
             $LinkedTable = $this->Totum->getTable($data['table']['name'], $data['table']['extra'] ?? null);
-
+            $LinkedTable->setWithALogTrue('linkToEdit');
 
             if (!empty($this->post['search'])) {
 

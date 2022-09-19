@@ -1775,7 +1775,7 @@ CODE;;
      */
     public function setWithALogTrue($logText)
     {
-        $this->recalculateWithALog = is_string($logText) && $logText !== "true" ? $logText : true;
+        $this->recalculateWithALog = is_string($logText) && $logText !== 'true' ? $logText : true;
     }
 
     abstract protected function loadRowsByParams($params, $order = null, $offset = 0, $limit = null);

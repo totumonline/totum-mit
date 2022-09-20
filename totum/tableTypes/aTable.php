@@ -707,17 +707,20 @@ abstract class aTable
         $this->anchorFilters = $anchorFilters;
     }
 
-    public function checkIsUserCanViewIds($channel, $ids, $removed = false)
+    public function checkIsUserCanViewIds($channel, $ids, $removed = false, $isCritical = true)
     {
         $getFiltered = [];
         if ($channel !== 'inner') {
             $getFiltered = $this->loadFilteredRows($channel, $ids, $removed);
             foreach ($ids as $id) {
                 if (!in_array($id, $getFiltered)) {
-                    errorException::criticalException($this->translate('The row %s does not exist or is not available for your role.',
-                        (string)$id),
-                        $this
-                    );
+                    $mess = $this->translate('The row %s does not exist or is not available for your role.',
+                        (string)$id);
+                    if ($isCritical) {
+                        errorException::criticalException($mess, $this);
+                    } else {
+                        throw new errorException($mess);
+                    }
                 }
             }
         }

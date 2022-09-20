@@ -1516,7 +1516,7 @@ class Calculate
                 }
 
 
-                $fieldValue = $this->__getValue($fc[2] ?? $fc[1]);
+                $fieldValue = $this->__getValue($fc[2] ?? $fc[1] ?? throw new errorException($this->translate('TOTUM-code format error: missing part of parameter.')));
 
                 if (in_array(strtolower($funcName), ['set', 'setlist', 'setlistextended'])) {
                     if ($fc[1]['type'] === 'operator') {

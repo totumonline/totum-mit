@@ -791,20 +791,52 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['file']);
         $files = array_merge($params['files'] ?? [], $params['file'] ?? []);
-        foreach ($files as &$file) {
+        $this->__checkNotArrayParams($params, ['zip']);
+
+        $checkFile = function ($file, $withType = true) {
             if (empty($file['name'])) {
                 throw new errorException($this->translate('Fill in the parameter [[%s]].', 'name'));
             }
             if (empty($file['filestring'])) {
                 throw new errorException($this->translate('Fill in the parameter [[%s]].', 'filestring'));
             }
-            if (empty($file['type'])) {
+            if ($withType && empty($file['type'])) {
                 throw new errorException($this->translate('Fill in the parameter [[%s]].', 'type'));
             }
-            $file['string'] = base64_encode($file['filestring']);
-            unset($file['filestring']);
+        };
+
+
+        if (!empty($params['zip'])) {
+            $zip = new \ZipArchive();
+            $Config = $this->Table->getTotum()->getConfig();
+            $tmp_file = tempnam($Config->getTmpDir(), $Config->getSchema() . '.FilesDownloadZip'.$this->Table->getTotum()->getUser()->getId().'.');
+            unlink($tmp_file);
+            if ($zip->open($tmp_file, \ZipArchive::CREATE)) {
+                foreach ($files as $file) {
+                    $checkFile($file, false);
+                    $zip->addFromString($file['name'], $file['filestring']);
+                }
+                $zip->close();
+                if (!str_ends_with($name = $params['zip'], '.zip')) {
+                    $name .= '.zip';
+                }
+                $files = [
+                    ['name' => $name, 'type' => 'application/zip', 'string' => base64_encode(file_get_contents($tmp_file))]
+                ];
+                unlink($tmp_file);
+            } else {
+                throw new errorException('Creation zip archive error');
+            }
+
+        } else {
+            foreach ($files as &$file) {
+                $checkFile($file);
+                $file['string'] = base64_encode($file['filestring']);
+                unset($file['filestring']);
+            }
+            unset($file);
         }
-        unset($file);
+
         $this->Table->getTotum()->addToInterfaceDatas('files', ['files' => $files]);
     }
 

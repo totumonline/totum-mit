@@ -156,7 +156,6 @@ class Number extends Field
                 throw new errorException($this->translate('The value of the %s field must be numeric.',
                     $this->data['title']));
             }
-            $modifyVal = bcadd($modifyVal, 0, $this->data['dectimalPlaces']);
         }
 
         return $modifyVal;

@@ -18,7 +18,8 @@
     "ext-zlib": "*",
     "ext-bcmath": "*",
     "ext-curl": "*",
-    "ext-gd": "*"
+    "ext-gd": "*",
+    "ext-zip": "*"
   },
   "repositories": [
     {

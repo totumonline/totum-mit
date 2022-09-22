@@ -120,6 +120,7 @@ class RU implements LangInterface
         'Cycle [[%s]] is not found.' => 'Цикл [[%s]] не найден.',
         'Cycle [[%s]] in table [[%s]] is not found.' => 'Цикл [[%s]] в таблице [[%s]] не найден.',
         'TOTUM-code format error: missing operator in expression [[%s]].' => 'Ошибка формата TOTUM-кода: отсутствие оператора в выражении [[%s]].',
+        'TOTUM-code format error: missing part of parameter.' => 'Ошибка формата TOTUM-кода: отсутствие части параметра.',
 
         'No key %s was found in the data row.' => 'Ключа %s в строке данных не обраружено',
         'There is no [[%s]] key in the [[%s]] list.' => 'Не существует ключа [[%s]] в листе [[%s]].',

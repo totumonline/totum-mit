@@ -112,6 +112,7 @@ class RU implements LangInterface
         'Function [[%s]] is not found.' => 'Функция [[%s]] не найдена.',
         'Table [[%s]] is not found.' => 'Таблица [[%s]] не найдена.',
         'Table is not found.' => 'Таблица не найдена.',
+        'Max value of %s is %s.' => 'Максимальное значение параметра %s - %s',
 
         'May be insert row has expired.' => 'Возможно, истек срок жизни строки добавления.',
         'The storage time of the temporary object has expired.' => 'Время хранения временного объекта истекло.',

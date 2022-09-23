@@ -4,7 +4,7 @@
 
 \>
 
-#### 1-Click установка на VDS/VPS с Ubuntu 20 — [video on YouTube](https://www.youtube.com/watch?v=b52vZaiJJEI) | [docs](https://ru.docs.totum.online/ubuntu)
+#### 1-Click установка на VDS/VPS с Ubuntu 20 (ТОЛЬКО ДЛЯ ЧИСТЫХ СИСТЕМ) — [video on YouTube](https://www.youtube.com/watch?v=b52vZaiJJEI) | [docs](https://ru.docs.totum.online/ubuntu)
 ```
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/autoinstall.sh && sudo bash autoinstall.sh
 ```

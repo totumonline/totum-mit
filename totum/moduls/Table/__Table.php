@@ -25,9 +25,9 @@ if (empty($tableConfig)) {
                         <?php
                         foreach ($tmp_tables as $i => $_t) {
                             $_title = htmlspecialchars($_t['title']);
-                            $iframe = "";
+                            $iframe = '';
                             if ($i === 0) {
-                                $iframe = '<iframe src="/Table/0/' . $_t['id'] . '" frameborder="0"></iframe>';
+                                $iframe = '<iframe src="/Table/0/' . $_t['id'] . ($isCreatorView?'#no-creator-view':'').'" frameborder="0"></iframe>';
                             }
                             echo <<<HTML
 <div id="table{$_t['id']}" class="tab-pane fade in active">{$iframe}</div>
@@ -52,7 +52,7 @@ HTML;
                     $('#tables_tabls a').click(function () {
                         let target = $($(this).attr('href'));
                         if (!target.find('iframe').length && $(this).data('table_id')) {
-                            let iframe = $('<iframe src="/Table/0/' + $(this).data('table_id') + '" frameborder="0"></iframe>');
+                            let iframe = $('<iframe src="/Table/0/' + $(this).data('table_id') + '<?=($isCreatorView?'#no-creator-view':'')?>" frameborder="0"></iframe>');
                             target.append(iframe)
                         }
                     })

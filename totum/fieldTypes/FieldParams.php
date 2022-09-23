@@ -115,7 +115,7 @@ class FieldParams extends Field
         if ($val['type']['Val'] === 'text') {
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
         }
-        if ($val['type']['Val'] === 'number' && ($val['dectimalPlaces']['Val'] ?? 0) > 10) {
+        elseif (!$isCheck && $val['type']['Val'] === 'number' && ($val['dectimalPlaces']['Val'] ?? 0) > 10) {
             throw new criticalErrorException($this->translate('Max value of %s is %s.', ['dectimalPlaces', '10']));
         }
 

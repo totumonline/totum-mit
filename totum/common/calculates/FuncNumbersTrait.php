@@ -36,9 +36,12 @@ trait FuncNumbersTrait
             return bcadd($val, 0, $dectimal);
         };
 
+
         if (is_numeric($val)) {
             if (!is_infinite($val)) {
-                $val = number_format((float)$val, 12, '.', '');
+                if (!preg_match('/^[0-9.]+$/', $val)) {
+                    $val = number_format((float)$val, 12, '.', '');
+                }
             } else {
                 throw new errorException('Infinite value in round operation');
             }
@@ -113,7 +116,7 @@ trait FuncNumbersTrait
 
         $this->__checkRequiredParams($params, ['num']);
         $this->__checkNotArrayParams($params, ['num', 'dectimals', 'decsep', 'thousandssep', 'unittype', 'prefix']);
-        $this->__checkNumericParam($params['num'], 'num');
+        $this->__checkNumericParam($params['num'], 'num', true);
 
         return ((string)($params['prefix'] ?? '')) . number_format(
                 (float)$params['num'],

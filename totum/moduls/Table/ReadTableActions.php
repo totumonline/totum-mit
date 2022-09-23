@@ -177,7 +177,7 @@ class ReadTableActions extends Actions
                 $this->post['shash']))) {
 
             $LinkedTable = $this->Totum->getTable($data['table']['name'], $data['table']['extra'] ?? null);
-
+            $LinkedTable->setWithALogTrue('linkToEdit');
 
             if (!empty($this->post['search'])) {
 
@@ -1226,7 +1226,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     protected function getPageViewType(): string
     {
-        if ($this->User->isCreator() && ($this->Cookies['ttm__commonTableView'] ?? false)) {
+        if (($this->post['restoreView'] ?? false) || ($this->User->isCreator() && ($this->Cookies['ttm__commonTableView'] ?? false))) {
             $this->creatorCommonView = true;
             return 'common';
         }
@@ -1940,8 +1940,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     $this->Table->getTableRow()['id'],
                     $this->User->getFavoriteTables()
                 );
+            if ($this->User->isCreator() && in_array($this->Table->getTableRow()['type'], ['tmp', 'simple'])) {
+                $_tableRow  ['__is_in_forms'] = !!$this->Totum->getModel('ttm__forms')->get(['table_name'=>$tableRow['name']], 'id');
+            }
+
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
+
 
         return $_tableRow;
     }
@@ -2453,25 +2458,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         } else {
             throw new errorException($this->translate('Failed to get branch Id'));
         }
-    }
-
-    protected function loadEnvirement(array $data): array
-    {
-        if (key_exists('cycle_id', $data['env'])) {
-            $Table = $this->Totum->getTable($data['env']['table'], $data['env']['cycle_id']);
-        } elseif (key_exists('hash', $data['env'])) {
-            $Table = $this->Totum->getTable($data['env']['table'], $data['env']['hash']);
-        } else {
-            $Table = $this->Totum->getTable($data['env']['table']);
-        }
-
-        $row = [];
-        if (key_exists('id', $data['env'])) {
-            if ($Table->loadFilteredRows('inner', [$data['env']['id']])) {
-                $row = $Table->getTbl()['rows'][$data['env']['id']];
-            }
-        }
-        return [$Table, $row];
     }
 
     protected function getKanbanData(&$fields = null)

@@ -16,9 +16,23 @@ trait WithPhpMailerTrait
         try {
             $mail = new PHPMailer(true);
 
-            $mail->SMTPDebug = $this->env !== static::ENV_LEVELS["production"];
-            $mail->isSendmail();
-            $mail->CharSet = "utf-8";
+            $mail->SMTPDebug = $this->env !== static::ENV_LEVELS['production'];
+            $mail->CharSet = 'utf-8';
+
+
+            if (($smtpData = $this->getSettings('custom_smtp_setings_for_schema')) && is_array($smtpData)) {
+                $mail->isSMTP();
+                $mail->Host = $smtpData['host'] ?? '';
+                $mail->Port = $smtpData['port'] ?? '';
+
+                if ($mail->SMTPAuth = !empty($smtpData['login'])) {
+                    $mail->Username = $smtpData['login'];
+                    $mail->Password = $smtpData['password'] ?? '';
+                }
+            } else {
+                $mail->isSendmail();
+            }
+
 
             $from = $from ?? $this->getDefaultSender();
             //Recipients
@@ -43,4 +57,5 @@ trait WithPhpMailerTrait
             throw new \ErrorException($mail->ErrorInfo);
         }
     }
+
 }

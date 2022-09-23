@@ -586,48 +586,54 @@ abstract class aTable
             }
 
             foreach ($links as $f) {
-                if ($linkTableRow = $this->Totum->getConfig()->getTableRow($f['linkTableName'])) {
-                    $linkTableId = $linkTableRow['id'];
+                try {
+                    if ($linkTableRow = $this->Totum->getConfig()->getTableRow($f['linkTableName'])) {
+                        $linkTableId = $linkTableRow['id'];
 
-                    if ($tableId === $linkTableId) {
-                        $fForLink = $fields[$f['linkFieldName']] ?? null;
-                    } elseif ($linkTableRow['type'] === 'calcs') {
-                        if ($this->Totum->getConfig()->getTableRow($tableId)['type'] === 'calcs') {
-                            $_version = $this->Totum->getCycle(
-                                $cycleId,
-                                $linkTableRow['tree_node_id']
-                            )->getVersionForTable($f['linkTableName'])[0];
-                        } else {
-                            $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
-                        }
-
-                        $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
-                    } else {
-                        $fForLink = ($this->loadFields($linkTableId)[$f['linkFieldName']]) ?? null;
-                    }
-
-                    if ($fForLink) {
-                        $fieldFromLinkParams = [];
-                        foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect',
-                                     'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency',
-                                     'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull',
-                                     'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix'
-                                 ] as $fV) {
-                            if (isset($fForLink[$fV])) {
-                                $fieldFromLinkParams[$fV] = $fForLink[$fV];
+                        if ($tableId === $linkTableId) {
+                            $fForLink = $fields[$f['linkFieldName']] ?? null;
+                        } elseif ($linkTableRow['type'] === 'calcs') {
+                            if ($this->Totum->getConfig()->getTableRow($tableId)['type'] === 'calcs') {
+                                $_version = $this->Totum->getCycle(
+                                    $cycleId,
+                                    $linkTableRow['tree_node_id']
+                                )->getVersionForTable($f['linkTableName'])[0];
+                            } else {
+                                $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
                             }
-                        }
-                        if ($fieldFromLinkParams['type'] === 'button') {
-                            $fieldFromLinkParams['codeAction'] = $fForLink['codeAction'];
-                        } elseif ($fieldFromLinkParams['type'] === 'file') {
-                            $fields[$f['name']]['fileDuplicateOnCopy'] = false;
+
+                            $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
+                        } else {
+                            $fForLink = ($this->loadFields($linkTableId)[$f['linkFieldName']]) ?? null;
                         }
 
-                        $fields[$f['name']] = array_merge($fields[$f['name']], $fieldFromLinkParams);
+                        if ($fForLink) {
+                            $fieldFromLinkParams = [];
+
+                            /*transfered field params for link field*/
+                            foreach (['type', 'dectimalPlaces', 'closeIframeAfterClick', 'dateFormat', 'codeSelect',
+                                         'multiple', 'codeSelectIndividual', 'buttonText', 'unitType', 'currency',
+                                         'textType', 'withEmptyVal', 'multySelectView', 'dateTime', 'printTextfull',
+                                         'viewTextMaxLength', 'values', 'before', 'prefix', 'thousandthSeparator', 'dectimalSeparator', 'postfix', 'multiSeparator', 'errorText'
+                                     ] as $fV) {
+                                if (isset($fForLink[$fV])) {
+                                    $fieldFromLinkParams[$fV] = $fForLink[$fV];
+                                }
+                            }
+                            if ($fieldFromLinkParams['type'] === 'button') {
+                                $fieldFromLinkParams['codeAction'] = $fForLink['codeAction'];
+                            } elseif ($fieldFromLinkParams['type'] === 'file') {
+                                $fields[$f['name']]['fileDuplicateOnCopy'] = false;
+                            }
+
+                            $fields[$f['name']] = array_merge($fields[$f['name']], $fieldFromLinkParams);
+                        } else {
+                            $fields[$f['name']]['linkFieldError'] = true;
+                        }
                     } else {
                         $fields[$f['name']]['linkFieldError'] = true;
                     }
-                } else {
+                } catch (errorException) {
                     $fields[$f['name']]['linkFieldError'] = true;
                 }
                 $fields[$f['name']]['code'] = 'Select code';
@@ -701,17 +707,20 @@ abstract class aTable
         $this->anchorFilters = $anchorFilters;
     }
 
-    public function checkIsUserCanViewIds($channel, $ids, $removed = false)
+    public function checkIsUserCanViewIds($channel, $ids, $removed = false, $isCritical = true)
     {
         $getFiltered = [];
         if ($channel !== 'inner') {
             $getFiltered = $this->loadFilteredRows($channel, $ids, $removed);
             foreach ($ids as $id) {
                 if (!in_array($id, $getFiltered)) {
-                    errorException::criticalException($this->translate('The row %s does not exist or is not available for your role.',
-                        (string)$id),
-                        $this
-                    );
+                    $mess = $this->translate('The row %s does not exist or is not available for your role.',
+                        (string)$id);
+                    if ($isCritical) {
+                        errorException::criticalException($mess, $this);
+                    } else {
+                        throw new errorException($mess);
+                    }
                 }
             }
         }
@@ -1769,7 +1778,7 @@ CODE;;
      */
     public function setWithALogTrue($logText)
     {
-        $this->recalculateWithALog = is_string($logText) && $logText !== "true" ? $logText : true;
+        $this->recalculateWithALog = is_string($logText) && $logText !== 'true' ? $logText : true;
     }
 
     abstract protected function loadRowsByParams($params, $order = null, $offset = 0, $limit = null);
@@ -2542,8 +2551,14 @@ CODE;;
             && in_array($orderField['type'], ['select', 'tree'])
         ) {
             $sortArray = [];
+
             foreach ($rows as $row) {
                 $sortArray[] = $row[$orderFieldName]['v_'][0] ?? $row[$orderFieldName]['v'];
+                if (is_array($row[$orderFieldName]['v'])) {
+                    $sortArray = array_column($rows, 'id');
+                    $error = 'Sorting available only by single value fiels';
+                    break;
+                }
             }
             array_multisort(
                 $sortArray,

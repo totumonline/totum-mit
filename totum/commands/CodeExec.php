@@ -23,7 +23,7 @@ class CodeExec extends Command
         $this->setName('exec')
             ->addArgument('userId', InputArgument::REQUIRED, 'Int UserId in schema')
             ->addArgument('code', InputArgument::REQUIRED, 'base64 {"code":"CODE","vars":{}}')
-            ->setDescription('update from git origin master && composer && schema(s)-update');
+            ->setDescription('Technical function for run Totum-code from CLI.');
         if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
             $this->addOption('schema', 's', InputOption::VALUE_REQUIRED, 'Enter schema name to execute code');
         }

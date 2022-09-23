@@ -26,6 +26,8 @@ class RU implements LangInterface
         'Using a comparison type in a filter of list/row is not allowed' => 'Использование типа сравнения при фильтрации list/row не разрешено',
         'Using a comparison type in a search in list/row is not allowed' => 'Использование типа сравнения при поиске в list/row не разрешено',
 
+        'Field data type error' => 'Неверный тип данных в поле',
+
         'Not correct field name in query to [[%s]] table.' => 'Некорректное имя поля в запросе к таблице [[%s]].',
 
         'You see the contents of the table calculated and saved before the last transaction with the error.' => 'Вы видите содержимое таблицы, вычисленное и сохраненное перед последней транзакцией с ошибкой.',
@@ -37,7 +39,7 @@ class RU implements LangInterface
         'Each button must contain [[%s]].' => 'Каждая кнопка должна содержать [[%s]].',
         'The parameter [[%s]] should be of type row/list.' => 'Параметр [[%s]] должен быть типа row/list.',
         'The parameter [[%s]] should be of type true/false.' => 'Параметр [[%s]] должен быть типа true/false.',
-        'The parameter [[%s]] should [[not]] be of type row/list.' => 'Параметр [[%s]] [[не]] должен быть типа row/list.',
+        'The parameter [[%s]] should [[not]] be of type row/list.' => 'Параметр [[%s]] не должен быть типа row/list.',
         'The parameter [[%s]] should be of type string.' => 'Параметр [[%s]] должен быть типа строка.',
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 
@@ -118,6 +120,7 @@ class RU implements LangInterface
         'Cycle [[%s]] is not found.' => 'Цикл [[%s]] не найден.',
         'Cycle [[%s]] in table [[%s]] is not found.' => 'Цикл [[%s]] в таблице [[%s]] не найден.',
         'TOTUM-code format error: missing operator in expression [[%s]].' => 'Ошибка формата TOTUM-кода: отсутствие оператора в выражении [[%s]].',
+        'TOTUM-code format error: missing part of parameter.' => 'Ошибка формата TOTUM-кода: отсутствие части параметра.',
 
         'No key %s was found in the data row.' => 'Ключа %s в строке данных не обраружено',
         'There is no [[%s]] key in the [[%s]] list.' => 'Не существует ключа [[%s]] в листе [[%s]].',
@@ -154,6 +157,8 @@ class RU implements LangInterface
         'The [[%s]] parameter has not been set in this code.' => 'Параметр [[%s]] не был установлен в этом коде.',
         'All list elements must be lists.' => 'Все элементы списка должны быть списками.',
         'None of the elements of the %s parameter array must be a list.' => 'Ни один из элементов массива параметра %s не должен быть списком.',
+
+        'Parameter %s must contain list of numbers' => 'Параметр %s должен содержать список чисел',
 
         'The array element does not fit the filtering conditions - the value is not a list.' => 'Элемент массива не соответствует условиям фильтрации - значение не list.',
         'The array element does not fit the filtering conditions - [[item]] is not found.' => 'Элемент массива не соответствует условиям фильтрации - [[item]] не найден.',
@@ -389,6 +394,8 @@ class RU implements LangInterface
         'The structure of the table was changed. Possibly a field order mismatch.' => 'Была изменена структура таблицы. Возможно несовпадение порядка полей.',
         'no indication of a cycle' => 'отсутствует указание на цикл',
         'Table from another cycle or out of cycles' => 'Таблица из другого цикла или вне циклов',
+
+        'There is no calculation table in [[%s]] cycles table.' => 'В таблице циклов [[%s]] нет ни одной расчетной таблицы.',
         'Out of cycles' => 'Вне циклов',
         'Manual Values' => 'Ручные значения',
         'there is no Manual Values section header' => 'отсутствует заголовок секции Ручные значения',
@@ -423,9 +430,11 @@ class RU implements LangInterface
         'Adding row error' => 'Ошибка добавления строки',
         'The Parameters field type is valid only for the Tables Fields table' => 'Тип поля Параметры допустим только для таблицы Состав полей',
         'Data parameter  / data values must be numeric.' => 'Параметр data / его вложенные значения должны быть числовыми',
-        'An invalid value for id filtering was passed to the select function.' => 'В select функцию было передано недопустимое значение для фильтрации по id.'
+        'An invalid value for id filtering was passed to the select function.' => 'В select функцию было передано недопустимое значение для фильтрации по id.',
 
 
+        'Value format error in id %s row field %s' => 'Ошибка формата значения в строке id %s поля %s',
+        'Value format error in field %s' => 'Ошибка формата значения в поле %s',
     ];
     protected const monthRods = [
         1 => 'января',

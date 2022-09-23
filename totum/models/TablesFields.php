@@ -126,7 +126,7 @@ class TablesFields extends Model
         $category = $decodedVars['category'];
 
         if ($this->fieldExits($decodedVars['table_id'], $decodedVars['name'], $decodedVars['version'])) {
-            throw new errorException($this->translate('The [[%s]] field is already present in the [[%s]] table.', [$name, $decodedVars['table_id']]));
+            throw new errorException($this->translate('The [[%s]] field is already present in the [[%s]] table.', [$name, $decodedVars['table_name']]));
         }
 
         /*$this->checkParams($vars, $tableRowId);*/

@@ -187,4 +187,16 @@ class User
     {
         return $this->allData['id'];
     }
+
+    public function getUserStartPath(): ?string
+    {
+        if ($tables = $this->Config->getModel('roles')->getField('redirect_table_in_roles',
+            ['id' => $this->getRoles(), '!redirect_table_in_roles' => ''],
+            null,
+            null)) {
+            $row = $this->Config->getModel('tables')->get(['id' => $tables], 'id, top', 'sort');
+            return '/Table/' . $row['top'] . '/' . $row['id'];
+        }
+        return null;
+    }
 }

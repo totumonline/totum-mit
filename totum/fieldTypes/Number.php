@@ -35,7 +35,7 @@ class Number extends Field
             $diffVal = $modifyVal->val;
             $percent = $modifyVal->percent;
 
-            if (is_array($diffVal)){
+            if (is_array($diffVal)) {
                 throw new errorException($this->translate('The value of the number field should not be an array.'));
             }
 
@@ -54,11 +54,9 @@ class Number extends Field
                 $sign = '+';
                 $diffVal *= -1;
             }
-        }
-        elseif (is_array($modifyVal)){
+        } elseif (is_array($modifyVal)) {
             throw new errorException($this->translate('The value of the number field should not be an array.'));
-        }
-        elseif (preg_match(
+        } elseif (preg_match(
                 '/^(\-)([\d]+(\.[\d]+)?)(%)$/',
                 $modifyVal,
                 $matches
@@ -122,16 +120,34 @@ class Number extends Field
                 case 'csv':
                     $valArray['v'] = str_replace('.', ',', $valArray['v']);
                     break;
+                case 'web':
+                    if (!is_numeric($valArray['v']) && !empty($valArray['v'])) {
+                        $valArray['e'] = $this->translate('Field data type error');
+                    }
+                    break;
             }
         }
     }
 
-    protected function getDefaultValue()
+    protected
+    function getDefaultValue()
     {
         return str_replace(',', '.', $this->data['default'] ?? '');
     }
 
-    protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
+    protected function addValue($inNewVal, $isCheck, $row)
+    {
+        if (!is_null($inNewVal) && $inNewVal !== '') {
+            if (!is_numeric($inNewVal) || is_infinite($inNewVal)) {
+                throw new errorException($this->translate('The value of the %s field must be numeric.',
+                    $this->data['title']));
+            }
+        }
+        return $inNewVal;
+    }
+
+    protected
+    function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         $modifyVal = $this->modifyNumberValue($modifyVal, $oldVal);
 
@@ -140,13 +156,13 @@ class Number extends Field
                 throw new errorException($this->translate('The value of the %s field must be numeric.',
                     $this->data['title']));
             }
-            $modifyVal = bcadd($modifyVal, 0, $this->data['dectimalPlaces']);
         }
 
         return $modifyVal;
     }
 
-    protected function checkValByType(&$val, $row, $isCheck = false)
+    protected
+    function checkValByType(&$val, $row, $isCheck = false)
     {
         if (is_null($val) || $val === '') {
             return;

@@ -3,6 +3,7 @@
 namespace totum\common\calculates;
 
 use PDO;
+use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\models\TablesFields;
@@ -11,6 +12,25 @@ use totum\tableTypes\RealTables;
 
 trait FuncTablesTrait
 {
+
+    protected function funcTableUrl(string $params): string
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkNotArrayParams($params, ['table', 'cycle', 'protocol']);
+        $this->__checkTableIdOrName($params['table'] ?? '', 'table');
+
+        $protocol = ($params['protocol'] ?? 'https') !== 'http' ? 'https' : 'http';
+        $tableRow = $this->Table->getTotum()->getTableRow($params['table']);
+
+        $tablePath = $tableRow['top'] . '/' . $tableRow['id'];
+        if ($tableRow['type'] === 'calcs') {
+            $this->__checkNotEmptyParams($params, ['cycle']);
+            $top = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])['top'];
+            $tablePath = $top . '/' . $tableRow['tree_node_id'] . '/' . $params['cycle'] . '/' . $tableRow['id'];
+        }
+
+        return $protocol . '://' . $this->Table->getTotum()->getConfig()->getFullHostName() . '/Table/' . $tablePath;
+    }
 
     protected function funcGetTableSource(string $params)
     {
@@ -135,7 +155,8 @@ SQL;
                     $table,
                     $params['refresh'] ?? false,
                     ['header' => $params['header'] ?? true,
-                        'footer' => $params['footer'] ?? true]
+                        'footer' => $params['footer'] ?? true,
+                        'topbuttons' => $params['topbuttons'] ?? true]
                 );
             }
         }
@@ -235,6 +256,8 @@ SQL;
                 }
             }
             if (empty($table)) {
+                $this->__checkNotEmptyParams($params, ['hash']);
+                $this->__checkNotArrayParams($params, ['hash']);
                 $table = $this->Table->getTotum()->getTable($tableRow, $params['hash']);
             }
             $table->reCalculateFromOvers($inVars, $this->Table->getCalculateLog());
@@ -491,5 +514,153 @@ SQL;
             $this->row['id'] ?? null,
             $this::class === Calculate::class
         );
+    }
+
+
+    /*Добавить проверку действие/расчет при добавлении параметра target*/
+    protected function funcLinkToForm($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        $this->__checkRequiredParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['protocol', 'target']);
+
+
+        $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
+            ['where' => [
+                ['field' => 'path_code', 'operator' => '=', 'value' => $params['path']]
+            ],
+                'field' => ['type']],
+            'row'
+        );
+
+        if (!$formData) {
+            throw new errorException($this->translate('Form is not found.'));
+        }
+        if ($formData['type'] != '') {
+            throw new errorException($this->translate('For temporary tables forms only.'));
+        }
+        $d = [];
+
+        if (!empty($params['data'])) {
+            $d['d'] = $params['data'];
+        }
+        if (!empty($params['params'])) {
+            $d['p'] = $params['params'];
+        }
+
+        $t = $params['path'];
+        if ($d) {
+            $d['t'] = $params['path'];
+
+            $t .= '?d=' . urlencode(Crypt::getCrypted(
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
+        }
+        $link = $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+
+        if (!empty($params['target'])) {
+            $this->Table->getTotum()->addToInterfaceLink(
+                ($params['protocol'] ?? 'https') . '://' . $link,
+                $params['target']
+            );
+        } else {
+            $protocol = empty($params['protocol']) ? '' : ($params['protocol'] . '://');
+            return $protocol . $link;
+        }
+    }
+
+    protected function funcLinkToQuickForm($params)
+    {
+        $params = $this->getParamsArray($params);
+
+        $this->__checkRequiredParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['path']);
+        $this->__checkNotArrayParams($params, ['protocol', 'target']);
+
+
+        $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
+            ['where' => [
+                ['field' => 'path_code', 'operator' => '=', 'value' => $params['path']]
+            ],
+                'field' => ['type']],
+            'row'
+        );
+
+        if (!$formData) {
+            throw new errorException($this->translate('Form is not found.'));
+        }
+        if ($formData['type'] != 'quick') {
+            throw new errorException($this->translate('For quick forms only.'));
+        }
+        $d = [];
+
+        if (!empty($params['fields'])) {
+            $d['f'] = $params['fields'];
+        }
+        if (!empty($params['fixed'])) {
+            $d['x'] = $params['fixed'];
+        }
+
+        $t = $params['path'];
+        if ($d) {
+            $d['t'] = $params['path'];
+
+            $t .= '?d=' . urlencode(Crypt::getCrypted(
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
+        }
+        $link = $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
+        if (!empty($params['target'])) {
+            $this->Table->getTotum()->addToInterfaceLink(
+                ($params['protocol'] ?? 'https') . '://' . $link,
+                $params['target']
+            );
+        } else {
+            $protocol = empty($params['protocol']) ? '' : ($params['protocol'] . '://');
+            return $protocol . $link;
+        }
+
+    }
+
+    protected function funcLinkToAnonymTable($params)
+    {
+        $params = $this->getParamsArray($params);
+        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
+        $this->__checkNotArrayParams($params, ['protocol', 'target']);
+
+        if ($tableRow['type'] === 'calcs') {
+            throw new errorException($this->translate('Access to tables in a cycle through this module is not available.'));
+        }
+        $d = [];
+        if (!empty($params['data'])) {
+            $d['d'] = $params['data'];
+        }
+        if (!empty($params['params'])) {
+            $d['p'] = $params['params'];
+        }
+        $t = $tableRow['id'];
+        if ($d) {
+            $d['t'] = $tableRow['id'];
+
+            $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
+                    json_encode($d, JSON_UNESCAPED_UNICODE),
+                    $this->Table->getTotum()->getConfig()->getCryptSolt()
+                ));
+        }
+        $link = $this->Table->getTotum()->getConfig()->getAnonymHost('An') . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
+        if (!empty($params['target'])) {
+            $this->Table->getTotum()->addToInterfaceLink(
+                ($params['protocol'] ?? 'https') . '://' . $link,
+                $params['target'],
+                $tableRow['title']
+            );
+        } else {
+            $protocol = empty($params['protocol']) ? '' : ($params['protocol'] . '://');
+            return $protocol . $link;
+        }
     }
 }

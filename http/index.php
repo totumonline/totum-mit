@@ -27,7 +27,7 @@ if (empty($module)) {
 }
 $controllerClass = 'totum\\moduls\\' . $module . '\\' . $module . 'Controller';
 if (class_exists($controllerClass)) {
-    if($Config && !empty($Config->getHiddenHosts()[$Config->getFullHostName()]) && empty($Config->getHiddenHosts()[$Config->getFullHostName()][$module])){
+    if ($Config && !empty($Config->getHiddenHosts()[$Config->getFullHostName()]) && empty($Config->getHiddenHosts()[$Config->getFullHostName()][$module])) {
         die($Config->getLangObj()->translate('The module is not available for this host.'));
     }
 
@@ -44,9 +44,9 @@ if (class_exists($controllerClass)) {
 
 } else {
     if ($Config) {
-        $Lang=$Config->getLangObj();
-    }else{
-        $Lang=(new \totum\common\Lang\EN());
+        $Lang = $Config->getLangObj();
+    } else {
+        $Lang = (new \totum\common\Lang\EN());
     }
     echo $Lang->translate('Not found: %s', [htmlspecialchars($controllerClass)]);
 }

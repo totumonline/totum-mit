@@ -100,31 +100,41 @@ class Comments extends Field
             case 'web':
                 if (is_array($valArray['v'])) {
                     $n = count($valArray['v']);
-                    $isCuted = false;
-                    if ($n > 0 && ($valArray['v'][$n - 1][1] !== $this->table->getTotum()->getUser()->getId())) {
-                        $notViewed = $n - $this->getViewed($row['id'] ?? null);
-                    }
 
-                    if ((!empty($valArray['f']['height']) || !empty($valArray['f']['maxheight']))
-                        && ($this->data['category'] !== 'column' && !($this->data['category'] === 'footer' && !empty($this->data['column'])))) {
-                        $valArray['v'] = ['all' => true, 'n' => $n, 'c' => array_map(
-                            function ($c) use (&$isCuted) {
-                                return $this->prepareComment($c, false, $isCuted);
-                            },
-                            $valArray['v']
-                        )];
+                    if ($n && (empty($valArray['v'][0]) || count(array_intersect_key($valArray['v'][0],
+                                [0, 1, 2])) !== 3)) {
+                        $valArray['v'] = ['n' => 0];
+                        $valArray['e'] = $this->translate('Field data type error');
+
                     } else {
-                        $valArray['v'] = ['n' => $n, 'c' => $n > 0 ? $this->prepareComment(
-                            $valArray['v'][$n - 1],
-                            true,
-                            $isCuted
-                        ) : []];
-                    }
-                    if ($n === 1 && $isCuted) {
-                        $valArray['v']['cuted'] = true;
-                    }
-                    if (!empty($notViewed)) {
-                        $valArray['v']['notViewed'] = $notViewed;
+
+
+                        $isCuted = false;
+                        if ($n > 0 && ($valArray['v'][$n - 1][1] !== $this->table->getTotum()->getUser()->getId())) {
+                            $notViewed = $n - $this->getViewed($row['id'] ?? null);
+                        }
+
+                        if ((!empty($valArray['f']['height']) || !empty($valArray['f']['maxheight']))
+                            && ($this->data['category'] !== 'column' && !($this->data['category'] === 'footer' && !empty($this->data['column'])))) {
+                            $valArray['v'] = ['all' => true, 'n' => $n, 'c' => array_map(
+                                function ($c) use (&$isCuted) {
+                                    return $this->prepareComment($c, false, $isCuted);
+                                },
+                                $valArray['v']
+                            )];
+                        } else {
+                            $valArray['v'] = ['n' => $n, 'c' => $n > 0 ? $this->prepareComment(
+                                $valArray['v'][$n - 1],
+                                true,
+                                $isCuted
+                            ) : []];
+                        }
+                        if ($n === 1 && $isCuted) {
+                            $valArray['v']['cuted'] = true;
+                        }
+                        if (!empty($notViewed)) {
+                            $valArray['v']['notViewed'] = $notViewed;
+                        }
                     }
                 }
                 break;
@@ -160,7 +170,7 @@ class Comments extends Field
     {
         $val = $val ?? [];
 
-        if(!is_array($val)){
+        if (!is_array($val)) {
             throw new errorException($this->translate('Comment field contains incorrect type data as a value.'));
         }
 
@@ -190,20 +200,23 @@ class Comments extends Field
         if (is_string($val)) {
             $val = [[date('Y-m-d H:i'), $this->table->getTotum()->getUser()->getId(), $val]];
         } elseif (is_array($val)) {
+            if (count($val) && empty($val[0])) {
+                $val = [];
+            }
             foreach ($val as $comment) {
                 if (!preg_match(
                     '/^\d\d\d\d(\-\d\d){2} \d\d:\d\d$/',
                     $comment[0] ?? null
                 )) {
                     throw new errorException($this->translate('Date format error: [[%s]].',
-                        is_array($comment[0]) ? 'Array' : (string)$comment[0]));
+                        is_array($comment[0] ?? null) ? 'Array' : (string)($comment[0] ?? null)));
                 }
                 if (!preg_match(
                     '/^\d+$/',
                     $comment[1] ?? null
                 )) {
                     throw new errorException($this->translate('[[%s]] format error: [[%s]].',
-                        ['user id', is_array($comment[0]) ? 'Array' : (string)$comment[1]]));
+                        ['user id', is_array($comment[0] ?? null) ? 'Array' : (string)($comment[1] ?? null)]));
                 }
                 if (!($comment[2] ?? null)) {
                     throw new errorException($this->translate('[[%s]] is reqired.', 'Comment text'));

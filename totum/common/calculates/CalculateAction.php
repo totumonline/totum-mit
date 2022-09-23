@@ -55,77 +55,225 @@ class CalculateAction extends Calculate
         }
     }
 
+    protected function funcNotificationSend($params)
+    {
+        $params = $this->getParamsArray($params, ['custom'], [], ['custom']);
+
+        $this->__checkNotArrayParams($params, ['title', 'eml', 'ntf']);
+        $this->__checkNotEmptyParams($params, ['title']);
+        if (!empty($params['users'])) {
+            $users = (array)$params['users'];
+            foreach ($users as $user) {
+                if (!is_numeric($user)) {
+                    throw new errorException($this->translate('Parameter %s must contain list of numbers', 'users'));
+                }
+            }
+            $users = $this->Table->getTotum()->getModel('users')->getAll([
+                'id' => $users,
+                'interface' => 'web',
+                'on_off' => 'true'
+            ], 'id, email');
+
+            if (empty($users)) {
+                return;
+            }
+
+            if (!empty($params['ntf'])) {
+                $add = [];
+                foreach ($users as $user) {
+                    $add[] = ['user_id' => $user['id'], 'title' => $params['title'], 'code' => 'admin_text', 'vars' => ['text' => $params['ntf']], 'active' => true];
+                }
+                $this->Table->getTotum()->getTable('notifications')->reCalculateFromOvers(
+                    ['add' => $add]
+                );
+            }
+            if (!empty($params['eml'])) {
+                $emails = [];
+                foreach ($users as $user) {
+                    if (!empty($user['email'])) {
+                        $emails[] = $user['email'];
+                    }
+                }
+                if ($emails) {
+                    $template = $this->Table->getTotum()->getConfig()->getModel('print_templates')->get(['name' => 'eml_email'],
+                        'styles, html');
+
+                    $template['body'] = preg_replace_callback(
+                        '/{([a-zA-Z_]+)}/',
+                        function ($match) use ($params) {
+                            return match ($match[1]) {
+                                'Title_of_notification' => $params['title'],
+                                'Text' => $params['eml'],
+                                'domen' => $this->Table->getTotum()->getConfig()->getFullHostName(),
+                                default => null,
+                            };
+                        },
+                        $template['html']
+                    );
+                    $eml = '<style>' . $template['styles'] . '</style>' . $template['body'];
+
+                    $toBfl = $params['bfl'] ?? in_array(
+                            'email',
+                            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+                        );
+
+                    try {
+                        foreach ($emails as $email) {
+                            $this->Table->getTotum()->getConfig()->sendMail(
+                                $email,
+                                $params['title'],
+                                $eml
+                            );
+
+                            if ($toBfl) {
+                                $this->Table->getTotum()->getOutersLogger()->debug('email', $params);
+                            }
+                        }
+                    } catch (Exception $e) {
+                        if ($toBfl) {
+                            $this->Table->getTotum()->getOutersLogger()->error(
+                                'email',
+                                ['error' => $e->getMessage()] + $params
+                            );
+                        }
+                        throw new errorException($e->getMessage());
+                    }
+                }
+            }
+            if (!empty($params['custom'])) {
+                $codes = [];
+                foreach ($this->Table->getTotum()->getModel('ttm__custom_user_notific_codes')->getAll([
+                    'name' => array_column($params['custom'], 'field')
+                ], 'name, code') as $row) {
+                    $codes[$row['name']] = $row['code'];
+                };
+
+                foreach ($params['custom'] as $p) {
+                    $name = $p['field'];
+                    $html = $p['value'];
+                    if (empty($html) || empty($code = $codes[$name] ?? null)) {
+                        continue;
+                    }
+
+                    if ($this->Table->getTotum()->getConfig()->isExecSSHOn('inner')) {
+                        foreach ($users as $user) {
+                            $Vars = ['user' => $user['id'], 'title' => $params['title'], 'html' => $html];
+
+                            $data = ['code' => $code, 'vars' => $Vars];
+
+                            $data = base64_encode(json_encode($data,
+                                JSON_UNESCAPED_UNICODE));
+
+                            $path = $this->Table->getTotum()->getConfig()->getBaseDir();
+
+                            $schema = '';
+
+                            if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
+                                $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
+                            }
+
+                            `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} > /dev/null 2>&1 &`;
+                        }
+                    } else {
+                        $CA = new static($code);
+                        try {
+                            foreach ($users as $user) {
+                                $Vars = ['user' => $user['id'], 'title' => $params['title'], 'html' => $html];
+                                $CA->execAction(
+                                    $this->varName,
+                                    $this->oldRow,
+                                    $this->row,
+                                    $this->oldTbl,
+                                    $this->tbl,
+                                    $this->Table,
+                                    $this->vars['tpa'],
+                                    $Vars
+                                );
+                                $this->newLogParent['children'][] = $CA->getLogVar();
+                            }
+                        } catch (errorException $e) {
+                            $this->newLogParent['children'][] = $CA->getLogVar();
+                            throw $e;
+                        }
+                    }
+                }
+            }
+
+        }
+
+    }
+
     protected function funcExec(string $params): mixed
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            $code = $params['code'] ?? $params['kod'] ?? null;
+            $code = $params['code'] = $params['code'] ?? $params['kod'] ?? null;
 
-            if (empty($code)) {
-                $this->__checkNotEmptyParams($params, ['code']);
-            } else {
-                if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
-                    $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
+            $this->__checkNotEmptyParams($params, ['code']);
+            $this->__checkNotArrayParams($params, ['code']);
+
+
+            if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
+                $code = $this->Table->getFields()[$code]['codeAction'] ?? '';
+            }
+
+            if (key_exists('ssh',
+                    $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
+
+                if (!$this->Table->getTotum()->getConfig()->isExecSSHOn('inner')) {
+                    throw new criticalErrorException($this->translate('Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.'));
                 }
 
-                if (key_exists('ssh',
-                        $params) && $params['ssh'] && ($params['ssh'] === 'true' || $params['ssh'] === true || $params['ssh'] === 'test')) {
+                $Vars = [];
+                foreach ($params['var'] ?? [] as $v) {
+                    $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
+                }
 
-                    if (!$this->Table->getTotum()->getConfig()->isExecSSHOn()) {
-                        throw new criticalErrorException($this->translate('Ssh:true in exec function is disabled. Enable execSSHOn in Conf.php.'));
-                    }
+                $data = ['code' => $code, 'vars' => $Vars];
+                $test = '> /dev/null 2>&1 &';
+                if ($params['ssh'] === 'test') {
+                    $data['test'] = true;
+                    $test = '2>&1';
+                }
 
+                $data = base64_encode(json_encode($data,
+                    JSON_UNESCAPED_UNICODE));
+
+                $path = $this->Table->getTotum()->getConfig()->getBaseDir();
+
+                $schema = '';
+
+                if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
+                    $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
+                }
+
+                return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} {$test}`;
+
+            } else {
+
+
+                $CA = new static($code);
+                try {
                     $Vars = [];
                     foreach ($params['var'] ?? [] as $v) {
                         $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
                     }
 
-                    $data = ['code' => $code, 'vars' => $Vars];
-                    $test = '> /dev/null 2>&1 &';
-                    if ($params['ssh'] === 'test') {
-                        $data['test'] = true;
-                        $test = '2>&1';
-                    }
+                    $r = $CA->execAction(
+                        $this->varName,
+                        $this->oldRow,
+                        $this->row,
+                        $this->oldTbl,
+                        $this->tbl,
+                        $this->Table,
+                        $this->vars['tpa'],
+                        $Vars
+                    );
+                    $this->newLogParent['children'][] = $CA->getLogVar();
 
-                    $data = base64_encode(json_encode($data,
-                        JSON_UNESCAPED_UNICODE));
-
-                    $path = $this->Table->getTotum()->getConfig()->getBaseDir();
-
-                    $schema = '';
-
-                    if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
-                        $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
-                    }
-
-                    return `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} {$test}`;
-
-                } else {
-
-
-                    $CA = new static($code);
-                    try {
-                        $Vars = [];
-                        foreach ($params['var'] ?? [] as $v) {
-                            $Vars = array_merge($Vars, $this->getExecParamVal($v, 'var'));
-                        }
-
-                        $r = $CA->execAction(
-                            $this->varName,
-                            $this->oldRow,
-                            $this->row,
-                            $this->oldTbl,
-                            $this->tbl,
-                            $this->Table,
-                            $this->vars['tpa'],
-                            $Vars
-                        );
-                        $this->newLogParent['children'][] = $CA->getLogVar();
-
-                        return $r;
-                    } catch (errorException $e) {
-                        $this->newLogParent['children'][] = $CA->getLogVar();
-                        throw $e;
-                    }
+                    return $r;
+                } catch (errorException $e) {
+                    $this->newLogParent['children'][] = $CA->getLogVar();
+                    throw $e;
                 }
             }
         }
@@ -151,12 +299,12 @@ class CalculateAction extends Calculate
         );
 
         $schema = $this->Table->getTotum()->getConfig()->getSchema();
-        $exclude = "--exclude-table-data='_tmp_tables'";
+        $exclude = "--exclude-table-data='{$schema}._tmp_tables'";
         if (empty($params['withlog'])) {
-            $exclude .= " --exclude-table-data='_log'";
+            $exclude .= " --exclude-table-data='{$schema}._log'";
         }
         if (empty($params['withbfl'])) {
-            $exclude .= " --exclude-table-data='_bfl'";
+            $exclude .= " --exclude-table-data='{$schema}._bfl'";
         }
         exec(
             "$pathDbPsql -O --schema '{$schema}' {$exclude} | grep -v '^--' | gzip > \"{$tmpFilename}\"",
@@ -304,7 +452,7 @@ class CalculateAction extends Calculate
         foreach ($params['buttons'] as $btn) {
             foreach ($requiredByttonParams as $req) {
                 if (empty($btn[$req])) {
-                    throw new errorException($this->translate('Each button must contain [[%s]].', $btn[$req]));
+                    throw new errorException($this->translate('Each button must contain [[%s]].', $req));
                 }
             }
             unset($btn['code']);
@@ -643,20 +791,52 @@ class CalculateAction extends Calculate
     {
         $params = $this->getParamsArray($params, ['file']);
         $files = array_merge($params['files'] ?? [], $params['file'] ?? []);
-        foreach ($files as &$file) {
+        $this->__checkNotArrayParams($params, ['zip']);
+
+        $checkFile = function ($file, $withType = true) {
             if (empty($file['name'])) {
                 throw new errorException($this->translate('Fill in the parameter [[%s]].', 'name'));
             }
             if (empty($file['filestring'])) {
                 throw new errorException($this->translate('Fill in the parameter [[%s]].', 'filestring'));
             }
-            if (empty($file['type'])) {
+            if ($withType && empty($file['type'])) {
                 throw new errorException($this->translate('Fill in the parameter [[%s]].', 'type'));
             }
-            $file['string'] = base64_encode($file['filestring']);
-            unset($file['filestring']);
+        };
+
+
+        if (!empty($params['zip'])) {
+            $zip = new \ZipArchive();
+            $Config = $this->Table->getTotum()->getConfig();
+            $tmp_file = tempnam($Config->getTmpDir(), $Config->getSchema() . '.FilesDownloadZip'.$this->Table->getTotum()->getUser()->getId().'.');
+            unlink($tmp_file);
+            if ($zip->open($tmp_file, \ZipArchive::CREATE)) {
+                foreach ($files as $file) {
+                    $checkFile($file, false);
+                    $zip->addFromString($file['name'], $file['filestring']);
+                }
+                $zip->close();
+                if (!str_ends_with($name = $params['zip'], '.zip')) {
+                    $name .= '.zip';
+                }
+                $files = [
+                    ['name' => $name, 'type' => 'application/zip', 'string' => base64_encode(file_get_contents($tmp_file))]
+                ];
+                unlink($tmp_file);
+            } else {
+                throw new errorException('Creation zip archive error');
+            }
+
+        } else {
+            foreach ($files as &$file) {
+                $checkFile($file);
+                $file['string'] = base64_encode($file['filestring']);
+                unset($file['filestring']);
+            }
+            unset($file);
         }
-        unset($file);
+
         $this->Table->getTotum()->addToInterfaceDatas('files', ['files' => $files]);
     }
 
@@ -848,116 +1028,6 @@ class CalculateAction extends Calculate
     }
 
 
-    protected function funcLinkToAnonymTable($params)
-    {
-        $params = $this->getParamsArray($params);
-        $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
-
-        if ($tableRow['type'] === 'calcs') {
-            throw new errorException($this->translate('Access to tables in a cycle through this module is not available.'));
-        }
-        $d = [];
-        if (!empty($params['data'])) {
-            $d['d'] = $params['data'];
-        }
-        if (!empty($params['params'])) {
-            $d['p'] = $params['params'];
-        }
-        $t = $tableRow['id'];
-        if ($d) {
-            $d['t'] = $tableRow['id'];
-
-            $t = $tableRow['id'] . '?d=' . urlencode(Crypt::getCrypted(
-                    json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->getCryptSolt()
-                ));
-        }
-        return $this->Table->getTotum()->getConfig()->getAnonymHost('An') . '/' . $this->Table->getTotum()->getConfig()->getAnonymModul() . '/' . $t;
-    }
-
-    protected function funcLinkToForm($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkRequiredParams($params, ['path']);
-        $this->__checkNotArrayParams($params, ['path']);
-
-        $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
-            ['where' => [
-                ['field' => 'path_code', 'operator' => '=', 'value' => $params['path']]
-            ],
-                'field' => ['type']],
-            'row'
-        );
-
-        if (!$formData) {
-            throw new errorException($this->translate('Form is not found.'));
-        }
-        if ($formData['type'] != '') {
-            throw new errorException($this->translate('For temporary tables forms only.'));
-        }
-        $d = [];
-
-        if (!empty($params['data'])) {
-            $d['d'] = $params['data'];
-        }
-        if (!empty($params['params'])) {
-            $d['p'] = $params['params'];
-        }
-
-        $t = $params['path'];
-        if ($d) {
-            $d['t'] = $params['path'];
-
-            $t .= '?d=' . urlencode(Crypt::getCrypted(
-                    json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->getCryptSolt()
-                ));
-        }
-        return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
-    }
-    protected function funcLinkToQuickForm($params)
-    {
-        $params = $this->getParamsArray($params);
-
-        $this->__checkRequiredParams($params, ['path']);
-        $this->__checkNotArrayParams($params, ['path']);
-
-        $formData = $this->Table->getTotum()->getTable('ttm__forms')->getByParams(
-            ['where' => [
-                ['field' => 'path_code', 'operator' => '=', 'value' => $params['path']]
-            ],
-                'field' => ['type']],
-            'row'
-        );
-
-        if (!$formData) {
-            throw new errorException($this->translate('Form is not found.'));
-        }
-        if ($formData['type'] != 'quick') {
-            throw new errorException($this->translate('For quick forms only.'));
-        }
-        $d = [];
-
-        if (!empty($params['fields'])) {
-            $d['f'] = $params['fields'];
-        }
-        if (!empty($params['fixed'])) {
-            $d['x'] = $params['fixed'];
-        }
-
-        $t = $params['path'];
-        if ($d) {
-            $d['t'] = $params['path'];
-
-            $t .= '?d=' . urlencode(Crypt::getCrypted(
-                    json_encode($d, JSON_UNESCAPED_UNICODE),
-                    $this->Table->getTotum()->getConfig()->getCryptSolt()
-                ));
-        }
-        return $this->Table->getTotum()->getConfig()->getAnonymHost('Forms') . '/Forms/' . $t;
-    }
-
     protected function funcEncriptedFormParams($params)
     {
         $params = $this->getParamsArray($params);
@@ -984,11 +1054,13 @@ class CalculateAction extends Calculate
 
         $width = $params['width'] ?? 600;
 
+        $htmlspecialchars = htmlspecialchars(is_array($params['text']) ?
+            'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
+            $params['text'] ?? '');
+
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => htmlspecialchars(is_array($params['text']) ?
-                'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
-                $params['text'] ?? '')],
+            ['title' => $title, 'width' => $width, 'text' => $htmlspecialchars, 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }
@@ -1043,7 +1115,7 @@ class CalculateAction extends Calculate
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? ''],
+            ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? '', 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }
@@ -1169,8 +1241,11 @@ class CalculateAction extends Calculate
             null,
             $params['width'] ?? null,
             $params['refresh'] ?? false,
-            ['header' => $params['header'] ?? true,
-                'footer' => $params['footer'] ?? true]
+            [
+                'header' => $params['header'] ?? true,
+                'footer' => $params['footer'] ?? true,
+                'topbuttons' => $params['topbuttons'] ?? true
+            ]
         );
     }
 

@@ -109,7 +109,7 @@ abstract class ConfParent
 
     public function getDefaultSender()
     {
-        return 'no-reply@' . $this->getFullHostName();
+        return $this->getSettings('default_email') ?? 'no-reply@' . $this->getFullHostName();
     }
 
     public function setSessionCookieParams()
@@ -117,7 +117,7 @@ abstract class ConfParent
         session_set_cookie_params([
             'path' => '/',
             'httponly' => true,
-            'samesite' => 'Strict'
+            'samesite' => 'Lax'
         ]);
     }
 
@@ -215,9 +215,13 @@ abstract class ConfParent
     /**
      * @return bool
      */
-    public function isExecSSHOn(): bool
+    public function isExecSSHOn(bool|string $type): bool
     {
-        return $this->execSSHOn;
+        return match ($type) {
+            true => $this->execSSHOn === true,
+            'inner' => $this->execSSHOn === true || $this->execSSHOn === 'inner',
+            default => false
+        };
     }
 
 

@@ -1481,7 +1481,7 @@ class Calculate
         $env = [
             'table' => $this->Table->getTableRow()['name']
         ];
-        $env['cycle_id'] = match ($this->Table->getTableRow()['type']) {
+        $env['extra'] = match ($this->Table->getTableRow()['type']) {
             'calcs' => $this->Table->getCycle()->getId(),
             'tmp' => $this->Table->getTableRow()['sess_hash'],
             default => null
@@ -1516,7 +1516,7 @@ class Calculate
                 }
 
 
-                $fieldValue = $this->__getValue($fc[2] ?? $fc[1]);
+                $fieldValue = $this->__getValue($fc[2] ?? $fc[1] ?? throw new errorException($this->translate('TOTUM-code format error: missing part of parameter.')));
 
                 if (in_array(strtolower($funcName), ['set', 'setlist', 'setlistextended'])) {
                     if ($fc[1]['type'] === 'operator') {

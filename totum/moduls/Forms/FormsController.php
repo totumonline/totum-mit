@@ -100,18 +100,20 @@ class FormsController extends interfaceController
                     throw new errorException($this->translate('Forms user authorization error'));
                 }
 
-                try {
-                    $this->Totum = new Totum($this->Config, $User);
-                    $this->answerVars = $this->actions($request);
-                } catch (tableSaveOrDeadLockException $exception) {
-                    if (++$this->totumTries < 5) {
-                        $this->Config = $this->Config->getClearConf();
+                while (true) {
+                    try {
                         $this->Totum = new Totum($this->Config, $User);
                         $this->answerVars = $this->actions($request);
-                    } else {
-                        throw new \Exception($this->translate('Conflicts of access to the table error'));
+                        break;
+                    } catch (tableSaveOrDeadLockException $exception) {
+                        if (++$this->totumTries < 5) {
+                            $this->Config = $this->Config->getClearConf();
+                        } else {
+                            throw new \Exception($this->translate('Conflicts of access to the table error'));
+                        }
                     }
                 }
+
             } catch (\Exception $e) {
                 if (!$this->isAjax) {
                     static::$contentTemplate = $this->Config->getTemplatesDir() . '/__error.php';
@@ -202,7 +204,7 @@ class FormsController extends interfaceController
         }
 
         $post = json_decode((string)$request->getBody(), true) ?? [];
-        $extradata = $post['sess_hash'] ?? null;
+        $extradata = $tableRow['type'] === 'tmp' ? ($post['sess_hash'] ?? null) : null;
 
         if ($tableRow['type'] === 'tmp') {
             if ($extradata) {
@@ -244,7 +246,7 @@ class FormsController extends interfaceController
         }*/
 
 
-        $this->Table = $this->Totum->getTable($tableRow, $extradata);
+        $this->Table = $this->Totum->getTable($tableRow,  $extradata);
         $this->onlyRead = ($this->Totum->getUser()->getTables()[$this->Table->getTableRow()['id']] ?? null) !== 1;
 
 

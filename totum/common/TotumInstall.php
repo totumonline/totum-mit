@@ -159,7 +159,7 @@ class Conf extends ConfParent{
     
     const LANG="{$post['lang']}";
     
-    //protected \$execSSHOn = true;
+    protected \$execSSHOn = 'inner'; //set true if you want to run ssh scripts via execSsh
     
     /***getSchemas***/
     static function getSchemas()
@@ -174,7 +174,7 @@ class Conf extends ConfParent{
             'path' => '/',
             /*'secure' => true,*/ //-- uncomment this if your totum always on ssl
             'httponly' => true,
-            'samesite' => 'Strict'
+            'samesite' => 'Lax'
         ]);
     }
 }

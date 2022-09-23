@@ -65,15 +65,15 @@ class SchemaBackup extends Command
 
         $pgDump = $Conf->getSshPostgreConnect('pg_dump');
 
-        $exclude = "--exclude-table-data='_tmp_tables'";
-        $exclude .= " --exclude-table-data='_bfl'";
+        $exclude = "--exclude-table-data='{$schema}._tmp_tables'";
+        $exclude .= " --exclude-table-data='{$schema}._bfl'";
 
         if ($input->getOption('no-logs')) {
-            $exclude .= " --exclude-table-data='_log'";
+            $exclude .= " --exclude-table-data='{$schema}._log'";
         }
         if ($input->getOption('no-content')) {
             foreach (explode(',', $input->getOption('no-content')) as $tName) {
-                $exclude .= " --exclude-table-data='$tName'";
+                $exclude .= " --exclude-table-data='{$schema}.$tName'";
             }
         }
         $gz=($gz ? '| gzip' : '');

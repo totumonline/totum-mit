@@ -21,13 +21,14 @@ trait FuncNumbersTrait
         $func = function ($val, $dectimal) use ($logData, $type) {
             $mod = bcmod($val, 1, 10);
             if ($val > 0) {
-                if ($nextDigit = ($mod[$dectimal + 2] ?? 0)) {
-                    if ($type === 'up' || ($type != 'down' && $nextDigit >= 5)) {
-                        $val = bcadd($val, number_format(1 / (10 ** $dectimal), $dectimal, '.', ''), $dectimal);
-                    }
+                if (($type === 'up' && (int)(substr($mod,
+                                $dectimal + 2) ?? 0)) ||
+                    ($type != 'down' && ($mod[$dectimal + 2] ?? 0) >= 5)) {
+                    $val = bcadd($val, number_format(1 / (10 ** $dectimal), $dectimal, '.', ''), $dectimal);
                 }
-            } elseif ($val < 0 && ($nextDigit = ($mod[$dectimal + 3] ?? 0))) {
-                if ($type === 'down' || ($type !== 'up' && $nextDigit >= 5)) {
+            } elseif ($val < 0) {
+                if (($type === 'down' && (int)(substr($mod,
+                                $dectimal + 3) ?? 0)) || ($type !== 'up' && ($mod[$dectimal + 3] ?? 0) >= 5)) {
                     $val = bcsub($val, number_format(1 / (10 ** $dectimal), $dectimal, '.', ''), $dectimal);
                 }
             }

@@ -85,19 +85,19 @@ echo -e "\e[40;1;37m                            -+*++++++++***+*:               
 echo -e "\e[40;1;37m                            -**+**+***+***+*:                            \033[0m"
 echo -e "\e[40;1;37m                            -******::****:**:                            \033[0m"
 echo -e "\e[40;1;37m                                                                         \033[0m"
-echo -e "\e[43;1;35m- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\033[0m"
-echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   TOTUM AUTOINSTALL SCRIPT !WITHOUT DOMAIN!                             \033[0m"
-echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   This install script will help you to install Totum online             \033[0m" 
-echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   on clean Ubuntu 20 without SSL and valid domain.                      \033[0m"
-echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m   For email you need to configure you SMTP in Conf.php in               \033[0m"
-echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;31m   /home/totum/totum-mit/Conf.php                                        \033[0m"
-echo -e "\e[43;1;35m                                                                         \033[0m"
-echo -e "\e[43;1;35m- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\033[0m"
+echo -e "\033[43m\033[30m- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\033[0m"
+echo -e "\033[43m\033[30m                                                                         \033[0m"
+echo -e "\033[43m\033[30m   TOTUM AUTOINSTALL SCRIPT !WITHOUT DOMAIN!                             \033[0m"
+echo -e "\033[43m\033[30m                                                                         \033[0m"
+echo -e "\033[43m\033[30m   This install script will help you to install Totum online             \033[0m" 
+echo -e "\033[43m\033[30m                                                                         \033[0m"
+echo -e "\033[43m\033[30m   \033[43m\033[31mONLY ON CLEAR!!! Ubuntu 20 \033[43m\033[30mwithout SSL and valid domain.              \033[0m"
+echo -e "\033[43m\033[30m                                                                         \033[0m"
+echo -e "\033[43m\033[30m   For email you need to configure you SMTP in Conf.php in               \033[0m"
+echo -e "\033[43m\033[30m                                                                         \033[0m"
+echo -e "\033[43m\033[31m   /home/totum/totum-mit/Conf.php                                        \033[0m"
+echo -e "\033[43m\033[30m                                                                         \033[0m"
+echo -e "\033[43m\033[30m- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\033[0m"
 echo
 
 read -p "If you ready to go, type (A) or cancel (Ctrl + C): " TOTUMRUN
@@ -120,9 +120,11 @@ fi
 CERTBOTDOMAIN=$(curl ifconfig.me/ip)
 
 echo
+echo -e "\033[41mIMPORTANT!!! Look at the next step. If after installation you see the error «schema not found» you can change it in /home/totum/totum-mit/Conf.php\033[0m"
+echo
 echo -e "Server IP detected as \033[1m>>> ${CERTBOTDOMAIN} <<<\033[0m "
 echo
-read -p "If it right type A or type your custom IP or localhost for access to Totum after install: " CERTBOTDOMAIN_CHECK
+read -p "If it right type (A) or type your custom IP or localhost for access to Totum after install: " CERTBOTDOMAIN_CHECK
 echo
 
 if [[ $CERTBOTDOMAIN_CHECK = "A" ]]

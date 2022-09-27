@@ -38,6 +38,7 @@ class RU implements LangInterface
         'Parametr [[%s]] is required.' => 'Параметр [[%s]] обязателен.',
         'Each button must contain [[%s]].' => 'Каждая кнопка должна содержать [[%s]].',
         'The parameter [[%s]] should be of type row/list.' => 'Параметр [[%s]] должен быть типа row/list.',
+        'The parameter [[%s]] of [[%s]] should be of type row/list.' => 'Параметр [[%s]] в [[%s]] должен быть типа row/list.',
         'The parameter [[%s]] should be of type true/false.' => 'Параметр [[%s]] должен быть типа true/false.',
         'The parameter [[%s]] should [[not]] be of type row/list.' => 'Параметр [[%s]] не должен быть типа row/list.',
         'The parameter [[%s]] should be of type string.' => 'Параметр [[%s]] должен быть типа строка.',
@@ -112,6 +113,7 @@ class RU implements LangInterface
         'Function [[%s]] is not found.' => 'Функция [[%s]] не найдена.',
         'Table [[%s]] is not found.' => 'Таблица [[%s]] не найдена.',
         'Table is not found.' => 'Таблица не найдена.',
+        'Max value of %s is %s.' => 'Максимальное значение параметра %s - %s',
 
         'May be insert row has expired.' => 'Возможно, истек срок жизни строки добавления.',
         'The storage time of the temporary object has expired.' => 'Время хранения временного объекта истекло.',

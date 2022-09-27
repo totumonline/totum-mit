@@ -442,6 +442,7 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params);
         $this->__checkNotEmptyParams($params, ['title', 'buttons']);
         $this->__checkNotArrayParams($params, ['title']);
+
         $this->__checkListParam($params, 'buttons');
 
         $params['refresh'] = $params['refresh'] ?? false;
@@ -449,12 +450,17 @@ class CalculateAction extends Calculate
 
         $requiredByttonParams = ['text', 'code'];
         $buttons = [];
-        foreach ($params['buttons'] as $btn) {
+        foreach ($params['buttons'] as $i => $btn) {
             foreach ($requiredByttonParams as $req) {
                 if (empty($btn[$req])) {
                     throw new errorException($this->translate('Each button must contain [[%s]].', $req));
                 }
             }
+            if (key_exists('vars', $btn) && !is_array($btn['vars'])) {
+                throw new errorException($this->translate('The parameter [[%s]] of [[%s]] should be of type row/list.',
+                    ['vars', 'button ' . ($i + 1)]));
+            }
+
             unset($btn['code']);
             unset($btn['vars']);
 
@@ -809,7 +815,8 @@ class CalculateAction extends Calculate
         if (!empty($params['zip'])) {
             $zip = new \ZipArchive();
             $Config = $this->Table->getTotum()->getConfig();
-            $tmp_file = tempnam($Config->getTmpDir(), $Config->getSchema() . '.FilesDownloadZip'.$this->Table->getTotum()->getUser()->getId().'.');
+            $tmp_file = tempnam($Config->getTmpDir(),
+                $Config->getSchema() . '.FilesDownloadZip' . $this->Table->getTotum()->getUser()->getId() . '.');
             unlink($tmp_file);
             if ($zip->open($tmp_file, \ZipArchive::CREATE)) {
                 foreach ($files as $file) {

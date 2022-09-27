@@ -6,7 +6,7 @@ if (is_null($isCreatorView ?? null)) {
 <div class="Tree pull-left" id="LeftTree">
     <div id="TreeMaximizer"><span class="fa fa-bars"></span></div>
     <div class="TreeContainer">
-        <a class="totum-brand" href="/"><span><?= $schema_name ?></span></a> <span class="fa fa-times"
+        <a class="totum-brand" href="/"><span><?= $schema_name ?></span></a> <span class="fa fa-chevron-left"
                                                                                    id="TreeMinimizer"></span>
         <?php
         if (!empty($Branch)) { ?>

@@ -1292,7 +1292,7 @@ class Calculate
 
     protected function __checkNumericParam($isDigit, $paramName, $withEfloats = false)
     {
-        if (is_array($isDigit) || !is_numeric($isDigit) || (!$withEfloats && !preg_match('/^[0-9.]+$/', $isDigit))) {
+        if (is_array($isDigit) || !is_numeric($isDigit) || (!$withEfloats && !preg_match('/^[-+]?[0-9.]+$/', $isDigit))) {
             throw new errorException($this->translate('The %s parameter must be a number.', $paramName));
         }
     }

@@ -475,6 +475,8 @@ class CalculateLog
             $tree['text'] = 'select from table "' . $tree['text'] . '"';
         }
 
+        $tree['text'] = $tree['text'] ?? '';
+
         //  $tree['children'] [] = ['text' => 'field:' . $fieldName . '; table:' . $tableName.'; section: '.$section];
 
 
@@ -483,6 +485,7 @@ class CalculateLog
                 $tree['text'] .= ' ' . $this->params['times'] . ' sec.';
             }
         } elseif (key_exists('result', $this->params)) {
+
             if (is_array($this->params['result']) && count($this->params['result']) > 3) {
                 $tree['children'][] = ['icon' => 'fa fa-code', 'text' => json_encode(
                     $this->params['result'],

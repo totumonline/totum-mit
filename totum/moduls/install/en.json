@@ -804,6 +804,7 @@
     "{{numbers_format}}": "json`{\"thousandthSeparator\": \",\",\"dectimalSeparator\": \".\"}`",
     "{{of_table}}": "of table",
     "{{picture_name_picture_is_required}}": "picture_name — picture is required",
+    "{{search_on}}": "On",
     "{{sec_in_settings}}": "sec.",
     "{{sec}}": "sec",
     "{{string}}": "string",

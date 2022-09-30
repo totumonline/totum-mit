@@ -804,6 +804,7 @@
     "{{numbers_format}}": "json`{\"thousandthSeparator\": \" \",\"dectimalSeparator\": \",\"}`",
     "{{of_table}}": "таблицы",
     "{{picture_name_picture_is_required}}": "picture_name — picture is required",
+    "{{search_on}}": "Вкл.",
     "{{sec_in_settings}}": "сек.",
     "{{sec}}": "сек",
     "{{string}}": "string",

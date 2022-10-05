@@ -437,6 +437,11 @@ class RU implements LangInterface
 
         'Value format error in id %s row field %s' => 'Ошибка формата значения в строке id %s поля %s',
         'Value format error in field %s' => 'Ошибка формата значения в поле %s',
+
+
+        /**PRO**/
+
+        'Check that the ttm__search field type in table %s is data' => 'Проверьте, что тип поля ttm__search  в таблице %s - данные'
     ];
     protected const monthRods = [
         1 => 'января',

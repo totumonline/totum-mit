@@ -215,6 +215,9 @@ class TableController extends interfaceController
                 'id, title, type, tree_node_id, sort, icon, name',
                 '(sort->>\'v\')::numeric'
             ) as $t) {
+                if ($t['type'] === 'calcs') {
+                    continue;
+                }
                 $tree[] = [
                     'id' => 'table' . $t['id']
                     , 'href' => $t['id']

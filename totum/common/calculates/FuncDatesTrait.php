@@ -150,7 +150,25 @@ trait FuncDatesTrait
                     $row['end'] = (clone $start)->modify('-1 sec');
                     return (object)$row;
                 };
-                $start = $date->modify('-' . ($date->format('N') - 1) . ' days -' . $date->format('H') . 'hours -' . $date->format('i') . 'minutes - ' . $date->format('s') . ' sec');
+
+                $startDay= match ($params['weekdaystart'] ?? null) {
+                        default => 1,
+                        'tue' => 2,
+                        'wed' => 3,
+                        'thu' => 4,
+                        'fri' => 5,
+                        'sat' => 6,
+                        'sun' => 7,
+                    };
+
+                if ($date->format('N') >= $startDay){
+                    $startDays = $date->format('N') - $startDay;
+                }else{
+                    $startDays = $date->format('N') + (7 - $startDay);
+                }
+
+
+                $start = $date->modify('-'.$startDays . ' days -' . $date->format('H') . 'hours -' . $date->format('i') . 'minutes - ' . $date->format('s') . ' sec');
                 break;
             case 'month':
                 $func = function ($start) use (&$result, $params) {

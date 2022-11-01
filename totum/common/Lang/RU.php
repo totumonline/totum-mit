@@ -438,6 +438,7 @@ class RU implements LangInterface
         'Value format error in id %s row field %s' => 'Ошибка формата значения в строке id %s поля %s',
         'Value format error in field %s' => 'Ошибка формата значения в поле %s',
 
+        'Crypto.key file not exists' => 'Файл Crypto.key не существует',
 
         /**PRO**/
         'The code for the specified button is not found. Try again.' => 'Код указанной кнопки не наден. Попробуйте еще раз.',
@@ -446,10 +447,10 @@ class RU implements LangInterface
         'The file path is not formed correctly.' => 'Путь к файлу неверно сформирован.',
         'The file is not protected' => 'Файл не защищенный',
         'Access to the file field is denied' => 'Доступ к полю файла запрещен',
-        'Access to the file row is denied or the row does not exist'=>'Доступ к строке файла запрещен или строка не существует',
-        'The file field was not found'=>'Поле файла не найдено',
-        'The file does not exist on the disk'=>'Файл не существует на диске',
-        'File name parsing error'=>'Ошибка парсинга имени файла'
+        'Access to the file row is denied or the row does not exist' => 'Доступ к строке файла запрещен или строка не существует',
+        'The file field was not found' => 'Поле файла не найдено',
+        'The file does not exist on the disk' => 'Файл не существует на диске',
+        'File name parsing error' => 'Ошибка парсинга имени файла'
     ];
     protected const monthRods = [
         1 => 'января',

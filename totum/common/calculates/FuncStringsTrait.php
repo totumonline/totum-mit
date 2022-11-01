@@ -3,6 +3,7 @@
 namespace totum\common\calculates;
 
 use \JsonException;
+use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Lang\RU;
 
@@ -562,5 +563,19 @@ trait FuncStringsTrait
             }
         }
         return $value;
+    }
+
+    protected function funcStrEncrypt($params)
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkNotArrayParams($params, ['str']);
+        return Crypt::getCrypted($params['str'], false);
+    }
+
+    protected function funcStrDecrypt($params)
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkNotArrayParams($params, ['str']);
+        return Crypt::getDeCrypted($params['str'], false);
     }
 }

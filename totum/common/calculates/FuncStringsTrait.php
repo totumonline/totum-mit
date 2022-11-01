@@ -569,13 +569,13 @@ trait FuncStringsTrait
     {
         $params = $this->getParamsArray($params);
         $this->__checkNotArrayParams($params, ['str']);
-        return Crypt::getCrypted($params['str'], false);
+        return Crypt::getCrypted($params['str'], $this->Table->getTotum()->getConfig()->getCryptSolt());
     }
 
     protected function funcStrDecrypt($params)
     {
         $params = $this->getParamsArray($params);
         $this->__checkNotArrayParams($params, ['str']);
-        return Crypt::getDeCrypted($params['str'], false);
+        return Crypt::getDeCrypted($params['str'], $this->Table->getTotum()->getConfig()->getCryptSolt());
     }
 }

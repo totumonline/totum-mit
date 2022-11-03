@@ -221,7 +221,8 @@ class ReadTableActions extends Actions
 
                 $value = $this->post['data'];
 
-                if (is_string($value) && Field::isFieldListValues($fieldData['type'], $fieldData['multiple'] ?? false)) {
+                if (is_string($value) && Field::isFieldListValues($fieldData['type'],
+                        $fieldData['multiple'] ?? false)) {
                     $val = json_decode($value, true);
                     if (!json_last_error()) {
                         $value = $val;
@@ -2041,18 +2042,27 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             $changedIds = $this->Table->getChangeIds();
 
+
+            $displaced = [];
             if ($changedIds['added']) {
                 $return['chdata']['rows'] = array_intersect_key(
                     $this->Table->getTbl()['rows'],
                     $changedIds['added']
                 );
+
+
+                if (($this->post['onPage'] ?? false) && (count($pageIds) + count($changedIds['added'])) > (int)$this->post['onPage']) {
+                    $displaceOffset = $this->post['onPage'] - (count($pageIds) + count($changedIds['added']));
+                    $displaced = array_slice($pageIds, $displaceOffset);
+                }
+
                 array_push($pageIds, ...array_keys($changedIds['added']));
             }
 
-            if ($changedIds['deleted']) {
-                $return['chdata']['deleted'] = array_keys($changedIds['deleted']);
+            if ($changedIds['deleted'] || $displaced) {
+                $return['chdata']['deleted'] = array_merge(array_keys($changedIds['deleted'] ?? []), $displaced);
                 if ($pageIds) {
-                    $pageIds = array_diff($pageIds, array_keys($changedIds['deleted']));
+                    $pageIds = array_diff($pageIds, $return['chdata']['deleted']);
                 }
             }
             if ($changedIds['restored']) {

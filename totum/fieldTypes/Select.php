@@ -716,6 +716,7 @@ class Select extends Field
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
+
         if (($this->data['multiple'] ?? false) === true) {
             if (!is_array($val)) {
                 if (is_numeric($val)) {
@@ -724,9 +725,9 @@ class Select extends Field
                     $val = [];
                 } else {
                     if ($v = json_decode($val, true)) {
-                        $val = strval($v);
+                        $val = (array)$v;
                     } else {
-                        $val = [strval($val)];
+                        $val = (array)$val;
                     }
                 }
             }

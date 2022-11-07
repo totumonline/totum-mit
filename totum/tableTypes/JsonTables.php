@@ -1219,7 +1219,7 @@ abstract class JsonTables extends aTable
                 $value = $wI['value'];
 
 
-                if ($value === '*ALL*') {
+                if ((array)$value === ['*ALL*']) {
                     continue;
                 }
                 if ($field === 'id') {

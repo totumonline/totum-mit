@@ -450,7 +450,10 @@ class RU implements LangInterface
         'Access to the file row is denied or the row does not exist' => 'Доступ к строке файла запрещен или строка не существует',
         'The file field was not found' => 'Поле файла не найдено',
         'The file does not exist on the disk' => 'Файл не существует на диске',
-        'File name parsing error' => 'Ошибка парсинга имени файла'
+        'File name parsing error' => 'Ошибка парсинга имени файла',
+
+        'DB connection by name %s was not found.' => 'Соединение с БД c name %s не найдено.',
+        'DB connection by hash %s was not found.' => 'Соединение с БД c hash %s не найдено.'
     ];
     protected const monthRods = [
         1 => 'января',

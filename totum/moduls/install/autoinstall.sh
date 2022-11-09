@@ -348,6 +348,7 @@ cd ~
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/exim4.conf.template
 sudo chown root:root ./exim4.conf.template
 sudo mv ./exim4.conf.template /etc/exim4/exim4.conf.template
+sudo sed -i "s:your_hostname_here:${CERTBOTDOMAIN}:g" /etc/exim4/exim4.conf.template
 
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/update-exim4.conf.conf
 sudo chown root:root ./update-exim4.conf.conf

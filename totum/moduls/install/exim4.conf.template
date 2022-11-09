@@ -181,9 +181,8 @@ dns_dnssec_ok = 1
 
 # In a minimaldns setup, update-exim4.conf guesses the hostname and
 # dumps it here to avoid DNS lookups being done at Exim run time.
-.ifdef MAIN_HARDCODE_PRIMARY_HOSTNAME
-primary_hostname = MAIN_HARDCODE_PRIMARY_HOSTNAME
-.endif
+
+primary_hostname = your_hostname_here
 
 # The settings below cause Exim to make RFC 1413 (ident) callbacks
 # for all incoming SMTP calls. You can limit the hosts to which these

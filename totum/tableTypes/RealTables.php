@@ -1476,7 +1476,7 @@ abstract class RealTables extends aTable
             $operator = $wI['operator'];
             $value = $wI['value'];
 
-            if ($value === '*ALL*') {
+            if ((array)$value === ['*ALL*']) {
                 continue;
             }
 

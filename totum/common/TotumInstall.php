@@ -407,7 +407,7 @@ CONF;
         $this->updateDataExecCodes(
             $schemaRows,
             $funcCats('all'),
-            $funcRoles('all'),
+            $funcRoles,
             $funcTree('all'),
             'totum_' . $this->Totum->getConfig()->getLang(),
             true
@@ -705,7 +705,7 @@ CONF;
             $this->updateDataExecCodes(
                 $schemaRows,
                 $funcCategories('all'),
-                $funcRoles('all'),
+                $funcRoles,
                 $getTreeId('all'),
                 $matchesName
             );
@@ -926,15 +926,15 @@ CONF;
     }
 
     /**
-     * TODO it
-     *
-     *
      * @param $schemaRows
      * @param array $categoriesMatches
-     * @param array $rolesMatches
+     * @param \Closure $funcRoles
      * @param array $treeMatches
+     * @param $matchName
+     * @param bool $isInstall
+     * @throws errorException
      */
-    public function updateDataExecCodes($schemaRows, array $categoriesMatches, array $rolesMatches, array $treeMatches, $matchName, $isInstall = false)
+    public function updateDataExecCodes($schemaRows, array $categoriesMatches, \Closure $funcRoles, array $treeMatches, $matchName, $isInstall = false)
     {
         $TablesTable = $this->Totum->getTable('tables');
         $TablesTable->addCalculateLogInstance($this->CalculateLog);
@@ -1005,6 +1005,19 @@ CONF;
                                 }
                                 return $selectedRowId ?? null;
                             };
+
+
+                            if ($schemaRow['name'] === 'ttm__user_documentation') {
+                                foreach ($schemaRow['data']['rows'] as &$row) {
+                                    if(!empty($row['for_roles']['v'])){
+                                        foreach ($row['for_roles']['v'] as &$id){
+                                            $id = $funcRoles($id);
+                                        }
+                                        unset($id);
+                                    }
+                                }
+                                unset($row);
+                            }
 
                             $before = null;
                             $orderedIds = [];
@@ -1170,7 +1183,7 @@ CONF;
                     [],
                     $TablesTable,
                     'exec',
-                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $rolesMatches, 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => $schemaRow['isTableCreated']]
+                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $funcRoles('all'), 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => $schemaRow['isTableCreated']]
                 );
                 $TablesTable->calcLog($Log, 'result', $r);
             }
@@ -1187,7 +1200,7 @@ CONF;
         $matches[$matchName] = [
             'tree' => $treeMatches,
             'categories' => $categoriesMatches,
-            'roles' => $rolesMatches
+            'roles' => $funcRoles('all')
         ];
         $ttmUpdates->reCalculateFromOvers(['modify' => ['params' => ['h_matches' => $matches]]]);
     }

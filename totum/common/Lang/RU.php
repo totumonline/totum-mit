@@ -452,6 +452,8 @@ class RU implements LangInterface
         'The file does not exist on the disk' => 'Файл не существует на диске',
         'File name parsing error' => 'Ошибка парсинга имени файла',
 
+        'The fileDuplicateOnCopy option must be enabled for secure files.' => 'Опция fileDuplicateOnCopy должна быть включена для защищенных файлов.',
+
         'DB connection by name %s was not found.' => 'Соединение с БД c name %s не найдено.',
         'DB connection by hash %s was not found.' => 'Соединение с БД c hash %s не найдено.'
     ];

@@ -17,22 +17,35 @@ trait FuncServicesTrait
         $this->__checkListParam($params, ['data']);
 
         $Config = $this->Table->getTotum()->getConfig();
-        $servicesConnect = ['number' => 1, 'key' => 1];
         $template = File::getContent($params['template'], $Config);
 
         $hash = $Config->getServicesVarObject()->getNewVarnameHash(3600);
         $connector = ServicesConnector::init($Config);
-        if ($result = $connector->sendRequest('xslx', $hash, $servicesConnect['number'], $servicesConnect['key'], [
-            'data' => [
-                'template' => base64_encode($template),
-                'data' => $params['data'],
+
+        $connector->sendRequest('xlsx', $hash, [
+            'template' => base64_encode($template),
+            'data' => $params['data'],
+        ]);
+        $value = $Config->getServicesVarObject()->waitVarValue($hash);
+
+        $context = stream_context_create(
+            [
+                'http' => [
+                    'header' => "User-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
+                    'method' => 'GET',
+                ],
+                'ssl' => [
+                    'verify_peer' => $this->Table->getTotum()->getConfig()->isCheckSsl(),
+                    'verify_peer_name' => $this->Table->getTotum()->getConfig()->isCheckSsl(),
+                ],
             ]
-        ])) {
-            return $Config->getServicesVarObject()->waitVarValue($hash);
-        } else {
-            throw new errorException($result);
+        );
+
+        if (empty($value['link']) || !($file = @file_get_contents($value['link'], true, $context))) {
+            throw new errorException('Wrong data from service server: ' . $http_response_header[0]);
         }
 
+        return $file;
     }
 
 }

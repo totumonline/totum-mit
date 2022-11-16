@@ -66,12 +66,11 @@ class Services implements ServicesVarsInterface
         $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         if ($mark) {
             $st = $this->setPreparedWithMark();
-            $st->execute([$value, $varName, $mark]);
+            $st->execute([$value, $mark, $varName, ]);
         } else {
             $st = $this->setPrepared();
             $st->execute([$value, $varName]);
         }
-
     }
 
     public function insertName(string $varName, int $expired = null): bool

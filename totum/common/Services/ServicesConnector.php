@@ -2,12 +2,16 @@
 
 namespace totum\common\Services;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use totum\common\configs\ConfParent;
+use totum\common\Crypt;
+use totum\common\errorException;
 
 class ServicesConnector
 {
 
     protected static ?ServicesConnector $Connector = null;
+    protected array|null $servicesAccountData = null;
 
     static function init(ConfParent $Conf)
     {
@@ -21,37 +25,67 @@ class ServicesConnector
     {
     }
 
-    public function sendRequest($type, $hash, $number, $key, $data)
+    public function sendRequest($type, $hash, $data)
     {
+        $accountData = $this->getServicesAccountData();
         $Data = [
-            'number' => $number,
-            'key' => $key,
+            'number' => $accountData['h_services_number'],
+            'key' => $accountData['h_services_key'],
             'hash' => $hash,
-            'data' => $data];
+            'data' => $data
+        ];
         $context = stream_context_create(
             [
                 'http' => [
                     'header' => "Content-type: application/json\r\nUser-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
                     'method' => 'POST',
                     'content' => json_encode($Data)
-                ]
+                ],
+                'ssl' => [
+                    'verify_peer' => $this->Config->isCheckSsl(),
+                    'verify_peer_name' => $this->Config->isCheckSsl(),
+                ],
             ]
         );
-        return file_get_contents('https://services.ttmapp.ru/' . $type . '/', false, $context) === 'true';
+        $result = file_get_contents($accountData['h_services_url'] . '/' . $type . '/', false, $context);
+        if ($result === 'true') {
+            return true;
+        } else {
+            throw new errorException($result);
+        }
     }
 
-    public function setAnswer($request): void
+    public function setAnswer(ServerRequest $request): void
     {
-        if (!($hash = $request->getParsedBody()['hash'] ?? false)) {
+        $body = json_decode($request->getBody(), true);
+
+        if (!($hash = $body['hash'] ?? false)) {
             die('hash is empty');
         }
-        if (!($key = $request->getParsedBody()['key'] ?? false)) {
-            die('key is empty');
+
+        if (empty($data = $body['data'])) {
+            die('data is empty');
         }
-        if ($key != $this->Config->services['answerkey']) {
-            die('answerkey is not correct');
+        $this->Config->getServicesVarObject()->setVarValue($hash, $data, 'done');
+    }
+
+    protected function getServicesAccountData()
+    {
+        if (is_null($this->servicesAccountData)) {
+            $header = $this->Config->getSql()->get(
+                <<<SQL
+select header  from tables where name->>'v'='ttm__services'
+SQL
+            );
+            $header = json_decode($header['header'], true);
+            $this->servicesAccountData['h_services_url'] = $header['h_services_url']['v'] ?? '';
+            $this->servicesAccountData['h_services_number'] = $header['h_services_number']['v'] ?? '';
+            $this->servicesAccountData['h_services_key'] =
+                Crypt::getDeCrypted($header['h_services_key']['v'] ?? '',
+                    $this->Config->getCryptKeyFileContent());
         }
-        $this->Config->getServicesVarObject()->setVarValue($hash, $request->getParsedBody()['value'], 'done');
+        return $this->servicesAccountData;
+
     }
 
 }

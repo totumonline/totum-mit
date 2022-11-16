@@ -17,6 +17,10 @@ if (!class_exists(Conf::class)) {
     if (is_callable([$Config, 'setHostSchema'])) {
         $Config->setHostSchema($_SERVER['HTTP_HOST']);
     }
+    if ($_SERVER['REQUEST_URI'] === '/ServicesAnswer') {
+        \totum\common\Services\ServicesConnector::init($Config)->setAnswer(ServerRequest::fromGlobals());
+        die('true');
+    }
     list($module, $lastPath) = $Config->getActivationData($_SERVER['REQUEST_URI']);
 }
 

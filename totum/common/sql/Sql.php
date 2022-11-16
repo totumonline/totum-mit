@@ -287,7 +287,7 @@ class Sql
         $query_time_pad = str_pad(round(microtime(1) - $microTime, 3), 5, '0', STR_PAD_LEFT);
 
         $this->lastQuery['time'] = $query_time_pad;
-        $this->lastQuery['rows'] = $r ? $r->rowCount() : null;
+        $this->lastQuery['rows'] = $r && is_object($r) ? $r->rowCount() : null;
 
         $this->Log->debug($query_time_pad . ' !(' . $this->lastQuery['rows'] . ' rows) >> ' . $query_string);
         return $r;
@@ -317,7 +317,7 @@ class Sql
             } else {
                 if (str_contains($error, 'idle-in-transaction')) {
                     $this->startedTransactionsCounter = 0;
-                    $error=$this->Lang->translate('A database transaction was closed before the main process was completed.');
+                    $error = $this->Lang->translate('A database transaction was closed before the main process was completed.');
                 }
                 $exp = new SqlException($error);
                 $exp->addSqlErrorCode($errorCode);

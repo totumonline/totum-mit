@@ -58,8 +58,9 @@ trait FuncOperationsTrait
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->Table->getTotum()->getConfig()->isCheckSsl() ? 2 : 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->Table->getTotum()->getConfig()->isCheckSsl());
+
         if (!empty($_SERVER['HTTP_USER_AGENT'])) {
             curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
         }

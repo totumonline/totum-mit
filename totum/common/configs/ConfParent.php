@@ -13,8 +13,9 @@ namespace totum\common\configs;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Lang\LangInterface;
-use totum\common\Lang\RU;
 use totum\common\logs\Log;
+use totum\common\Services\Services;
+use totum\common\Services\ServicesVarsInterface;
 use totum\common\sql\Sql;
 use totum\common\sql\SqlException;
 use totum\common\Totum;
@@ -39,6 +40,7 @@ abstract class ConfParent
 
 
     protected $execSSHOn = false;
+    protected $checkSSl = false;
 
     const LANG = '';
 
@@ -105,6 +107,11 @@ abstract class ConfParent
         }
         $this->Lang = new ('totum\\common\\Lang\\' . strtoupper(static::LANG))();
 
+    }
+
+    public function isCheckSsl():bool
+    {
+        return $this->checkSSl;
     }
 
     public function getDefaultSender()
@@ -451,6 +458,11 @@ abstract class ConfParent
     public function getLang()
     {
         return static::LANG;
+    }
+
+    public function getServicesVarObject(): ServicesVarsInterface
+    {
+        return Services::init($this);
     }
 
     protected function setLogIni()

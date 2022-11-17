@@ -742,7 +742,7 @@ class ReadTableActions extends Actions
         if ($field['category'] === 'column') {
             if (array_key_exists('id', $row) && !is_null($row['id'])) {
                 $Table->loadFilteredRows('web', [$row['id']]);
-                $row = $row + $Table->getTbl()['rows'][$row['id']] ?? [];
+                $row = $row + ($Table->getTbl()['rows'][$row['id']] ?? []);
             } else {
                 $row = $row + $Table->checkInsertRow([], $data['item'], null, []);
             }

@@ -42,6 +42,9 @@ trait FuncServicesTrait
         );
 
         if (empty($value['link']) || !($file = @file_get_contents($value['link'], true, $context))) {
+            if (!empty($value['error'])) {
+                throw new errorException('Xlsx generator error: ' . $value['error']);
+            }
             throw new errorException('Wrong data from service server: ' . $http_response_header[0]);
         }
 

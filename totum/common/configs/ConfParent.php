@@ -215,7 +215,7 @@ abstract class ConfParent
 
     public function getCryptKeyFileContent()
     {
-        $fName = $this->getBaseDir() . 'crypto.key';
+        $fName = $this->getBaseDir() . 'Crypto.key';
         if (!file_exists($fName)) {
             throw new errorException($this->translate('Crypto.key file not exists'));
         }

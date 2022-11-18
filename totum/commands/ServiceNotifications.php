@@ -58,7 +58,7 @@ class ServiceNotifications extends Command
             if (!$lastNoticeDate) {
                 $Services->insertName($dateVarName);
             }
-            $uri = 'http://sn.totum.online/check-service-notifications';
+            $uri = 'https://sn.totum.online/check-service-notifications';
 
             $context = stream_context_create(
                 [

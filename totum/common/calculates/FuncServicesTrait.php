@@ -9,7 +9,7 @@ use totum\fieldTypes\File;
 trait FuncServicesTrait
 {
 
-    protected function funcServiceXslxGenerator($params)
+    protected function funcServiceXlsxGenerator($params)
     {
         $params = $this->getParamsArray($params);
         $this->__checkNotEmptyParams($params, ['template']);
@@ -45,7 +45,11 @@ trait FuncServicesTrait
             if (!empty($value['error'])) {
                 throw new errorException('Xlsx generator error: ' . $value['error']);
             }
-            throw new errorException('Wrong data from service server: ' . $http_response_header[0]);
+            if(!empty($value['link'])){
+                throw new errorException('Wrong data from service server: ' . $http_response_header[0]);
+            }else{
+                throw new errorException('Unknown error');
+            }
         }
 
         return $file;

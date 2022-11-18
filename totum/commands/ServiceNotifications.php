@@ -36,26 +36,42 @@ class ServiceNotifications extends Command
             }
         }
 
-        $varName = 'last-check-creator-notifications';
+        $dateVarName = 'last-check-creator-notifications';
 
         $Services = Services::init($Conf);
-        $lastDateTime = $Services->getVarValue($varName);
+        $lastNoticeDate = $Services->getVarValue($dateVarName);
 
-        $weekAgo = date('Y-m-d H:i:s', time() - 7 * 24 * 3600);
+        $instanceVarName = 'service-notifications-instance';
+        $instance = $Services->getVarValue($instanceVarName);
 
-        if (!$lastDateTime || $lastDateTime < $weekAgo) {
-            if (!$lastDateTime) {
-                $Services->insertName($varName);
+        if (!$instance) {
+            $instance = md5($Conf->getFullHostName()) . bin2hex(random_bytes(7));
+            $Services->insertName($instanceVarName);
+            $Services->setVarValue($instanceVarName, $instance);
+        }
+
+        $weekAgo = date_create();
+        $weekAgo->modify('-7 days');
+
+
+        if (!$lastNoticeDate || $lastNoticeDate < $weekAgo->format('Y-m-d')) {
+            if (!$lastNoticeDate) {
+                $Services->insertName($dateVarName);
             }
-            $uri = 'https://' . ($Conf->getLang() === 'ru' ? $Conf->getLang() . '.' : '') . 'totum.online/service_notifications';
-
+            $uri = 'http://sn.totum.online/check-service-notifications';
 
             $context = stream_context_create(
                 [
                     'http' => [
                         'header' => "Content-type: application/x-www-form-urlencoded\r\nUser-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
                         'method' => 'POST',
-                        'content' => http_build_query(['from' => $lastDateTime])
+                        'content' => http_build_query([
+                            'date' => $lastNoticeDate,
+                            'lang' => $Conf->getLang(),
+                            'version' => Totum::VERSION,
+                            'instance' => $instance
+
+                        ])
                     ],
                     'ssl' => [
                         'verify_peer' => $Conf->isCheckSsl(),
@@ -65,7 +81,7 @@ class ServiceNotifications extends Command
             );
             $data = file_get_contents($uri, true, $context);
             if ($data && $data = json_decode($data, true)) {
-                if ($data['type'] === 'service_notifications') {
+                if (($data['type'] ?? null) === 'service_notifications') {
                     if (!empty($data['value']) && !empty($data['value'][0])) {
                         $User = Auth::loadAuthUserByLogin($Conf, 'cron', false);
                         $Totum = new Totum($Conf, $User);
@@ -73,6 +89,8 @@ class ServiceNotifications extends Command
                         $users = $Totum->getTable('users')->getByParams(
                             (new FormatParamsForSelectFromTable())
                                 ->where('roles', 1)
+                                ->where('interface', 'web')
+                                ->where('on_off', true)
                                 ->field('id')
                                 ->params(),
                             'list');
@@ -93,8 +111,8 @@ class ServiceNotifications extends Command
                             'add' => $add
                         ]);
                     }
+                    $Services->setVarValue($dateVarName, $data['date']);
                 }
-                $Services->setVarValue($varName, date('Y-m-d H:i'));
             }
 
         }

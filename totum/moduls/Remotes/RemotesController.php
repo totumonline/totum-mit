@@ -99,7 +99,7 @@ class RemotesController extends Controller
         }
     }
 
-    protected function action($User, $remote, $remote_row, $request)
+    protected function action($User, $remote, $remote_row, ServerRequestInterface $request)
     {
         $Totum = new Totum($this->Config, $User);
         $Totum->transactionStart();
@@ -118,6 +118,7 @@ class RemotesController extends Controller
                 'get' => $request->getQueryParams() ?? [],
                 'post' => $request->getParsedBody() ?? [],
                 'input' => (string)$request->getBody(),
+                'remoteIp' => $request->getServerParams()['REMOTE_ADDR'],
                 'headers' => ($headers = $request->getHeaders()) ? $headers : []
             ]
         );

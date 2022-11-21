@@ -109,6 +109,11 @@ class FieldParams extends Field
                 throw new criticalErrorException($this->translate('Fill in the parameter [[%s]].', 'type'));
             }
             throw new errorException($this->translate('Fill in the parameter [[%s]].', 'type'));
+        }elseif (!$isCheck){
+            if($row['category']['v']==='filter' && in_array($val['type']['Val'], ['link','text','comments','file','password','chart', 'uniq'])){
+                throw new criticalErrorException($this->translate('The field type %s cannot be in the pre-filter', $val['type']['Val']));
+            }
+
         }
 
 

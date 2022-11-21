@@ -161,6 +161,8 @@ class Conf extends ConfParent{
     
     protected \$execSSHOn = 'inner'; //set true if you want to run ssh scripts via execSsh
     
+    //protected \$checkSSl = true;
+    
     /***getSchemas***/
     static function getSchemas()
     {

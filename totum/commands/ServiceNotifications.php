@@ -91,6 +91,7 @@ class ServiceNotifications extends Command
                                 ->where('roles', 1)
                                 ->where('interface', 'web')
                                 ->where('on_off', true)
+                                ->where('login', 'service', '!=')
                                 ->field('id')
                                 ->params(),
                             'list');

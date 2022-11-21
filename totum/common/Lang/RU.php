@@ -439,6 +439,7 @@ class RU implements LangInterface
         'Value format error in field %s' => 'Ошибка формата значения в поле %s',
 
         'Not correct row in files list' => 'Не правильный массив в list параметра files',
+        'The field type %s cannot be in the pre-filter' => 'Поле типа %s не может находиться в пре-фильтре',
 
         'Crypto.key file not exists' => 'Файл Crypto.key не существует',
 

@@ -109,7 +109,7 @@ abstract class ConfParent
 
     }
 
-    public function isCheckSsl():bool
+    public function isCheckSsl(): bool
     {
         return $this->checkSSl;
     }
@@ -247,12 +247,18 @@ abstract class ConfParent
     {
         $attachments = [];
         foreach ($attachmentsIn as $k => $v) {
-            if (!preg_match('/.+\.[a-zA-Z]{2,5}$/', $k)) {
-                $attachments[preg_replace('`.*?/([^/]+\.[^/]+)$`', '$1', $v)] = $v;
-            } else {
-                $attachments[$k] = $v;
+            $forceNameFromKey = false;
+            if (is_array($v)) {
+                $k = $v['name'] ?? throw new errorException($this->translate('Not correct row in files list'));
+                $v = $v['file'] ?? throw new errorException($this->translate('Not correct row in files list'));
+                $forceNameFromKey = true;
             }
-            $attachments[$k] = File::getFilePath($v, $this);
+
+            if (!$forceNameFromKey && !preg_match('/.+\.[a-zA-Z0-9]+$/', $k)) {
+                $attachments[preg_replace('`.*?/([^/]+\.[^/]+)$`', '$1', $v)] = File::getFilePath($v, $this);
+            } else {
+                $attachments[$k] = File::getFilePath($v, $this);
+            }
         }
 
         $body = preg_replace_callback(

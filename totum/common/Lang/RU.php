@@ -438,6 +438,8 @@ class RU implements LangInterface
         'Value format error in id %s row field %s' => 'Ошибка формата значения в строке id %s поля %s',
         'Value format error in field %s' => 'Ошибка формата значения в поле %s',
 
+        'Not correct row in files list' => 'Не правильный массив в list параметра files',
+
         'Crypto.key file not exists' => 'Файл Crypto.key не существует',
 
         /**PRO**/
@@ -451,6 +453,8 @@ class RU implements LangInterface
         'The file field was not found' => 'Поле файла не найдено',
         'The file does not exist on the disk' => 'Файл не существует на диске',
         'File name parsing error' => 'Ошибка парсинга имени файла',
+
+        'The fileDuplicateOnCopy option must be enabled for secure files.' => 'Опция fileDuplicateOnCopy должна быть включена для защищенных файлов.',
 
         'DB connection by name %s was not found.' => 'Соединение с БД c name %s не найдено.',
         'DB connection by hash %s was not found.' => 'Соединение с БД c hash %s не найдено.'

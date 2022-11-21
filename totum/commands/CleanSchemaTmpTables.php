@@ -35,6 +35,11 @@ class CleanSchemaTmpTables extends Command
         $plus24->modify('-24 hours');
         $sql->exec('delete from _tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
 
+
+        $minusHour = date_create();
+        $minusHour->modify('-1 hour');
+        $sql->exec('delete from _services_vars where expire<\'' . $minusHour->format('Y-m-d H:i:s') . '\'');
+
         $minus10 = date_create();
         $minus10->modify('-30 minutes');
         $sql->exec('delete from _tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\''

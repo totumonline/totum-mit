@@ -272,15 +272,14 @@ class ReadTableActions extends Actions
             $loadFilteredRows = $this->Table->loadFilteredRows('web', [$data['rowId']]);
             if ($loadFilteredRows && $row = ($this->Table->getTbl()['rows'][$data['rowId']] ?? null)) {
                 $val = $row[$field['name']];
+            }else{
+                throw new errorException($this->translate('The row %s does not exist or is not available for your role.'));
             }
         } else {
             $row = $this->Table->getTbl()['params'];
             $val = $row[$field['name']] ?? null;
         }
 
-        if (!isset($val)) {
-            throw new errorException('Getting value error');
-        }
         if (is_string($val)) {
             $val = json_decode($val, true);
         }
@@ -742,7 +741,7 @@ class ReadTableActions extends Actions
         if ($field['category'] === 'column') {
             if (array_key_exists('id', $row) && !is_null($row['id'])) {
                 $Table->loadFilteredRows('web', [$row['id']]);
-                $row = $row + $Table->getTbl()['rows'][$row['id']] ?? [];
+                $row = $row + ($Table->getTbl()['rows'][$row['id']] ?? []);
             } else {
                 $row = $row + $Table->checkInsertRow([], $data['item'], null, []);
             }

@@ -89,6 +89,10 @@ class AuthController extends interfaceController
                     'web')) {
                     case Auth::$AuthStatuses['OK']:
                         Auth::webInterfaceSetAuth($userRow['id']);
+
+                        $baseDir = $this->Config->getBaseDir();
+                        `cd {$baseDir} && bin/totum check-service-notifications "{$this->Config->getSchema()}" &`;
+
                         $this->location($_GET['from'] && $_GET['from'] !== '/' ? $_GET['from'] : Auth::getUserById($this->Config, $userRow['id'])->getUserStartPath(),
                             !key_exists('from', $_GET));
                         break;

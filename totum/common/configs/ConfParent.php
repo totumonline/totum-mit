@@ -13,8 +13,9 @@ namespace totum\common\configs;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Lang\LangInterface;
-use totum\common\Lang\RU;
 use totum\common\logs\Log;
+use totum\common\Services\Services;
+use totum\common\Services\ServicesVarsInterface;
 use totum\common\sql\Sql;
 use totum\common\sql\SqlException;
 use totum\common\Totum;
@@ -39,6 +40,7 @@ abstract class ConfParent
 
 
     protected $execSSHOn = false;
+    protected $checkSSl = false;
 
     const LANG = '';
 
@@ -105,6 +107,11 @@ abstract class ConfParent
         }
         $this->Lang = new ('totum\\common\\Lang\\' . strtoupper(static::LANG))();
 
+    }
+
+    public function isCheckSsl(): bool
+    {
+        return $this->checkSSl;
     }
 
     public function getDefaultSender()
@@ -208,7 +215,7 @@ abstract class ConfParent
 
     public function getCryptKeyFileContent()
     {
-        $fName = $this->getBaseDir() . 'crypto.key';
+        $fName = $this->getBaseDir() . 'Crypto.key';
         if (!file_exists($fName)) {
             throw new errorException($this->translate('Crypto.key file not exists'));
         }
@@ -240,12 +247,18 @@ abstract class ConfParent
     {
         $attachments = [];
         foreach ($attachmentsIn as $k => $v) {
-            if (!preg_match('/.+\.[a-zA-Z]{2,5}$/', $k)) {
-                $attachments[preg_replace('`.*?/([^/]+\.[^/]+)$`', '$1', $v)] = $v;
-            } else {
-                $attachments[$k] = $v;
+            $forceNameFromKey = false;
+            if (is_array($v)) {
+                $k = $v['name'] ?? throw new errorException($this->translate('Not correct row in files list'));
+                $v = $v['file'] ?? throw new errorException($this->translate('Not correct row in files list'));
+                $forceNameFromKey = true;
             }
-            $attachments[$k] = File::getFilePath($v, $this);
+
+            if (!$forceNameFromKey && !preg_match('/.+\.[a-zA-Z0-9]+$/', $k)) {
+                $attachments[preg_replace('`.*?/([^/]+\.[^/]+)$`', '$1', $v)] = File::getFilePath($v, $this);
+            } else {
+                $attachments[$k] = File::getFilePath($v, $this);
+            }
         }
 
         $body = preg_replace_callback(
@@ -451,6 +464,11 @@ abstract class ConfParent
     public function getLang()
     {
         return static::LANG;
+    }
+
+    public function getServicesVarObject(): ServicesVarsInterface
+    {
+        return Services::init($this);
     }
 
     protected function setLogIni()

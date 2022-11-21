@@ -20,6 +20,7 @@ use totum\commands\SchemasUpdates;
 use totum\commands\SchemaUpdate;
 use totum\commands\SchemaBackup;
 use totum\commands\SchemaUserUnblock;
+use totum\commands\ServiceNotifications;
 use totum\commands\SetHiddenHost;
 use totum\commands\Vacuum;
 use totum\common\configs\MultiTrait;
@@ -46,6 +47,7 @@ if (class_exists(Conf::class)) {
     $app->add(new SchemaReplace());
     $app->add(new CodeExec());
     $app->add(new SchemaUserUnblock());
+    $app->add(new ServiceNotifications());
 
     if (key_exists(MultiTrait::class, class_uses(Conf::class, false))) {
         $app->add(new SchemasCrons());

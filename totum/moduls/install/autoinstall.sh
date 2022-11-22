@@ -133,7 +133,6 @@ read -p "Enter domain without http/https delegated! to this server like totum.on
 echo
 echo "1) EN"
 echo "2) RU"
-echo "3) ZH (by snmin)"
 echo
 
 read -p "Select language: " TOTUMLANG
@@ -144,9 +143,6 @@ then
 elif [[ $TOTUMLANG -eq 2 ]]
 then
   TOTUMLANG=ru
-elif [[ $TOTUMLANG -eq 3 ]]
-then
-  TOTUMLANG=zh
 else
   TOTUMLANG=en
 fi

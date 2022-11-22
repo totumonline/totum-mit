@@ -91,9 +91,11 @@ class AuthController extends interfaceController
                         Auth::webInterfaceSetAuth($userRow['id']);
 
                         $baseDir = $this->Config->getBaseDir();
-                        `cd {$baseDir} && bin/totum check-service-notifications "{$this->Config->getSchema()}" &`;
+                        $schema = is_callable([$this->Config, 'setHostSchema']) ? '"' . $this->Config->getSchema() . '"' : '';
+                        `cd {$baseDir} && bin/totum check-service-notifications {$schema} &`;
 
-                        $this->location($_GET['from'] && $_GET['from'] !== '/' ? $_GET['from'] : Auth::getUserById($this->Config, $userRow['id'])->getUserStartPath(),
+                        $this->location($_GET['from'] && $_GET['from'] !== '/' ? $_GET['from'] : Auth::getUserById($this->Config,
+                            $userRow['id'])->getUserStartPath(),
                             !key_exists('from', $_GET));
                         break;
                     case Auth::$AuthStatuses['WRONG_PASSWORD']:

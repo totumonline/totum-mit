@@ -244,6 +244,6 @@ create table "_services_vars"
     expire   timestamp without time zone
 );
 create UNIQUE INDEX _services_vars_name_index on _services_vars (name);
-insert into "_services_vars" (name, value) values ('last-check-creator-notifications', '"' || TO_CHAR(NOW() :: DATE, 'yyyy-mm-dd') || '"');
+insert into "_services_vars" (name, value) values ('last-check-creator-notifications', '');
 
 

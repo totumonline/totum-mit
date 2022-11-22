@@ -132,7 +132,28 @@ class Auth
             if (str_contains($login, '@')) {
                 $where['email'] = strtolower($login);
             } else {
-                $where['login'] = $login;
+                if ($interface === 'web') {
+                    $whereObject = new \stdClass();
+                    $whereObject->whereStr = '';
+                    foreach ($where as $k => $v) {
+                        $whereObject->params[] = $v;
+                        if ($whereObject->whereStr != '') {
+                            $whereObject->whereStr .= ' AND ';
+                        }
+                        if ($k === 'is_del') {
+                            $whereObject->whereStr .= ' is_del = ?';
+                        } else {
+                            $whereObject->whereStr .= ' ' . $k . '->>\'v\' = ?';
+                        }
+                    }
+
+                    $whereObject->params[] = mb_strtolower($login);
+                    $whereObject->whereStr .= ' AND lower(login->>\'v\') = ?';
+
+                    $where = $whereObject;
+                } else {
+                    $where['login'] = $login;
+                }
             }
             if ($UserRow = static::getUserWhere($Config, $where, false)) {
                 return $UserRow;
@@ -209,14 +230,6 @@ class Auth
         }
     }
 
-    public static function simpleAuth(Conf $Config, $userId)
-    {
-        $where = ['id' => $userId, 'is_del' => false, 'on_off' => "true"];
-        if ($userRow = static::getUserWhere($Config, $where)) {
-            return new User($userRow, $Config);
-        }
-    }
-
     public static function webInterfaceSetAuth($userId)
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -264,7 +277,9 @@ class Auth
         }
         return null;
     }
-    public static function isShadowedCreator(Conf $Conf){
-        return static::$isShadowedCreatorVal??(static::$isShadowedCreatorVal = static::isUserNotItself() && static::getShadowedUser($Conf)?->isCreator());
+
+    public static function isShadowedCreator(Conf $Conf)
+    {
+        return static::$isShadowedCreatorVal ?? (static::$isShadowedCreatorVal = static::isUserNotItself() && static::getShadowedUser($Conf)?->isCreator());
     }
 }

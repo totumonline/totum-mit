@@ -794,7 +794,38 @@ trait FuncArraysTrait
     {
         $params = $this->getParamsArray($params, ['row', 'field'], ['field']);
 
-        $MainList = [];
+        if (!empty($params['path'])) {
+            $this->__checkListParam($params['path'], 'path');
+            $this->__checkNotEmptyParams($params, ['row']);
+            $this->__checkListParam($params['row'], 'row');
+
+            $MainListMain = array_shift($params['row']);
+
+            $this->__checkListParam($MainListMain, 'first row');
+
+            $MainList = &$MainListMain;
+            foreach ($params['path'] as $k) {
+                if (!key_exists($k, $MainList)) {
+                    $MainList[$k] = [];
+                }
+                $MainList =& $MainList[$k];
+                if (!is_array($MainList)) {
+                    $MainList = [];
+                }
+            }
+
+            $replace = match ($params['replace'] ?? false) {
+                'true', true => true,
+                default => false
+            };
+
+            if ($replace) {
+                $MainList = [];
+            }
+
+        } else {
+            $MainList = [];
+        }
         foreach ($params['row'] ?? [] as $i => $row) {
             if ($row) {
                 $this->__checkListParam($row, 'row' . (++$i));
@@ -810,6 +841,11 @@ trait FuncArraysTrait
             } else {
                 $MainList[$k] = $v;
             }
+        }
+
+        if (!empty($MainListMain)) {
+            unset($MainList);
+            return $MainListMain;
         }
         return $MainList;
     }

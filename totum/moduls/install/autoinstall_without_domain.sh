@@ -286,6 +286,8 @@ sudo -u totum bash -c "/home/totum/totum-mit/bin/totum install --pgdump=pg_dump 
 
 sudo bash -c "echo -e '* * * * * cd /home/totum/totum-mit/ && bin/totum schemas-crons\n*/10 * * * * cd /home/totum/totum-mit/ && bin/totum clean-tmp-dir\n*/10 * * * * cd /home/totum/totum-mit/ && bin/totum clean-schemas-tmp-tables' | crontab -u totum -"
 
+sudo -u totum bash -c "openssl rand -base64 64 > /home/totum/totum-mit/Crypto.key"
+
 # Replace Sendmail trait by SMTP trait
 
 sudo sed -i "s:use WithPhpMailerTrait;:use WithPhpMailerSmtpTrait;\nprotected \$SmtpData = [\n'host' => 'YOU_HOST_HERE',\n'port' => 25,\n'login' => 'YOU_LOGIN_HERE',\n'pass' => 'YOU_PASS_HERE',\n];:g" /home/totum/totum-mit/Conf.php

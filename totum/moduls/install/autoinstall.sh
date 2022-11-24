@@ -294,6 +294,7 @@ sudo -u totum bash -c "/home/totum/totum-mit/bin/totum install --pgdump=pg_dump 
 
 sudo bash -c "echo -e '* * * * * cd /home/totum/totum-mit/ && bin/totum schemas-crons\n*/10 * * * * cd /home/totum/totum-mit/ && bin/totum clean-tmp-dir\n*/10 * * * * cd /home/totum/totum-mit/ && bin/totum clean-schemas-tmp-tables' | crontab -u totum -"
 
+sudo -u totum bash -c "openssl rand -base64 64 > /home/totum/totum-mit/Crypto.key"
 
 # Obtain SSL cert 
 

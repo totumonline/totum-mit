@@ -2154,7 +2154,11 @@ CODE;;
                     $logIt = $this->recalculateWithALog;
                     break;
             }
-            if ($logIt && key_exists($Field->getName(), $modified)) {
+
+            if ($logIt && (key_exists($Field->getName(), $modified)
+                    ||
+                    $Field->getData('codeOnlyInAdd') /*В случае кода при добавлении логировать*/
+                )) {
                 //Если рассчитываемое и несовпадающее с рассчетным
                 if (key_exists(
                         'c',

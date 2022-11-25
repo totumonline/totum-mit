@@ -91,12 +91,30 @@ trait FuncStringsTrait
 
     }
 
+    protected function funcStrUrlDecode(string $params): bool|string
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkRequiredParams($params, ['str']);
+        $this->__checkNotArrayParams($params, ['str']);
+
+        return urldecode($params['str']);
+    }
+
+    protected function funcStrUrlEncode(string $params): string
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkRequiredParams($params, ['str']);
+        $this->__checkNotArrayParams($params, ['str']);
+
+        return urlencode($params['str']);
+    }
+
     protected function funcStrBaseDecode(string $params): bool|string
     {
         $params = $this->getParamsArray($params);
-        if (!key_exists('str', $params) || is_array($params['str'])) {
-            throw new errorException($this->translate('Parametr [[%s]] is required and should be a string.', 'str'));
-        }
+        $this->__checkRequiredParams($params, ['str']);
+        $this->__checkNotArrayParams($params, ['str']);
+        
         return base64_decode($params['str']);
     }
 

@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use totum\common\configs\MultiTrait;
+use totum\common\Services\Services;
 use totum\config\Conf;
 
 class CleanSchemaTmpTables extends Command
@@ -38,7 +39,14 @@ class CleanSchemaTmpTables extends Command
 
         $minusHour = date_create();
         $minusHour->modify('-1 hour');
-        $sql->exec('delete from _services_vars where expire<\'' . $minusHour->format('Y-m-d H:i:s') . '\'');
+        try {
+            $sql->exec('delete from _services_vars where expire<\'' . $minusHour->format('Y-m-d H:i:s') . '\'');
+        }catch (\Exception $exception){
+            if($exception->getCode()==='42P01'){
+                $Services = Services::init($Conf);
+                $Services->createServicesTable();
+            }
+        }
 
         $minus10 = date_create();
         $minus10->modify('-30 minutes');

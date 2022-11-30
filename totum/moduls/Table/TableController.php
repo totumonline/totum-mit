@@ -794,7 +794,7 @@ class TableController extends interfaceController
                     if (!$actionTable) {
                         throw new errorException('Not correct request. Reload table page');
                     }
-                    $this->Table->reCalculateFromOvers(['add' => []]);
+                    $this->Table->reCalculateFromOvers(['add' => [[]]]);
                     $cyclesCount = 1;
                 }
                 if ($cyclesCount === 1) {

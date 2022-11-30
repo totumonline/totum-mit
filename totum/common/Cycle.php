@@ -204,7 +204,7 @@ class Cycle
                 );
             }
         }
-        return $sValue ?? $this->getRow()[$mainFieldName]['v'] ?? $this->getRow()['id'];
+        return $sValue ?? ($this->getRow() ? ($this->getRow()[$mainFieldName]['v'] ?? $this->getRow()['id']) : '');
     }
 
     public function getId()

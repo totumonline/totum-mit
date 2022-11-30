@@ -66,7 +66,7 @@ class Services implements ServicesVarsInterface
         $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         if ($mark) {
             $st = $this->setPreparedWithMark();
-            $st->execute([$value, $mark, $varName, ]);
+            $st->execute([$value, $mark, $varName,]);
         } else {
             $st = $this->setPrepared();
             $st->execute([$value, $varName]);
@@ -130,7 +130,7 @@ class Services implements ServicesVarsInterface
     }
 
 
-    protected
+    public
     function createServicesTable()
     {
         $this->sql->exec(

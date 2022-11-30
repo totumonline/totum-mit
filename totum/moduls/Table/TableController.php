@@ -786,7 +786,6 @@ class TableController extends interfaceController
             $this->CalculateLog = $this->Table->getCalculateLog();
             Conf::$CalcLogs = $this->CalculateLog;
 
-
             /*Для таблиц циклов с одним циклом на пользователя*/
             if ($this->Table->getUser()->isOneCycleTable($this->Table->getTableRow())) {
                 $cyclesCount = $this->Table->getUserCyclesCount();
@@ -794,23 +793,28 @@ class TableController extends interfaceController
                     if (!$actionTable) {
                         throw new errorException('Not correct request. Reload table page');
                     }
-                    $this->Table->reCalculateFromOvers(['add' => []]);
+                    $this->Table->reCalculateFromOvers(['add' => [[]]]);
                     $cyclesCount = 1;
                 }
                 if ($cyclesCount === 1) {
-                    if (!$actionTable) {
-                        throw new errorException('Not correct request. Reload table page');
-                    }
                     $Cycle = $this->Totum->getCycle(
                         $this->Table->getUserCycleId(),
                         $this->Table->getTableRow()['id']
                     );
-                    $calcsTablesIDs = $Cycle->getTableIds();
-                    if (!empty($calcsTablesIDs)) {
-                        foreach ($calcsTablesIDs as $tableId) {
-                            if ($this->Table->getUser()->isTableInAccess($tableId)) {
-                                $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
-                                die;
+                    if ($request->getParsedBody()['method'] === 'click' && ($data = json_decode($request->getParsedBody()['data'],
+                            true)) && ($data['item'] ?? '0') == $Cycle->getId() && str_starts_with($data['fieldName'] ?? '',
+                            'tab_')) {
+                        ;
+                    } elseif (!$actionTable) {
+                        throw new errorException('Not correct request. Reload table page');
+                    } else {
+                        $calcsTablesIDs = $Cycle->getTableIds();
+                        if (!empty($calcsTablesIDs)) {
+                            foreach ($calcsTablesIDs as $tableId) {
+                                if ($this->Table->getUser()->isTableInAccess($tableId)) {
+                                    $this->location($this->modulePath . $this->Table->getTableRow()['top'] . '/' . $this->Table->getTableRow()['id'] . '/' . $Cycle->getId() . '/' . $tableId);
+                                    die;
+                                }
                             }
                         }
                     }

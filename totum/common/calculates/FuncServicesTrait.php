@@ -25,6 +25,10 @@ trait FuncServicesTrait
         $connector->sendRequest('xlsx', $hash, [
             'template' => base64_encode($template),
             'data' => $params['data'],
+            'pdf' => match ($params['pdf'] ?? false) {
+                'true', true => true,
+                default => false
+            },
         ]);
         $value = $Config->getServicesVarObject()->waitVarValue($hash);
 
@@ -45,9 +49,9 @@ trait FuncServicesTrait
             if (!empty($value['error'])) {
                 throw new errorException('Xlsx generator error: ' . $value['error']);
             }
-            if(!empty($value['link'])){
+            if (!empty($value['link'])) {
                 throw new errorException('Wrong data from service server: ' . $http_response_header[0]);
-            }else{
+            } else {
                 throw new errorException('Unknown error');
             }
         }

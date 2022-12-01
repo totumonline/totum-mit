@@ -579,7 +579,7 @@ abstract class RealTables extends aTable
     {
         $where = ['id' => $this->tableRow['id']];
 
-        if ($this->getTableRow()['actual'] !== 'disable') {
+        if (!in_array($this->getTableRow()['actual'], ['disable', 'disablenotice', 'disablerefresh'])) {
             $where['updated'] = $this->savedUpdated;
         }
 

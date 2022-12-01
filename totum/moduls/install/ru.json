@@ -631,6 +631,7 @@
     "{{Select_the_tables_to_add_to_the_export}}": "Выберите таблицы для добавления в выгрузку",
     "{{Separator_for_multiple_values}}": "Разделитель для множественных значений",
     "{{Sep}}": "Сен",
+    "{{Service_domain_check_key}}": "Ключ проверки домена",
     "{{Service_key}}": "Ключ сервиса",
     "{{Service_number}}": "Номер сервиса",
     "{{Services_table}}": "Сервисы",

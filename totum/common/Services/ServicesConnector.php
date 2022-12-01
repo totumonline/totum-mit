@@ -57,6 +57,10 @@ class ServicesConnector
 
     public function setAnswer(ServerRequest $request): void
     {
+        if ($request->getQueryParams()['check_domain_key'] === 'true') {
+            die($this->getServicesAccountData()['h_service_domain_check_key'] ?: 'empty');
+        }
+
         $body = json_decode($request->getBody(), true);
 
         if (!($hash = $body['hash'] ?? false)) {
@@ -79,10 +83,10 @@ SQL
             );
             $header = json_decode($header['header'], true);
             $this->servicesAccountData['h_services_url'] = $header['h_services_url']['v'] ?? '';
+            $this->servicesAccountData['h_service_domain_check_key'] = $header['h_service_domain_check_key']['v'] ?? '';
             $this->servicesAccountData['h_services_number'] = $header['h_services_number']['v'] ?? '';
-            $this->servicesAccountData['h_services_key'] =
-                Crypt::getDeCrypted($header['h_services_key']['v'] ?? '',
-                    $this->Config->getCryptKeyFileContent());
+            $this->servicesAccountData['h_services_key'] = Crypt::getDeCrypted($header['h_services_key']['v'] ?? '',
+                $this->Config->getCryptKeyFileContent());
         }
         return $this->servicesAccountData;
 

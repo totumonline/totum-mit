@@ -57,7 +57,7 @@ class ServicesConnector
 
     public function setAnswer(ServerRequest $request): void
     {
-        if ($request->getQueryParams()['check_domain_key'] === 'true') {
+        if (($request->getQueryParams()['check_domain_key'] ?? false) === 'true') {
             die($this->getServicesAccountData()['h_service_domain_check_key'] ?: 'empty');
         }
 

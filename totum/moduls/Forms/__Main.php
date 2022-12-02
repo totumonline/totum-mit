@@ -30,7 +30,7 @@
             padding-bottom: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            box-shadow: 0 5px 10px rgb(0, 0, 0 , 20%);
+            box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
             background: rgb(255 255 255 / 90%);
         }

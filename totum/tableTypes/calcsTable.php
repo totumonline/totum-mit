@@ -51,7 +51,7 @@ class calcsTable extends JsonTables
         $updateWhere = [
             'cycle_id' => $this->Cycle->getId()
         ];
-        if ($this->getTableRow()['actual'] !== 'disable') {
+        if (!in_array($this->getTableRow()['actual'], ['disable', 'disablenotice', 'disablerefresh'])) {
             $updateWhere['updated'] = $this->savedUpdated;
         }
 

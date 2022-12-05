@@ -6,6 +6,7 @@ use GuzzleHttp\Psr7\ServerRequest;
 use totum\common\configs\ConfParent;
 use totum\common\Crypt;
 use totum\common\errorException;
+use totum\common\Totum;
 
 class ServicesConnector
 {
@@ -31,6 +32,7 @@ class ServicesConnector
         $Data = [
             'number' => $accountData['h_services_number'],
             'key' => $accountData['h_services_key'],
+            'version' => Totum::VERSION,
             'hash' => $hash,
             'data' => $data
         ];

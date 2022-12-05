@@ -9,10 +9,15 @@ use totum\fieldTypes\File;
 trait FuncServicesTrait
 {
 
-    protected function serviceRequest(\totum\config\Conf $Config, $serviceName, array $data): string|false
+    protected function serviceRequest(\totum\config\Conf $Config, $serviceName, array $data, $comment = null): string|false
     {
         $hash = $Config->getServicesVarObject()->getNewVarnameHash(3600);
         $connector = ServicesConnector::init($Config);
+
+        if (!empty($comment)) {
+            $comment = substr((string)$comment, 0, 30);
+            $data['comment'] = $comment;
+        }
 
         $connector->sendRequest($serviceName, $hash, $data);
         $value = $Config->getServicesVarObject()->waitVarValue($hash);
@@ -48,7 +53,7 @@ trait FuncServicesTrait
     {
         $params = $this->getParamsArray($params);
         $this->__checkNotEmptyParams($params, ['template']);
-        $this->__checkNotArrayParams($params, ['template']);
+        $this->__checkNotArrayParams($params, ['template', 'comment']);
         $this->__checkListParam($params, ['data']);
 
         $Config = $this->Table->getTotum()->getConfig();
@@ -61,14 +66,14 @@ trait FuncServicesTrait
                 'true', true => true,
                 default => false
             },
-        ]);
+        ], $params['comment'] ?? null);
     }
 
     protected function funcServiceDocxGenerator($params)
     {
         $params = $this->getParamsArray($params);
         $this->__checkNotEmptyParams($params, ['template']);
-        $this->__checkNotArrayParams($params, ['template']);
+        $this->__checkNotArrayParams($params, ['template', 'comment']);
         $this->__checkListParam($params, ['data']);
 
         $Config = $this->Table->getTotum()->getConfig();
@@ -81,7 +86,7 @@ trait FuncServicesTrait
                 'true', true => true,
                 default => false
             },
-        ]);
+        ], $params['comment'] ?? null);
     }
 
     protected function funcServicePDFGenerator($params)
@@ -92,7 +97,7 @@ trait FuncServicesTrait
             default => throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'type'))
         };
 
-        $this->__checkNotArrayParams($params, ['file', 'filestring']);
+        $this->__checkNotArrayParams($params, ['file', 'filestring', 'comment']);
         if (!empty($params['filestring'])) {
             $file = (string)$params['filestring'];
         } elseif (!empty($params['file'])) {
@@ -105,7 +110,7 @@ trait FuncServicesTrait
         $Config = $this->Table->getTotum()->getConfig();
         return $this->serviceRequest($Config, 'pdf', [
             'file' => base64_encode($file),
-            'type' => $type
-        ]);
+            'type' => $type,
+        ], $params['comment'] ?? null);
     }
 }

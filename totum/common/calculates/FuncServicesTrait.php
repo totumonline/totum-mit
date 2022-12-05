@@ -15,7 +15,7 @@ trait FuncServicesTrait
         $connector = ServicesConnector::init($Config);
 
         if (!empty($comment)) {
-            $comment = substr((string)$comment, 0, 30);
+            $comment = mb_substr((string)$comment, 0, 30);
             $data['comment'] = $comment;
         }
 

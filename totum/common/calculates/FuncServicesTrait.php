@@ -107,6 +107,20 @@ trait FuncServicesTrait
                 ['file']));
         }
 
+        if ($type === 'html') {
+            $file = preg_replace_callback(
+                '~src\s*=\s*([\'"]?)(?:http(?:s?)://' . $this->Table->getTotum()->getConfig()->getFullHostName() . ')?/fls/(.*?)\1~',
+                function ($matches) use (&$attachments) {
+                    if (!empty($matches[2]) && $file = File::getContent($matches[2],
+                            $this->Table->getTotum()->getConfig())) {
+                        return 'src="data:image/'.preg_replace('/^.*?\.([^.]+)$/', '$1', $matches[2]).';base64,' . base64_encode($file) . '"';
+                    }
+                    return null;
+                },
+                $file
+            );
+        }
+
         $Config = $this->Table->getTotum()->getConfig();
         return $this->serviceRequest($Config, 'pdf', [
             'file' => base64_encode($file),

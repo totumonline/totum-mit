@@ -13,9 +13,19 @@ use totum\common\errorException;
 use totum\common\Cycle;
 use totum\common\FormatParamsForSelectFromTable;
 use totum\common\sql\SqlException;
+use totum\common\Totum;
 
 class cyclesTable extends RealTables
 {
+    protected function __construct(Totum $Totum, $tableRow, $extraData = null, $light = false, $hash = null)
+    {
+        parent::__construct($Totum, $tableRow, $extraData, $light, $hash);
+
+        if ($this->tableRow['deleting'] === 'hide') {
+            $this->tableRow['deleting'] = 'delete';
+        }
+    }
+
     public function isCalcsTableFromThisCyclesTable(mixed $table): bool
     {
         $tableRow = $this->getTotum()->getTableRow($table);
@@ -112,7 +122,8 @@ class cyclesTable extends RealTables
     public function getUserCycleId()
     {
         return $this->getByParams((new FormatParamsForSelectFromTable())->field('id')->where('creator_id',
-            $this->User->getConnectedUsers())->params(), 'field');
+            $this->User->getConnectedUsers())->params(),
+            'field');
     }
 
     protected function addRow($channel, $addData, $fromDuplicate = false, $addWithId = false, $duplicatedId = 0, $isCheck = false)

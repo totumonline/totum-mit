@@ -12,8 +12,10 @@ use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FormatParamsForSelectFromTable;
 use totum\common\Lang\RU;
+use totum\common\Services\ServicesConnector;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
+use totum\fieldTypes\File;
 use totum\fieldTypes\Select;
 use totum\models\TmpTables;
 use totum\tableTypes\aTable;
@@ -272,7 +274,7 @@ class ReadTableActions extends Actions
             $loadFilteredRows = $this->Table->loadFilteredRows('web', [$data['rowId']]);
             if ($loadFilteredRows && $row = ($this->Table->getTbl()['rows'][$data['rowId']] ?? null)) {
                 $val = $row[$field['name']];
-            }else{
+            } else {
                 throw new errorException($this->translate('The row %s does not exist or is not available for your role.'));
             }
         } else {
@@ -1107,6 +1109,25 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             '<div class="table-' . $this->Table->getTableRow()['name'] . '">' . implode('', $tableAll) . '</div>',
             $template['html']
         );
+
+        if ($settings['pdf'] ?? false) {
+            if (!$this->isTableWithPDF()) {
+                throw new errorException($this->translate('PDF printing for this table is switched off'));
+            }
+            $data = [
+                'type' => 'html',
+                'file' => base64_encode(File::replaceImageSrcsWithEmbedded($this->Table->getTotum()->getConfig(), '<html><head><style>' . $style . '</style></head><body>' . $body . '</body></html>')),
+                'pdf' => $settings['pdf']
+            ];
+            $file = ServicesConnector::init($this->Totum->getConfig())->serviceRequestFile('pdf', $data);
+            $this->Table->getTotum()->addToInterfaceDatas('files',
+                ['files' => [
+                    ['name' => 'table.pdf', 'type' => 'application/pdf', 'string' => base64_encode($file)]
+                ]
+                ]
+            );
+            return;
+        }
 
         $this->Totum->addToInterfaceDatas(
             'print',
@@ -1950,6 +1971,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
+        $_tableRow['__withPDF'] = $this->isTableWithPDF();
 
 
         return $_tableRow;
@@ -2506,5 +2528,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             return $kanban_data;
         }
         return null;
+    }
+
+    protected function isTableWithPDF()
+    {
+        /*TODO Check it*/
+        return true;
     }
 }

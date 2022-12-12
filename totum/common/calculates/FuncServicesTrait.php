@@ -19,46 +19,6 @@ trait FuncServicesTrait
         return $answertype;
     }
 
-    protected function serviceRequest(\totum\config\Conf $Config, $serviceName, array $data, $comment = null): string|false
-    {
-        $hash = $Config->getServicesVarObject()->getNewVarnameHash(3600);
-        $connector = ServicesConnector::init($Config);
-
-        if (!empty($comment)) {
-            $comment = mb_substr((string)$comment, 0, 30);
-            $data['comment'] = $comment;
-        }
-
-        $connector->sendRequest($serviceName, $hash, $data);
-        $value = $Config->getServicesVarObject()->waitVarValue($hash);
-
-        $context = stream_context_create(
-            [
-                'http' => [
-                    'header' => "User-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
-                    'method' => 'GET',
-                ],
-                'ssl' => [
-                    'verify_peer' => $this->Table->getTotum()->getConfig()->isCheckSsl(),
-                    'verify_peer_name' => $this->Table->getTotum()->getConfig()->isCheckSsl(),
-                ],
-            ]
-        );
-
-        if (empty($value['link']) || !($file = @file_get_contents($value['link'], true, $context))) {
-            if (!empty($value['error'])) {
-                throw new errorException('Generator error: ' . $value['error']);
-            }
-            if (!empty($value['link'])) {
-                throw new errorException('Wrong data from service server: ' . $http_response_header);
-            } else {
-                throw new errorException('Unknown error');
-            }
-        }
-
-        return $file;
-    }
-
     protected function serviceRequests(\totum\config\Conf $Config, $serviceName, array $datas, $comment = null): array
     {
         if (count($datas) > 10) {
@@ -123,14 +83,15 @@ trait FuncServicesTrait
         $preparedData = [];
         foreach ($templates as $i => $template) {
             $pdf = $params['pdf'] ?? false;
-            $pdf = match (is_array($pdf) ? ($pdf[$i] ?? false) : $pdf) {
+            $_pdf = is_array($pdf) && key_exists(0, $pdf) ? ($pdf[$i] ?? false) : $pdf;
+            $_pdf = match ($_pdf) {
                 'true', true => true,
-                default => false
+                default => is_array($_pdf) ? $_pdf : false
             };
             $preparedData[] = [
                 'template' => base64_encode(File::getContent($template, $Config)),
                 'data' => $datas[$i],
-                'pdf' => $pdf,
+                'pdf' => $_pdf,
             ];
         }
         unset($template);
@@ -164,7 +125,7 @@ trait FuncServicesTrait
 
         $this->__checkNotEmptyParams($params, 'type');
         $this->__checkNotArrayParams($params, 'comment');
-
+        $pdf = $params['pdf'] ?? null;
         $types = (array)$params['type'];
 
         foreach ($types as &$_) {
@@ -203,24 +164,21 @@ trait FuncServicesTrait
         $datas = [];
         foreach ($files as $i => &$file) {
             if ($types[$i] === 'html') {
-                $file = preg_replace_callback(
-                    '~src\s*=\s*([\'"]?)(?:http(?:s?)://' . $this->Table->getTotum()->getConfig()->getFullHostName() . ')?/fls/(.*?)\1~',
-                    function ($matches) use (&$attachments) {
-                        if (!empty($matches[2]) && $file = File::getContent($matches[2],
-                                $this->Table->getTotum()->getConfig())) {
-                            return 'src="data:image/' . preg_replace('/^.*?\.([^.]+)$/',
-                                    '$1',
-                                    $matches[2]) . ';base64,' . base64_encode($file) . '"';
-                        }
-                        return null;
-                    },
-                    $file
-                );
+                $file = File::replaceImageSrcsWithEmbedded($this->Table->getTotum()->getConfig(), $file);
             }
             $datas[] = [
                 'file' => base64_encode($file),
                 'type' => $types[$i],
             ];
+            if (!empty($pdf)) {
+                if (is_array($pdf) && key_exists(0, $pdf)) {
+                    if (!empty($pdf[$i])) {
+                        $datas[array_key_last($datas)]['pdf'] = $pdf[$i];
+                    }
+                } else {
+                    $datas[array_key_last($datas)]['pdf'] = $pdf;
+                }
+            }
         }
         unset($file);
 

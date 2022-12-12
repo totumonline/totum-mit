@@ -26,6 +26,46 @@ class ServicesConnector
     {
     }
 
+    function serviceRequestFile($serviceName, array $data, $comment = null): string|false
+    {
+        $Config = $this->Config;
+        $hash = $Config->getServicesVarObject()->getNewVarnameHash(3600);
+        $connector = ServicesConnector::init($Config);
+
+        if (!empty($comment)) {
+            $comment = mb_substr((string)$comment, 0, 30);
+            $data['comment'] = $comment;
+        }
+        $connector->sendRequest($serviceName, $hash, $data);
+        $value = $Config->getServicesVarObject()->waitVarValue($hash);
+
+        $context = stream_context_create(
+            [
+                'http' => [
+                    'header' => "User-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
+                    'method' => 'GET',
+                ],
+                'ssl' => [
+                    'verify_peer' => $Config->isCheckSsl(),
+                    'verify_peer_name' => $Config->isCheckSsl(),
+                ],
+            ]
+        );
+
+        if (empty($value['link']) || !($file = @file_get_contents($value['link'], true, $context))) {
+            if (!empty($value['error'])) {
+                throw new errorException('Generator error: ' . $value['error']);
+            }
+            if (!empty($value['link'])) {
+                throw new errorException('Wrong data from service server: ' . $http_response_header);
+            } else {
+                throw new errorException('Unknown error');
+            }
+        }
+
+        return $file;
+    }
+
     public function sendRequest($type, $hash, $data)
     {
         $accountData = $this->getServicesAccountData();

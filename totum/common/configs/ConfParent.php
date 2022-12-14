@@ -261,7 +261,7 @@ abstract class ConfParent
                 }
             }
 
-            $filestring = $filestring ?? File::getFilePath($v, $this);
+            $filestring = $filestring ?? File::getContent($v, $this);
             if (!$fileName) {
                 if (!preg_match('/.+\.[a-zA-Z0-9]+$/', $k)) {
                     $fileName = preg_replace('`([^/]+\.[^/]+)$`', '$1', $v);
@@ -275,7 +275,7 @@ abstract class ConfParent
         $body = preg_replace_callback(
             '~src\s*=\s*([\'"]?)(?:http(?:s?)://' . $this->getFullHostName() . ')?/fls/(.*?)\1~',
             function ($matches) use (&$attachments) {
-                if (!empty($matches[2]) && $file = File::getFilePath($matches[2], $this)) {
+                if (!empty($matches[2]) && $file = File::getContent($matches[2], $this)) {
                     $md5 = md5($matches[2]) . '.' . preg_replace('/.*\.([a-zA-Z]{2,5})$/', '$1', $matches[2]);
                     $attachments[$md5] = $file;
                     return 'src="cid:' . $md5 . '"';

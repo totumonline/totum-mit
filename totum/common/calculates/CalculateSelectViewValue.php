@@ -56,7 +56,7 @@ class CalculateSelectViewValue extends CalculateSelect
     protected function getPreparedList($rows)
     {
         $selectList = [];
-        if (array_key_exists('parent', $rows[0] ?? [])) {
+        if ($rows && !empty($rows[0]) && is_array($rows[0]) && array_key_exists('parent', $rows[0] ?? [])) {
             foreach ($rows as $row) {
                 $r = [$row['title'] //0
                     , empty($row['is_del']) ? 0 : 1 //1
@@ -71,10 +71,15 @@ class CalculateSelectViewValue extends CalculateSelect
             }
         } else {
             foreach ($rows as $row) {
-                if(is_array($row['value'])){
-                    throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.', 'value'));
-                }elseif(is_array($row['title'])){
-                    throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.', 'title'));
+                if (!is_array($row)) {
+                    throw new errorException($this->translate('Select format error in field %s', $this->varName));
+                }
+                if (is_array($row['value'])) {
+                    throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.',
+                        'value'));
+                } elseif (is_array($row['title'])) {
+                    throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.',
+                        'title'));
                 }
                 $selectList[$row['value']] = [$row['title']];                   //0
                 $selectList[$row['value']][] = !empty($row['is_del']) ? 1 : 0;  //1

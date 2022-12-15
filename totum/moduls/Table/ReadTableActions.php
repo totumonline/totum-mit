@@ -12,6 +12,7 @@ use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FormatParamsForSelectFromTable;
 use totum\common\Lang\RU;
+use totum\common\Model;
 use totum\common\Services\ServicesConnector;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
@@ -740,17 +741,38 @@ class ReadTableActions extends Actions
                 $v = ['v' => $v];
             }
         }
+        $cleareRow = function ($row, $isInsert = false) {
+            $resultRow = [];
+            foreach ($row as $k => $value) {
+                try {
+                    if (Model::isServiceField($k) || $this->Table->isField($isInsert ? 'insertable' : 'editable',
+                            'web',
+                            $k)) {
+                        $resultRow[$k] = $value;
+                    }
+                } catch (\Exception) {
+                }
+            }
+            return $resultRow;
+        };
+
+
         if ($field['category'] === 'column') {
             if (array_key_exists('id', $row) && !is_null($row['id'])) {
                 $Table->loadFilteredRows('web', [$row['id']]);
-                $row = $row + ($Table->getTbl()['rows'][$row['id']] ?? []);
+                $row = $cleareRow($row);
+                $row = ($Table->getTbl()['rows'][$row['id']] ?? []);
             } else {
-                $row = $row + $Table->checkInsertRow([], $data['item'], null, []);
+                $row = $Table->checkInsertRow([], $data['item'], $data['hash'] ?? null, []);
             }
         } else {
+            if ($field['category'] !== 'filter') {
+                $row = [];
+            } else {
+                $row = $cleareRow($row);
+            }
             $row = $row + $Table->getTbl()['params'];
         }
-
 
         if (!in_array(
             $field['type'],
@@ -1116,7 +1138,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
             $data = [
                 'type' => 'html',
-                'file' => base64_encode(File::replaceImageSrcsWithEmbedded($this->Table->getTotum()->getConfig(), '<html><head><style>' . $style . '</style></head><body>' . $body . '</body></html>')),
+                'file' => base64_encode(File::replaceImageSrcsWithEmbedded($this->Table->getTotum()->getConfig(),
+                    '<html><head><style>' . $style . '</style></head><body>' . $body . '</body></html>')),
                 'pdf' => $settings['pdf']
             ];
             $file = ServicesConnector::init($this->Totum->getConfig())->serviceRequestFile('pdf', $data);

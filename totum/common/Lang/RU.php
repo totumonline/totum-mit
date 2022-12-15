@@ -437,6 +437,7 @@ class RU implements LangInterface
 
         'Value format error in id %s row field %s' => 'Ошибка формата значения в строке id %s поля %s',
         'Value format error in field %s' => 'Ошибка формата значения в поле %s',
+        'Select format error in field %s' => 'Ошибка формата селекта в поле %s',
 
         'Not correct row in files list' => 'Не правильный массив в list параметра files',
         'The field type %s cannot be in the pre-filter' => 'Поле типа %s не может находиться в пре-фильтре',

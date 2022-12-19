@@ -212,13 +212,25 @@ trait WebInterfaceTrait
         $this->calcLog($Log, 'result', $this->isTblUpdated(0) ? 'changed' : 'not changed');
     }
 
-    public function checkEditRow($data, $dataSetToDefault, $tableData = null)
+    public function checkEditRow($editData, $tableData = null)
     {
+        $data = $dataSetToDefault = [];
+        foreach ($editData as $k => $v) {
+            if (is_array($v) && array_key_exists('v', $v)) {
+                if (array_key_exists('h', $v)) {
+                    if ($v['h'] === false) {
+                        $dataSetToDefault[$k] = true;
+                        continue;
+                    }
+                }
+                $data[$k] = $v['v'];
+            }
+        }
         $this->loadDataRow();
         if ($tableData) {
             $this->checkTableUpdated($tableData);
         }
-        $id = $data['id'] ?? 0;
+        $id = $editData['id'] ?? 0;
         $this->checkIsUserCanViewIds('web', [$id]);
         $this->reCalculate(['channel' => 'web', 'modify' => [$id => $data], 'setValuesToDefaults' => [$id => $dataSetToDefault], 'isCheck' => true]);
 

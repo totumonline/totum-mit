@@ -15,10 +15,12 @@ class WriteTableActions extends ReadTableActions
 {
     public function checkUnic()
     {
-        if($this->Table->isField('visible', 'web', $fieldName = ($this->post['fieldName'] ?? '')) && $this->Table->getFields()[$fieldName]['type']==='unic'){
+        if ($this->Table->isField('visible',
+                'web',
+                $fieldName = ($this->post['fieldName'] ?? '')) && $this->Table->getFields()[$fieldName]['type'] === 'unic') {
             return $this->Table->checkUnic($fieldName, $this->post['fieldVal'] ?? '');
         }
-        throw new errorException($fieldName.' is not field of type unique');
+        throw new errorException($fieldName . ' is not field of type unique');
     }
 
     public function add()
@@ -71,15 +73,12 @@ class WriteTableActions extends ReadTableActions
     public function checkInsertRow()
     {
         if (empty($this->post['hash'])) {
-            do {
-                $hash = 'i-' . md5(microtime(true) . rand());
-            } while (!TmpTables::init($this->Totum->getConfig())->saveByHash(
+            $hash = TmpTables::init($this->Totum->getConfig())->getNewHash(
                 TmpTables::SERVICE_TABLES['insert_row'],
                 $this->User,
-                $hash,
                 [],
-                true
-            ));
+                'i'
+            );
         } else {
             $hash = $this->post['hash'];
         }
@@ -97,25 +96,31 @@ class WriteTableActions extends ReadTableActions
 
     public function checkEditRow()
     {
-        $editData = json_decode($this->post['data'], true) ?? [];
-        $data = ['id' => $editData['id'] ?? 0];
-        $dataSetToDefault = [];
 
-        foreach ($editData as $k => $v) {
-            if (is_array($v) && array_key_exists('v', $v)) {
-                if (array_key_exists('h', $v)) {
-                    if ($v['h'] === false) {
-                        $dataSetToDefault[$k] = true;
-                        continue;
-                    }
-                }
-                $data[$k] = $v['v'];
+        if (empty($this->post['hash'])) {
+            if (!empty($this->post['loadSelects'])) {
+                $hash = TmpTables::init($this->Totum->getConfig())->getNewHash(
+                    TmpTables::SERVICE_TABLES['edit_row'],
+                    $this->User,
+                    [],
+                    'e'
+                );
             }
+        } else {
+            $hash = $this->post['hash'];
+        }
+        if ($hash ?? null) {
+            $row = $this->getEditRow($hash,
+                json_decode($this->post['data'], true),
+                $this->post['tableData'] ?? []);
+            $res['hash'] = $hash;
+            $res['f'] = $this->getTableFormat([]);
+        } else {
+            $editData = json_decode($this->post['data'], true) ?? [];
+            $row = $this->Table->checkEditRow($editData, $this->post['tableData'] ?? []);
         }
 
-        $row = $this->Table->checkEditRow($data, $dataSetToDefault, $this->post['tableData'] ?? []);
         $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit', [])['rows'][0];
-        $res['f'] = $this->getTableFormat([]);
         $this->addLoadedSelects($res);
 
         return $res;
@@ -236,6 +241,31 @@ class WriteTableActions extends ReadTableActions
             }
             $res['selects'] = $selects;
         }
+    }
+
+    protected function getEditRow(string $hash, array $editData, array $tableData)
+    {
+        $this->Table->reCalculateFilters(
+            'web',
+            false,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+
+        $loadData = TmpTables::init($this->Totum->getConfig())->getByHash(
+                TmpTables::SERVICE_TABLES['edit_row'],
+                $this->User,
+                $hash
+            ) ?? [];
+
+        $summData = array_merge($loadData, $editData);
+        TmpTables::init($this->Totum->getConfig())->saveByHash(
+            TmpTables::SERVICE_TABLES['edit_row'],
+            $this->User,
+            $hash,
+            $summData
+        );
+        return $this->Table->checkEditRow($summData,$tableData);
     }
 
 }

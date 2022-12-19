@@ -759,9 +759,9 @@ class ReadTableActions extends Actions
 
         if ($field['category'] === 'column') {
             if (array_key_exists('id', $row) && !is_null($row['id'])) {
-                $Table->loadFilteredRows('web', [$row['id']]);
-                $row = $cleareRow($row);
-                $row = ($Table->getTbl()['rows'][$row['id']] ?? []);
+                $row = !empty($data['hash']) ? $this->getEditRow($data['hash'],
+                    [],
+                    []) : $Table->checkEditRow(['id' => $row['id']]);
             } else {
                 $row = $Table->checkInsertRow([], $data['item'], $data['hash'] ?? null, []);
             }
@@ -1542,6 +1542,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             false,
             ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
+        $vars = [];
 
         if ($click = is_string($this->post['data']) ? (json_decode(
                 $this->post['data'],
@@ -1564,6 +1565,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.',
                         ''));
                 }
+                if (!empty($click['hash'])) {
+                    $vars['__edit_hash'] = $click['hash'];
+                }
             }
 
             try {
@@ -1574,7 +1578,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 } elseif (get_class($this) === ReadTableActions::class && empty($fields[$click['fieldName']]['pressableOnOnlyRead'])) {
                     throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
                 }
-                $vars = [];
+
                 if ($click['checked_ids'] ?? null) {
                     $vars['ids'] = function () use ($click) {
                         return $this->Table->checkIsUserCanViewIds('web', $click['checked_ids']);
@@ -2005,6 +2009,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $id = (int)($this->post['id'] ?? 0);
         $field = $this->post['field'] ?? '';
 
+        $vars = [];
+        if (!empty($this->post['hash'])) {
+            $vars['__edit_hash'] = $this->post['hash'];
+        }
 
         if ($field && key_exists(
                 $field,
@@ -2022,7 +2030,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             } else {
                 $row = $this->Table->getTbl()['params'];
             }
-            $this->clickToButton($fieldParams, $row, [], 'click');
+            $this->clickToButton($fieldParams, $row, $vars, 'click');
         } elseif ($this->Table->getTableRow()['type'] === 'cycles') {
             if (!empty($id)) {
                 if ($this->Table->loadFilteredRows('web', [$id])) {

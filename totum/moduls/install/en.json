@@ -433,6 +433,7 @@
     "{{None_of_the_parameters_is_required}}": "None of the parameters is required",
     "{{None}}": "None",
     "{{Normal_editable_file}}": "Normal editable file",
+    "{{Not_allowed_in_services}}": "Not allowed",
     "{{Not_available}}": "Not available",
     "{{Not_connected_to_API}}": "Not connected to API",
     "{{Not_connected_to_remotes}}": "Not connected to remotes",

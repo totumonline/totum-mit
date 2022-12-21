@@ -433,6 +433,7 @@
     "{{None_of_the_parameters_is_required}}": "None of the parameters is required",
     "{{None}}": "Нестрогое без показа",
     "{{Normal_editable_file}}": "Normal editable file",
+    "{{Not_allowed_in_services}}": "Не применимо",
     "{{Not_available}}": "Недоступно",
     "{{Not_connected_to_API}}": "Не подключено к API",
     "{{Not_connected_to_remotes}}": "Не подключено к remotes",

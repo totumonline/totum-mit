@@ -2563,7 +2563,17 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     protected function isTableWithPDF()
     {
-        /*TODO Check it*/
-        return true;
+        $data = $this->Totum->getModel('ttm__services')->get(['name' => 'pdf'], 'tables, exclusions');
+        foreach ($data as &$v){
+            $v = json_decode($v, true);
+        }
+        if (in_array('*ALL*', $data['tables'])) {
+            if (!in_array($this->Table->getTableRow()['name'], $data['exclusions'])) {
+                return true;
+            }
+        } elseif (in_array($this->Table->getTableRow()['name'], $data['tables'])) {
+            return true;
+        }
+        return false;
     }
 }

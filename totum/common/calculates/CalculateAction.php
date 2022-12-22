@@ -1251,7 +1251,8 @@ class CalculateAction extends Calculate
             [
                 'header' => $params['header'] ?? true,
                 'footer' => $params['footer'] ?? true,
-                'topbuttons' => $params['topbuttons'] ?? true
+                'topbuttons' => $params['topbuttons'] ?? true,
+                'bottombuttons' => $params['bottombuttons'] ?? true
             ]
         );
     }

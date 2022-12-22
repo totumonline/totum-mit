@@ -69,14 +69,6 @@ class Tree extends Field
                 );
                 $this->table->calcLog($Log, 'result', $list);
 
-                foreach ($list as &$l) {
-                    $l[3] = $l[3] ?? null;
-                    if ($l[3] === '') {
-                        $l[3] = null;
-                    }
-                }
-                unset($l);
-
 
             } catch (\Exception $e) {
                 $this->table->calcLog($Log, 'error', $e->getMessage());

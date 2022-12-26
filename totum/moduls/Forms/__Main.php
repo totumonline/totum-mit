@@ -48,7 +48,7 @@
 <div id="form">
     <script>
         window.MAIN_HOST_FORM = true;
-        let num = "1";
+        let num = "2";
         (function (src, cssSrc, address, post, get, input) {
             let div = document.currentScript.parentNode;
             let path = "<?=$path?>";

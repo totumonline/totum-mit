@@ -92,6 +92,7 @@ class FormsController extends interfaceController
                     '__browser_title' => $this->FormsTableData['format_static']['t']['f']['t'] ?? null,
                     '__background' => $this->FormsTableData['format_static']['t']['f']['b'] ?? null,
                     '__form_width' => $this->FormsTableData['format_static']['t']['f']['m'] ?? null,
+                    '__css' => $this->FormsTableData['css'] ?? null,
                 ]);
 
                 $User = Auth::loadAuthUser($this->Config, $this->FormsTableData['call_user'], false);
@@ -246,7 +247,7 @@ class FormsController extends interfaceController
         }*/
 
 
-        $this->Table = $this->Totum->getTable($tableRow,  $extradata);
+        $this->Table = $this->Totum->getTable($tableRow, $extradata);
         $this->onlyRead = ($this->Totum->getUser()->getTables()[$this->Table->getTableRow()['id']] ?? null) !== 1;
 
 

@@ -12,8 +12,11 @@ use totum\common\errorException;
 use totum\common\Field;
 use totum\common\FormatParamsForSelectFromTable;
 use totum\common\Lang\RU;
+use totum\common\Model;
+use totum\common\Services\ServicesConnector;
 use totum\common\Totum;
 use totum\fieldTypes\Comments;
+use totum\fieldTypes\File;
 use totum\fieldTypes\Select;
 use totum\models\TmpTables;
 use totum\tableTypes\aTable;
@@ -272,7 +275,7 @@ class ReadTableActions extends Actions
             $loadFilteredRows = $this->Table->loadFilteredRows('web', [$data['rowId']]);
             if ($loadFilteredRows && $row = ($this->Table->getTbl()['rows'][$data['rowId']] ?? null)) {
                 $val = $row[$field['name']];
-            }else{
+            } else {
                 throw new errorException($this->translate('The row %s does not exist or is not available for your role.'));
             }
         } else {
@@ -712,7 +715,7 @@ class ReadTableActions extends Actions
         return ['ok' => 1];
     }
 
-    protected function getEditSelectFromTable(array $data, aTable $Table, $channel, $filters, $q = '', $parentId = null): array
+    protected function getEditSelectFromTable(array $data, aTable $Table, $channel, $filters, $q = '', $parentId = null, $isLoadedSelect = false): array
     {
         $fields = $Table->getFields();
 
@@ -738,17 +741,40 @@ class ReadTableActions extends Actions
                 $v = ['v' => $v];
             }
         }
+        $cleareRow = function ($row, $isInsert = false) {
+            $resultRow = [];
+            foreach ($row as $k => $value) {
+                try {
+                    if (Model::isServiceField($k) || $this->Table->isField($isInsert ? 'insertable' : 'editable',
+                            'web',
+                            $k)) {
+                        $resultRow[$k] = $value;
+                    }
+                } catch (\Exception) {
+                }
+            }
+            return $resultRow;
+        };
+
+
         if ($field['category'] === 'column') {
-            if (array_key_exists('id', $row) && !is_null($row['id'])) {
-                $Table->loadFilteredRows('web', [$row['id']]);
-                $row = $row + ($Table->getTbl()['rows'][$row['id']] ?? []);
-            } else {
-                $row = $row + $Table->checkInsertRow([], $data['item'], null, []);
+            if (!$isLoadedSelect) {
+                if (array_key_exists('id', $row) && !is_null($row['id'])) {
+                    $row = !empty($data['hash']) ? $this->getEditRow($data['hash'],
+                        [],
+                        []) : $Table->checkEditRow(['id' => $row['id']]);
+                } else {
+                    $row = $Table->checkInsertRow([], $data['item'], $data['hash'] ?? null, []);
+                }
             }
         } else {
+            if ($field['category'] !== 'filter') {
+                $row = [];
+            } else {
+                $row = $cleareRow($row);
+            }
             $row = $row + $Table->getTbl()['params'];
         }
-
 
         if (!in_array(
             $field['type'],
@@ -1107,6 +1133,26 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             '<div class="table-' . $this->Table->getTableRow()['name'] . '">' . implode('', $tableAll) . '</div>',
             $template['html']
         );
+
+        if ($settings['pdf'] ?? false) {
+            if (!$this->isTableWithPDF()) {
+                throw new errorException($this->translate('PDF printing for this table is switched off'));
+            }
+            $data = [
+                'type' => 'html',
+                'file' => base64_encode(File::replaceImageSrcsWithEmbedded($this->Table->getTotum()->getConfig(),
+                    '<html><head><style>' . $style . '</style></head><body>' . $body . '</body></html>')),
+                'pdf' => $settings['pdf']
+            ];
+            $file = ServicesConnector::init($this->Totum->getConfig())->serviceRequestFile('pdf', $data);
+            $this->Table->getTotum()->addToInterfaceDatas('files',
+                ['files' => [
+                    ['name' => 'table.pdf', 'type' => 'application/pdf', 'string' => base64_encode($file)]
+                ]
+                ]
+            );
+            return;
+        }
 
         $this->Totum->addToInterfaceDatas(
             'print',
@@ -1498,6 +1544,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             false,
             ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
         );
+        $vars = [];
 
         if ($click = is_string($this->post['data']) ? (json_decode(
                 $this->post['data'],
@@ -1520,6 +1567,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     throw new errorException($this->translate('Table [[%s]] was changed. Update the table to make the changes.',
                         ''));
                 }
+                if (!empty($click['hash'])) {
+                    $vars['__edit_hash'] = $click['hash'];
+                }
             }
 
             try {
@@ -1530,7 +1580,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 } elseif (get_class($this) === ReadTableActions::class && empty($fields[$click['fieldName']]['pressableOnOnlyRead'])) {
                     throw new errorException($this->translate('Your access to this table is read-only. Contact administrator to make changes.'));
                 }
-                $vars = [];
+
                 if ($click['checked_ids'] ?? null) {
                     $vars['ids'] = function () use ($click) {
                         return $this->Table->checkIsUserCanViewIds('web', $click['checked_ids']);
@@ -1606,7 +1656,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return ['ok' => true];
     }
 
-    public function getEditSelect($data = null, $q = null, $parentId = null)
+    public function getEditSelect($data = null, $q = null, $parentId = null, $isLoadedSelect = false)
     {
         $data = $data ?? json_decode($this->post['data'] ?? '[]', true) ?? [];
         $q = $q ?? $this->post['q'] ?? '';
@@ -1616,7 +1666,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             'web',
             $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? ''),
             $q,
-            $parentId);
+            $parentId,
+            $isLoadedSelect);
     }
 
 
@@ -1950,6 +2001,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
+        $_tableRow['__withPDF'] = $this->isTableWithPDF();
 
 
         return $_tableRow;
@@ -1960,6 +2012,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $id = (int)($this->post['id'] ?? 0);
         $field = $this->post['field'] ?? '';
 
+        $vars = [];
+        if (!empty($this->post['hash'])) {
+            $vars['__edit_hash'] = $this->post['hash'];
+        }
 
         if ($field && key_exists(
                 $field,
@@ -1977,7 +2033,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             } else {
                 $row = $this->Table->getTbl()['params'];
             }
-            $this->clickToButton($fieldParams, $row, [], 'click');
+            $this->clickToButton($fieldParams, $row, $vars, 'click');
         } elseif ($this->Table->getTableRow()['type'] === 'cycles') {
             if (!empty($id)) {
                 if ($this->Table->loadFilteredRows('web', [$id])) {
@@ -2506,5 +2562,23 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             return $kanban_data;
         }
         return null;
+    }
+
+    protected function isTableWithPDF()
+    {
+        $data = $this->Totum->getModel('ttm__services')->get(['name' => 'pdf'], 'tables, exclusions');
+        foreach ($data as &$v) {
+            $v = json_decode($v, true);
+        }
+        if (is_array($data['tables'])) {
+            if (in_array('*ALL*', $data['tables'])) {
+                if (!in_array($this->Table->getTableRow()['name'], $data['exclusions'])) {
+                    return true;
+                }
+            } elseif (in_array($this->Table->getTableRow()['name'], $data['tables'])) {
+                return true;
+            }
+        }
+        return false;
     }
 }

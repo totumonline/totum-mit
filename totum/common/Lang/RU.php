@@ -437,11 +437,17 @@ class RU implements LangInterface
 
         'Value format error in id %s row field %s' => 'Ошибка формата значения в строке id %s поля %s',
         'Value format error in field %s' => 'Ошибка формата значения в поле %s',
+        'Select format error in field %s' => 'Ошибка формата селекта в поле %s',
 
         'Not correct row in files list' => 'Не правильный массив в list параметра files',
         'The field type %s cannot be in the pre-filter' => 'Поле типа %s не может находиться в пре-фильтре',
 
         'Crypto.key file not exists' => 'Файл Crypto.key не существует',
+
+        /*Services*/
+        'Service does not accept more than 10 files' => 'Сервис не принимает больше 10 файлов',
+        'Number of elements %s and %s do not match' => 'Количество элементов %s и %s не совпадает',
+        'PDF printing for this table is switched off' => 'PDF печать для этой таблицы выключена',
 
         /**PRO**/
         'The code for the specified button is not found. Try again.' => 'Код указанной кнопки не наден. Попробуйте еще раз.',

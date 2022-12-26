@@ -16,6 +16,7 @@ use totum\common\Lang\LangInterface;
 use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\sql\SqlException;
+use totum\models\TmpTables;
 use totum\tableTypes\aTable;
 
 class Calculate
@@ -358,7 +359,7 @@ class Calculate
                     '|(?<string>"[^"]*")' .            //string
                     '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
                     '|(?<bool>false|true)' .   //10
-                    '|(?<param>(?<param_name>(?:\$@|@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
+                    '|(?<param>(?<param_name>(?:\$@|@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l|pnl)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
                     '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?:\.(?<dog_field2>[a-zA-Z0-9_]{2,}))?(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',
                     //dog,dog_table, dog_field,dog_items
 
@@ -841,7 +842,6 @@ class Calculate
             throw new errorException($this->translate('TOTUM-code format error [[%s]].', $this->varName));
         }
 
-
         switch ($param[0]) {
             case '@':
                 if ($param[1] === '$') {
@@ -1095,6 +1095,24 @@ class Calculate
                         } else {
                             $rowVar = $this->row['PrevRow'][$nameVar] ?? '';
                         }
+                    } elseif (preg_match('/^pnl\./i', $nameVar)) {
+                        $nameVar = substr($nameVar, 4);
+
+                        if (!key_exists('__edit_hash', $this->vars)) {
+                            return $this->getParam('#' . $nameVar, $paramArray);
+                        } else {
+                            $hashData = TmpTables::init($this->Table->getTotum()->getConfig())->getByHash(
+                                TmpTables::SERVICE_TABLES['edit_row'],
+                                $this->Table->getUser(),
+                                $this->vars['__edit_hash']
+                            );
+                            $rowData = $this->Table->checkEditRow($hashData);
+                            if ($rowData['id'] === $this->row['id']) {
+                                $rowVar = $rowData[$nameVar] ?? [];
+                            }else{
+                                return $this->getParam('#' . $nameVar, $paramArray);
+                            }
+                        }
                     } else {
                         switch (substr($nameVar, 0, 2)) {
                             case 'h.':
@@ -1293,7 +1311,8 @@ class Calculate
 
     protected function __checkNumericParam($isDigit, $paramName, $withEfloats = false)
     {
-        if (is_array($isDigit) || !is_numeric($isDigit) || (!$withEfloats && !preg_match('/^[-+]?[0-9.]+$/', $isDigit))) {
+        if (is_array($isDigit) || !is_numeric($isDigit) || (!$withEfloats && !preg_match('/^[-+]?[0-9.]+$/',
+                    $isDigit))) {
             throw new errorException($this->translate('The %s parameter must be a number.', $paramName));
         }
     }

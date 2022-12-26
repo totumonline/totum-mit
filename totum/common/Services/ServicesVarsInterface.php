@@ -14,5 +14,7 @@ interface ServicesVarsInterface
 
     public function getNewVarnameHash(int $expired = null): string;
 
+    public function waitVarValues(array $hashes, bool $true, string $mark = 'done');
+
 
 }

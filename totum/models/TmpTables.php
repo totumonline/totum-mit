@@ -11,6 +11,7 @@ class TmpTables extends Model
 {
     public const SERVICE_TABLES = [
         'insert_row' => '_insert_row',
+        'edit_row' => '_edit_row',
         'linktodatajson' => '_linktodatajson',
         'linktoedit' => '_linktoedit',
     ];

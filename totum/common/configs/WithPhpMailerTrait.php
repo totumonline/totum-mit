@@ -43,9 +43,9 @@ trait WithPhpMailerTrait
 
             foreach ($attachments as $innrName => $fileString) {
                 if (preg_match('/jpg|gif|png$/', $innrName)) {
-                    $mail->addEmbeddedImage($fileString, $innrName, $innrName);
+                    $mail->addStringEmbeddedImage($fileString, $innrName, $innrName);
                 } else {
-                    $mail->addAttachment($fileString, $innrName);
+                    $mail->addStringAttachment($fileString, $innrName);
                 }
             }
             //Content

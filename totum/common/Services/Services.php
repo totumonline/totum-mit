@@ -17,16 +17,17 @@ class Services implements ServicesVarsInterface
     protected ?\PDOStatement $setStWithMark = null;
     protected ?\PDOStatement $getSt = null;
     protected ?\PDOStatement $getStWithMark = null;
+    protected ?\PDOStatement $getStWithValuesMark = null;
 
     public static function init(ConfParent $Conf): Services
     {
         if (!static::$Services) {
-            static::$Services = new static($Conf->getSql(false));
+            static::$Services = new static($Conf->getSql(false), $Conf);
         }
         return static::$Services;
     }
 
-    protected function __construct(protected Sql $sql)
+    protected function __construct(protected Sql $sql, protected ConfParent $Config)
     {
 
     }
@@ -55,6 +56,68 @@ class Services implements ServicesVarsInterface
             if ($exception->getCode() === '42P01') {
                 $this->createServicesTable();
                 return $this->getVarValue($varName, $mark);
+            } else {
+                throw new SqlException($exception->getMessage());
+            }
+        }
+    }
+
+    protected function getLinkData($value)
+    {
+        $context = stream_context_create(
+            [
+                'http' => [
+                    'header' => "User-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
+                    'method' => 'GET',
+                ],
+                'ssl' => [
+                    'verify_peer' => $this->Config->isCheckSsl(),
+                    'verify_peer_name' => $this->Config->isCheckSsl(),
+                ],
+            ]
+        );
+
+        if (empty($value['link']) || !($file = @file_get_contents($value['link'], true, $context))) {
+            if (!empty($value['error'])) {
+                throw new errorException('Generator error: ' . $value['error']);
+            }
+            if (!empty($value['link'])) {
+                throw new errorException('Wrong data from service server: ' . $http_response_header);
+            } else {
+                throw new errorException('Unknown error');
+            }
+        }
+        return $file;
+    }
+
+    public function waitVarValues(array $varNames, bool $getLinks = true, string $mark = 'done'): array
+    {
+        try {
+
+            $executes = [];
+            $notDoneHashes = array_flip($varNames);
+            $st = $this->getVarValuePreparedWithMarks();
+            while (count($notDoneHashes)) {
+                $st->execute([json_encode(array_keys($notDoneHashes)), $mark]);
+                $nameValues = $st->fetchAll(\PDO::FETCH_ASSOC);
+                foreach ($nameValues as $row) {
+                    $value = json_decode($row['value'], true);
+                    if ($getLinks) {
+                        $executes[$row['name']] = $this->getLinkData($value);
+                    } else {
+                        $executes[$row['name']] = $value;
+                    }
+                    unset($notDoneHashes[$row['name']]);
+                }
+                usleep(0.02 * 10 ^ 6);
+            }
+            return $executes;
+
+        } catch
+        (\PDOException $exception) {
+            if ($exception->getCode() === '42P01') {
+                $this->createServicesTable();
+                return $this->waitVarValues($varNames, $getLinks, $mark);
             } else {
                 throw new SqlException($exception->getMessage());
             }
@@ -106,6 +169,12 @@ class Services implements ServicesVarsInterface
     }
 
     protected
+    function getVarValuePreparedWithMarks(): \PDOStatement
+    {
+        return $this->getStWithValuesMark ?? ($this->getStWithValuesMark = $this->sql->getPrepared('select name, value from _services_vars where name IN (SELECT jsonb_array_elements_text(?)) AND mark=?'));
+    }
+
+    protected
     function setPrepared(): \PDOStatement
     {
         return $this->setSt ?? ($this->setSt = $this->sql->getPrepared('update _services_vars set value=(?) where name=?'));
@@ -153,9 +222,10 @@ SQL
     {
         $timer = microtime(true) + $timeout;
         while (($data = $this->getVarValue($varName, 'done')) === null) {
-            if ($timer >= microtime(true)) {
+            if ($timeout && $timer >= microtime(true)) {
                 throw new errorException('timeout');
             }
+            usleep(200);
         }
         return $data;
     }

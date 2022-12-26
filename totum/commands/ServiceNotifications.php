@@ -99,10 +99,16 @@ class ServiceNotifications extends Command
                         $add = [];
                         foreach ($users as $id) {
                             foreach ($data['value'] as $row) {
+                                $html = htmlspecialchars($row['html']);
+
+                                $html = preg_replace('`(https://[^\s]+)`', '<a href="$1">$1</a>', $html);
+                                $html = preg_replace('`\*\*([^*]+)\*\*`', '<b>$1</b>', $html);
+
+
                                 $add[] = [
                                     'title' => $row['title'],
                                     'user_id' => $id,
-                                    'vars' => ['text' => $row['html']],
+                                    'vars' => ['text' => $html],
                                     'code' => 'admin_text',
                                     'active' => true
                                 ];

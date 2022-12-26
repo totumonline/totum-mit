@@ -6,6 +6,7 @@ use GuzzleHttp\Psr7\ServerRequest;
 use totum\common\configs\ConfParent;
 use totum\common\Crypt;
 use totum\common\errorException;
+use totum\common\Totum;
 
 class ServicesConnector
 {
@@ -25,12 +26,53 @@ class ServicesConnector
     {
     }
 
+    function serviceRequestFile($serviceName, array $data, $comment = null): string|false
+    {
+        $Config = $this->Config;
+        $hash = $Config->getServicesVarObject()->getNewVarnameHash(3600);
+        $connector = ServicesConnector::init($Config);
+
+        if (!empty($comment)) {
+            $comment = mb_substr((string)$comment, 0, 30);
+            $data['comment'] = $comment;
+        }
+        $connector->sendRequest($serviceName, $hash, $data);
+        $value = $Config->getServicesVarObject()->waitVarValue($hash);
+
+        $context = stream_context_create(
+            [
+                'http' => [
+                    'header' => "User-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
+                    'method' => 'GET',
+                ],
+                'ssl' => [
+                    'verify_peer' => $Config->isCheckSsl(),
+                    'verify_peer_name' => $Config->isCheckSsl(),
+                ],
+            ]
+        );
+
+        if (empty($value['link']) || !($file = @file_get_contents($value['link'], true, $context))) {
+            if (!empty($value['error'])) {
+                throw new errorException('Generator error: ' . $value['error']);
+            }
+            if (!empty($value['link'])) {
+                throw new errorException('Wrong data from service server: ' . $http_response_header);
+            } else {
+                throw new errorException('Unknown error');
+            }
+        }
+
+        return $file;
+    }
+
     public function sendRequest($type, $hash, $data)
     {
         $accountData = $this->getServicesAccountData();
         $Data = [
             'number' => $accountData['h_services_number'],
             'key' => $accountData['h_services_key'],
+            'version' => Totum::VERSION,
             'hash' => $hash,
             'data' => $data
         ];
@@ -57,7 +99,7 @@ class ServicesConnector
 
     public function setAnswer(ServerRequest $request): void
     {
-        if ($request->getQueryParams()['check_domain_key'] === 'true') {
+        if (($request->getQueryParams()['check_domain_key'] ?? false) === 'true') {
             die($this->getServicesAccountData()['h_service_domain_check_key'] ?: 'empty');
         }
 

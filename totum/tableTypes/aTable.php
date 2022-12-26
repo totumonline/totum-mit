@@ -1364,13 +1364,13 @@ CODE;;
                             continue;
                         }
                         foreach ((array)$row[$fName]['v'] as $v) {
-                            if (!key_exists($v, $indexedVals)) {
+                            if ((is_string($v) || is_numeric($v)) && !key_exists($v, $indexedVals)) {
                                 $indexedVals[$v] = 1;
                             }
                         }
                         if (key_exists('c', $row[$fName])) {
                             foreach ((array)$row[$fName]['c'] as $v) {
-                                if (!key_exists($v, $indexedVals)) {
+                                if ((is_string($v) || is_numeric($v)) && !key_exists($v, $indexedVals)) {
                                     $indexedVals[$v] = 1;
                                 }
                             }
@@ -1385,7 +1385,8 @@ CODE;;
                             $indexedVals[$row[$fName]['v']] = 1;
                         }
                         if (key_exists('c', $row[$fName])) {
-                            if (!key_exists($row[$fName]['c'], $indexedVals)) {
+                            if ((is_string($row[$fName]['c']) || is_numeric($row[$fName]['c'])) && !key_exists($row[$fName]['c'],
+                                    $indexedVals)) {
                                 $indexedVals[$row[$fName]['c']] = 1;
                             }
                         }

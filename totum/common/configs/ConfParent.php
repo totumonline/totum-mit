@@ -247,24 +247,35 @@ abstract class ConfParent
     {
         $attachments = [];
         foreach ($attachmentsIn as $k => $v) {
-            $forceNameFromKey = false;
+            $filestring = null;
+            $fileName = null;
             if (is_array($v)) {
-                $k = $v['name'] ?? throw new errorException($this->translate('Not correct row in files list'));
-                $v = $v['file'] ?? throw new errorException($this->translate('Not correct row in files list'));
-                $forceNameFromKey = true;
+                $fileName = $v['name'] ?? throw new errorException($this->translate('Not correct row in files list'));
+
+                if (!empty($v['file'])) {
+                    $v = $v['file'];
+                } elseif (!empty($v['filestring'])) {
+                    $filestring = $v['filestring'];
+                } else {
+                    throw new errorException($this->translate('Not correct row in files list'));
+                }
             }
 
-            if (!$forceNameFromKey && !preg_match('/.+\.[a-zA-Z0-9]+$/', $k)) {
-                $attachments[preg_replace('`.*?/([^/]+\.[^/]+)$`', '$1', $v)] = File::getFilePath($v, $this);
-            } else {
-                $attachments[$k] = File::getFilePath($v, $this);
+            $filestring = $filestring ?? File::getContent($v, $this);
+            if (!$fileName) {
+                if (!preg_match('/.+\.[a-zA-Z0-9]+$/', $k)) {
+                    $fileName = preg_replace('`([^/]+\.[^/]+)$`', '$1', $v);
+                } else {
+                    $fileName = $k;
+                }
             }
+            $attachments[$fileName] = $filestring;
         }
 
         $body = preg_replace_callback(
             '~src\s*=\s*([\'"]?)(?:http(?:s?)://' . $this->getFullHostName() . ')?/fls/(.*?)\1~',
             function ($matches) use (&$attachments) {
-                if (!empty($matches[2]) && $file = File::getFilePath($matches[2], $this)) {
+                if (!empty($matches[2]) && $file = File::getContent($matches[2], $this)) {
                     $md5 = md5($matches[2]) . '.' . preg_replace('/.*\.([a-zA-Z]{2,5})$/', '$1', $matches[2]);
                     $attachments[$md5] = $file;
                     return 'src="cid:' . $md5 . '"';

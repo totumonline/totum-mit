@@ -440,6 +440,25 @@ class File extends Field
         }
     }
 
+    public static function replaceImageSrcsWithEmbedded(Conf $Config, string $html): string
+    {
+        return preg_replace_callback(
+            '~src\s*=\s*([\'"]?)(?:http(?:s?)://' . $Config->getFullHostName() . ')?/fls/(.*?)\1~',
+            function ($matches) use ($Config, &$attachments) {
+                if (!empty($matches[2])) {
+                    if ($file = File::getContent($matches[2],
+                        $Config)) {
+                        return 'src="data:image/' . preg_replace('/^.*?\.([^.]+)$/',
+                                '$1',
+                                $matches[2]) . ';base64,' . base64_encode($file) . '"';
+                    }
+                }
+                return null;
+            },
+            $html
+        );
+    }
+
     public static function getContent($fname, Conf $Config): bool|string|null
     {
         $filepath = static::getFilePath($fname, $Config);

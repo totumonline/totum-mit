@@ -68,6 +68,8 @@ class Tree extends Field
                     $this->table
                 );
                 $this->table->calcLog($Log, 'result', $list);
+
+
             } catch (\Exception $e) {
                 $this->table->calcLog($Log, 'error', $e->getMessage());
                 throw $e;
@@ -205,6 +207,7 @@ class Tree extends Field
                     $list = [];
                 }
                 $this->table->calcLog($Log, 'result', $list);
+
             } catch (\Exception $e) {
                 $this->table->calcLog($Log, 'error', $e->getMessage());
                 throw $e;
@@ -227,17 +230,25 @@ class Tree extends Field
             $list = $add + $list;
         }
 
+        foreach ($list as &$l) {
+            $l[3] = $l[3] ?? null;
+            if ($l[3] === '') {
+                $l[3] = null;
+            }
+        }
+        unset($l);
+
         if (empty($val['__isForChildTree'])) {
             $remove_children = function ($id) use (&$list, &$remove_children) {
                 foreach ($list as $k => $v) {
-                    if (($v[3] ?? null) == $id) {
+                    if ($v[3] == $id) {
                         $remove_children($k);
                         unset($list[$k]);
                     }
                 }
             };
             foreach ($list as $k => &$l) {
-                if ($l[3] ?? null) {
+                if (!is_null($l[3])) {
                     if (key_exists($l[3], $list)) {
                         $l['path'] =& $list[$l[3]];
                     } else {
@@ -286,7 +297,8 @@ class Tree extends Field
             }
         } else {
             if (is_array($fVar['v'])) {
-                $paramInXml = $simpleXMLElement->addChild($this->data['name'], json_encode($fVar['v'], JSON_UNESCAPED_UNICODE));
+                $paramInXml = $simpleXMLElement->addChild($this->data['name'],
+                    json_encode($fVar['v'], JSON_UNESCAPED_UNICODE));
                 $fVar['e'] = 'list в немульти поле';
             } elseif (!is_null($fVar['v']) && isset($fVar['v_'])) {
                 $paramInXml = $simpleXMLElement->addChild($this->data['name'], $fVar['v']);
@@ -325,24 +337,24 @@ class Tree extends Field
 
         $checkedVals = (array)$checkedVals;
         $addInArrays = function ($k, $noCheckParent = false, $formDeepLevel = false) use (&$listMain, $checkedVals, &$deepLevels, &$objMain, &$list, &$addInArrays) {
-            if ($k !== "" && !key_exists($k, $objMain) && ($v = $list[$k] ?? null)) {
+            if ($k !== '' && !key_exists($k, $objMain) && ($v = $list[$k] ?? null)) {
                 $listMain[] = $k;
-                $parent = $v[3] ?? null;
+                $parent = $v[3];
 
                 if (in_array($k, $checkedVals)) {
-                    $objMain[$k] = ["id" => $k, "parent" => $parent ?? '#', "text" => $v[0]];
+                    $objMain[$k] = ['id' => $k, 'parent' => $parent ?? '#', 'text' => $v[0]];
 
-                    $objMain[$k]["state"]["selected"] = true;
+                    $objMain[$k]['state']['selected'] = true;
                     if (!empty($v[1])) {
-                        $objMain[$k]["state"]["deleted"] = true;
+                        $objMain[$k]['state']['deleted'] = true;
                     }
                 } elseif (!empty($v[1])) {
                     return;
                 } else {
-                    $objMain[$k] = ["id" => $k, "parent" => $parent ?? '#', "text" => $v[0]];
+                    $objMain[$k] = ['id' => $k, 'parent' => $parent ?? '#', 'text' => $v[0]];
                 }
                 if (!empty($v[4])) {
-                    $objMain[$k]["state"]["disabled"] = true;
+                    $objMain[$k]['state']['disabled'] = true;
                 }
 
                 if ($formDeepLevel) {
@@ -361,10 +373,10 @@ class Tree extends Field
                         $addInArrays($id, true, $formDeepLevel);
                     }
                 }
-                if (empty($v["children"])) {
-                    $objMain[$k]["children"] = false;
+                if (empty($v['children'])) {
+                    $objMain[$k]['children'] = false;
                 } elseif (empty($this->data['treeSelectFolders'])) {
-                    $objMain[$k]["state"]["disabled"] = true;
+                    $objMain[$k]['state']['disabled'] = true;
                 }
 
 
@@ -376,9 +388,9 @@ class Tree extends Field
         $top = [];
 
         foreach ($list as $k => &$l) {
-            if ($l[3] ?? null) {
+            if ($l[3]) {
                 if (!$l[1]) {
-                    $l['path']["children"][] = $k;
+                    $l['path']['children'][] = $k;
                 }
             } else {
                 $top[] = $k;
@@ -394,7 +406,7 @@ class Tree extends Field
                 if (!$qFunc($v[0])) {
                     continue;
                 }
-                while ($id = $list[$id][3] ?? null) {
+                while ($id = $list[$id][3]) {
                     $ids[$id] = 1;
                 }
             }
@@ -406,7 +418,7 @@ class Tree extends Field
             $parents = array_intersect_key($list, array_flip($parentIds));
 
             foreach ($parents as $parent) {
-                foreach ($parent["children"] ?? [] as $id) {
+                foreach ($parent['children'] ?? [] as $id) {
                     $addInArrays($id, true, true);
                 }
             }
@@ -435,12 +447,12 @@ class Tree extends Field
         }
 
         foreach ($objMain as $k => &$v) {
-            if ($list[$k]["children"] ?? null) {
+            if ($list[$k]['children'] ?? null) {
                 if (!array_intersect_key(
                     $objMain,
-                    array_flip($list[$k]["children"])
+                    array_flip($list[$k]['children'])
                 )) {
-                    $v["children"] = true;
+                    $v['children'] = true;
                 }
             }
         }

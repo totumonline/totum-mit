@@ -18,7 +18,7 @@ if (!class_exists(Conf::class)) {
         $Config->setHostSchema($_SERVER['HTTP_HOST']);
     }
 
-    if ($_SERVER['REQUEST_URI'] === '/ServicesAnswer' || str_starts_with($_SERVER['REQUEST_URI'], '/ServicesAnswer?')) {
+    if (preg_match('/^\/ServicesAnswer(\/|\?|$)/', $_SERVER['REQUEST_URI'])) {
         \totum\common\Services\ServicesConnector::init($Config)->setAnswer(ServerRequest::fromGlobals());
         die('true');
     }

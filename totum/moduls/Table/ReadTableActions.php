@@ -715,7 +715,7 @@ class ReadTableActions extends Actions
         return ['ok' => 1];
     }
 
-    protected function getEditSelectFromTable(array $data, aTable $Table, $channel, $filters, $q = '', $parentId = null): array
+    protected function getEditSelectFromTable(array $data, aTable $Table, $channel, $filters, $q = '', $parentId = null, $isLoadedSelect = false): array
     {
         $fields = $Table->getFields();
 
@@ -758,12 +758,14 @@ class ReadTableActions extends Actions
 
 
         if ($field['category'] === 'column') {
-            if (array_key_exists('id', $row) && !is_null($row['id'])) {
-                $row = !empty($data['hash']) ? $this->getEditRow($data['hash'],
-                    [],
-                    []) : $Table->checkEditRow(['id' => $row['id']]);
-            } else {
-                $row = $Table->checkInsertRow([], $data['item'], $data['hash'] ?? null, []);
+            if (!$isLoadedSelect) {
+                if (array_key_exists('id', $row) && !is_null($row['id'])) {
+                    $row = !empty($data['hash']) ? $this->getEditRow($data['hash'],
+                        [],
+                        []) : $Table->checkEditRow(['id' => $row['id']]);
+                } else {
+                    $row = $Table->checkInsertRow([], $data['item'], $data['hash'] ?? null, []);
+                }
             }
         } else {
             if ($field['category'] !== 'filter') {
@@ -1654,7 +1656,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return ['ok' => true];
     }
 
-    public function getEditSelect($data = null, $q = null, $parentId = null)
+    public function getEditSelect($data = null, $q = null, $parentId = null, $isLoadedSelect = false)
     {
         $data = $data ?? json_decode($this->post['data'] ?? '[]', true) ?? [];
         $q = $q ?? $this->post['q'] ?? '';
@@ -1664,7 +1666,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             'web',
             $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? ''),
             $q,
-            $parentId);
+            $parentId,
+            $isLoadedSelect);
     }
 
 

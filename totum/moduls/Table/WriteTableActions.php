@@ -234,7 +234,7 @@ class WriteTableActions extends ReadTableActions
                         if ($this->post['loadSelects'] === 'all' || ($field['codeSelectIndividual'] ?? false)) {
                             $item = $res['row'];
                             $item = array_map(fn($x) => is_array($x) && key_exists('v', $x) ? $x['v'] : $x, $item);
-                            $selects[$field['name']] = $this->getEditSelect(['field' => $field['name'], 'item' => $item]);
+                            $selects[$field['name']] = $this->getEditSelect(['field' => $field['name'], 'item' => $item], null, null, true);
                         }
                     }
                 }

@@ -209,7 +209,7 @@ trait FormsTrait
         if ($this->Table->getChangeIds()['deleted']) {
             $return['chdata']['deleted'] = array_keys($this->Table->getChangeIds()['deleted']);
         }
-        $modify = $data['modify'] ?? [];
+        $modify = ($data['modify'] ?? []) + ($data['setValuesToDefaults'] ?? []);
         unset($modify['params']);
 
 

@@ -1689,7 +1689,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
             $data['params'] = $clearFields;
 
-            return $this->modify(['modify' => $data, 'setValuesToDefaults' => $data['setValuesToDefaults'] ?? false]);
+            $vars = [];
+            if($data['setValuesToDefaults'] ?? false){
+                unset($data['setValuesToDefaults']);
+                $vars['setValuesToDefaults'] = $data;
+            }else{
+                $vars['modify']=$data;
+            }
+            return $this->modify($vars);
         }
     }
 
@@ -2138,9 +2145,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     }
 
 
-                    $modify = $data['modify'] ?? [];
-                    unset($modify['params']);
-                    $changedIds['changed'] += ($modify ?? []);
+                    $changedIds['changed'] += ($data['modify'] ?? []);
+                    $changedIds['changed'] += ($data['setValuesToDefaults'] ?? []);
+                    unset($changedIds['params']);
+
                     $selectOrFormatColumns['id'] = true;
                     if ($this->getPageViewType() === 'tree') {
                         $selectOrFormatColumns['n'] = true;

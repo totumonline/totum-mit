@@ -109,7 +109,6 @@ trait WebInterfaceTrait
     {
         $inVars = [];
 
-        $modify = $data['modify'] ?? [];
         $remove = $data['remove'] ?? [];
         $restore = $data['restore'] ?? [];
 
@@ -121,7 +120,6 @@ trait WebInterfaceTrait
         $this->checkTableUpdated($tableData);
 
 
-        $inVars['modify'] = [];
         $inVars['add'] = [];
         if (!empty($data['add'])) {
             if ($data['add'] === 'new cycle') {
@@ -140,12 +138,9 @@ trait WebInterfaceTrait
 
         $inVars['channel'] = $data['channel'] ?? 'web';
 
-        if (!empty($modify['setValuesToDefaults'])) {
-            unset($modify['setValuesToDefaults']);
-            $inVars['setValuesToDefaults'] = $modify;
-        } else {
-            $inVars['modify'] = $modify;
-        }
+        $inVars['setValuesToDefaults'] = $data['setValuesToDefaults'] ?? [];
+
+        $inVars['modify'] = $data['modify'] ?? [];
         $inVars['remove'] = $remove;
         $inVars['restore'] = $restore;
 
@@ -200,6 +195,7 @@ trait WebInterfaceTrait
         unset($editData);
 
         $Log = $this->calcLog(['name' => 'RECALC', 'table' => $this, 'inVars' => $inVars]);
+
         $this->reCalculate($inVars);
 
         if (!empty($insertRowHash)) {

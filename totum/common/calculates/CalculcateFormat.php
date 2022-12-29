@@ -379,6 +379,7 @@ class CalculcateFormat extends Calculate
                             }
                         } else {
                             $this->formatArray[$format] = is_string($params[$format]) ? $this->__getValue($this->getCodes($params[$format])[0]) : $params[$format];
+
                         }
                     }
                 }

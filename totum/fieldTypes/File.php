@@ -353,7 +353,7 @@ class File extends Field
                     throw new criticalErrorException($this->translate('The data format is not correct for the File field.'));
                 }
 
-                $file['ext'] = preg_replace('/^.*\.([a-z0-9]{2,4})$/', '$1', strtolower($file['name']));
+                $file['ext'] = preg_replace('/^.*\.([a-z0-9]{1,10})$/', '$1', strtolower($file['name']));
 
                 if (empty($file['ext'])) {
                     throw new criticalErrorException($this->translate('The file must have an extension.'));

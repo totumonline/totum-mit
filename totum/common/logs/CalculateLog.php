@@ -524,8 +524,8 @@ class CalculateLog
         }
 
         foreach ($this->params as $name => $val) {
-            if (preg_match('/^$|#|json|math|str|cond/', $name)) {
-                $tree['children'][] = ['text' => $name . " = " . json_encode(
+            if (preg_match('/^$|#|json|math|str|cond|qrow/', $name)) {
+                $tree['children'][] = ['text' => $name . ' = ' . json_encode(
                         $val,
                         JSON_UNESCAPED_UNICODE
                     ), 'icon' => 'fa fa-hash'];

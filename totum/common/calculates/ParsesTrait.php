@@ -53,7 +53,7 @@ trait ParsesTrait
         };
         $replace_strings = function ($line) use ($usedHashParams, &$strings, &$replace_line_params, &$replace_strings) {
             return preg_replace_callback(
-                '/(?|(math|json|str|cond)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
+                '/(?|(math|json|str|cond|qrow)`([^`]*)`|(")([^"]*)"|(\')([^\']*)\')/',
                 function ($matches) use ($usedHashParams, &$strings, &$replace_line_params, &$replace_strings) {
                     if ($matches[1] === '') {
                         return '""';
@@ -69,6 +69,7 @@ trait ParsesTrait
                             break;
                         case 'math':
                         case 'str':
+                        case 'qrow':
                         case 'cond':
                             $matches[2] = $replace_strings($matches[2]);
                             $matches[2] = $replace_line_params($matches[2]);
@@ -373,7 +374,147 @@ trait ParsesTrait
         return $calcIt($pack_Sc($actions));
     }
 
-    protected function parseTotumJson(string $str, $isSureTotum = false)
+    protected function parseTotumQrow($stringIn): array
+    {
+        $string = preg_replace('/\s+/', '', $stringIn);
+        $actions = preg_split(
+            '`(
+                        \(|
+                        \)|
+                        [&]{2}|
+                        [|]{2}|
+                        !==|
+                        !=|
+                        ==|
+                        >=|
+                        <=|
+                        [><=]
+                        )`x',
+            $string,
+            null,
+            PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
+        );
+
+        $pack_Sc = function ($actions) use (&$pack_Sc, &$calcIt) {
+            $sc = 0;
+            $interval_start = null;
+            $i = 0;
+            while ($i < count($actions)) {
+                if ($actions[$i] === '') {
+                    array_splice($actions, $i, 1);
+                    continue;
+                }
+                if (!is_array($actions[$i])) {
+                    switch ((string)$actions[$i]) {
+                        case '(':
+                            if ($sc++ === 0) {
+                                $interval_start = $i;
+                            }
+                            break;
+                        case ')':
+                            if ($sc < 1) {
+                                throw new errorException($this->translate('The unpaired closing parenthesis.'));
+                            }
+                            if (--$sc === 0) {
+                                array_splice(
+                                    $actions,
+                                    $interval_start,
+                                    $i + 1 - $interval_start,
+                                    [$calcIt($pack_Sc(array_slice(
+                                        $actions,
+                                        $interval_start + 1,
+                                        $i - $interval_start - 1
+                                    )))]
+                                );
+                                $i = $interval_start - 1;
+                            }
+                            break;
+                    }
+                }
+                $i++;
+            }
+            return $actions;
+        };
+
+        $numCode = 0;
+
+        $checkValue = function ($varIn) use (&$numCode) {
+            if (is_array($varIn)) {
+                return $varIn;
+            }
+            /*if this is from strings param*/
+            if (preg_match('/^"(\d+)"$/', $varIn, $matches)) {
+                $stringsStr = $this->CodeStrings[$matches[1]];
+                if (str_starts_with($stringsStr, "'")) {
+                    return ['type' => 'fieldName', 'value' => substr($stringsStr, 1)];
+                }
+                if (str_starts_with($stringsStr, '"')) {
+                    return ['value' => substr($stringsStr, 1)];
+                }
+            }
+            return ['value' => $this->execSubCode($varIn, 'CwrCode ' . (++$numCode))];
+        };
+
+        $calcIt = function ($action) use ($stringIn, $checkValue, $string) {
+            $conds = [];
+            $args = [];
+            $_QROW = [];
+            for ($i = 0; $i < count($action); $i++) {
+                $_a = $action[$i];
+                switch ($_a) {
+                    case '<':
+                    case '>':
+                    case '=':
+                    case '==':
+                    case '!==':
+                    case '!=':
+                    case '<=':
+                    case '>=':
+                        if (count($args) != 1) {
+                            throw new errorException($this->translate('TOTUM-code format error [[%s]].', 'qrow:' . $this->getReadCodeForLog($stringIn)));
+                        }
+                        $element = ['left' => $args[0], 'right' => $checkValue($action[$i + 1]), 'operator' => $_a];
+                        if (($element['left']['type'] ?? '') !== 'fieldName' && ($element['right']['type'] ?? '') !== 'fieldName') {
+                            throw new errorException('One or two elements in filter must be a fieldName');
+                        }else if (($element['right']['type'] ?? '') === 'fieldName' && ($element['left']['type'] ?? '') !== 'fieldName'){
+                            throw new errorException('If the right filter element is not a fieldName, then the left one must be');
+                        }
+                        $conds[] = $element;
+                        $i++;
+                        $args = [];
+                        break;
+                    case '&&':
+                    case '||':
+                        if (!key_exists('type', $_QROW)) {
+                            $_QROW['type'] = $_a;
+                        }
+                        if ($_QROW['type'] !== $_a) {
+                            throw new errorException('qrow mixing and/or error');
+                        }
+                        $args = [];
+                        break;
+                    default:
+                        if (is_array($_a)) {
+                            $conds[] = $_a;
+                        } else {
+                            $args[] = $checkValue($_a);
+                        }
+                }
+            }
+            if ($args) {
+                throw new errorException($this->translate('TOTUM-code format error [[%s]].', 'qrow:' . $this->getReadCodeForLog($stringIn)));
+            }
+            unset($_a);
+            $_QROW['type'] = $_QROW['type'] ?? '&&';
+            $_QROW += $conds;
+            return $_QROW;
+        };
+
+        return ['qrow' => $calcIt($pack_Sc($actions))];
+    }
+
+    protected
+    function parseTotumJson(string $str, $isSureTotum = false)
     {
         $processJson = function ($str) {
             $TJ = new TotumJson($str);
@@ -401,7 +542,8 @@ trait ParsesTrait
         }
     }
 
-    protected function parseTotumMath($string)
+    protected
+    function parseTotumMath($string)
     {
         $string = preg_replace('/\s+/', '', $string);
 
@@ -514,7 +656,8 @@ trait ParsesTrait
         return $calcIt($pack_Sc($actions));
     }
 
-    protected function parseTotumStr($string): string
+    protected
+    function parseTotumStr($string): string
     {
         $string = preg_replace('/\s+/', '', $string);
         $result = '';

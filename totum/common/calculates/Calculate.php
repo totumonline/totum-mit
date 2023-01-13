@@ -746,6 +746,7 @@ class Calculate
                                 'json' => $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4)),
                                 'jsot' => $this->parseTotumJson(substr($this->CodeStrings[$r['string']], 4), true),
                                 'cond' => $this->parseTotumCond(substr($this->CodeStrings[$r['string']], 4)),
+                                'qrow' => $this->parseTotumQrow(substr($this->CodeStrings[$r['string']], 4)),
                                 default => match (substr($this->CodeStrings[$r['string']], 0, 3)) {
                                     'str' => $this->parseTotumStr(substr($this->CodeStrings[$r['string']], 3)),
                                     default => substr($this->CodeStrings[$r['string']], 1),
@@ -1109,7 +1110,7 @@ class Calculate
                             $rowData = $this->Table->checkEditRow($hashData);
                             if ($rowData['id'] === $this->row['id']) {
                                 $rowVar = $rowData[$nameVar] ?? [];
-                            }else{
+                            } else {
                                 return $this->getParam('#' . $nameVar, $paramArray);
                             }
                         }
@@ -1337,6 +1338,7 @@ class Calculate
                 'json' => $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4)),
                 'jsot' => $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4), true),
                 'cond' => $this->parseTotumCond($str = substr($this->CodeStrings[$paramArray['string']], 4)),
+                'qrow' => $this->parseTotumQrow(substr($this->CodeStrings[$paramArray['string']], 4)),
                 default => match (substr($spec, 0, 3)) {
                     'str' => $this->parseTotumStr(substr($this->CodeStrings[$paramArray['string']], 3)),
                     default => substr($this->CodeStrings[$paramArray['string']], 1),
@@ -1406,6 +1408,15 @@ class Calculate
                                         $param . ': ' . $paramVal . ' ' . $e->getMessage()));
                                 }
 
+
+                                if ($param === 'where' && count($whereCodes) === 1) {
+                                    $value = $this->__getValue($whereCodes[0]);
+                                    if (is_array($value) && count($value) === 1 && key_exists('qrow', $value)) {
+                                        $paramVal = $value;
+                                    }
+                                    break;
+                                }
+
                                 if (count($whereCodes) != 3) {
                                     throw new errorException($this->translate('The [[%s]] parameter must contain 3 elements.',
                                         $param));
@@ -1434,7 +1445,9 @@ class Calculate
                                     'field' => $this->getParam(
                                         $field,
                                         []
-                                    ), 'operator' => $whereCodes['comparison'], 'value' => $value
+                                    ),
+                                    'operator' => $whereCodes['comparison'],
+                                    'value' => $value
                                 ];
                             } else {
                                 $paramVal = $this->execSubCode($paramVal, $param, true);
@@ -1442,9 +1455,11 @@ class Calculate
                         }
                         break;
                 }
+
                 unset($paramVal);
             }
         }
+
         return $params;
     }
 

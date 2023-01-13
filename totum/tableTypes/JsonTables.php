@@ -1087,7 +1087,8 @@ abstract class JsonTables extends aTable
                             $field['name'],
                             $loadedTbl['rows'][$row['id']]
                         ) &&
-                        is_array($loadedTbl['rows'][$row['id']][$field['name']]) && key_exists('v', $loadedTbl['rows'][$row['id']][$field['name']])) {
+                        is_array($loadedTbl['rows'][$row['id']][$field['name']]) && key_exists('v',
+                            $loadedTbl['rows'][$row['id']][$field['name']])) {
                         if (Calculate::compare(
                             '!==',
                             $loadedTbl['rows'][$row['id']][$field['name']]['v'],
@@ -1171,6 +1172,7 @@ abstract class JsonTables extends aTable
             ) || $this->fields[$field]['type'] === 'numeric' ? 'numeric' : 'text');
         };
 
+        /*order*/
         if (!empty($params['order'])) {
             $orders = [];
             foreach ($params['order'] as $of) {
@@ -1206,62 +1208,165 @@ abstract class JsonTables extends aTable
                 }
             };
         }
+
+
         $where = [];
         $isDelInFields = (key_exists(
                 'where',
                 $params
-            ) && count($params['where']) === 1 && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
+            ) && count($params['where']) === 1 && key_exists('field',
+                $params['where'][0]) && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
 
         if (isset($params['where'])) {
-            foreach ($params['where'] as $wI) {
-                $field = $wI['field'];
-                $operator = $wI['operator'];
-                $value = $wI['value'];
 
-
-                if ((array)$value === ['*ALL*']) {
-                    continue;
-                }
-                if ($field === 'id') {
-                    switch ($operator) {
-                        case '=':
-                            $value = (array)$value;
-                            foreach ($value as &$val) {
-                                if(is_array($val)){
-                                    throw new errorException($this->translate('An invalid value for id filtering was passed to the select function.'));
-                                }
-                                $val = strval($val);
-                            }
-                            unset($val);
-                            $array = array_intersect_key($array, array_flip(array_unique($value)));
-
-                            continue 2;
-                        case '!=':
-                            $value = (array)$value;
-                            foreach ($value as &$val) {
-                                $val = strval($val);
-                            }
-                            unset($val);
-
-                            $array = array_diff_key($array, array_flip(array_unique($value)));
-                            continue 2;
-                    }
-                } elseif ($field === 'is_del') {
-                    $isDelInFields = true;
-                }
-
-
+            $checkFieldAndValue = function (string $field, $value) {
                 if (!array_key_exists($field, $this->sortedFields['column']) && !Model::isServiceField($field)
                 ) {
                     throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.',
                         [$field, $this->tableRow['title']]));
                 }
-                $_array = true;
-                if (in_array($field, Model::serviceFields)) {
-                    $_array = false;
-                }
 
-                $where[] = ['field' => $field, 'isArray' => $_array, 'operator' => $operator, 'val' => $value];
+                if ($field === 'id' || $field === 'n' || $this->sortedFields['column'][$field]['type'] === 'number') {
+                    foreach ((array)$value as $v) {
+                        if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
+                            /*not numeric string in searching in number*/
+                            throw new errorException($this->translate('Searching not numeric string or lists in numbers'));
+                        }
+                    }
+                }
+            };
+
+            /**
+             * @param $_level
+             * @return array[ string where, array $params ]
+             * @throws errorException
+             */
+            $getWhereForlevel = function ($_level) use ($checkFieldAndValue, &$getWhereForlevel): array {
+                $type = $_level['type'];
+                $params = [];
+                unset($_level['type']);
+                $whereConds = [];
+                foreach ($_level as $cond) {
+                    if (key_exists('operator', $cond)) {
+                        if (($cond['right']['type'] ?? '') !== 'fieldName') {
+                            list($_cond, $_params) = $this->processFieldWhere(
+                                $cond['left']['value'],
+                                $cond['operator'],
+                                $cond['right']['value']
+                            );
+                            if ($_cond) {
+                                $_cond = '(' . implode(' AND ', $_cond) . ')';
+                                array_push($params, ...$_params);
+                                $whereConds[] = $_cond;
+                            }
+                        } else {
+                            if ($cond['operator'] === '=') {
+                                throw new errorException('If you matching fieldName by fieldName use operator ==. Operator = with includes is not available');
+                            }
+                            throw new errorException('select by matching DB fields is not done yet');
+                        }
+                    } else {
+                        list($_cond, $_params) = $getWhereForlevel($cond);
+                        if ($_cond) {
+                            $whereConds[] = $_cond;
+                            array_push($params, ...$_params);
+                        }
+                    }
+
+                }
+                $type = match ($type) {
+                    '||' => ' OR ',
+                    '&&' => ' AND '
+                };
+                return ['(' . implode($type, $whereConds) . ')', $params];
+            };
+
+            $getCheckNeededRow = function ($qrow): callable {
+                $checkQrowLevel = function ($row, $_level) use (&$checkQrowLevel): bool {
+                    $type = $_level['type'];
+                    unset($_level['type']);
+                    foreach ($_level as $cond) {
+                        if (key_exists('operator', $cond)) {
+                            if (($cond['right']['type'] ?? '') !== 'fieldName') {
+                                $isTrue = Calculate::compare($cond['operator'],
+                                    Model::isServiceField($cond['left']['value']) ? $row[$cond['left']['value']] : $row[$cond['left']['value']]['v'],
+                                    $cond['right']['value'],
+                                    $this->getLangObj());
+                            } else {
+                                throw new errorException('select by matching DB fields is not done yet');
+                            }
+                        } else {
+                            $isTrue = $checkQrowLevel($row, $cond);
+                        }
+                        if ($type === '&&') {
+                            if (!$isTrue) {
+                                return false;
+                            }
+                        } else {
+                            if ($isTrue) {
+                                return true;
+                            }
+                        }
+                    }
+                    if ($type === '&&') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
+                return function ($row) use ($qrow, $checkQrowLevel) {
+                    return $checkQrowLevel($row, $qrow);
+                };
+            };
+
+            foreach ($params['where'] as $wI) {
+
+
+                if (key_exists('qrow', $wI)) {
+                    $where[] = $getCheckNeededRow($wI['qrow']);
+                } else {
+                    $field = $wI['field'];
+                    $operator = $wI['operator'];
+                    $value = $wI['value'];
+
+
+                    if ((array)$value === ['*ALL*']) {
+                        continue;
+                    }
+
+                    $checkFieldAndValue($field, $value);
+
+                    if ($field === 'id') {
+                        switch ($operator) {
+                            case '=':
+                                $value = (array)$value;
+                                foreach ($value as &$val) {
+                                    $val = strval($val);
+                                }
+                                unset($val);
+                                $array = array_intersect_key($array, array_flip(array_unique($value)));
+
+                                continue 2;
+                            case '!=':
+                                $value = (array)$value;
+                                foreach ($value as &$val) {
+                                    $val = strval($val);
+                                }
+                                unset($val);
+
+                                $array = array_diff_key($array, array_flip(array_unique($value)));
+                                continue 2;
+                        }
+
+                    } elseif ($field === 'is_del') {
+                        $isDelInFields = true;
+                    }
+                    $where[] = [
+                        'field' => $field,
+                        'isArray' => !in_array($field, Model::serviceFields),
+                        'operator' => $operator,
+                        'val' => $value];
+                }
             }
         }
 
@@ -1286,13 +1391,20 @@ abstract class JsonTables extends aTable
 
                 $checkedTrue = true;
                 foreach ($where as $w) {
-                    $a = $row[$w['field']] ?? null;
-                    if ($w['isArray']) {
-                        $a = $a['v'] ?? null;
-                    }
-                    if (!Calculate::compare($w['operator'], $a, $w['val'], $this->getLangObj())) {
-                        $checkedTrue = false;
-                        break;
+                    if (is_callable($w)) {
+                        if (!$w($row)) {
+                            $checkedTrue = false;
+                            break;
+                        }
+                    } else {
+                        $a = $row[$w['field']] ?? null;
+                        if ($w['isArray']) {
+                            $a = $a['v'] ?? null;
+                        }
+                        if (!Calculate::compare($w['operator'], $a, $w['val'], $this->getLangObj())) {
+                            $checkedTrue = false;
+                            break;
+                        }
                     }
                 }
 
@@ -1340,14 +1452,21 @@ abstract class JsonTables extends aTable
                 } else {
                     $row['is_del'] = $row['is_del'] ?? false;
                 }
-                foreach ($where as $w) {
-                    $a = $row[$w['field']] ?? null;
-                    if ($w['isArray']) {
-                        $a = $a['v'] ?? null;
-                    }
 
-                    if (!Calculate::compare($w['operator'], $a, $w['val'], $this->getLangObj())) {
-                        continue 2;
+                foreach ($where as $w) {
+                    if (is_callable($w)) {
+                        if (!$w($row)) {
+                            continue 2;
+                        }
+                    } else {
+                        $a = $row[$w['field']] ?? null;
+                        if ($w['isArray']) {
+                            $a = $a['v'] ?? null;
+                        }
+
+                        if (!Calculate::compare($w['operator'], $a, $w['val'], $this->getLangObj())) {
+                            continue 2;
+                        }
                     }
                 }
 

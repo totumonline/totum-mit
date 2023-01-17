@@ -2024,6 +2024,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             $vars['__edit_hash'] = $this->post['hash'];
         }
 
+        $this->Table->reCalculateFilters(
+            'web',
+            false,
+            false,
+            ['params' => $this->getPermittedFilters($this->Request->getParsedBody()['filters'] ?? '')]
+        );
+
         if ($field && key_exists(
                 $field,
                 $this->Table->getFields()

@@ -307,18 +307,21 @@ abstract class RealTables extends aTable
             }
         }
 
+        $offset = ($params['offset']) ?? '';
+        if ($offset !== '' && !(ctype_digit(strval($offset)))) {
+            throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
+        }
 
         switch ($returnType) {
             case 'field':
-                $limit = '0,1';
+            case 'row':
+                if(!$offset) {
+                    $offset=0;
+                }
+                $limit = $offset.',1';
                 break;
             case 'rows':
             case 'list':
-
-                $offset = ($params['offset']) ?? '';
-                if ($offset !== '' && !(ctype_digit(strval($offset)))) {
-                    throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
-                }
                 $limit_ = ($params['limit']) ?? '';
                 if ($limit_ !== '' && !(ctype_digit(strval($limit_)))) {
                     throw new errorException($this->translate('The %s parameter must be a number.', 'limit'));
@@ -393,7 +396,8 @@ abstract class RealTables extends aTable
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
                     $fieldsString,
-                    $order
+                    $order,
+                    $limit
                 )->fetch()) {
                     return $sectionReplaces($row);
                 } else {

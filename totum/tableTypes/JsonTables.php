@@ -1370,6 +1370,12 @@ abstract class JsonTables extends aTable
             }
         }
 
+        $offset = ($params['offset']) ?? 0;
+        if (!(ctype_digit(strval($offset)))) {
+            throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
+        }
+        $offset = (int)$offset;
+
         if ($returnType === 'field' || $returnType === 'row') {
             if (isset($fOrdering)) {
                 usort($array, $fOrdering);
@@ -1409,6 +1415,10 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($checkedTrue) {
+                    if($offset){
+                        $offset--;
+                        continue;
+                    }
                     if ($returnType === 'row') {
                         return $sectionReplaces($row);
                     } else {
@@ -1418,11 +1428,7 @@ abstract class JsonTables extends aTable
             }
             return null;
         } else {
-            $offset = ($params['offset']) ?? 0;
-            if (!(ctype_digit(strval($offset)))) {
-                throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
-            }
-            $offset = (int)$offset;
+
 
             $limit = ($params['limit']) ?? '';
             if ($limit !== '') {

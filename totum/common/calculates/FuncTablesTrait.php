@@ -158,6 +158,7 @@ SQL;
                         'footer' => $params['footer'] ?? true,
                         'topbuttons' => $params['topbuttons'] ?? true,
                         'bottombuttons' => $params['bottombuttons'] ?? true,
+                        'pointing' => $params['pointing'] ?? null,
                     ]
                 );
             }

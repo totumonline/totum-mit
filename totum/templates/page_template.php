@@ -11,14 +11,14 @@
 
     <?php
     if ($isCreatorView ?? null) { ?>
-        <script src="/js/functions.js?v=26eafb8"></script>
+        <script src="/js/functions.js?v=2eb3eb2"></script>
         <?php
         echo '<script>App.functions=App.functions.concat(' . $this->Config->getExtFunctionsTemplates() . ')</script>';
         ?>
         <?php
     } ?>
 
-    <script src="/js/main.js?v=f79298a"></script>
+    <script src="/js/main.js?v=661e92f"></script>
     <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?2"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 

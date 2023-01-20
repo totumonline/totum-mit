@@ -315,10 +315,10 @@ abstract class RealTables extends aTable
         switch ($returnType) {
             case 'field':
             case 'row':
-                if(!$offset) {
-                    $offset=0;
+                if (!$offset) {
+                    $offset = 0;
                 }
-                $limit = $offset.',1';
+                $limit = $offset . ',1';
                 break;
             case 'rows':
             case 'list':
@@ -1068,7 +1068,11 @@ abstract class RealTables extends aTable
                     if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
                         $this->loadRowsByIds([$row['id']]);
                         File::deleteFilesOnCommit(
-                            $this->tbl['rows'][$row['id']][$field['name']]['v'],
+                            Field::init($field,
+                                $this)->filterDuplicatedFiled(
+                                    $this->tbl['rows'][$row['id']][$field['name']]['v'] ?? [],
+                                $row['id']
+                            ),
                             $this->getTotum()->getConfig()
                         );
                     }

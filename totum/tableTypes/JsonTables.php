@@ -1120,7 +1120,14 @@ abstract class JsonTables extends aTable
                         );
                     }
                     if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
-                        File::deleteFilesOnCommit($Oldrow[$field['name']]['v'], $this->getTotum()->getConfig());
+                        File::deleteFilesOnCommit(
+                            Field::init($field,
+                                $this)->filterDuplicatedFiled(
+                                $Oldrow[$field['name']]['v'] ?? [],
+                                $Oldrow['id']
+                            )
+                            ,
+                            $this->getTotum()->getConfig());
                     }
                 }
 
@@ -1415,7 +1422,7 @@ abstract class JsonTables extends aTable
                 }
 
                 if ($checkedTrue) {
-                    if($offset){
+                    if ($offset) {
                         $offset--;
                         continue;
                     }

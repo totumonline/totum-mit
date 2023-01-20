@@ -558,7 +558,7 @@ class CalculateAction extends Calculate
         $params = $this->getParamsArray($params, ['var'], [], ['var']);
 
         $this->__checkNotEmptyParams($params, 'field');
-        $this->__checkNotArrayParams($params, 'field');
+        $this->__checkNotArrayParams($params, ['field', 'title']);
 
         $tableRow = $this->__checkTableIdOrName($params['table'], 'table');
         $LinkedTable = $this->getActionTable($tableRow, $params);
@@ -629,7 +629,7 @@ class CalculateAction extends Calculate
         $this->Table->getTotum()->addToInterfaceDatas(
             'editField',
             [
-                'title' => $params['title'],
+                'title' => $params['title'] ?? '',
                 'hash' => $newHash,
                 'field' => $fieldData,
                 'value' => $value,

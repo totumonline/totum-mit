@@ -205,6 +205,22 @@ class File extends Field
             . ($this->table->getTableRow()['type'] === 'tmp' ? '!tmp!' : '');
     }
 
+    public function filterDuplicatedFiled($files, $rowId = null): array
+    {
+        $prefix = $this->_getFprefix($rowId);
+        $filteredFiles = [];
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                if (is_array($file) && key_exists('file', $file) && is_string($file['file'])) {
+                    if (str_starts_with($file['file'], $prefix)) {
+                        $filteredFiles[] = $file;
+                    }
+                }
+            }
+        }
+        return $filteredFiles;
+    }
+
     protected function modifyValue($modifyVal, $oldVal, $isCheck, $row)
     {
         if (is_object($modifyVal) && empty($this->data['multiple'])) {

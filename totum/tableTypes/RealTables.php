@@ -227,6 +227,7 @@ abstract class RealTables extends aTable
         return $orderMinN;
     }
 
+
     protected function getByParamsFromRows($params, $returnType, $sectionReplaces)
     {
         $fields = $this->fields;
@@ -306,18 +307,21 @@ abstract class RealTables extends aTable
             }
         }
 
+        $offset = ($params['offset']) ?? '';
+        if ($offset !== '' && !(ctype_digit(strval($offset)))) {
+            throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
+        }
 
         switch ($returnType) {
             case 'field':
-                $limit = '0,1';
+            case 'row':
+                if (!$offset) {
+                    $offset = 0;
+                }
+                $limit = $offset . ',1';
                 break;
             case 'rows':
             case 'list':
-
-                $offset = ($params['offset']) ?? '';
-                if ($offset !== '' && !(ctype_digit(strval($offset)))) {
-                    throw new errorException($this->translate('The %s parameter must be a number.', 'offset'));
-                }
                 $limit_ = ($params['limit']) ?? '';
                 if ($limit_ !== '' && !(ctype_digit(strval($limit_)))) {
                     throw new errorException($this->translate('The %s parameter must be a number.', 'limit'));
@@ -392,7 +396,8 @@ abstract class RealTables extends aTable
                     true,
                     (object)['whereStr' => $whereStr, 'params' => $paramsWhere],
                     $fieldsString,
-                    $order
+                    $order,
+                    $limit
                 )->fetch()) {
                     return $sectionReplaces($row);
                 } else {
@@ -422,7 +427,7 @@ abstract class RealTables extends aTable
         } catch (SqlException $exception) {
             if ($exception->getSqlErrorCode() === '22P02') {
                 foreach ($params['where'] as $_w) {
-                    if (key_exists($_w['field'], $this->fields)) {
+                    if (key_exists('field', $_w) && key_exists($_w['field'], $this->fields)) {
                         if ($this->fields[$_w['field']]['type'] === 'number') {
                             $row = $this->Totum->getConfig()->getSql(false)->get('select id from ' . $this->model->getTableName()
                                 . " where {$_w['field']}->>'v' !~ '^\d+(\.\d+)?$' ");
@@ -764,7 +769,10 @@ abstract class RealTables extends aTable
 
             if ($addAfter !== null) {
                 if ((string)$addAfter === '0') {
-                    $minN = $this->model->executePrepared(true, (object)['whereStr' => 'n is not null', 'params' => []], 'n', 'n desc')->fetch();
+                    $minN = $this->model->executePrepared(true,
+                        (object)['whereStr' => 'n is not null', 'params' => []],
+                        'n',
+                        'n desc')->fetch();
                     if ($minN && $minN['n']) {
                         $nextN = $this->getNextN(null, 0, $minN['n']);
                     } else {
@@ -1060,7 +1068,11 @@ abstract class RealTables extends aTable
                     if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
                         $this->loadRowsByIds([$row['id']]);
                         File::deleteFilesOnCommit(
-                            $this->tbl['rows'][$row['id']][$field['name']]['v'],
+                            Field::init($field,
+                                $this)->filterDuplicatedFiled(
+                                    $this->tbl['rows'][$row['id']][$field['name']]['v'] ?? [],
+                                $row['id']
+                            ),
                             $this->getTotum()->getConfig()
                         );
                     }
@@ -1453,18 +1465,68 @@ abstract class RealTables extends aTable
         }
     }
 
-    protected function getWhereFromParams($paramsWhere, $withoutDeleted = true)
+    /**
+     * @param $paramsWhere
+     * @param $withoutDeleted
+     * @return array[$where, $params]
+     * @throws errorException
+     */
+    protected function getWhereFromParams($paramsWhere, $withoutDeleted = true): array
     {
         $where = [];
         $params = [];
 
-        $fields = $this->fields;
 
-        if ($withoutDeleted && count($paramsWhere) === 1 && $paramsWhere[0]["field"] === 'id' && $paramsWhere[0]["operator"] === '=') {
+        if ($withoutDeleted && count($paramsWhere) === 1 && !key_exists('qrow',
+                $paramsWhere[0]) && $paramsWhere[0]['field'] === 'id' && $paramsWhere[0]['operator'] === '=') {
             $withoutDeleted = false;
         }
 
-        $ReturnFalse = false;
+
+        /**
+         * @param $_level
+         * @return array[ string where, array $params ]
+         * @throws errorException
+         */
+        $getWhereForlevel = function ($_level) use (&$getWhereForlevel): array {
+            $type = $_level['type'];
+            $params = [];
+            unset($_level['type']);
+            $whereConds = [];
+            foreach ($_level as $cond) {
+                if (key_exists('operator', $cond)) {
+                    if (($cond['right']['type'] ?? '') !== 'fieldName') {
+                        list($_cond, $_params) = $this->processFieldWhere(
+                            $cond['left']['value'],
+                            $cond['operator'],
+                            $cond['right']['value']
+                        );
+                        if ($_cond) {
+                            $_cond = '(' . implode(' AND ', $_cond) . ')';
+                            array_push($params, ...$_params);
+                            $whereConds[] = $_cond;
+                        }
+                    } else {
+                        if ($cond['operator'] === '=') {
+                            throw new errorException('If you matching fieldName by fieldName use operator ==. Operator = with includes is not available');
+                        }
+                        throw new errorException('select by matching DB fields is not done yet');
+                    }
+                } else {
+                    list($_cond, $_params) = $getWhereForlevel($cond);
+                    if ($_cond) {
+                        $whereConds[] = $_cond;
+                        array_push($params, ...$_params);
+                    }
+                }
+
+            }
+            $type = match ($type) {
+                '||' => ' OR ',
+                '&&' => ' AND '
+            };
+            return ['(' . implode($type, $whereConds) . ')', $params];
+        };
 
         foreach ($paramsWhere as $wI) {
             if (!is_array($wI)) {
@@ -1472,378 +1534,381 @@ abstract class RealTables extends aTable
                 continue;
             }
 
-            $fieldName = $wI['field'];
-            $operator = $wI['operator'];
-            $value = $wI['value'];
-
-            if ((array)$value === ['*ALL*']) {
-                continue;
-            }
-
-            if (!array_key_exists($fieldName, $fields) && !Model::isServiceField($fieldName)) {
-                throw new errorException($this->translate('The %s field in %s table does not exist',
-                    [$fieldName, $this->tableRow['name']]));
-            }
-
-
-            if (Model::isServiceField($fieldName)) {
-                $fieldQuoted = '"' . $fieldName . '"';
+            if (key_exists('qrow', $wI)) {
+                list($_where, $_params) = $getWhereForlevel($wI['qrow']);
+                if ($_where) {
+                    $where[] = $_where;
+                    array_push($params, ...$_params);
+                }
             } else {
-                $fieldQuoted = "($fieldName->>'v')";
-                $fieldQuotedJsonb = "($fieldName->'v')";
+                if ($wI['field'] === 'is_del') {
+                    $withoutDeleted = false;
+                }
+
+                list($_where, $_params) = $this->processFieldWhere($wI['field'],
+                    $wI['operator'],
+                    $wI['value']);
+
+                array_push($where, ...$_where);
+                array_push($params, ...$_params);
+            }
+        }
+
+        /*Deleted was not switched on*/
+        if ($withoutDeleted) {
+            $where[] = 'is_del = false';
+        }
+
+        if (empty($where)) {
+            $whereStr = 'TRUE';
+        } else {
+            $whereStr = '(' . implode(') AND (', $where) . ')';
+        }
+        return [$whereStr, $params];
+    }
+
+    protected function processFieldWhere($fieldName, string $operator, mixed $value): array
+    {
+        if ((array)$value === ['*ALL*']) {
+            return [[], []];
+        }
+
+        $fields = $this->fields;
+
+        if (!array_key_exists($fieldName, $fields) && !Model::isServiceField($fieldName)) {
+            throw new errorException($this->translate('The %s field in %s table does not exist',
+                [$fieldName, $this->tableRow['name']]));
+        }
+
+        $where = [];
+        $params = [];
+
+        if (Model::isServiceField($fieldName)) {
+            $fieldQuoted = '"' . $fieldName . '"';
+        } else {
+            $fieldQuoted = "($fieldName->>'v')";
+            $fieldQuotedJsonb = "($fieldName->'v')";
+        }
+
+        /*Проверка на число - чтобы ошибок в базе не случалось*/
+        $isNumeric = false;
+        if ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
+            foreach ((array)$value as $v) {
+                if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
+                    /*not numeric string in searching in number*/
+                    throw new errorException($this->translate('Searching not numeric string or lists in numbers'));
+                }
             }
 
-            /*Проверка на число - чтобы ошибок в базе не случалось*/
-            $isNumeric = false;
-            if ($fieldName === 'is_del') {
-                $withoutDeleted = false;
-            } elseif ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
-                $valueCheck = (array)$value;
-                $isRemovedValues = false;
-                foreach ($valueCheck as $i => $v) {
-                    if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
-                        if (is_array($value)) {
-                            unset($value[$i]);
-                            $isRemovedValues = true;
-                        } else {
-                            $ReturnFalse = true;
-                            break 2;
+            if ($fieldName === 'id') {
+                $fieldQuoted = '(id)::NUMERIC';
+                $isNumeric = true;
+            } elseif ($fieldName !== 'n') {
+                $fieldQuoted = "$fieldQuoted::NUMERIC";
+                $isNumeric = true;
+            }
+        }
+
+
+        /*Поиск в полях-листах*/
+        if (key_exists($fieldName, $fields) && Field::isFieldListValues(
+                $fields[$fieldName]['type'],
+                $fields[$fieldName]['multiple'] ?? false
+            )) {
+            $trueFalse = 'TRUE';
+
+            switch ($operator) {
+                case '!==':
+                    /*Сравнение с пустой строкой*/
+                    if ($value === '' || is_null($value)) {
+                        $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = FALSE";
+                    } /*Сравнение с листом*/
+                    elseif (is_array($value)) {
+                        $where[] = "($fieldQuotedJsonb != ?::JSONB OR $fieldQuoted is NULL)";
+                        $params[] = json_encode(
+                            $value,
+                            JSON_UNESCAPED_UNICODE
+                        );
+                    } /*Сравнение с числом или строкой*/
+                    else {
+                        if (is_bool($value)) {
+                            $value = $value ? 'true' : 'false';
                         }
+                        $where[] = "($fieldQuoted != ? OR $fieldQuoted is NULL)";
+                        $params[] = (string)$value;
                     }
-                }
-                if ($isRemovedValues && is_array($value)) {
-                    $value = array_values($value);
-                }
 
-                if ($fieldName === 'id') {
-                    $fieldQuoted = '(id)::NUMERIC';
-                    $isNumeric = true;
-                } elseif ($fieldName !== 'n') {
-                    $fieldQuoted = "$fieldQuoted::NUMERIC";
-                    $isNumeric = true;
-                }
-            }
-
-
-            /*Поиск в полях-листах*/
-            if (key_exists($wI['field'], $fields) && Field::isFieldListValues(
-                    $fields[$wI['field']]['type'],
-                    $fields[$wI['field']]['multiple'] ?? false
-                )) {
-                $trueFalse = 'TRUE';
-
-                switch ($operator) {
-                    case '!==':
-                        /*Сравнение с пустой строкой*/
-                        if ($value === '' || is_null($value)) {
-                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = FALSE";
-                        } /*Сравнение с листом*/
-                        elseif (is_array($value)) {
-                            $where[] = "($fieldQuotedJsonb != ?::JSONB OR $fieldQuoted is NULL)";
-                            $params[] = json_encode(
-                                $value,
-                                JSON_UNESCAPED_UNICODE
-                            );
-                        } /*Сравнение с числом или строкой*/
-                        else {
-                            if (is_bool($value)) {
-                                $value = $value ? 'true' : 'false';
-                            }
-                            $where[] = "($fieldQuoted != ? OR $fieldQuoted is NULL)";
-                            $params[] = (string)$value;
+                    break;
+                case '==':
+                    /*Сравнение с пустой строкой*/
+                    if (is_null($value) || $value === '') {
+                        $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = TRUE";
+                    } /*Сравнение с листом*/
+                    elseif (is_array($value)) {
+                        $where[] = "($fieldQuotedJsonb = ?::JSONB )";
+                        $params[] = json_encode(
+                            $value,
+                            JSON_UNESCAPED_UNICODE
+                        );
+                    } /*Сравнение с числом или строкой*/
+                    else {
+                        if (is_bool($value)) {
+                            $value = $value ? 'true' : 'false';
                         }
+                        $where[] = "($fieldQuoted = ?)";
+                        $params[] = (string)$value;
+                    }
 
-                        break;
-                    case '==':
-                        /*Сравнение с пустой строкой*/
-                        if (is_null($value) || $value === '') {
-                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted = '') = TRUE";
-                        } /*Сравнение с листом*/
-                        elseif (is_array($value)) {
-                            $where[] = "($fieldQuotedJsonb = ?::JSONB )";
-                            $params[] = json_encode(
-                                $value,
-                                JSON_UNESCAPED_UNICODE
-                            );
-                        } /*Сравнение с числом или строкой*/
-                        else {
-                            if (is_bool($value)) {
-                                $value = $value ? 'true' : 'false';
-                            }
-                            $where[] = "($fieldQuoted = ?)";
-                            $params[] = (string)$value;
-                        }
+                    break;
+                case '!=':
+                    $trueFalse = 'FALSE';
+                // no break
+                case '=':
 
-                        break;
-                    case '!=':
-                        $trueFalse = 'FALSE';
-                    // no break
-                    case '=':
-
-                        /*Сравнение с пустой строкой*/
-                        if (empty($value) && ($value === '' || is_null($value))) {
-                            $where[] = "($fieldQuoted is NULL 
+                    /*Сравнение с пустой строкой*/
+                    if (empty($value) && ($value === '' || is_null($value))) {
+                        $where[] = "($fieldQuoted is NULL 
                             OR $fieldQuoted='' 
                             OR $fieldQuoted='[]' 
                             OR $fieldQuotedJsonb @> '[\"\"]'::jsonb 
                             OR $fieldQuotedJsonb @> '[null]'::jsonb ) = $trueFalse";
-                        } /*Сравнение с пустым листом*/
-                        elseif (empty($value) && $value === []) {
-                            $where[] = "($fieldQuoted is NULL OR $fieldQuoted='' OR $fieldQuoted='[]') = $trueFalse";
-                        } /*Сравнение с листом*/
-                        elseif (is_array($value)) {
-                            if ($fields[$wI['field']]['type'] === 'listRow') {
-                                $isAssoc = (array_keys($value) !== range(0, count($value) - 1));
+                    } /*Сравнение с пустым листом*/
+                    elseif (empty($value) && $value === []) {
+                        $where[] = "($fieldQuoted is NULL OR $fieldQuoted='' OR $fieldQuoted='[]') = $trueFalse";
+                    } /*Сравнение с листом*/
+                    elseif (is_array($value)) {
+                        if ($fields[$fieldName]['type'] === 'listRow') {
+                            $isAssoc = (array_keys($value) !== range(0, count($value) - 1));
 
-                                $where_tmp = '';
-                                foreach ($value as $k => $v) {
-                                    if ($where_tmp !== '') {
-                                        $where_tmp .= ' OR ';
-                                    }
-                                    if ($isAssoc) {
-                                        if (!is_array($v) && is_numeric((string)$v)) {
-                                            $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
-                                            $params[] = json_encode(
-                                                [$k => is_string($v) ? (float)$v : (string)$v],
-                                                JSON_UNESCAPED_UNICODE
-                                            );
-                                        }
-                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
-                                        $params[] = json_encode([$k => $v], JSON_UNESCAPED_UNICODE);
-                                    } else {
-                                        if (!is_array($v) && is_numeric((string)$v)) {
-                                            $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
-                                            $params[] = json_encode(
-                                                [is_string($v) ? (float)$v : (string)$v]
-                                            );
-                                        }
-                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
-                                        $params[] = json_encode([$v], JSON_UNESCAPED_UNICODE);
-                                    }
+                            $where_tmp = '';
+                            foreach ($value as $k => $v) {
+                                if ($where_tmp !== '') {
+                                    $where_tmp .= ' OR ';
                                 }
-                            } else {
-                                $where_tmp = '';
-                                foreach ($value as $v) {
-                                    if ($where_tmp !== '') {
-                                        $where_tmp .= ' OR ';
+                                if ($isAssoc) {
+                                    if (!is_array($v) && is_numeric((string)$v)) {
+                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
+                                        $params[] = json_encode(
+                                            [$k => is_string($v) ? (float)$v : (string)$v],
+                                            JSON_UNESCAPED_UNICODE
+                                        );
                                     }
-                                    $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb";
-                                    $params[] = json_encode(
-                                        [(string)$v],
-                                        JSON_UNESCAPED_UNICODE
-                                    );
+                                    $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
+                                    $params[] = json_encode([$k => $v], JSON_UNESCAPED_UNICODE);
+                                } else {
+                                    if (!is_array($v) && is_numeric((string)$v)) {
+                                        $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb OR ";
+                                        $params[] = json_encode(
+                                            [is_string($v) ? (float)$v : (string)$v]
+                                        );
+                                    }
+                                    $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb ";
+                                    $params[] = json_encode([$v], JSON_UNESCAPED_UNICODE);
                                 }
                             }
-                            $where[] = "($where_tmp) = $trueFalse";
-                        } /*С булевым*/
-                        elseif (is_bool($value) || in_array((string)$value, ["true", "false"])) {
-                            if (is_bool($value)) {
-                                $value = $value ? "true" : "false";
+                        } else {
+                            $where_tmp = '';
+                            foreach ($value as $v) {
+                                if ($where_tmp !== '') {
+                                    $where_tmp .= ' OR ';
+                                }
+                                $where_tmp .= "$fieldQuotedJsonb @> ?::jsonb";
+                                $params[] = json_encode(
+                                    [(string)$v],
+                                    JSON_UNESCAPED_UNICODE
+                                );
                             }
-                            $null = "";
-                            if ($operator === '!=') {
-                                $null = " OR $fieldQuoted is NULL ";
-                            }
-
-                            $where[] = "(($fieldQuoted = ? or $fieldQuotedJsonb @> ?::jsonb or $fieldQuotedJsonb @> ?::jsonb) = $trueFalse $null)";
-
-                            $params[] = $value;
-                            $params[] = "[\"" . $value . "\"]";
-                            $params[] = "[" . $value . "]";
-                        } /*Сравнение с числом или строкой*/
-                        else {
-
-                            /*равно или содержит*/
-                            $q = "$fieldQuoted = ?  OR $fieldQuotedJsonb @>  ?::jsonb ";
-                            $params[] = (string)$value;
-                            $params[] = json_encode([(string)$value], JSON_UNESCAPED_UNICODE);
-                            if ($fields[$wI['field']]['type'] === 'listRow' && is_numeric((string)$value)) {
-                                /*равно или содержит числовой вариант*/
-                                $q .= "OR $fieldQuotedJsonb @> ?::jsonb";
-                                $params[] = "[$value]";
-                            }
-                            $null = "";
-                            if ($operator === '!=') {
-                                $null = " OR $fieldQuoted is NULL ";
-                            }
-                            $where[] = "(($q) = $trueFalse $null)";
                         }
-                        break;
-                    default:
-                        throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
+                        $where[] = "($where_tmp) = $trueFalse";
+                    } /*С булевым*/
+                    elseif (is_bool($value) || in_array((string)$value, ["true", "false"])) {
+                        if (is_bool($value)) {
+                            $value = $value ? "true" : "false";
+                        }
+                        $null = "";
+                        if ($operator === '!=') {
+                            $null = " OR $fieldQuoted is NULL ";
+                        }
+
+                        $where[] = "(($fieldQuoted = ? or $fieldQuotedJsonb @> ?::jsonb or $fieldQuotedJsonb @> ?::jsonb) = $trueFalse $null)";
+
+                        $params[] = $value;
+                        $params[] = "[\"" . $value . "\"]";
+                        $params[] = "[" . $value . "]";
+                    } /*Сравнение с числом или строкой*/
+                    else {
+
+                        /*равно или содержит*/
+                        $q = "$fieldQuoted = ?  OR $fieldQuotedJsonb @>  ?::jsonb ";
+                        $params[] = (string)$value;
+                        $params[] = json_encode([(string)$value], JSON_UNESCAPED_UNICODE);
+                        if ($fields[$fieldName]['type'] === 'listRow' && is_numeric((string)$value)) {
+                            /*равно или содержит числовой вариант*/
+                            $q .= "OR $fieldQuotedJsonb @> ?::jsonb";
+                            $params[] = "[$value]";
+                        }
+                        $null = "";
+                        if ($operator === '!=') {
+                            $null = " OR $fieldQuoted is NULL ";
+                        }
+                        $where[] = "(($q) = $trueFalse $null)";
+                    }
+                    break;
+                default:
+                    throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
+            }
+        } /* Поиск не в полях-листах по массиву */
+        elseif (is_array($value)) {
+            $checkIsArrayInArray = function () use ($fieldName, $value) {
+                foreach ($value as $v) {
+                    if (is_array($v)) {
+                        throw new errorException($this->translate('None of the elements of the %s parameter array must be a list.',
+                            $fieldName));
+                    }
                 }
-            } /* Поиск не в полях-листах по массиву */
-            elseif (is_array($value)) {
-                $checkIsArrayInArray = function () use ($fieldName, $value) {
-                    foreach ($value as $v) {
-                        if (is_array($v)) {
-                            throw new errorException($this->translate('None of the elements of the %s parameter array must be a list.',
-                                $fieldName));
-                        }
+            };
+            $isEmptyValueInArray = function (array &$value): bool {
+                $newValue = array_filter(
+                    $value,
+                    function ($v) {
+                        return !(is_null($v) || $v === '');
                     }
-                };
-                $isEmptyValueInArray = function (array &$value): bool {
-                    $newValue = array_filter(
-                        $value,
-                        function ($v) {
-                            return !(is_null($v) || $v === '');
-                        }
-                    );
-                    if ($newValue !== $value) {
-                        $value = $newValue;
-                        return true;
-                    }
-                    return false;
-                };
+                );
+                if ($newValue !== $value) {
+                    $value = $newValue;
+                    return true;
+                }
+                return false;
+            };
 
 
-                switch ($operator) {
-                    case '==':
+            switch ($operator) {
+                case '==':
+                    $where[] = 'FALSE';
+                    break;
+                case '!==':
+                    $where[] = 'TRUE';
+                    break;
+                case '<':
+                case '<=':
+                case '>=':
+                case '>':
+                    throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
+                    break;
+                case '=':
+                    /*Если на вход пришел пустой массив*/
+                    if (empty($value)) {
                         $where[] = 'FALSE';
-                        break;
-                    case '!==':
-                        $where[] = 'TRUE';
-                        break;
-                    case '<':
-                    case '<=':
-                    case '>=':
-                    case '>':
-                        throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
-                        break;
-                    case '=':
-                        /*Если на вход пришел пустой массив*/
-                        if (empty($value)) {
-                            $where[] = 'FALSE';
-                        } else {
-                            /*if it's list*/
-                            if ((array_keys($value) === range(0, count($value) - 1))) {
-                                /*Если в массиве содержится пустое значение*/
-                                $q = '';
-                                if ($isEmptyValueInArray($value)) {
-                                    $q .= "$fieldQuoted  IS NULL";
-                                    if (!$isNumeric) {
-                                        $q .= " OR $fieldQuoted = ''";
-                                    }
-                                }
-                                /*если есть непустые значения*/
-                                if (!empty($value)) {
-                                    $checkIsArrayInArray();
-                                    if ($q) {
-                                        $q .= ' OR ';
-                                    }
-
-                                    if (count($value) > 65000) {
-                                        throw new errorException($this->translate('You cannot create query to PostgreSql with 65000 and more parameters.'));
-                                    }
-
-                                    $q .= $fieldQuoted . ' IN (?' . str_repeat(
-                                            ',?',
-                                            count($value) - 1
-                                        ) . ')';
-                                    array_push($params, ...$value);
-                                }
-                                $where[] = "($q)";
-                            } else {
-                                throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row',
-                                    $wI['field']));
-                            }
-
-                        }
-                        break;
-                    case '!=':
-                        /*Если на вход пришел пустой массив*/
-                        if (empty($value)) {
-                            $where[] = 'TRUE';
-                        } else {
+                    } else {
+                        /*if it's list*/
+                        if ((array_keys($value) === range(0, count($value) - 1))) {
                             /*Если в массиве содержится пустое значение*/
                             $q = '';
                             if ($isEmptyValueInArray($value)) {
-                                $emptyString = '';
+                                $q .= "$fieldQuoted  IS NULL";
                                 if (!$isNumeric) {
-                                    $emptyString = "AND $fieldQuoted != ''";
+                                    $q .= " OR $fieldQuoted = ''";
                                 }
-                                $q .= "$fieldQuoted  IS NOT NULL $emptyString AND ";
-                            } else {
-                                $q .= "$fieldQuoted  IS NULL OR";
                             }
                             /*если есть непустые значения*/
                             if (!empty($value)) {
                                 $checkIsArrayInArray();
-                                $q .= $fieldQuoted . ' NOT IN (?' . str_repeat(
+                                if ($q) {
+                                    $q .= ' OR ';
+                                }
+
+                                if (count($value) > 65000) {
+                                    throw new errorException($this->translate('You cannot create query to PostgreSql with 65000 and more parameters.'));
+                                }
+
+                                $q .= $fieldQuoted . ' IN (?' . str_repeat(
                                         ',?',
                                         count($value) - 1
                                     ) . ')';
                                 array_push($params, ...$value);
                             }
                             $where[] = "($q)";
+                        } else {
+                            throw new errorException($this->translate('For selecting by %s field should be passed only single value or list, not row',
+                                $fieldName));
                         }
-                        break;
-                    default:
-                        throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
 
-                }
-            } /* Поиск не в полях-листах не по массиву*/
-            else {
+                    }
+                    break;
+                case '!=':
+                    /*Если на вход пришел пустой массив*/
+                    if (empty($value)) {
+                        $where[] = 'TRUE';
+                    } else {
+                        /*Если в массиве содержится пустое значение*/
+                        $q = '';
+                        if ($isEmptyValueInArray($value)) {
+                            $emptyString = '';
+                            if (!$isNumeric) {
+                                $emptyString = "AND $fieldQuoted != ''";
+                            }
+                            $q .= "$fieldQuoted  IS NOT NULL $emptyString AND ";
+                        } else {
+                            $q .= "$fieldQuoted  IS NULL OR";
+                        }
+                        /*если есть непустые значения*/
+                        if (!empty($value)) {
+                            $checkIsArrayInArray();
+                            $q .= $fieldQuoted . ' NOT IN (?' . str_repeat(
+                                    ',?',
+                                    count($value) - 1
+                                ) . ')';
+                            array_push($params, ...$value);
+                        }
+                        $where[] = "($q)";
+                    }
+                    break;
+                default:
+                    throw new errorException($this->translate('For lists comparisons, only available =, ==, !=, !==.'));
+
+            }
+        } /* Поиск не в полях-листах не по массиву*/
+        else {
+            switch ($operator) {
+                case '==':
+                    $operator = '=';
+                    break;
+                case '!==':
+                    $operator = '!=';
+                    break;
+            }
+
+            if ($value === '' || is_null($value)) {
                 switch ($operator) {
-                    case '==':
-                        $operator = '=';
+                    case '=':
+                    case '<=':
+                        $where[] = '(' . $fieldQuoted . '::text = \'\' OR ' . $fieldQuoted . ' is NULL)';
                         break;
-                    case '!==':
-                        $operator = '!=';
+                    case '!=':
+                    case '>':
+                        $where[] = '(' . $fieldQuoted . '::text != \'\' AND ' . $fieldQuoted . ' is NOT NULL)';
+                        break;
+                    case '>=':
+                        $where[] = 'true';
+                        break;
+                    case '<':
+                        $where[] = 'false';
                         break;
                 }
-
-                if ($value === '' || is_null($value)) {
-                    switch ($operator) {
-                        case '=':
-                        case '<=':
-                            $where[] = '(' . $fieldQuoted . '::text = \'\' OR ' . $fieldQuoted . ' is NULL)';
-                            break;
-                        case '!=':
-                        case '>':
-                            $where[] = '(' . $fieldQuoted . '::text != \'\' AND ' . $fieldQuoted . ' is NOT NULL)';
-                            break;
-                        case '>=':
-                            $where[] = 'true';
-                            break;
-                        case '<':
-                            $where[] = 'false';
-                            break;
-                    }
-                } else {
-                    if ($operator === '!=') {
-                        $operator = 'IS DISTINCT FROM';
-                    }
-
-                    $where[] = '' . $fieldQuoted . ' ' . $operator . ' ? '
-                        . (in_array(
-                            $operator,
-                            ['<', '<=']
-                        ) ? ' OR (' . $fieldQuoted . '::text = \'\' OR ' . $fieldQuoted . ' is NULL)' : '');
-
-                    $params[] = $value;
-                }
-            }
-        }
-
-        if ($ReturnFalse) {
-
-            $whereStr = 'FALSE';
-
-        } else {
-
-            if ($withoutDeleted) {
-                $where[] = 'is_del = false';
-            }
-
-            if (empty($where)) {
-                $whereStr = 'TRUE';
             } else {
-                $whereStr = '(' . implode(') AND (', $where) . ')';
+                if ($operator === '!=') {
+                    $operator = 'IS DISTINCT FROM';
+                }
+
+                $where[] = '' . $fieldQuoted . ' ' . $operator . ' ? '
+                    . (in_array(
+                        $operator,
+                        ['<', '<=']
+                    ) ? ' OR (' . $fieldQuoted . '::text = \'\' OR ' . $fieldQuoted . ' is NULL)' : '');
+
+                $params[] = $value;
             }
-
         }
-
-        return [$whereStr, $params];
+        return [$where, $params];
     }
 }

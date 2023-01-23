@@ -45,7 +45,7 @@ class RU implements LangInterface
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 
         'Language %s not found.' => 'Язык %s не найден.',
-        'Searching not numeric string or lists in numbers' => 'Поиск не числовой строки или списка в числах',
+        'Comparing not numeric string or lists with number field' => 'Сравнение нечисловых строк или списков с числовым полем',
         'You cannot create query to PostgreSql with 65000 and more parameters.' => 'Вы не можете создать запрос к PostgreSql >= 65000 параметров.',
 
         'For temporary tables only.' => 'Только для временных таблиц',

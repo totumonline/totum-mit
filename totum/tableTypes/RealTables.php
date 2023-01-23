@@ -1070,7 +1070,7 @@ abstract class RealTables extends aTable
                         File::deleteFilesOnCommit(
                             Field::init($field,
                                 $this)->filterDuplicatedFiled(
-                                    $this->tbl['rows'][$row['id']][$field['name']]['v'] ?? [],
+                                $this->tbl['rows'][$row['id']][$field['name']]['v'] ?? [],
                                 $row['id']
                             ),
                             $this->getTotum()->getConfig()
@@ -1593,11 +1593,25 @@ abstract class RealTables extends aTable
         /*Проверка на число - чтобы ошибок в базе не случалось*/
         $isNumeric = false;
         if ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
-            foreach ((array)$value as $v) {
+            $isRemovedValues = false;
+            foreach ((array)$value as $i => $v) {
                 if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
-                    /*not numeric string in searching in number*/
-                    throw new errorException($this->translate('Searching not numeric string or lists in numbers'));
+                    if (is_array($value)) {
+                        unset($value[$i]);
+                        $isRemovedValues = true;
+                    } else {
+                        return match ($operator) {
+                            '=', '==' => [['FALSE'], []],
+                            '!=', '!==' => [['TRUE'], []],
+                            default => throw new errorException($this->translate('Comparing not numeric string or lists with number field'))
+                        };
+
+                    }
                 }
+            }
+
+            if ($isRemovedValues && is_array($value)) {
+                $value = array_values($value);
             }
 
             if ($fieldName === 'id') {

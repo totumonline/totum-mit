@@ -1070,7 +1070,7 @@ abstract class RealTables extends aTable
                         File::deleteFilesOnCommit(
                             Field::init($field,
                                 $this)->filterDuplicatedFiled(
-                                    $this->tbl['rows'][$row['id']][$field['name']]['v'] ?? [],
+                                $this->tbl['rows'][$row['id']][$field['name']]['v'] ?? [],
                                 $row['id']
                             ),
                             $this->getTotum()->getConfig()
@@ -1496,15 +1496,20 @@ abstract class RealTables extends aTable
             foreach ($_level as $cond) {
                 if (key_exists('operator', $cond)) {
                     if (($cond['right']['type'] ?? '') !== 'fieldName') {
-                        list($_cond, $_params) = $this->processFieldWhere(
+                        $pw_res = $this->processFieldWhere(
                             $cond['left']['value'],
                             $cond['operator'],
                             $cond['right']['value']
                         );
-                        if ($_cond) {
-                            $_cond = '(' . implode(' AND ', $_cond) . ')';
-                            array_push($params, ...$_params);
-                            $whereConds[] = $_cond;
+                        if (!$pw_res) {
+                            $whereConds[] = 'FALSE';
+                        } else {
+                            list($_cond, $_params) = $pw_res;
+                            if ($_cond) {
+                                $_cond = '(' . implode(' AND ', $_cond) . ')';
+                                array_push($params, ...$_params);
+                                $whereConds[] = $_cond;
+                            }
                         }
                     } else {
                         if ($cond['operator'] === '=') {
@@ -1545,12 +1550,18 @@ abstract class RealTables extends aTable
                     $withoutDeleted = false;
                 }
 
-                list($_where, $_params) = $this->processFieldWhere($wI['field'],
+                if ($pw_res = $this->processFieldWhere($wI['field'],
                     $wI['operator'],
-                    $wI['value']);
+                    $wI['value'])) {
 
-                array_push($where, ...$_where);
-                array_push($params, ...$_params);
+                    list($_where, $_params) = $pw_res;
+
+
+                    array_push($where, ...$_where);
+                    array_push($params, ...$_params);
+                } else {
+                    return ['FALSE', []];
+                }
             }
         }
 
@@ -1567,7 +1578,7 @@ abstract class RealTables extends aTable
         return [$whereStr, $params];
     }
 
-    protected function processFieldWhere($fieldName, string $operator, mixed $value): array
+    protected function processFieldWhere($fieldName, string $operator, mixed $value): false|array
     {
         if ((array)$value === ['*ALL*']) {
             return [[], []];
@@ -1593,11 +1604,20 @@ abstract class RealTables extends aTable
         /*Проверка на число - чтобы ошибок в базе не случалось*/
         $isNumeric = false;
         if ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
-            foreach ((array)$value as $v) {
+            $isRemovedValues = false;
+            foreach ((array)$value as $i => $v) {
                 if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {
-                    /*not numeric string in searching in number*/
-                    throw new errorException($this->translate('Searching not numeric string or lists in numbers'));
+                    if (is_array($value)) {
+                        unset($value[$i]);
+                        $isRemovedValues = true;
+                    } else {
+                        return false;
+                    }
                 }
+            }
+
+            if ($isRemovedValues && is_array($value)) {
+                $value = array_values($value);
             }
 
             if ($fieldName === 'id') {

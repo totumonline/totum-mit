@@ -48,7 +48,7 @@ class CalculateSelectValue extends CalculateSelect
 
         if ($this->returnHiddenData) {
             foreach ($rows as $row) {
-                $selectList[$row['value']] = $row['is_del'];
+                $selectList[$row['value']] = $row['is_del'] ?? false;
             }
         } else {
             foreach ($rows as $row) {

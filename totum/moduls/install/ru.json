@@ -401,6 +401,7 @@
     "{{Ldap_port}}": "Порт",
     "{{Ldap_roles_in_totum}}": "Роли в Тотум",
     "{{Ldap_select_interval}}": "Выберите интервал крона",
+    "{{Ldap_set_ad_group_filter}}": "Установить фильтр групп AD",
     "{{Ldap_set_cron}}": "Установить",
     "{{Ldap_set_example}}": "Установить пример",
     "{{Ldap_set_safe_variant}}": "Установить безопасный вариант",

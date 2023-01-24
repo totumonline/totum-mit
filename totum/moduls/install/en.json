@@ -401,6 +401,7 @@
     "{{Ldap_port}}": "Port",
     "{{Ldap_roles_in_totum}}": "Roles in Totum",
     "{{Ldap_select_interval}}": "Select cron interval",
+    "{{Ldap_set_ad_group_filter}}": "Set AD group filter",
     "{{Ldap_set_cron}}": "Set cron",
     "{{Ldap_set_example}}": "Set example",
     "{{Ldap_set_safe_variant}}": "Set safe variant",

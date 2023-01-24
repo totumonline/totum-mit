@@ -465,7 +465,14 @@ class RU implements LangInterface
         'The fileDuplicateOnCopy option must be enabled for secure files.' => 'Опция fileDuplicateOnCopy должна быть включена для защищенных файлов.',
 
         'DB connection by name %s was not found.' => 'Соединение с БД c name %s не найдено.',
-        'DB connection by hash %s was not found.' => 'Соединение с БД c hash %s не найдено.'
+        'DB connection by hash %s was not found.' => 'Соединение с БД c hash %s не найдено.',
+        /*LDAP*/
+
+        'LDAP extension php not enabled'=> 'Расширение LDAP php не включено',
+        'Set the binding format in the LDAP settings table'=> 'Задайте формат бинда в таблице настроек LDAP',
+        'Set the host in the LDAP settings table'=> 'Задайте хост в таблице настроек LDAP',
+        'Set the port in the LDAP settings table'=> 'Задайте порт в таблице настроек LDAP',
+
     ];
     protected const monthRods = [
         1 => 'января',

@@ -468,6 +468,7 @@ class RU implements LangInterface
         'DB connection by hash %s was not found.' => 'Соединение с БД c hash %s не найдено.',
         /*LDAP*/
 
+        'Authorization type' => 'Тип авторизации',
         'Password recovering is not possible for users with special auth types' => 'Восстановление пароля невозможно для пользователей со специальными типами авторизации',
         'LDAP extension php not enabled' => 'Расширение LDAP php не включено',
         'Set the binding format in the LDAP settings table' => 'Задайте формат бинда в таблице настроек LDAP',

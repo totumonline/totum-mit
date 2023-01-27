@@ -468,10 +468,11 @@ class RU implements LangInterface
         'DB connection by hash %s was not found.' => 'Соединение с БД c hash %s не найдено.',
         /*LDAP*/
 
-        'LDAP extension php not enabled'=> 'Расширение LDAP php не включено',
-        'Set the binding format in the LDAP settings table'=> 'Задайте формат бинда в таблице настроек LDAP',
-        'Set the host in the LDAP settings table'=> 'Задайте хост в таблице настроек LDAP',
-        'Set the port in the LDAP settings table'=> 'Задайте порт в таблице настроек LDAP',
+        'Password recovering is not possible for users with special auth types' => 'Восстановление пароля невозможно для пользователей со специальными типами авторизации',
+        'LDAP extension php not enabled' => 'Расширение LDAP php не включено',
+        'Set the binding format in the LDAP settings table' => 'Задайте формат бинда в таблице настроек LDAP',
+        'Set the host in the LDAP settings table' => 'Задайте хост в таблице настроек LDAP',
+        'Set the port in the LDAP settings table' => 'Задайте порт в таблице настроек LDAP',
 
     ];
     protected const monthRods = [

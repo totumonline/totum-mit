@@ -74,7 +74,9 @@ class CalculateSelectViewValue extends CalculateSelect
                 if (!is_array($row)) {
                     throw new errorException($this->translate('Select format error in field %s', $this->varName));
                 }
-                if (is_array($row['value'])) {
+                if (!key_exists('value', $row) || !key_exists('title', $row)) {
+                    throw new errorException($this->translate('Select format error in field %s', $this->varName));
+                } elseif (is_array($row['value'])) {
                     throw new errorException($this->translate('The [[%s]] parameter must be plain row/list without nested row/list.',
                         'value'));
                 } elseif (is_array($row['title'])) {

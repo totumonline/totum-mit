@@ -2440,10 +2440,11 @@ CODE;;
                             $this->fields[$orderFN]['type'],
                             ['tree', 'select']
                         )) {
+                        $_rowsIn = $rows;
                         $rows = $this->getValuesAndFormatsForClient(['rows' => $rows],
                             $viewType,
                             array_column($rows, 'id'))['rows'];
-                        $this->sortRowsBydefault($rows);
+                        $this->sortRowsBydefault($rows, $_rowsIn);
                         $offset = $slice($rows, $onPage);
                     } else {
                         $offset = $slice($rows, $onPage);
@@ -2528,11 +2529,12 @@ CODE;;
                 }
 
                 $filteredIds = $this->loadRowsByParams($params, $this->orderParamsForLoadRows());
-                $rows = $cropFieldsInRows($getRows($filteredIds));
+                $rowsIn = $getRows($filteredIds);
+                $rows = $cropFieldsInRows($rowsIn);
                 $rows = $this->getValuesAndFormatsForClient(['rows' => $rows],
                     $viewType,
                     array_column($rows, 'id'))['rows'];
-                $this->sortRowsBydefault($rows);
+                $this->sortRowsBydefault($rows, $rowsIn);
 
                 $result = ['rows' => $rows, 'offset' => 0, 'allCount' => count($filteredIds)];
             }
@@ -2542,7 +2544,7 @@ CODE;;
         }
     }
 
-    public function sortRowsByDefault(&$rows)
+    public function sortRowsByDefault(&$rows, $raw_rows)
     {
         $tableRow = $this->getTableRow();
         $orderFieldName = $this->getOrderFieldName();
@@ -2556,12 +2558,27 @@ CODE;;
             && in_array($orderField['type'], ['select', 'tree'])
         ) {
             $sortArray = [];
+            $OrderField = Field::init($this->fields[$orderFieldName], $this);
 
-            foreach ($rows as $row) {
-                $sortArray[] = $row[$orderFieldName]['v_'][0] ?? $row[$orderFieldName]['v'];
-                if (is_array($row[$orderFieldName]['v'])) {
+            foreach ($rows as $i => $row) {
+                $sortValue = null;
+                if (!key_exists($orderFieldName, $row)) {
+                    if (key_exists($orderFieldName, $raw_rows[$i])) {
+                        $OrderField->addViewValues(
+                            'web',
+                            $raw_rows[$i][$orderFieldName],
+                            $raw_rows[$i],
+                            $this->tbl
+                        );
+                        $sortValue = $raw_rows[$i][$orderFieldName]['v_'][0] ?? $raw_rows[$i][$orderFieldName]['v'];
+                    }
+                } else {
+                    $sortValue = $row[$orderFieldName]['v_'][0] ?? $row[$orderFieldName]['v'];
+                }
+                $sortArray[] = $sortValue;
+                if (is_array($sortValue)) {
                     $sortArray = array_column($rows, 'id');
-                    $error = 'Sorting available only by single value fiels';
+                    $error = 'Sorting available only by single value fields';
                     break;
                 }
             }

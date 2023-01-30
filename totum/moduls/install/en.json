@@ -385,6 +385,7 @@
     "{{Ldap_bind_format}}": "Bind format",
     "{{Ldap_cert_file}}": "Cert file",
     "{{Ldap_check_connect_result}}": "Check connect result",
+    "{{Ldap_check_connection_with_groups}}": "GET DATA WITH GROUPS",
     "{{Ldap_check_direct_entries}}": "Check direct entries",
     "{{Ldap_comparison_parameters}}": "Comparison parameters",
     "{{Ldap_domain_selector}}": "Domain selector",

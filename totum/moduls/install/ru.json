@@ -385,6 +385,7 @@
     "{{Ldap_bind_format}}": "Формат бинда",
     "{{Ldap_cert_file}}": "Файл сертификата",
     "{{Ldap_check_connect_result}}": "Результат проверки подключения",
+    "{{Ldap_check_connection_with_groups}}": "ПОЛУЧИТЬ ДАННЫЕ С ГРУППАМИ",
     "{{Ldap_check_direct_entries}}": "Проверять прямые вхождения",
     "{{Ldap_comparison_parameters}}": "Параметры сравнения",
     "{{Ldap_domain_selector}}": "Селектор доменов",

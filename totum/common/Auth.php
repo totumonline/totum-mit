@@ -83,7 +83,7 @@ class Auth
         }
         $r = $Config->getModel('users')->preparedSimple(
             "select id, fio->>'v' as fio from users where interface->>'v'='web'" .
-            " AND on_off->>'v'='true' AND login->>'v' NOT IN ('service', 'cron', 'anonim') " .
+            " AND on_off->>'v'='true' AND (login->>'v' NOT IN ('service', 'cron', 'anonim') OR login->>'v' is null) " .
             " AND $_id AND $_roles " .
             " AND is_del = false"
         );

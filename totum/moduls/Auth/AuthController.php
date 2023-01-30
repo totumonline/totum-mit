@@ -91,8 +91,11 @@ class AuthController extends interfaceController
                         Auth::webInterfaceSetAuth($userRow['id']);
 
                         $baseDir = $this->Config->getBaseDir();
-                        $schema = is_callable([$this->Config, 'setHostSchema']) ? '"' . $this->Config->getSchema() . '"' : '';
-                        `cd {$baseDir} && bin/totum check-service-notifications {$schema} &`;
+
+                        if (in_array(1, $userRow['roles'])) {
+                            $schema = is_callable([$this->Config, 'setHostSchema']) ? '"' . $this->Config->getSchema() . '"' : '';
+                            `cd {$baseDir} && bin/totum check-service-notifications {$schema} &`;
+                        }
 
                         $this->location($_GET['from'] && $_GET['from'] !== '/' ? $_GET['from'] : Auth::getUserById($this->Config,
                             $userRow['id'])->getUserStartPath(),

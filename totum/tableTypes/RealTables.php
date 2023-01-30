@@ -1592,7 +1592,8 @@ abstract class RealTables extends aTable
 
         /*Проверка на число - чтобы ошибок в базе не случалось*/
         $isNumeric = false;
-        if ($fieldName === 'id' || $fieldName === 'n' || $fields[$fieldName]['type'] === 'number') {
+        if ($fieldName === 'id' || $fieldName === 'n' || (key_exists($fieldName,
+                    $fields) && $fields[$fieldName]['type'] === 'number')) {
             $isRemovedValues = false;
             foreach ((array)$value as $i => $v) {
                 if (is_array($v) || ($v !== '' && !is_null($v) && !is_numeric((string)$v))) {

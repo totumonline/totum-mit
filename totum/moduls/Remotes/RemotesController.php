@@ -30,7 +30,12 @@ class RemotesController extends Controller
             $remote = Model::getClearValuesWithExtract($remoteSelect);
             $remote_row = RealTables::decodeRow($remoteSelect);
             if ($remote['remotes_user']) {
-                if ($User = Auth::getUserById($this->Config, $remote['remotes_user'])) {
+                $remoteUser = $remote['remotes_user'];
+                if ($remoteUser === '-1') {
+                    $remoteUser = $request->getQueryParams()['ttm_user'] ?? 0;
+                }
+
+                if ($remoteUser && ($User = Auth::getUserById($this->Config, $remoteUser))) {
 
                     $tries = 0;
                     do {

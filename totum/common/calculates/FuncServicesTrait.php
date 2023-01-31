@@ -67,7 +67,7 @@ trait FuncServicesTrait
                 $templates = $params['template'];
                 $datas = $params['data'];
             }
-        } elseif (key_exists(0, $params['data'])) {
+        } elseif (key_exists(0, $params['data']) && $params['template'] !== '*NEW*') {
             $templates = array_fill(0, count($params['data']), $params['template']);
             $datas = $params['data'];
         } elseif (is_array($params['template'])) {
@@ -89,7 +89,7 @@ trait FuncServicesTrait
                 default => is_array($_pdf) ? $_pdf : false
             };
             $preparedData[] = [
-                'template' => base64_encode(File::getContent($template, $Config)),
+                'template' => $template === '*NEW*' ? '*NEW*' : base64_encode(File::getContent($template, $Config)),
                 'data' => $datas[$i],
                 'pdf' => $_pdf,
             ];

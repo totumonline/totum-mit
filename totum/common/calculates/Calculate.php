@@ -835,6 +835,24 @@ class Calculate
         return [$varName => $value];
     }
 
+    protected function getExecVariableVal($paramVal)
+    {
+        try {
+            $codes = $this->getCodes($paramVal);
+        } catch (errorException $e) {
+            throw new errorException($this->translate('TOTUM-code format error [[%s]].', $paramVal));
+        }
+
+        foreach ($codes as &$v){
+            if(is_array($v)){
+                $v = $this->__getValue($v);
+            }
+        }
+        unset($v);
+
+        return $codes;
+    }
+
     protected function getParam($param, $paramArray)
     {
         $r = null;

@@ -82,6 +82,9 @@ class Services implements ServicesVarsInterface
                 throw new errorException('Generator error: ' . $value['error']);
             }
             if (!empty($value['link'])) {
+                if(empty($http_response_header)){
+                    throw new errorException('Service server did not answer');
+                }
                 throw new errorException('Wrong data from service server: ' . $http_response_header);
             } else {
                 throw new errorException('Unknown error');

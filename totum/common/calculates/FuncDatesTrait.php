@@ -130,13 +130,23 @@ trait FuncDatesTrait
                             $value = $formatter($value, $recursive, $level + 1);
                         }
                     } elseif ($isLevel && ($keys === null || in_array($key, $keys))) {
-                        if (!$replace($value) && !empty($value)) {
+                        if ((($keys !== null && in_array($key,
+                                    $keys)) || is_numeric($key)) ){
+                            if (!$replace($value) && !empty($value)) {
+                                try {
+                                    $date = $this->__checkGetDate($value, 'date', 'DateFormat');
+                                    $value = $this->dateFormat($date, $format, $params['lang'] ?? null);
+                                } catch (\Exception $e) {
+                                }
+                            }
+                        } else {
                             try {
                                 $date = $this->__checkGetDate($value, 'date', 'DateFormat');
                                 $value = $this->dateFormat($date, $format, $params['lang'] ?? null);
                             } catch (\Exception $e) {
                             }
                         }
+
                     }
                 }
                 unset($value);

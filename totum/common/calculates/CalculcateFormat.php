@@ -165,16 +165,21 @@ class CalculcateFormat extends Calculate
     protected function funcPanelButton(string $paramsIn): ?array
     {
         if ($params = $this->getParamsArray($paramsIn,
-            [],
-            ['text', 'code', 'icon', 'background', 'vars', 'refresh', 'condition'])) {
+            ['var'],
+            ['text', 'code', 'icon', 'background', 'vars', 'refresh', 'condition', 'var'])) {
             if ($this->getConditionsResult($params)) {
-                $params = $this->getParamsArray($paramsIn, [], ['condition']);
+                $params = $this->getParamsArray($paramsIn, ['var'], ['condition'], ['var']);
 
                 $this->__checkNotEmptyParams($params, ['code']);
                 $this->__checkNotArrayParams($params, ['text', 'code', 'icon', 'background', 'refresh']);
 
                 $values = [array_intersect_key($params,
                     array_flip(['text', 'code', 'icon', 'background', 'vars', 'refresh']))];
+                if(!empty($params['var'])){
+                    foreach ($params['var'] as $v){
+                        $values[0]['vars'][$v['field']]=$v['value'];
+                    }
+                }
                 return ['type' => 'buttons', 'value' => $values];
             }
         }

@@ -1008,7 +1008,7 @@ class Calculate
     {
         $r = null;
         $isHashtag = false;
-        if (strlen($param) === 0) {
+        if (is_array($param) || strlen($param) === 0) {
             throw new errorException($this->translate('TOTUM-code format error [[%s]].', $this->varName));
         }
 

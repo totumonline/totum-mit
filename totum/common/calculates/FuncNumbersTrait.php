@@ -87,44 +87,166 @@ trait FuncNumbersTrait
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['data']);
 
-        $func = function ($data) use (&$func) {
-            if (is_array($data)) {
-                foreach ($data as $k => &$v) {
-                    $v = $func($v);
-                }
-                unset($v);
-            } else {
-                if (!is_numeric($data)) {
-                    throw new errorException($this->translate('Data parameter  / data values must be numeric.'));
-                }
-                $data += 0;
+        if (is_array($params['data'])) {
+            $recursive = match ($params['recursive'] ?? true) {
+                'false', false => false,
+                'true', true => true,
+                default => $params['recursive']
+            };
+            if ($recursive === false) {
+                $recursive = [0];
             }
-            return $data;
-        };
 
+            $keys = $params['keys'] ?? null;
+            if ($keys) {
+                $keys = (array)$keys;
+            }
 
-        return $func($params['data']);
+            $formatter = function ($array, $recursive, $level = 0) use (&$formatter, $keys) {
+                $isLevel = $recursive === true || in_array($level, $recursive);
+                if ($isLevel && is_array($recursive)) {
+                    array_splice($recursive, array_search($level, $recursive), 1);
+                }
+                $goFuther = !!$recursive;
+
+                foreach ($array as $key => &$value) {
+                    if (is_array($value)) {
+                        if ($goFuther) {
+                            $value = $formatter($value, $recursive, $level + 1);
+                        }
+                    } elseif ($isLevel && ($keys === null || in_array($key, $keys))) {
+                        try {
+                            $this->__checkNumericParam($value, 'num', true);
+                            $value += 0;
+                        } catch (\Exception $e) {
+                        }
+                    }
+                }
+                unset($value);
+                return $array;
+            };
+
+            return $formatter($params['data'], $recursive);
+        }
+        $this->__checkNumericParam($params['data'], 'num', true);
+        return $params['data'] += 0;
     }
 
-    protected function funcNumFormat(string $params): string
+    protected function funcNumFormat(string $params): string|array
     {
-        $params = $this->getParamsArray($params);
+        $params = $this->getParamsArray($params, ['replace'], ['replace']);
 
         if (is_null($params['num']) || $params['num'] === '') {
             return '';
         }
+        if ($params['num'] === []) {
+            return [];
+        }
 
         $this->__checkRequiredParams($params, ['num']);
-        $this->__checkNotArrayParams($params, ['num', 'dectimals', 'decsep', 'thousandssep', 'unittype', 'prefix']);
-        $this->__checkNumericParam($params['num'], 'num', true);
+        $this->__checkNotArrayParams($params, ['dectimals', 'decsep', 'thousandssep', 'unittype', 'prefix']);
 
-        return ((string)($params['prefix'] ?? '')) . number_format(
-                (float)$params['num'],
-                (int)($params['dectimals'] ?? 0),
-                (string)($params['decsep'] ?? ','),
-                (string)($params['thousandssep'] ?? '')
-            )
-            . ((string)($params['unittype'] ?? ''));
+        $format = function ($num) use ($params) {
+            return ((string)($params['prefix'] ?? '')) . number_format(
+                    (float)$num,
+                    (int)($params['dectimals'] ?? 0),
+                    (string)($params['decsep'] ?? ','),
+                    (string)($params['thousandssep'] ?? '')
+                )
+                . ((string)($params['unittype'] ?? ''));
+        };
+
+
+        if (is_array($params['num'])) {
+            $recursive = match ($params['recursive'] ?? true) {
+                'false', false => false,
+                'true', true => true,
+                default => $params['recursive']
+            };
+            if ($recursive === false) {
+                $recursive = [0];
+            }
+
+            $keys = $params['keys'] ?? null;
+            if ($keys) {
+                $keys = (array)$keys;
+            }
+
+            $replace = function (&$v) {
+                return false;
+            };
+            if ($params['replace'] ?? []) {
+                $replaces = [];
+                foreach ($params['replace'] as $r) {
+                    $r = $this->getExecVariableVal($r);
+                    if (count($r) === 1) {
+                        $from = [null, ''];
+                        $to = $r[0];
+                    } else {
+                        $from = $r[0];
+                        $to = $r[1];
+                    }
+                    if (is_array($to)) {
+                        throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.',
+                            'replace->to'));
+                    }
+                    $replaces[] = ['from' => $from, 'to' => $to];
+                }
+                $replace = function (&$val) use ($replaces) {
+                    foreach ($replaces as $replace) {
+                        $replace['from'] = (array)$replace['from'];
+                        foreach ($replace['from'] as $from) {
+                            if ($from === $val) {
+                                $val = $replace['to'];
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                };
+            }
+
+            $formatter = function ($array, $recursive, $level = 0) use ($format, &$formatter, $keys, $replace) {
+                $isLevel = $recursive === true || in_array($level, $recursive);
+                if ($isLevel && is_array($recursive)) {
+                    array_splice($recursive, array_search($level, $recursive), 1);
+                }
+                $goFuther = !!$recursive;
+
+                foreach ($array as $key => &$value) {
+                    if (is_array($value)) {
+                        if ($goFuther) {
+                            $value = $formatter($value, $recursive, $level + 1);
+                        }
+                    } elseif ($isLevel && ($keys === null || in_array($key, $keys))) {
+                        if ((($keys !== null && in_array($key,
+                                    $keys)) || is_numeric($key))) {
+                            if (!$replace($value) && !empty($value)) {
+                                try {
+                                    $this->__checkNumericParam($value, 'num', true);
+                                    $value = $format($value);
+                                } catch (\Exception $e) {
+                                }
+                            }
+                        } else {
+                            try {
+                                $this->__checkNumericParam($value, 'num', true);
+                                $value = $format($value);
+                            } catch (\Exception $e) {
+                            }
+                        }
+
+                    }
+                }
+                unset($value);
+                return $array;
+            };
+
+            return $formatter($params['num'], $recursive);
+        }
+
+        $this->__checkNumericParam($params['num'], 'num', true);
+        return $format($params['num']);
     }
 
     protected function funcNumRand(string $params): int

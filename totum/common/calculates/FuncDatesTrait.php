@@ -22,7 +22,7 @@ trait FuncDatesTrait
         return $lang->dateFormat($date, $fStr);
     }
 
-    protected function funcDateAdd(string $params): ?string
+    protected function funcDateAdd(string $params): null|array|string
     {
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['date']);
@@ -54,19 +54,111 @@ trait FuncDatesTrait
 
     /** @noinspection PhpMissingBreakStatementInspection */
 
-    protected function funcDateFormat(string $params): string
+    protected function funcDateFormat(string $params): array|string
     {
-        $params = $this->getParamsArray($params);
+        $params = $this->getParamsArray($params, ['replace'], ['replace']);
 
         $this->__checkRequiredParams($params, ['date', 'format']);
-        if (empty($params['date'])) {
+
+        if (($params['date'] ?? null) === []) {
+            return [];
+        } elseif (empty($params['date'])) {
             return '';
         }
+        $this->__checkNotArrayParams($params, ['format']);
+        $format = strval($params['format']);
 
-        $this->__checkNotArrayParams($params, ['date', 'format']);
+        if (is_array($params['date'])) {
+            $recursive = match ($params['recursive'] ?? true) {
+                'false', false => false,
+                'true', true => true,
+                default => $params['recursive']
+            };
+            if ($recursive === false) {
+                $recursive = [0];
+            }
 
-        $date = $this->__checkGetDate(($params['date'] ?? ''), 'date', 'DateFormat');
-        return $this->dateFormat($date, strval($params['format']), $params['lang'] ?? null);
+            $keys = $params['keys'] ?? null;
+            if ($keys) {
+                $keys = (array)$keys;
+            }
+
+            $replace = function (&$v) {
+                return false;
+            };
+            if ($params['replace'] ?? []) {
+                $replaces = [];
+                foreach ($params['replace'] as $r) {
+                    $r = $this->getExecVariableVal($r);
+                    if (count($r) === 1) {
+                        $from = [null, ''];
+                        $to = $r[0];
+                    } else {
+                        $from = $r[0];
+                        $to = $r[1];
+                    }
+                    if (is_array($to)) {
+                        throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.',
+                            'replace->to'));
+                    }
+                    $replaces[] = ['from' => $from, 'to' => $to];
+                }
+                $replace = function (&$val) use ($replaces) {
+                    foreach ($replaces as $replace) {
+                        $replace['from'] = (array)$replace['from'];
+                        foreach ($replace['from'] as $from) {
+                            if ($from === $val) {
+                                $val = $replace['to'];
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                };
+            }
+
+            $formatter = function ($array, $recursive, $level = 0) use ($format, &$formatter, $keys, $replace) {
+                $isLevel = $recursive === true || in_array($level, $recursive);
+                if ($isLevel && is_array($recursive)) {
+                    array_splice($recursive, array_search($level, $recursive), 1);
+                }
+                $goFuther = !!$recursive;
+
+                foreach ($array as $key => &$value) {
+                    if (is_array($value)) {
+                        if ($goFuther) {
+                            $value = $formatter($value, $recursive, $level + 1);
+                        }
+                    } elseif ($isLevel && ($keys === null || in_array($key, $keys))) {
+                        if ((($keys !== null && in_array($key,
+                                    $keys)) || is_numeric($key)) ){
+                            if (!$replace($value) && !empty($value)) {
+                                try {
+                                    $date = $this->__checkGetDate($value, 'date', 'DateFormat');
+                                    $value = $this->dateFormat($date, $format, $params['lang'] ?? null);
+                                } catch (\Exception $e) {
+                                }
+                            }
+                        } else {
+                            try {
+                                $date = $this->__checkGetDate($value, 'date', 'DateFormat');
+                                $value = $this->dateFormat($date, $format, $params['lang'] ?? null);
+                            } catch (\Exception $e) {
+                            }
+                        }
+
+                    }
+                }
+                unset($value);
+                return $array;
+            };
+
+            return $formatter($params['date'], $recursive);
+
+        } else {
+            $date = $this->__checkGetDate($params['date'], 'date', 'DateFormat');
+        }
+        return $this->dateFormat($date, $format, $params['lang'] ?? null);
     }
 
     protected function funcDateWeekDay(string $params): string
@@ -151,24 +243,24 @@ trait FuncDatesTrait
                     return (object)$row;
                 };
 
-                $startDay= match ($params['weekdaystart'] ?? null) {
-                        default => 1,
-                        'tue' => 2,
-                        'wed' => 3,
-                        'thu' => 4,
-                        'fri' => 5,
-                        'sat' => 6,
-                        'sun' => 7,
-                    };
+                $startDay = match ($params['weekdaystart'] ?? null) {
+                    default => 1,
+                    'tue' => 2,
+                    'wed' => 3,
+                    'thu' => 4,
+                    'fri' => 5,
+                    'sat' => 6,
+                    'sun' => 7,
+                };
 
-                if ($date->format('N') >= $startDay){
+                if ($date->format('N') >= $startDay) {
                     $startDays = $date->format('N') - $startDay;
-                }else{
+                } else {
                     $startDays = $date->format('N') + (7 - $startDay);
                 }
 
 
-                $start = $date->modify('-'.$startDays . ' days -' . $date->format('H') . 'hours -' . $date->format('i') . 'minutes - ' . $date->format('s') . ' sec');
+                $start = $date->modify('-' . $startDays . ' days -' . $date->format('H') . 'hours -' . $date->format('i') . 'minutes - ' . $date->format('s') . ' sec');
                 break;
             case 'month':
                 $func = function ($start) use (&$result, $params) {

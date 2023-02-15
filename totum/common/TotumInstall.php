@@ -1011,8 +1011,8 @@ CONF;
 
                             if ($schemaRow['name'] === 'ttm__user_documentation') {
                                 foreach ($schemaRow['data']['rows'] as &$row) {
-                                    if(!empty($row['for_roles']['v'])){
-                                        foreach ($row['for_roles']['v'] as &$id){
+                                    if (!empty($row['for_roles']['v'])) {
+                                        foreach ($row['for_roles']['v'] as &$id) {
                                             $id = $funcRoles($id);
                                         }
                                         unset($id);
@@ -1238,6 +1238,10 @@ CONF;
                     $categoriesMatches[$id] = $outId;
                     return $categoriesMatches[$id];
                 }
+            }
+
+            if (is_null($cat)) {
+                return null;
             }
 
             throw new errorException($this->translate('Category [[%s]] not found for replacement.', $cat));

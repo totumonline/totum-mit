@@ -139,6 +139,9 @@ class CalculateSelect extends Calculate
                 if (!is_array($row) || !key_exists('value', $row)) {
                     continue;
                 }
+                if (is_array($row['value']) || is_bool($row['value'])) {
+                    throw new errorException($this->translate('[[%s]] should be of type string.', 'value in rowList for select'));
+                }
                 $selectList[$row['value']] = [$row['title']];                   //0
                 $selectList[$row['value']][] = !empty($row['is_del']) ? 1 : 0;  //1
                 $selectList[$row['value']][] = $row['section'] ?? null;         //2

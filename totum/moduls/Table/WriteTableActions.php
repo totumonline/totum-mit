@@ -217,9 +217,21 @@ class WriteTableActions extends ReadTableActions
 
     public function selectSourceTableAction()
     {
+
+        if (is_string($this->post['data'] ?? null)) {
+            if (str_starts_with($this->post['data'],
+                'e-')) {
+                $itemData = $this->getEditRow($this->post['data'], [], []);
+            } else {
+                $itemData = $this->getInsertRow($this->post['data']);
+            }
+        } else {
+            $itemData = json_decode($this->post['data'], true) ?? [];
+        }
+
         $this->Table->selectSourceTableAction(
             $this->post['field_name'],
-            json_decode($this->post['data'], true) ?? []
+            $itemData
         );
         return ['ok' => true];
     }
@@ -234,7 +246,10 @@ class WriteTableActions extends ReadTableActions
                         if ($this->post['loadSelects'] === 'all' || ($field['codeSelectIndividual'] ?? false)) {
                             $item = $res['row'];
                             $item = array_map(fn($x) => is_array($x) && key_exists('v', $x) ? $x['v'] : $x, $item);
-                            $selects[$field['name']] = $this->getEditSelect(['field' => $field['name'], 'item' => $item], null, null, true);
+                            $selects[$field['name']] = $this->getEditSelect(['field' => $field['name'], 'item' => $item],
+                                null,
+                                null,
+                                true);
                         }
                     }
                 }
@@ -265,7 +280,7 @@ class WriteTableActions extends ReadTableActions
             $hash,
             $summData
         );
-        return $this->Table->checkEditRow($summData,$tableData);
+        return $this->Table->checkEditRow($summData, $tableData);
     }
 
 }

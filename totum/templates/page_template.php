@@ -7,19 +7,19 @@
     <script src="/js/libs.js?v=c27fdf7"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=cf1ce4e">
+          href="/css/main.css?v=b38dbdb">
 
     <?php
     if ($isCreatorView ?? null) { ?>
-        <script src="/js/functions.js?v=c32dcaf"></script>
+        <script src="/js/functions.js?v=74a6233"></script>
         <?php
         echo '<script>App.functions=App.functions.concat(' . $this->Config->getExtFunctionsTemplates() . ')</script>';
         ?>
         <?php
     } ?>
 
-    <script src="/js/main.js?v=8ade8c7"></script>
-    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?3"></script>
+    <script src="/js/main.js?v=472497e"></script>
+    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?4"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 
 

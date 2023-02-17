@@ -21,6 +21,10 @@ use totum\models\Table;
 
 abstract class RealTables extends aTable
 {
+    /**
+     * @var array|bool|int[]|mixed|string|string[]
+     */
+
     protected $header = [];
     protected $cachedUpdate;
     protected $caches = [];
@@ -162,7 +166,7 @@ abstract class RealTables extends aTable
             throw new errorException($this->translate('You are not allowed to delete from this table',
                 $this->tableRow['title']));
         } else {
-            switch ($this->tableRow['deleting']) {
+            switch ($this->getDeleteMode()) {
                 case 'none':
                 case 'delete':
                     if ($this->tableRow['type'] === 'cycles') {
@@ -1065,7 +1069,7 @@ abstract class RealTables extends aTable
                 $this->changeIds['deleted'][$row['id']] = null;
                 $this->changeInOneRecalcIds['deleted'][$row['id']] = null;
                 foreach ($this->sortedFields['column'] as $field) {
-                    if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
+                    if ($field['type'] === 'file' && $this->getDeleteMode() !== 'hide') {
                         $this->loadRowsByIds([$row['id']]);
                         File::deleteFilesOnCommit(
                             Field::init($field,
@@ -1926,4 +1930,5 @@ abstract class RealTables extends aTable
         }
         return [$where, $params];
     }
+
 }

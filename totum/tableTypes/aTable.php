@@ -70,6 +70,8 @@ abstract class aTable
      * @var array|bool|string
      */
     protected $recalculateWithALog = false;
+    protected bool $deleteForce = false;
+
     protected $isTableDataChanged = false;
 
     /**
@@ -334,6 +336,16 @@ abstract class aTable
                 return $changes;
             }]
         );
+    }
+
+    protected function getDeleteMode()
+    {
+        return $this->deleteForce ? 'delete' : $this->tableRow['deleting'];
+    }
+
+    public function setDeleteForce()
+    {
+        return $this->deleteForce = true;
     }
 
 
@@ -1130,6 +1142,7 @@ CODE;;
         $this->inAddRecalc = [];
         $this->onCalculating = false;
         $this->recalculateWithALog = false;
+        $this->deleteForce = false;
     }
 
 

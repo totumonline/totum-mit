@@ -42,6 +42,7 @@ class RU implements LangInterface
         'The parameter [[%s]] should be of type true/false.' => 'Параметр [[%s]] должен быть типа true/false.',
         'The parameter [[%s]] should [[not]] be of type row/list.' => 'Параметр [[%s]] не должен быть типа row/list.',
         'The parameter [[%s]] should be of type string.' => 'Параметр [[%s]] должен быть типа строка.',
+        '[[%s]] should be of type string.' => '[[%s]] должен быть типа строка.',
         'The cycles table is specified incorrectly.' => 'Таблица циклов указана неверно.',
 
         'Language %s not found.' => 'Язык %s не найден.',
@@ -233,7 +234,7 @@ class RU implements LangInterface
         'A scheme exists - choose another one to install.' => 'Схема существует - выберите другую для установки.',
         'You can\'t install totum in schema "public"' => 'Нельзя устанавливать Тотум в схему public',
         'Category [[%s]] not found for replacement.' => 'Категория [[%s]] не найдена для замены.',
-        'Role [[%s]] not found for replacement.' => 'Категория [[%s]] не найдена для замены.',
+        'Role [[%s]] not found for replacement.' => 'Роль [[%s]] не найдена для замены.',
         'Branch [[%s]] not found for replacement.' => 'Ветка [[%s]] не найдена для замены.',
         'Error saving file %s' => 'Ошибка сохранения файла %s',
         'A nonexistent [[%s]] property was requested.' => 'Запрошено несуществующее свойство [[%s]].',

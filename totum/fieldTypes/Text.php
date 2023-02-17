@@ -100,7 +100,7 @@ class Text extends Field
                     if ($valTmp !== '') {
                         $valTmp .= "\n";
                     }
-                    $valTmp .= $v;
+                    $valTmp .= is_array($v) ? 'Array' : $v;
                 }
                 $val = $valTmp;
             } else {

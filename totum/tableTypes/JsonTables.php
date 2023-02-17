@@ -435,7 +435,7 @@ abstract class JsonTables extends aTable
                             );
                         }
                     };
-                    switch ($this->tableRow['deleting']) {
+                    switch ($this->getDeleteMode()) {
                         case 'none':
                             if ($channel !== 'inner') {
                                 throw new errorException($this->translate('You are not allowed to delete from this table'));
@@ -1119,7 +1119,7 @@ abstract class JsonTables extends aTable
                             'delete'
                         );
                     }
-                    if ($field['type'] === 'file' && $this->tableRow['deleting'] !== 'hide') {
+                    if ($field['type'] === 'file' && $this->getDeleteMode() !== 'hide') {
                         File::deleteFilesOnCommit(
                             Field::init($field,
                                 $this)->filterDuplicatedFiled(

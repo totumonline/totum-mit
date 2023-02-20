@@ -218,17 +218,16 @@ class WriteTableActions extends ReadTableActions
     public function selectSourceTableAction()
     {
 
-        if (is_string($this->post['data'] ?? null)) {
-            if (str_starts_with($this->post['data'],
-                'e-')) {
-                $itemData = $this->getEditRow($this->post['data'], [], []);
-            } else {
-                $itemData = $this->getInsertRow($this->post['data']);
-            }
+
+        if (str_starts_with($this->post['data'],
+            'e-')) {
+            $itemData = $this->getEditRow($this->post['data'], [], []);
+        } elseif (str_starts_with($this->post['data'],
+            'i-')) {
+            $itemData = $this->getInsertRow($this->post['data']);
         } else {
             $itemData = json_decode($this->post['data'], true) ?? [];
         }
-
         $this->Table->selectSourceTableAction(
             $this->post['field_name'],
             $itemData

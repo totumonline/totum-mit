@@ -100,7 +100,7 @@ class ServicesConnector
     public function setAnswer(ServerRequest $request): void
     {
         if (($request->getQueryParams()['check_domain_key'] ?? false) === 'true') {
-            die($this->getServicesAccountData()['h_service_domain_check_key'] ?: 'empty');
+            die($this->getServicesAccountData(true)['h_service_domain_check_key'] ?: 'empty');
         }
 
         $body = json_decode($request->getBody(), true);
@@ -115,7 +115,7 @@ class ServicesConnector
         $this->Config->getServicesVarObject()->setVarValue($hash, $data, 'done');
     }
 
-    protected function getServicesAccountData()
+    protected function getServicesAccountData($notDecryptKey = false)
     {
         if (is_null($this->servicesAccountData)) {
             $header = $this->Config->getSql()->get(
@@ -127,7 +127,7 @@ SQL
             $this->servicesAccountData['h_services_url'] = $header['h_services_url']['v'] ?? '';
             $this->servicesAccountData['h_service_domain_check_key'] = $header['h_service_domain_check_key']['v'] ?? '';
             $this->servicesAccountData['h_services_number'] = $header['h_services_number']['v'] ?? '';
-            $this->servicesAccountData['h_services_key'] = Crypt::getDeCrypted($header['h_services_key']['v'] ?? '',
+            $this->servicesAccountData['h_services_key'] = $notDecryptKey ? '' : Crypt::getDeCrypted($header['h_services_key']['v'] ?? '',
                 $this->Config->getCryptKeyFileContent());
         }
         return $this->servicesAccountData;

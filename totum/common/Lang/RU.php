@@ -477,68 +477,8 @@ class RU implements LangInterface
         'Set the port in the LDAP settings table' => 'Задайте порт в таблице настроек LDAP',
 
     ];
-    protected const monthRods = [
-        1 => 'января',
-        'февраля',
-        'марта',
-        'апреля',
-        'мая',
-        'июня',
-        'июля',
-        'августа',
-        'сентября',
-        'октября',
-        'ноября',
-        'декабря'
-    ];
-    protected const months = [
-        1 => 'январь',
-        'февраль',
-        'март',
-        'апрель',
-        'май',
-        'июнь',
-        'июль',
-        'август',
-        'сентябрь',
-        'октябрь',
-        'ноябрь',
-        'декабрь'
-    ];
-    protected const monthsShort = [
-        1 => 'янв',
-        'фев',
-        'мар',
-        'апр',
-        'май',
-        'июн',
-        'июл',
-        'авг',
-        'сент',
-        'окт',
-        'ноя',
-        'дек'
-    ];
-    protected const weekDays = [
-        1 => 'Понедельник',
-        'Вторник',
-        'Среда',
-        'Четверг',
-        'Пятница',
-        'Суббота',
-        'Воскресенье'
-    ];
-    protected const weekDaysShort = [
-        1 => 'Пн',
-        'Вт',
-        'Ср',
-        'Чт',
-        'Пт',
-        'Сб',
-        'Вс'
-    ];
 
-    /**
+     /**
      * Возвращает сумму прописью
      * @author runcore
      * @uses morph(...)
@@ -660,31 +600,69 @@ class RU implements LangInterface
         return $result;
     }
 
-    /**
-     * @param int $number
-     * @param array $ImRodRoded ['день', 'дней', 'дня']
-     * @return string
-     */
-    public function numbersRusPadegRod(int $number, array $ImRodRoded)
-    {
-        $ostDel = $number % 10;
-        if ($number > 5 && $number < 21 || in_array($ostDel, [5, 6, 7, 8, 9, 0])) {
-            return $ImRodRoded[1];
-        } elseif ($ostDel === 1) {
-            return $ImRodRoded[0];
-        } elseif (in_array($ostDel, [2, 3, 4])) {
-            return $ImRodRoded[2];
-        }
-    }
-
     protected function getConstant($name): array
     {
         return match ($name) {
-            'monthsShort' => static::monthsShort,
-            'months' => static::months,
-            'weekDays' => static::weekDays,
-            'weekDaysShort' => static::weekDaysShort,
-            'monthRods' => static::monthRods,
+            'monthsShort' => [
+                1 => 'янв',
+                'фев',
+                'мар',
+                'апр',
+                'май',
+                'июн',
+                'июл',
+                'авг',
+                'сент',
+                'окт',
+                'ноя',
+                'дек'
+            ],
+            'months' => [
+                1 => 'январь',
+                'февраль',
+                'март',
+                'апрель',
+                'май',
+                'июнь',
+                'июль',
+                'август',
+                'сентябрь',
+                'октябрь',
+                'ноябрь',
+                'декабрь'
+            ],
+            'weekDays' => [
+                1 => 'Понедельник',
+                'Вторник',
+                'Среда',
+                'Четверг',
+                'Пятница',
+                'Суббота',
+                'Воскресенье'
+            ],
+            'weekDaysShort' => [
+                1 => 'Пн',
+                'Вт',
+                'Ср',
+                'Чт',
+                'Пт',
+                'Сб',
+                'Вс'
+            ],
+            'monthRods' => [
+                1 => 'января',
+                'февраля',
+                'марта',
+                'апреля',
+                'мая',
+                'июня',
+                'июля',
+                'августа',
+                'сентября',
+                'октября',
+                'ноября',
+                'декабря'
+            ],
         };
     }
 }

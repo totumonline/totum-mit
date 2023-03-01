@@ -940,7 +940,8 @@ class CalculateAction extends Calculate
                     $link,
                     $id,
                     [],
-                    $params['refresh'] ?? false
+                    $params['refresh'] ?? false,
+                    (array)($params['fields'] ?? []),
                 );
             }
         } elseif (!empty($params['id'])) {
@@ -950,7 +951,8 @@ class CalculateAction extends Calculate
                     $link,
                     $id,
                     [],
-                    $params['refresh'] ?? false
+                    $params['refresh'] ?? false,
+                    (array)($params['fields'] ?? []),
                 );
             }
         } elseif (!empty($params['field'])) {
@@ -962,14 +964,16 @@ class CalculateAction extends Calculate
                 $link,
                 null,
                 $field,
-                $params['refresh'] ?? false
+                $params['refresh'] ?? false,
+                (array)($params['fields'] ?? []),
             );
         } else {
             $this->Table->getTotum()->addLinkPanel(
                 $link,
                 null,
                 [],
-                $params['refresh'] ?? false
+                $params['refresh'] ?? false,
+                (array)($params['fields'] ?? []),
             );
         }
     }

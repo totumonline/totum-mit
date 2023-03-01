@@ -46,7 +46,8 @@ class WriteTableActions extends ReadTableActions
             $data = json_decode($this->post['data'], true);
         }
 
-        return $this->modify(['add' => $data ?? $this->post['hash'] ?? 'new cycle', 'addAfter' => $this->post['insertAfter'] ?? null]);
+        return $this->modify(['add' => $data ?? $this->post['hash'] ?? 'new cycle', 'addAfter' => $this->post['insertAfter'] ?? null],
+            json_decode($this->post['fields'] ?? '[]', true));
     }
 
     public function tmpFileUpload()
@@ -82,13 +83,16 @@ class WriteTableActions extends ReadTableActions
         } else {
             $hash = $this->post['hash'];
         }
-
+        $onlyFields = json_decode($this->post['fields'] ?? '[]', true);
+        if (empty($onlyFields)) {
+            $onlyFields = null;
+        }
         $data = ['rows' => [$this->getInsertRow($hash,
             json_decode($this->post['data'], true),
             $this->post['tableData'] ?? [],
             $this->post['clearField'] ?? null)]];
 
-        $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);
+        $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', [], fieldNames: $onlyFields);
         $res = ['row' => $data['rows'][0], 'hash' => $hash];
         $this->addLoadedSelects($res);
         return $res;
@@ -109,6 +113,7 @@ class WriteTableActions extends ReadTableActions
         } else {
             $hash = $this->post['hash'];
         }
+
         if ($hash ?? null) {
             $row = $this->getEditRow($hash,
                 json_decode($this->post['data'], true),
@@ -119,8 +124,14 @@ class WriteTableActions extends ReadTableActions
             $editData = json_decode($this->post['data'], true) ?? [];
             $row = $this->Table->checkEditRow($editData, $this->post['tableData'] ?? []);
         }
-
-        $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]], 'edit', [])['rows'][0];
+        $onlyFields = json_decode($this->post['fields'] ?? '[]', true);
+        if (empty($onlyFields)) {
+            $onlyFields = null;
+        }
+        $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]],
+            'edit',
+            [],
+            fieldNames: $onlyFields)['rows'][0];
         $this->addLoadedSelects($res);
 
         return $res;
@@ -129,7 +140,8 @@ class WriteTableActions extends ReadTableActions
     public function saveEditRow()
     {
         $data = json_decode($this->post['data'], true) ?? [];
-        return $this->modify(['modify' => [$data['id'] => $data ?? []]]);
+        return $this->modify(['modify' => [$data['id'] => $data ?? []]],
+            json_decode($this->post['fields'] ?? '[]', true));
     }
 
     public function csvImport()

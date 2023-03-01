@@ -1436,7 +1436,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
      * @return array
      * @throws errorException
      */
-    protected function getTableClientForm(): array
+    protected function getTableClientForm($onlyFields = []): array
     {
         $result['f'] = [];
         $result['rows'] = [];
@@ -1444,6 +1444,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $result['type'] = $this->Table->getTableRow()['type'];
 
         $visibleFields = $this->Table->getVisibleFields("web");
+        if ($onlyFields) {
+            $visibleFields = array_intersect_key($visibleFields, array_flip($onlyFields));
+        }
         $result['filtersString'] = $this->getFiltersString();
 
         if ($this->User->isCreator()) {
@@ -1531,7 +1534,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     public function getTableData()
     {
         $this->Table->reCalculateFilters('web');
-        $table = $this->getTableClientForm();
+        $table = $this->getTableClientForm(json_decode($this->post['fields'] ?? '[]', true));
         $table['checkIsUpdated'] = 0;
         return $table;
     }
@@ -2076,7 +2079,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $this->getTableClientChangedData([]);
     }
 
-    protected function modify($data)
+    protected function modify($data, $onlyFields=[])
     {
         $tableData = $this->post['tableData'] ?? [];
         $data['modify']['params'] = array_merge(
@@ -2085,10 +2088,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         );
         $this->Table->checkAndModify($tableData, $data);
 
-        return $this->getTableClientChangedData($data, true);
+        return $this->getTableClientChangedData($data, true, $onlyFields);
     }
 
-    protected function getTableClientChangedData($data, $force = false)
+    protected function getTableClientChangedData($data, $force = false, $onlyFields = [])
     {
         $return = [];
         if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh']) || $this->Totum->getConfig()->procVar()) {
@@ -2209,7 +2212,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             $return['chdata']['params'] = $this->Table->getTbl()['params'] ?? [];
             $return['chdata']['f'] = $this->getTableFormat($pageIds ?: []);
-            $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web', $pageIds ?: []);
+            $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web', $pageIds ?: [], fieldNames: $onlyFields?:null);
 
             if (empty($return['chdata']['params'])) {
                 unset($return['chdata']['params']);
@@ -2381,8 +2384,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
                         if ($TreeBranchesFilter && count($result['rows']) && key_exists('tree', $result['rows'][0])) {
                             $rowIds = [];
-                                foreach ($result['rows'] as $row) {
-                                    $rowIds[$row['tree']['v']] = true;
+                            foreach ($result['rows'] as $row) {
+                                $rowIds[$row['tree']['v']] = true;
                             }
 
                             $treeBranches = [];

@@ -540,7 +540,7 @@ class CalculateAction extends Calculate
             'input',
             array_intersect_key(
                 $params,
-                ['value' => 1, 'title' => 1, 'html' => 1, 'hash' => 1, 'refresh' => 1, 'button' => 1, 'close' => 1, 'type' => 1, 'multiple' => 1]
+                ['value' => 1, 'title' => 1, 'html' => 1, 'height'=>1, 'hash' => 1, 'refresh' => 1, 'button' => 1, 'close' => 1, 'type' => 1, 'multiple' => 1]
             )
         );
     }
@@ -1071,7 +1071,7 @@ class CalculateAction extends Calculate
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => $htmlspecialchars, 'close' => !!($params['close'] ?? false)],
+            ['title' => $title, 'width' => $width, 'height' => ($params['height'] ?? null), 'text' => $htmlspecialchars, 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }
@@ -1126,7 +1126,7 @@ class CalculateAction extends Calculate
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'text' => $params['html'] ?? '', 'close' => !!($params['close'] ?? false)],
+            ['title' => $title, 'width' => $width, 'height' => $params['height'] ?? null, 'text' => $params['html'] ?? '', 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }

@@ -1520,9 +1520,16 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         $this->Table->loadDataRow();
         if ($this->Table->loadFilteredRows('web', [$id])) {
+            $onlyFields = json_decode($this->post['fields'] ?? '[]', true);
+            if (empty($onlyFields)) {
+                $onlyFields = null;
+            }
+
             $res['row'] = $this->Table->getValuesAndFormatsForClient(
                 ['rows' => [$this->Table->getTbl()['rows'][$id]]],
-                'edit', []
+                'edit',
+                [],
+                fieldNames: $onlyFields
             )['rows'][0];
             $res['f'] = $this->getTableFormat([]);
             return $res;
@@ -2079,7 +2086,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $this->getTableClientChangedData([]);
     }
 
-    protected function modify($data, $onlyFields=[])
+    protected function modify($data, $onlyFields = [])
     {
         $tableData = $this->post['tableData'] ?? [];
         $data['modify']['params'] = array_merge(
@@ -2212,7 +2219,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             $return['chdata']['params'] = $this->Table->getTbl()['params'] ?? [];
             $return['chdata']['f'] = $this->getTableFormat($pageIds ?: []);
-            $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'], 'web', $pageIds ?: [], fieldNames: $onlyFields?:null);
+            $return['chdata'] = $this->Table->getValuesAndFormatsForClient($return['chdata'],
+                'web',
+                $pageIds ?: [],
+                fieldNames: $onlyFields ?: null);
 
             if (empty($return['chdata']['params'])) {
                 unset($return['chdata']['params']);

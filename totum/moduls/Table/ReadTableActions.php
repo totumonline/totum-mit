@@ -2019,6 +2019,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
         $_tableRow['__withPDF'] = $this->isTableWithPDF();
+        $_tableRow['__xlsx'] = $this->isTableWithXlsxExport();
 
 
         return $_tableRow;
@@ -2595,6 +2596,23 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function isTableWithPDF()
     {
         $data = $this->Totum->getModel('ttm__services')->get(['name' => 'pdf'], 'tables, exclusions');
+        foreach ($data as &$v) {
+            $v = json_decode($v, true);
+        }
+        if (is_array($data['tables'])) {
+            if (in_array('*ALL*', $data['tables'])) {
+                if (!in_array($this->Table->getTableRow()['name'], $data['exclusions'])) {
+                    return true;
+                }
+            } elseif (in_array($this->Table->getTableRow()['name'], $data['tables'])) {
+                return true;
+            }
+        }
+        return false;
+    }
+    protected function isTableWithXlsxExport()
+    {
+        $data = $this->Totum->getModel('ttm__services')->get(['name' => 'xlsx'], 'tables, exclusions');
         foreach ($data as &$v) {
             $v = json_decode($v, true);
         }

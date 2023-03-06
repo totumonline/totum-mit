@@ -2025,6 +2025,25 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return $_tableRow;
     }
 
+    public function excelExport()
+    {
+        if ($this->isTableWithXlsxExport()) {
+            $data = json_decode($this->post['data'], true);
+            $Calc = new CalculateAction('=: linkToFileDownload(file: json`{"filestring": $serv,"name": $#name, "type": "application/xlsx"}`)' . "\n" . 'serv: ServiceXlsxGenerator(template: "*NEW*"; data: $#data)');
+            $filestring = $Calc->execAction('CODE',
+                [],
+                [],
+                [],
+                [],
+                $this->Table,
+                'exec',
+                ['name' => $this->post['title'].'.xlsx', 'data' => $data]);
+
+        } else {
+            throw new errorException('The function is not available');
+        }
+    }
+
     public function dblClick()
     {
         $id = (int)($this->post['id'] ?? 0);
@@ -2610,6 +2629,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
         return false;
     }
+
     protected function isTableWithXlsxExport()
     {
         $data = $this->Totum->getModel('ttm__services')->get(['name' => 'xlsx'], 'tables, exclusions');

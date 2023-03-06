@@ -412,6 +412,7 @@ class RU implements LangInterface
   'Set the binding format in the LDAP settings table' => 'Задайте формат бинда в таблице настроек LDAP',
   'Set the host in the LDAP settings table' => 'Задайте хост в таблице настроек LDAP',
   'Set the port in the LDAP settings table' => 'Задайте порт в таблице настроек LDAP',
+  'The function is not available' => 'Функция не доступна',
 );
 	/**
      * Возвращает сумму прописью

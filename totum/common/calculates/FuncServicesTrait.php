@@ -50,10 +50,10 @@ trait FuncServicesTrait
     protected function funcServiceXlsxGenerator($params)
     {
         $params = $this->getParamsArray($params);
-        return $this->generateorByTemplate($params, 'xlsx', 'xlsx');
+        return $this->generateByTemplate($params, 'xlsx', 'xlsx');
     }
 
-    protected function generateorByTemplate($params, $serviceName, $extention)
+    protected function generateByTemplate($params, $serviceName, $extention)
     {
 
         $this->__checkNotEmptyParams($params, ['template']);
@@ -114,7 +114,7 @@ trait FuncServicesTrait
     protected function funcServiceDocxGenerator($params)
     {
         $params = $this->getParamsArray($params);
-        return $this->generateorByTemplate($params, 'docx', 'docx');
+        return $this->generateByTemplate($params, 'docx', 'docx');
     }
 
     protected function funcServicePDFGenerator($params)

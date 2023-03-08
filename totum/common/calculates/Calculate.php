@@ -468,6 +468,9 @@ class Calculate
         if (is_array($dateFromParams)) {
             throw new errorException($Lang->translate('There should be a date, not a list.'));
         }
+        if(is_bool($dateFromParams)){
+            return null;
+        }
         $dateFromParams = strval($dateFromParams);
         if ($dateFromParams !== '') {
             if (is_numeric($dateFromParams)) {

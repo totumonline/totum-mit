@@ -1135,7 +1135,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         );
 
         if ($settings['pdf'] ?? false) {
-            if (!$this->isTableWithPDF()) {
+            if (!$this->isTableWithPDF() || $this->isServicesBlocked) {
                 throw new errorException($this->translate('PDF printing for this table is switched off'));
             }
             $data = [
@@ -2018,8 +2018,8 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
-        $_tableRow['__withPDF'] = $this->isTableWithPDF();
-        $_tableRow['__xlsx'] = $this->isTableWithXlsxExport();
+        $_tableRow['__withPDF'] = $this->isTableWithPDF() && !$this->isServicesBlocked;
+        $_tableRow['__xlsx'] = $this->isTableWithXlsxExport() && !$this->isServicesBlocked;
 
 
         return $_tableRow;
@@ -2027,7 +2027,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     public function excelExport()
     {
-        if ($this->isTableWithXlsxExport()) {
+        if ($this->isTableWithXlsxExport() && !$this->isServicesBlocked) {
             $data = json_decode($this->post['data'], true);
             $Calc = new CalculateAction('=: linkToFileDownload(file: json`{"filestring": $serv,"name": $#name, "type": "application/xlsx"}`)' . "\n" . 'serv: ServiceXlsxGenerator(template: "*NEW*"; data: $#data)');
             $filestring = $Calc->execAction('CODE',

@@ -43,9 +43,16 @@ class Actions
     protected $Request;
 
     protected $modulePath;
+    protected $isServicesBlocked = true;
 
     public $withLog = true;
     protected array $Cookies = [];
+
+
+    public function unblockServices()
+    {
+        $this->isServicesBlocked = false;
+    }
 
     public function __construct(ServerRequestInterface $Request, string $modulePath, aTable $Table = null, Totum $Totum = null)
     {

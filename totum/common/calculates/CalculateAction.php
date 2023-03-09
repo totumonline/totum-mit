@@ -540,7 +540,7 @@ class CalculateAction extends Calculate
             'input',
             array_intersect_key(
                 $params,
-                ['value' => 1, 'title' => 1, 'html' => 1, 'height'=>1, 'hash' => 1, 'refresh' => 1, 'button' => 1, 'close' => 1, 'type' => 1, 'multiple' => 1]
+                ['value' => 1, 'title' => 1, 'html' => 1, 'height' => 1, 'hash' => 1, 'refresh' => 1, 'button' => 1, 'close' => 1, 'type' => 1, 'multiple' => 1]
             )
         );
     }
@@ -925,7 +925,23 @@ class CalculateAction extends Calculate
             }
         } else {
             $link .= $tableRow ['top'] . '/' . $tableRow['id'] . '/';
-            $Table = $this->Table->getTotum()->getTable($tableRow['id']);
+
+            if ($tableRow['type'] === 'tmp') {
+
+                if ($params['hash'] ?? null) {
+                    $this->__checkNotArrayParams($params, ['hash']);
+                    $hash = $params['hash'];
+                } elseif ($this->Table->getTableRow()['id'] === $tableRow['id']) {
+                    $hash = $this->Table->getTableRow()['sess_hash'];
+                }
+                if (!empty($hash)) {
+                    $link .= '?sess_hash=' . $hash;
+                }
+                $Table = $this->Table->getTotum()->getTable($tableRow['id'], $hash);
+
+            } else {
+                $Table = $this->Table->getTotum()->getTable($tableRow['id']);
+            }
         }
 
         if (!empty($params['bfield']) && !empty($params['bfield']['value'])) {
@@ -976,6 +992,7 @@ class CalculateAction extends Calculate
                 (array)($params['fields'] ?? []),
             );
         }
+
     }
 
     protected function funcLinkToPrint($params)

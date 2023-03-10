@@ -8,7 +8,7 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=b92b982">
-    <script src="/js/main.js?v=7f0d1c5"></script>
+    <script src="/js/main.js?v=b97ef36"></script>
     <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?7"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 

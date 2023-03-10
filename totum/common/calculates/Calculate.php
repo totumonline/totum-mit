@@ -468,7 +468,7 @@ class Calculate
         if (is_array($dateFromParams)) {
             throw new errorException($Lang->translate('There should be a date, not a list.'));
         }
-        if(is_bool($dateFromParams)){
+        if (is_bool($dateFromParams)) {
             return null;
         }
         $dateFromParams = strval($dateFromParams);
@@ -997,8 +997,8 @@ class Calculate
             throw new errorException($this->translate('TOTUM-code format error [[%s]].', $paramVal));
         }
 
-        foreach ($codes as &$v){
-            if(is_array($v)){
+        foreach ($codes as &$v) {
+            if (is_array($v)) {
                 $v = $this->__getValue($v);
             }
         }
@@ -1223,6 +1223,11 @@ class Calculate
                 if ($nameVar[0] === '$') {
                     $nameVar = $this->getParam($nameVar, ['type' => 'param', 'param' => $nameVar]);
                 }
+
+                if (is_array($nameVar) || is_bool($nameVar)) {
+                    throw new errorException($this->translate('Invalid parameter name'));
+                }
+                $nameVar = (string)$nameVar;
 
                 if (array_key_exists($nameVar, $this->whileIterators)) {
                     $r = $this->whileIterators[$nameVar];

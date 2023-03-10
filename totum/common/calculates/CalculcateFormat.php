@@ -299,7 +299,7 @@ class CalculcateFormat extends Calculate
     protected function funcExec(string $params): mixed
     {
         if ($params = $this->getParamsArray($params, ['var'], ['var'])) {
-            if (!empty($code = $params['code'] ?? $params['kod'])) {
+            if (!empty($code = $params['code'] ?? $params['kod'] ?? '')) {
 
                 if (preg_match('/^[a-z_0-9]{3,}$/', $code) && key_exists($code, $this->Table->getFields())) {
                     $code = $this->Table->getFields()[$code]['format'] ?? '';

@@ -10,7 +10,6 @@ class EN implements LangInterface
     use SearchTrait;
 
     public const TRANSLATES = array (
-  'The function is not available' => NULL,
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

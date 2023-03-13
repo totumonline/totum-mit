@@ -79,7 +79,8 @@ trait FuncTablesTrait
         $query = <<<SQL
 select table_name->>'v' as table_name, name->>'v' as name, version->>'v' as version from tables_fields where data->'v'->'code'->'==usedFields=='-> :table ->> :field = '1'
            OR data->'v'->'codeSelect'->'==usedFields=='-> :table ->> :field = '1'
-            OR data->'v'->'codeAction'->'==usedFields=='-> :table ->> :field = '1';
+            OR data->'v'->'codeAction'->'==usedFields=='-> :table ->> :field = '1'
+            OR data->'v'->'format'->'==usedFields=='-> :table ->> :field = '1';
 SQL;
 
 
@@ -159,6 +160,7 @@ SQL;
                         'topbuttons' => $params['topbuttons'] ?? true,
                         'bottombuttons' => $params['bottombuttons'] ?? true,
                         'pointing' => $params['pointing'] ?? null,
+                        'hidedots' => $this->__checkBoolOrNull($params['hidedots'] ?? null),
                     ]
                 );
             }

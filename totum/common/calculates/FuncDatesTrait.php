@@ -131,8 +131,8 @@ trait FuncDatesTrait
                         }
                     } elseif ($isLevel && ($keys === null || in_array($key, $keys))) {
                         if ((($keys !== null && in_array($key,
-                                    $keys)) || is_numeric($key)) ){
-                            if (!$replace($value) && !empty($value)) {
+                                    $keys)) || is_numeric($key))) {
+                            if (!$replace($value) && !empty($value) && !is_numeric($value)) {
                                 try {
                                     $date = $this->__checkGetDate($value, 'date', 'DateFormat');
                                     $value = $this->dateFormat($date, $format, $params['lang'] ?? null);
@@ -141,8 +141,10 @@ trait FuncDatesTrait
                             }
                         } else {
                             try {
-                                $date = $this->__checkGetDate($value, 'date', 'DateFormat');
-                                $value = $this->dateFormat($date, $format, $params['lang'] ?? null);
+                                if (!is_numeric($value)) {
+                                    $date = $this->__checkGetDate($value, 'date', 'DateFormat');
+                                    $value = $this->dateFormat($date, $format, $params['lang'] ?? null);
+                                }
                             } catch (\Exception $e) {
                             }
                         }

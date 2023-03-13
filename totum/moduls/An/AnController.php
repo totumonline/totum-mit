@@ -102,6 +102,14 @@ class AnController extends interfaceController
                 $result['links'] = $links;
             }
             if ($panels = $this->Totum->getPanelLinks()) {
+                foreach ($panels as &$panel) {
+                    if(preg_match('~^/Table/\d+/\d+/\d+/~', $panel['uri'])){
+                        $panel['uri'] = str_replace('/Table/', '/An/', $panel['uri']);
+                    }elseif (preg_match('~^/Table/(\d+)/(\d+)/~', $panel['uri'], $matches)){
+                        $panel['uri']=str_replace('/Table/'.$matches[1].'/'.$matches[2].'/', '/An/'.$matches[2], $panel['uri']);
+                    }
+
+                }
                 $result['showPanels'] = $panels;
             }
             if ($links = $this->Totum->getInterfaceDatas()) {

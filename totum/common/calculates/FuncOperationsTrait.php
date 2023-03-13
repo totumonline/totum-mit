@@ -182,6 +182,7 @@ trait FuncOperationsTrait
         if (empty($params['file'])) {
             throw new errorException($this->translate('Fill in the parameter [[%s]].', 'file'));
         }
+        $this->__checkNotArrayParams($params, ['file']);
 
         return File::getContent($params['file'], $this->Table->getTotum()->getConfig());
     }

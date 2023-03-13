@@ -468,6 +468,9 @@ class Calculate
         if (is_array($dateFromParams)) {
             throw new errorException($Lang->translate('There should be a date, not a list.'));
         }
+        if (is_bool($dateFromParams)) {
+            return null;
+        }
         $dateFromParams = strval($dateFromParams);
         if ($dateFromParams !== '') {
             if (is_numeric($dateFromParams)) {
@@ -994,8 +997,8 @@ class Calculate
             throw new errorException($this->translate('TOTUM-code format error [[%s]].', $paramVal));
         }
 
-        foreach ($codes as &$v){
-            if(is_array($v)){
+        foreach ($codes as &$v) {
+            if (is_array($v)) {
                 $v = $this->__getValue($v);
             }
         }
@@ -1221,6 +1224,11 @@ class Calculate
                     $nameVar = $this->getParam($nameVar, ['type' => 'param', 'param' => $nameVar]);
                 }
 
+                if (is_array($nameVar) || is_bool($nameVar)) {
+                    throw new errorException($this->translate('Invalid parameter name'));
+                }
+                $nameVar = (string)$nameVar;
+
                 if (array_key_exists($nameVar, $this->whileIterators)) {
                     $r = $this->whileIterators[$nameVar];
                 } else {
@@ -1439,6 +1447,15 @@ class Calculate
             throw new errorException($this->translate('The [[%s]] parameter is not correct.', $paramName));
         }
         return $date;
+    }
+
+    protected function __checkBoolOrNull(mixed $fieldvalue)
+    {
+        return match ($fieldvalue) {
+            'true', true => true,
+            'false', false => false,
+            default => null
+        };
     }
 
 

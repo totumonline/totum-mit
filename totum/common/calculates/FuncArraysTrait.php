@@ -651,7 +651,7 @@ trait FuncArraysTrait
 
 
         if (empty($params['key'])) {
-            $keys = [['value', 1]];
+            $keys = [['value', 1, null]];
         } else {
             $keys = [];
 

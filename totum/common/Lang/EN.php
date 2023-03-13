@@ -6,13 +6,12 @@ use DateTime;
 
 class EN implements LangInterface
 {
-
     use TranslateTrait;
     use SearchTrait;
 
-    public const TRANSLATES = [];
-
-    public function dateFormat(DateTime $date, $fStr): string
+    public const TRANSLATES = array (
+);
+	public function dateFormat(DateTime $date, $fStr): string
     {
         $result = '';
         foreach (preg_split(

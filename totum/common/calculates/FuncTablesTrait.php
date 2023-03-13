@@ -160,6 +160,7 @@ SQL;
                         'topbuttons' => $params['topbuttons'] ?? true,
                         'bottombuttons' => $params['bottombuttons'] ?? true,
                         'pointing' => $params['pointing'] ?? null,
+                        'hidedots' => $this->__checkBoolOrNull($params['hidedots'] ?? null),
                     ]
                 );
             }

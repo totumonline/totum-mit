@@ -1449,6 +1449,15 @@ class Calculate
         return $date;
     }
 
+    protected function __checkBoolOrNull(mixed $fieldvalue)
+    {
+        return match ($fieldvalue) {
+            'true', true => true,
+            'false', false => false,
+            default => null
+        };
+    }
+
 
     protected function __checkTableIdOrName($tableId, string $paramName): array
     {

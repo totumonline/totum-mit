@@ -18,7 +18,7 @@ use totum\tableTypes\aTable;
 class CalculcateFormat extends Calculate
 {
     protected const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide', 'placeholder', 'showhand', 'expand', 'textasvalue'];
-    protected const tableformats = ['buttons', 'topbuttons', 'extbuttons', 'blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablehtml', 'tablecomment', 'browsertitle', 'interlace', 'printbuttons', 'hideadd'];
+    protected const tableformats = ['hidedots', 'buttons', 'topbuttons', 'extbuttons', 'blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablehtml', 'tablecomment', 'browsertitle', 'interlace', 'printbuttons', 'hideadd'];
     protected const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration', 'rowcomment'];
     protected const floatFormat = ['fill', 'glue', 'maxheight', 'maxwidth', 'nextline', 'blocknum', 'height', 'breakwidth'];
 
@@ -175,9 +175,9 @@ class CalculcateFormat extends Calculate
 
                 $values = [array_intersect_key($params,
                     array_flip(['text', 'code', 'icon', 'background', 'vars', 'refresh']))];
-                if(!empty($params['var'])){
-                    foreach ($params['var'] as $v){
-                        $values[0]['vars'][$v['field']]=$v['value'];
+                if (!empty($params['var'])) {
+                    foreach ($params['var'] as $v) {
+                        $values[0]['vars'][$v['field']] = $v['value'];
                     }
                 }
                 return ['type' => 'buttons', 'value' => $values];
@@ -363,14 +363,41 @@ class CalculcateFormat extends Calculate
     {
         if ($params = $this->getParamsArray(
             $params,
-            ['fieldhide', 'fieldtitle'],
+            ['fieldhide', 'fieldtitle', 'hidedots'],
             array_merge(['condition'], static::tableformats)
         )) {
 
             if ($this->getConditionsResult($params)) {
                 foreach (static::tableformats as $format) {
                     if (key_exists($format, $params)) {
-                        if (in_array($format, ['fieldhide', 'fieldtitle'])) {
+                        if ($format === 'hidedots') {
+                            foreach ($params[$format] as $fieldparam) {
+                                $_fieldparam = $this->getCodes($fieldparam);
+                                if (count($_fieldparam) === 3) {
+                                    if (($_fieldparam['comparison'] ?? null) === '=') {
+                                        $fieldname = $this->__getValue($_fieldparam[0]);
+                                        $fieldvalue = $this->__getValue($_fieldparam[1]);
+                                        if (in_array($fieldname, ['window', 'table'])) {
+                                            $fieldvalue = $this->__checkBoolOrNull($fieldvalue);
+                                            if (is_bool($fieldvalue)) {
+                                                $this->formatArray[$format][substr($fieldname, 0, 1)] = $fieldvalue;
+                                            }
+                                            continue;
+                                        }
+                                    }
+                                } elseif (count($_fieldparam) === 1) {
+                                    $fieldvalue = $this->__getValue($_fieldparam[0]);
+                                    $fieldvalue = $this->__checkBoolOrNull($fieldvalue);
+                                    if (is_bool($fieldvalue)) {
+                                        $this->formatArray[$format]['w'] = $fieldvalue;
+                                        $this->formatArray[$format]['t'] = $fieldvalue;
+                                    }
+                                    continue;
+                                }
+                                throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                                    $fieldparam));
+                            }
+                        } elseif (in_array($format, ['fieldhide', 'fieldtitle'])) {
                             foreach ($params[$format] as $fieldparam) {
                                 $fieldparam = $this->getCodes($fieldparam);
                                 if (count($fieldparam) !== 3 || $fieldparam['comparison'] !== '=') {
@@ -464,5 +491,6 @@ class CalculcateFormat extends Calculate
             }
         }
     }
+
 
 }

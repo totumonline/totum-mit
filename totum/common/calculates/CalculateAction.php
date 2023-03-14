@@ -1509,7 +1509,7 @@ class CalculateAction extends Calculate
     {
         $notPrepareParams = $isFieldSimple ? [] : ['field'];
 
-        if ($params = $this->getParamsArray($params, ['field'], $notPrepareParams)) {
+        if ($params = $this->getParamsArray($params, ['field', 'var'], $notPrepareParams, ['var'])) {
 
             if (!empty($params['cycle'])) {
                 foreach ((array)$params['cycle'] as $cycle) {
@@ -1795,6 +1795,16 @@ class CalculateAction extends Calculate
             return;
         }
 
+        $params['var'] = $params['var'] ?? [];
+        $this->__checkListParam($params['var'], 'var');
+        $vars=[];
+        if($params['var']){
+            foreach ($params['var'] as $_v){
+                $vars[$_v['field']]=$_v['value'];
+            }
+        }
+
+
         $params['field'] = $params['field'][0] ?? null;
         if (!$params['field']) {
             throw new errorException($this->translate('Fill in the parameter [[%s]].', 'field'));
@@ -1825,8 +1835,10 @@ class CalculateAction extends Calculate
                     $table->getTbl(),
                     $table->getTbl(),
                     $table,
-                    'exec'
+                    'exec',
+                    var: $vars
                 );
+
             }
         } else {
             $CA->execAction(
@@ -1836,7 +1848,8 @@ class CalculateAction extends Calculate
                 $table->getTbl(),
                 $table->getTbl(),
                 $table,
-                'exec'
+                'exec',
+                var: $vars
             );
         }
     }

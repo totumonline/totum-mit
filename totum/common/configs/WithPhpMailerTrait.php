@@ -9,7 +9,7 @@ trait WithPhpMailerTrait
 {
     abstract protected function getDefaultSender();
 
-    public function sendMail($to, $title, $body, $attachments = [], $from = null)
+    public function sendMail($to, $title, $body, $attachments = [], $from = null, $replyTo = null, $hcopy = null)
     {
         list($body, $attachments) = $this->mailBodyAttachments($body, $attachments);
 
@@ -39,6 +39,13 @@ trait WithPhpMailerTrait
             $mail->setFrom($from, $from);
             foreach ((array)$to as $_to) {
                 $mail->addAddress($_to);     // Add a recipient
+            }
+
+            if($replyTo){
+                $mail->addReplyTo($replyTo);
+            }
+            if($hcopy){
+                $mail->addBCC($hcopy);
             }
 
             foreach ($attachments as $innrName => $fileString) {

@@ -680,7 +680,10 @@ class CalculateAction extends Calculate
                 $params['title'],
                 $params['body'],
                 $params['files'] ?? [],
-                $params['from'] ?? null
+                $params['from'] ?? null,
+                replyTo: $params['replyto'] ?? null,
+                hcopy: $params['hiddencopy'] ?? null,
+
             );
 
             if ($toBfl) {

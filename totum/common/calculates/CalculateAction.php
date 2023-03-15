@@ -1512,8 +1512,7 @@ class CalculateAction extends Calculate
     {
         $notPrepareParams = $isFieldSimple ? [] : ['field'];
 
-        if ($params = $this->getParamsArray($params, ['field', 'var'], $notPrepareParams, ['var'])) {
-
+        if ($params = $this->getParamsArray($params, ['field', 'var'], $notPrepareParams, ['var', 'where', 'filter', 'key'])) {
             if (!empty($params['cycle'])) {
                 foreach ((array)$params['cycle'] as $cycle) {
                     $tmpParams = $params;
@@ -1785,6 +1784,7 @@ class CalculateAction extends Calculate
                     $table->setWithALogTrue($params['log']);
                 }
                 $where = $params['where'] ?? [];
+
                 $table->actionSet($fields, $where, null);
             }
         );

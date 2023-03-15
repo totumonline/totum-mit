@@ -905,6 +905,12 @@ class CalculateAction extends Calculate
         $link = '/Table/';
 
 
+        $columns = match ($params['columns'] ?? null) {
+            1, '1' => 1,
+            2, '2' => 2,
+            default => null
+        };
+
         if ($tableRow['type'] === 'calcs') {
             if ($topTableRow = $this->Table->getTotum()->getTableRow($tableRow['tree_node_id'])) {
                 if ($this->Table->getTableRow()['type'] === 'calcs' && (int)$tableRow['tree_node_id'] === $this->Table->getCycle()->getCyclesTableId() && empty($params['cycle'])) {
@@ -961,6 +967,7 @@ class CalculateAction extends Calculate
                     [],
                     $params['refresh'] ?? false,
                     (array)($params['fields'] ?? []),
+                    columns: $columns,
                 );
             }
         } elseif (!empty($params['id'])) {
@@ -972,6 +979,7 @@ class CalculateAction extends Calculate
                     [],
                     $params['refresh'] ?? false,
                     (array)($params['fields'] ?? []),
+                    columns: $columns,
                 );
             }
         } elseif (!empty($params['field'])) {
@@ -985,6 +993,7 @@ class CalculateAction extends Calculate
                 $field,
                 $params['refresh'] ?? false,
                 (array)($params['fields'] ?? []),
+                columns: $columns,
             );
         } else {
             $this->Table->getTotum()->addLinkPanel(
@@ -993,6 +1002,7 @@ class CalculateAction extends Calculate
                 [],
                 $params['refresh'] ?? false,
                 (array)($params['fields'] ?? []),
+                columns: $columns,
             );
         }
 
@@ -1512,7 +1522,10 @@ class CalculateAction extends Calculate
     {
         $notPrepareParams = $isFieldSimple ? [] : ['field'];
 
-        if ($params = $this->getParamsArray($params, ['field', 'var'], $notPrepareParams, ['var', 'where', 'filter', 'key'])) {
+        if ($params = $this->getParamsArray($params,
+            ['field', 'var'],
+            $notPrepareParams,
+            ['var', 'where', 'filter', 'key'])) {
             if (!empty($params['cycle'])) {
                 foreach ((array)$params['cycle'] as $cycle) {
                     $tmpParams = $params;
@@ -1800,10 +1813,10 @@ class CalculateAction extends Calculate
 
         $params['var'] = $params['var'] ?? [];
         $this->__checkListParam($params['var'], 'var');
-        $vars=[];
-        if($params['var']){
-            foreach ($params['var'] as $_v){
-                $vars[$_v['field']]=$_v['value'];
+        $vars = [];
+        if ($params['var']) {
+            foreach ($params['var'] as $_v) {
+                $vars[$_v['field']] = $_v['value'];
             }
         }
 

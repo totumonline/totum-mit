@@ -1445,6 +1445,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $visibleFields = $this->Table->getVisibleFields("web");
         if ($onlyFields) {
+            if (!($onlyFields[0] ?? null)) {
+                $onlyFieldsTitles = $onlyFields;
+                $onlyFields = array_keys($onlyFields);
+            }
             $visibleFields = array_intersect_key($visibleFields, array_flip($onlyFields));
         }
         $result['filtersString'] = $this->getFiltersString();
@@ -1457,7 +1461,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         } else {
             $result['ROLESLIST'] = [];
         }
-
 
         $addLinkToSelectTableSinFields = function (&$fields) {
             foreach ($fields as $f) {
@@ -1502,6 +1505,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $result['fields'] = $this->fieldsForClient($visibleFields);
 
+        if ($onlyFieldsTitles ?? []) {
+            foreach ($result['fields'] as &$field) {
+                $field['title'] = key_exists($field['name'],
+                    $onlyFieldsTitles) ? $onlyFieldsTitles[$field['name']] : $field['title'];
+            }
+        }
 
         if ($this->Table->getTableRow()['type'] === 'calcs') {
             $result['tableRow']['fields_sets'] = $this->Table->changeFieldsSets();
@@ -2037,7 +2046,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 [],
                 $this->Table,
                 'exec',
-                ['name' => $this->post['title'].'.xlsx', 'data' => $data]);
+                ['name' => $this->post['title'] . '.xlsx', 'data' => $data]);
 
         } else {
             throw new errorException('The function is not available');

@@ -699,53 +699,60 @@ class TableController extends interfaceController
                 $tableId = $tableMatches[3];
                 if (!is_numeric($tableId) && ($calcsTableRow = $this->Totum->getTableRow($tableId))) {
                     $tableId = $calcsTableRow['id'];
+
+
                 }
+
                 if (!is_numeric($tableMatches[1])) {
                     $tableMatches[1] = $this->Totum->getTableRow($tableMatches[1])['id'];
                 } elseif ($tableMatches[1] === '0') {
                     $tableMatches[1] = ($calcsTableRow ?? $this->Totum->getTableRow($tableId))['tree_node_id'];
                 }
-
             }
 
-            $this->Cycle = $this->Totum->getCycle($tableMatches[2], $tableMatches[1]);
-            if (!$this->Cycle->loadRow()) {
-                throw new errorException($this->translate('Cycle [[%s]] is not found.', ''));
-            }
-
-            if (!array_key_exists($tableId, $this->User->getTables())) {
-                throw new errorException($this->translate('Access to the table is denied.'));
+            if (($calcsTableRow ?? $this->Totum->getTableRow($tableId))['type'] !== 'calcs') {
+                $checkTreeTable($calcsTableRow['id']);
             } else {
-                $this->onlyRead = $this->User->getTables()[$tableId] === 0;
 
-                //Проверка доступа к циклу
-
-                if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
-                        $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
-                        [1, 2, 3]
-                    )) {
-                    //Если не связанный пользователь
-                    if (count(array_intersect(
-                            $this->Cycle->getRow()['creator_id']['v'],
-                            $this->User->getConnectedUsers()
-                        )) === 0) {
-                        if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
-                            $this->onlyRead = true;
-                        } else {
-                            throw new errorException($this->translate('Access to the cycle is denied.'));
-                        }
-                    }
+                $this->Cycle = $this->Totum->getCycle($tableMatches[2], $tableMatches[1]);
+                if (!$this->Cycle->loadRow()) {
+                    throw new errorException($this->translate('Cycle [[%s]] is not found.', ''));
                 }
 
-                if ($tableRow = $this->Config->getTableRow($tableId)) {
-                    if ($tableRow['type'] === 'calcs') {
-                        $this->Table = $this->Cycle->getTable($tableRow);
-                    } elseif ($this->tabButton) {
-                        $this->Table = $this->Totum->getTable($tableRow);
-                    } else {
-                        throw new errorException($this->translate('Wrong path to the table'));
+                if (!array_key_exists($tableId, $this->User->getTables())) {
+                    throw new errorException($this->translate('Access to the table is denied.'));
+                } else {
+                    $this->onlyRead = $this->User->getTables()[$tableId] === 0;
+
+                    //Проверка доступа к циклу
+
+                    if (!$this->User->isCreator() && !empty($this->Cycle->getCyclesTable()->getFields()['creator_id']) && in_array(
+                            $this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'],
+                            [1, 2, 3]
+                        )) {
+                        //Если не связанный пользователь
+                        if (count(array_intersect(
+                                $this->Cycle->getRow()['creator_id']['v'],
+                                $this->User->getConnectedUsers()
+                            )) === 0) {
+                            if ($this->Cycle->getCyclesTable()->getTableRow()['cycles_access_type'] === '3') {
+                                $this->onlyRead = true;
+                            } else {
+                                throw new errorException($this->translate('Access to the cycle is denied.'));
+                            }
+                        }
                     }
 
+                    if ($tableRow = $this->Config->getTableRow($tableId)) {
+                        if ($tableRow['type'] === 'calcs') {
+                            $this->Table = $this->Cycle->getTable($tableRow);
+                        } elseif ($this->tabButton) {
+                            $this->Table = $this->Totum->getTable($tableRow);
+                        } else {
+                            throw new errorException($this->translate('Wrong path to the table'));
+                        }
+
+                    }
                 }
             }
         } elseif ($tableUri && preg_match('/^([a-z0-9_]+)/', $tableUri, $tableMatches)) {

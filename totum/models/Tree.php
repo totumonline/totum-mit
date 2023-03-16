@@ -85,7 +85,7 @@ SQL;
  UNION 
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link
     FROM tree__v
-    WHERE is_del = false AND type='anchor' AND default_table IN (
+    WHERE is_del = false AND type='anchor' AND (ARRAY(SELECT * FROM   jsonb_array_elements_text(roles::jsonb) elem ) && ARRAY[{$roles}] OR roles='[]') AND default_table IN (
        select id from tables where (ARRAY(SELECT * FROM   jsonb_array_elements_text(edit_roles->'v') ) && ARRAY[{$roles}]::text[]) OR (ARRAY(SELECT * FROM   jsonb_array_elements_text(read_roles->'v') ) && ARRAY[{$roles}]::text[])
     ) 
 SQL;

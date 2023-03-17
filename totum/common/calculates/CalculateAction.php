@@ -952,6 +952,28 @@ class CalculateAction extends Calculate
                 $Table = $this->Table->getTotum()->getTable($tableRow['id']);
             }
         }
+        $titles = [];
+        foreach ((array)($params['titles'] ?? []) as $k => $v) {
+            if (is_array($v)) {
+                if (key_exists('name', $v) && is_string($v['name']) && key_exists('title', $v)) {
+                    $titles[$v['name']] = $v['title'];
+                }
+            } else {
+                $titles[$k] = $v;
+            }
+        }
+
+        $addLinkToPanel = function ($link, $id, $field) use ($titles, $columns, $params) {
+            $this->Table->getTotum()->addLinkPanel(
+                $link,
+                $id,
+                $field,
+                $params['refresh'] ?? false,
+                (array)($params['fields'] ?? []),
+                columns: $columns,
+                titles: $titles
+            );
+        };
 
         if (!empty($params['bfield']) && !empty($params['bfield']['value'])) {
             foreach ((array)$params['bfield']['value'] as $bfieldValue) {
@@ -961,49 +983,23 @@ class CalculateAction extends Calculate
                 if (!$id) {
                     throw new errorException($this->translate('Value not found'));
                 }
-                $this->Table->getTotum()->addLinkPanel(
-                    $link,
-                    $id,
-                    [],
-                    $params['refresh'] ?? false,
-                    (array)($params['fields'] ?? []),
-                    columns: $columns,
-                );
+                $addLinkToPanel($link, $id, [],);
+
             }
         } elseif (!empty($params['id'])) {
             $ids = (array)$params['id'];
             foreach ($ids as $id) {
-                $this->Table->getTotum()->addLinkPanel(
-                    $link,
-                    $id,
-                    [],
-                    $params['refresh'] ?? false,
-                    (array)($params['fields'] ?? []),
-                    columns: $columns,
-                );
+                $addLinkToPanel($link, $id, [],);
             }
         } elseif (!empty($params['field'])) {
             $field = $this->__getActionFields($params['field'], 'LinkToPanel');
             foreach ($field as &$v) {
                 $v = ['v' => $v];
             }
-            $this->Table->getTotum()->addLinkPanel(
-                $link,
-                null,
-                $field,
-                $params['refresh'] ?? false,
-                (array)($params['fields'] ?? []),
-                columns: $columns,
-            );
+            $addLinkToPanel($link, null, $field,);
         } else {
-            $this->Table->getTotum()->addLinkPanel(
-                $link,
-                null,
-                [],
-                $params['refresh'] ?? false,
-                (array)($params['fields'] ?? []),
-                columns: $columns,
-            );
+            $addLinkToPanel($link, null, [],);
+
         }
 
     }

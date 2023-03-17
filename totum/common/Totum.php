@@ -345,9 +345,9 @@ class Totum
         $this->interfaceLinks[] = ['uri' => $uri, 'target' => $target, 'title' => $title, 'postData' => $postData, 'width' => $width, 'refresh' => $refresh, 'elseData' => $elseData];
     }
 
-    public function addLinkPanel($link, $id, $field, $refresh, $fields = [], $columns = null)
+    public function addLinkPanel($link, $id, $field, $refresh, $fields = [], $columns = null, $titles = [])
     {
-        $this->panelLinks[] = ['uri' => $link, 'id' => $id, 'field' => $field, 'refresh' => $refresh, 'fields' => $fields, 'columns' => $columns];
+        $this->panelLinks[] = ['uri' => $link, 'id' => $id, 'field' => $field, 'refresh' => $refresh, 'fields' => $fields, 'columns' => $columns, 'titles' => $titles];
     }
 
     /* Сюда можно будет поставить общую систему кешей */

@@ -1445,10 +1445,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         $visibleFields = $this->Table->getVisibleFields("web");
         if ($onlyFields) {
-            if (!($onlyFields[0] ?? null)) {
-                $onlyFieldsTitles = $onlyFields;
-                $onlyFields = array_keys($onlyFields);
-            }
             $visibleFields = array_intersect_key($visibleFields, array_flip($onlyFields));
         }
         $result['filtersString'] = $this->getFiltersString();

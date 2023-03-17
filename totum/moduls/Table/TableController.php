@@ -699,8 +699,9 @@ class TableController extends interfaceController
                 $tableId = $tableMatches[3];
                 if (!is_numeric($tableId) && ($calcsTableRow = $this->Totum->getTableRow($tableId))) {
                     $tableId = $calcsTableRow['id'];
-
-
+                    if($tableMatches[1] === '0'){
+                        $queryWith0 = true;
+                    }
                 }
 
                 if (!is_numeric($tableMatches[1])) {
@@ -710,7 +711,7 @@ class TableController extends interfaceController
                 }
             }
 
-            if (($calcsTableRow ?? $this->Totum->getTableRow($tableId))['type'] !== 'calcs') {
+            if (!empty($queryWith0) && $calcsTableRow['type'] !== 'calcs') {
                 $checkTreeTable($calcsTableRow['id']);
             } else {
 

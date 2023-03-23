@@ -195,7 +195,7 @@ trait FormsTrait
         }
     }
 
-    protected function getTableClientChangedData($data, $force = false)
+    protected function getTableClientChangedData($data, $force = false, $onlyFields = [])
     {
         $return['chdata']['rows'] = [];
 

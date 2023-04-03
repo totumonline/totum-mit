@@ -414,6 +414,7 @@ class RU implements LangInterface
   'Set the port in the LDAP settings table' => 'Задайте порт в таблице настроек LDAP',
   'The function is not available' => 'Функция не доступна',
   'Invalid parameter name' => 'Недопустимое имя параметра',
+  'Min value of %s is %s.' => 'Минимальное значение %s - %s.',
 );
 	/**
      * Возвращает сумму прописью

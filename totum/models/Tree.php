@@ -55,17 +55,18 @@ class Tree extends Model
 
     public function getBranchesByTables($branchId = null, array $tables = null, array $roles = null)
     {
+        if (empty($roles)){
+            return [];
+        }
         if (empty($tables)) {
             $tables = [0];
         }
-        $rolesSql = '';
 
         $quotedTables = implode(
             ',',
             $this->Sql->quote($tables)
         );
 
-        if (!empty($roles)) {
             foreach ($roles as &$role) {
                 $role = $this->Sql->quote(strval($role));
             }
@@ -77,10 +78,6 @@ class Tree extends Model
     FROM tree__v
     WHERE is_del = false AND type='link' AND (ARRAY(SELECT * FROM   jsonb_array_elements_text(roles::jsonb) elem ) && ARRAY[{$roles}] OR roles='[]')
 SQL;
-        } else {
-            $roles = '';
-        }
-
         $anchorsSql = <<<SQL
  UNION 
     SELECT parent_id, id, title, ord, top, default_table, type, icon, link

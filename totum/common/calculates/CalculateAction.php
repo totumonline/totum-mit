@@ -953,15 +953,20 @@ class CalculateAction extends Calculate
             }
         }
         $titles = [];
-        foreach ((array)($params['titles'] ?? []) as $k => $v) {
-            if (is_array($v)) {
-                if (key_exists('name', $v) && is_string($v['name']) && key_exists('title', $v)) {
-                    $titles[$v['name']] = $v['title'];
+        if (!empty($params['titles'])) {
+            $this->__checkListParam($params['titles'], 'titles');
+
+            foreach (($params['titles'] ?? []) as $k => $v) {
+                if (is_array($v)) {
+                    if (key_exists('name', $v) && is_string($v['name']) && key_exists('title', $v)) {
+                        $titles[$v['name']] = $v['title'];
+                    }
+                } else {
+                    $titles[$k] = $v;
                 }
-            } else {
-                $titles[$k] = $v;
             }
         }
+
 
         $addLinkToPanel = function ($link, $id, $field) use ($titles, $columns, $params) {
             $this->Table->getTotum()->addLinkPanel(

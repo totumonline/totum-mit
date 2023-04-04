@@ -765,6 +765,9 @@ trait FuncArraysTrait
 
         $mainlist = [];
         foreach ($params['list'] as $list) {
+            if (is_null($list) || $list === '') {
+                continue;
+            }
             if (!is_array($list)) {
                 throw new errorException($this->translate('All list elements must be lists.'));
             }

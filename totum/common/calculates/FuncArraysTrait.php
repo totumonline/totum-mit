@@ -487,12 +487,12 @@ trait FuncArraysTrait
         if ($params['step'] == 0) {
             throw new errorException($this->translate('The [[%s]] parameter must be [[%s]].', ['step', '!=0']));
         } elseif ($params['step'] > 0) {
-            $list = [$next = $params['min']];
+            $list = [$next = $params['min'] + 0];
             while (($next += $params['step']) < $params['max']) {
                 $list[] = $next;
             }
         } else {
-            $list = [$next = $params['max']];
+            $list = [$next = $params['max'] + 0];
             while (($next += $params['step']) > $params['min']) {
                 $list[] = $next;
             }

@@ -415,6 +415,7 @@ class RU implements LangInterface
   'The function is not available' => 'Функция не доступна',
   'Invalid parameter name' => 'Недопустимое имя параметра',
   'Min value of %s is %s.' => 'Минимальное значение %s - %s.',
+  'User is switched off or does not have access rights' => 'Пользователь отключен или не имеет прав доступа',
 );
 	/**
      * Возвращает сумму прописью

@@ -257,7 +257,7 @@ abstract class aTable
             }
         }
         if ($this->tableRow['type'] === 'tmp') {
-            $dataToSave['_hash'] = $this->hash;
+            $dataToSave['_hash'] = $this->sessHashName;
         }
 
         TmpTables::init($this->Totum->getConfig())->saveByHash(

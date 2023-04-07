@@ -114,7 +114,7 @@ trait FuncStringsTrait
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['str']);
         $this->__checkNotArrayParams($params, ['str']);
-        
+
         return base64_decode($params['str']);
     }
 
@@ -292,6 +292,29 @@ trait FuncStringsTrait
         $this->__checkNotArrayParams($params, ['str'], 'strRepeat');
 
         return str_replace($params['from'], $params['to'], $params['str']);
+    }
+
+    protected function funcStrTrim(string $params)
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkRequiredParams($params, ['str'], 'strTrim');
+
+        if (empty($params['str'])) {
+            return $params['str'];
+        }
+
+        if (is_string($params['str'])) {
+            return trim($params['str']);
+        } elseif (is_array($params['str'])) {
+            foreach ($params['str'] as &$v) {
+                if (is_string($v)) {
+                    $v = trim($v);
+                }
+            }
+            unset($v);
+        }
+
+        return $params['str'];
     }
 
     protected function funcStrSplit(string $params): array

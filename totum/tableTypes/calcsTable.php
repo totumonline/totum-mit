@@ -44,7 +44,7 @@ class calcsTable extends JsonTables
 
     public function saveTable($force = false)
     {
-        if (!$this->isTableDataChanged && !$force) {
+        if (!$this->isTableDataChanged && !$force && key_exists('params', $this->loadedTbl)) {
             return;
         }
 

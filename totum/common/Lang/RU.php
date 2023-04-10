@@ -416,6 +416,7 @@ class RU implements LangInterface
   'Invalid parameter name' => 'Недопустимое имя параметра',
   'Min value of %s is %s.' => 'Минимальное значение %s - %s.',
   'User is switched off or does not have access rights' => 'Пользователь отключен или не имеет прав доступа',
+  'The parameter [[%s]] should be of type row.' => 'Параметр [[%s]] должен быть типа row.',
 );
 	/**
      * Возвращает сумму прописью

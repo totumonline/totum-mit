@@ -1175,6 +1175,9 @@ class Calculate
                         $codeName = substr($param, 1);
                     }
 
+                    if(is_array($codeName) || is_bool($codeName)){
+                        throw new errorException($this->translate('[[%s]] should be of type string.', 'Code line'));
+                    }
                     $inVars = [];
                     if ($varsStart = strpos($codeName, '{')) {
                         $codeNum = substr($codeName, $varsStart + 1, -1);

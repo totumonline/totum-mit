@@ -474,7 +474,8 @@ abstract class ConfParent
 
     public function getLang()
     {
-        return static::LANG;
+        $array = explode('\\', $this->Lang::class);
+        return strtolower(end($array));
     }
 
     public function getServicesVarObject(): ServicesVarsInterface
@@ -769,6 +770,16 @@ SQL
     public function getHiddenHosts(): array
     {
         return [];
+    }
+
+    public function setHiddenHostSettings(array $Settings)
+    {
+        if (!empty($Settings['lang'])) {
+            if (!class_exists('totum\\common\\Lang\\' . strtoupper($Settings['lang']))) {
+                throw new \Exception('Specified ' . $Settings['lang'] . ' language is not supported');
+            }
+            $this->Lang = new ('totum\\common\\Lang\\' . strtoupper($Settings['lang']))();
+        }
     }
 
 }

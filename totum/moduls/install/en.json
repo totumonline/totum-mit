@@ -371,6 +371,7 @@
     "{{LDAP_IMPORT_USERS}}": "IMPORT USERS",
     "{{LDAP_SHOW_RESULT}}": "SHOW RESULT",
     "{{LDAP_UPDATE_ONE_USER}}": "UPDATE ONE USER",
+    "{{LDAP_only_for_at_type_of_login}}": "Only for «at» type of login",
     "{{LDAP_settings}}": "LDAP settings",
     "{{LDAP}}": "LDAP",
     "{{Label_for_the_All_option_ALL}}": "Label for the All option (*ALL*)",

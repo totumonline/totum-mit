@@ -52,6 +52,7 @@
                 type: 'select', id: "langSelect", name: 'lang', label: "", vals: [
                     {name: "Русский язык", val: 'ru'},
                     {name: "English", val: 'en'},
+                    {name: "Deutsch", val: 'de'},
                 ]
             },
             {

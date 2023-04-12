@@ -1329,16 +1329,25 @@ class CalculateAction extends Calculate
                 if (!$table) {
                     return;
                 }
+
+                $fields = [];
+
+                if ($params['fields'] ?? null) {
+                    if (!is_array($params['fields']) || key_exists(0, $params['fields'])) {
+                        throw new errorException($this->translate('The parameter [[%s]] should be of type row.',
+                            'fields'));
+                    }
+                    $fields = $params['fields'];
+                }
                 if (key_exists('field', $params)) {
-                    $fields = $this->__getActionFields($params['field'], 'Insert');
-                } else {
-                    $fields = [];
+                    foreach ($this->__getActionFields($params['field'], 'Insert') as $k => $v) {
+                        $fields[$k] = $v;
+                    }
                 }
 
                 if (!empty($params['log'])) {
                     $table->setWithALogTrue($params['log']);
                 }
-
                 $fields = $this->clearNONEFields($fields);
                 $addedIds += $table->actionInsert($fields, null, $params['after'] ?? null);
             };

@@ -8,6 +8,8 @@
 
 namespace totum\common\calculates;
 
+use totum\common\errorException;
+
 class CalculateSelectValue extends CalculateSelect
 {
     protected bool $returnHiddenData = false;
@@ -48,10 +50,18 @@ class CalculateSelectValue extends CalculateSelect
 
         if ($this->returnHiddenData) {
             foreach ($rows as $row) {
+                if (!is_array($row) || !key_exists('value', $row) || !key_exists('title',
+                        $row) || is_array($row['value']) || is_bool($row['value'])) {
+                    throw new errorException($this->translate('Select format error in field %s', $this->varName));
+                }
                 $selectList[$row['value']] = $row['is_del'] ?? false;
             }
         } else {
             foreach ($rows as $row) {
+                if (!is_array($row) || !key_exists('value', $row) || !key_exists('title',
+                        $row) || is_array($row['value']) || is_bool($row['value'])) {
+                    throw new errorException($this->translate('Select format error in field %s', $this->varName));
+                }
                 $selectList[$row['value']] = $row['title'];
             }
         }

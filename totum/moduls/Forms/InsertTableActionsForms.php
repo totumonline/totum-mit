@@ -78,7 +78,7 @@ class InsertTableActionsForms extends WriteTableActionsForms
 
     public function getEditSelect($data = null, $q = null, $parentId = null, $type = null)
     {
-        $data = $this->post['data'] ?? [];
+        $data = $data ?? $this->post['data'] ?? [];
         $data['item'] = $this->getInsertRow($this->insertRowData);
         foreach ($data['item'] as &$v) {
             $v = $v['v'];
@@ -104,6 +104,12 @@ class InsertTableActionsForms extends WriteTableActionsForms
             $data['params'] ?? [],
             [],
             $this->post['clearField'] ?? null)]];
+        $this->insertRowData = array_merge($this->insertRowData,
+            array_map(function ($v) {
+                if (is_array($v))
+                    return $v['v'];
+                return $v;
+            }, $data['rows'][0]));
 
         $formats = $this->getTableFormats($data['rows']);
         $data['params'] = $data['rows'][0];

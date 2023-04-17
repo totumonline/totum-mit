@@ -808,6 +808,10 @@ trait FuncArraysTrait
 
             $MainList = &$MainListMain;
             foreach ($params['path'] as $k) {
+                if(is_array($k) || is_bool($k)){
+                    throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'path'));
+                }
+
                 if (!key_exists($k, $MainList)) {
                     $MainList[$k] = [];
                 }

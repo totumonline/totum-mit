@@ -391,7 +391,7 @@ class Select extends Field
 
     public function calculateSelectListWithPreviews(array &$val, $row, $tbl = [])
     {
-        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => "viewWithPreviews", 'field' => $this->data['name']]);
+        $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'viewWithPreviews', 'field' => $this->data['name']]);
 
         try {
             $list = $this->calculateSelectList($val, $row, $tbl = []);

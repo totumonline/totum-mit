@@ -409,6 +409,18 @@ class InsertTableActionsForms extends WriteTableActionsForms
         return $res;
     }
 
+    protected function getValuesForClient($data, &$formats, bool $isFirstLoad = false)
+    {
+        if (!empty($data['params'])) {
+            foreach ($data['params'] as $fName => &$value) {
+                $field = $this->Table->getFields()[$fName];
+                $this->fieldFormViewValues($field, $value, $data['params'], $formats, $fName, $isFirstLoad);
+            }
+            unset($value);
+        }
+        return $data;
+    }
+
     private function getData(string $hash)
     {
         try {

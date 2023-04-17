@@ -1332,7 +1332,7 @@ class Calculate
                                 $this->Table->getFields()
                             ) && $this->Table->getFields()[$this->varName]['category'] === 'column') {
                             $rowVar = null;
-                        } else {
+                        } else {debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
                             throw new errorException($this->translate('Field [[%s]] is not found.', $nameVar));
                         }
                     }

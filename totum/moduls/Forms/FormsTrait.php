@@ -167,7 +167,6 @@ trait FormsTrait
                             $row,
                             $this->Table->getTbl()
                         );
-                        break;
                     default:
                         if ($isFirstLoad || $field['codeSelectIndividual']) {
                             $formats['p'][$fName]['selects'] = $this->getEditSelect(
@@ -179,7 +178,7 @@ trait FormsTrait
                                 )],
                                 '',
                                 null,
-                                $formats['p'][$fName]['viewtype']
+                                $formats['p'][$fName]['viewtype'] ?? null
                             );
                         }
                 }

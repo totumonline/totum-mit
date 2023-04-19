@@ -759,16 +759,63 @@ abstract class aTable
 
                 $this->filteredFields[$channel] = ['simple' => []];
                 $columnsFooters = [];
+
+                $getDynamicFields = function () {
+                    $calcFormatTable = new CalculcateFormat($this->tableRow['table_format']);
+                    return $calcFormatTable->execTableDynamic($this);
+                };
+
+
                 foreach ($this->fields as $fName => $field) {
                     if ($this->isField(
                         'visible',
                         $channel,
                         $field
                     )) {
-                        $this->filteredFields[$channel]['simple'][$fName] = $field;
 
-                        if ($field['category'] === 'footer' && !empty($field['column'])) {
-                            $columnsFooters[] = $field;
+                        if (($field['dynamic'] ?? false)) {
+
+
+                            if ($this->User->isCreator()) {
+                                $bField = $field;
+                                $bField['webRoles'] = [1];
+                                $bField['type'] = 'listRow';
+                                $this->filteredFields[$channel]['simple'][$fName] = $bField;
+
+                                if ($bField['category'] === 'footer' && !empty($bField['column'])) {
+                                    $columnsFooters[] = $bField;
+                                }
+                            }
+
+
+                            $dynamicFields = $dynamicFields ?? $getDynamicFields();
+                            $i = 0;
+                            foreach (($dynamicFields[$fName]['order'] ?? array_keys($dynamicFields[$fName]['titles'] ?? [])) as $k) {
+                                ++$i;
+                                $t = $dynamicFields[$fName]['titles'][$k] ?? $field['title'] . '/' . $i;
+                                $dName = $fName . '/' . $k;
+                                $dField = $field;
+                                $dField['name'] = $dName;
+                                $dField['title'] = $t;
+                                $dField['editable'] = false;
+                                $dField['insertable'] = false;
+                                $dField['dynamic'] = 'dynamic';
+                                $dField['__dynamic'] = $field['name'];
+                                $dField['__dynamic_key'] = $k;
+                                $this->filteredFields[$channel]['simple'][$dName] = $dField;
+
+                                if ($dField['category'] === 'footer' && !empty($dField['column'])) {
+                                    $columnsFooters[] = $dField;
+                                }
+                            }
+
+
+                        } else {
+                            $this->filteredFields[$channel]['simple'][$fName] = $field;
+
+                            if ($field['category'] === 'footer' && !empty($field['column'])) {
+                                $columnsFooters[] = $field;
+                            }
                         }
                     } elseif ($fName === $this->tableRow['main_field']) {
                         $field['showInWeb'] = false;
@@ -1448,6 +1495,21 @@ CODE;;
 
             //if (empty($row['id'])) debug_print_backtrace();
             foreach ($sortedFields['column'] as $f) {
+
+                $dynamic = null;
+
+                if ($f['dynamic'] ?? false) {
+                    if ($f['dynamic'] === 'dynamic') {
+                        if (!empty($row[$f['__dynamic']]) && is_array($baseValue = $row[$f['__dynamic']]['v'] ?? [])) {
+                            $row[$f['name']] = ['v' => $baseValue[$f['__dynamic_key']] ?? null];
+                            $dynamic = $f['__dynamic_key'];
+                        } else {
+                            continue;
+                        }
+                    } elseif (!$f['showInWeb']) {
+                        continue;
+                    }
+                }
                 if (empty($row[$f['name']])) {
                     continue;
                 }
@@ -1478,7 +1540,8 @@ CODE;;
                         $newRow[$f['name']],
                         $rowIn,
                         $this->tbl,
-                        $pageIds
+                        $pageIds,
+                        ['nfd' => $dynamic]
                     );
                 }
             }

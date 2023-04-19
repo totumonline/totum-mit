@@ -514,6 +514,8 @@ class CalculateAction extends Calculate
             $vars[$_['field']] = $_['value'];
         }
         $params['vars'] = $vars;
+        unset($params['var']);
+
         $params['env'] = $this->getEnvironment();
 
         $model = $this->Table->getTotum()->getModel('_tmp_tables', true);
@@ -1927,6 +1929,62 @@ class CalculateAction extends Calculate
                     $table->reCalculateFromOvers(
                         [
                             'modify' => $modify
+                        ]
+                    );
+                }
+            }
+        );
+    }
+
+    protected function funcTableMassChanges($params)
+    {
+        $this->__doAction(
+            $params,
+            function ($params) {
+                $table = $this->getSourceTable($params);
+
+                if (!$table) {
+                    return;
+                }
+                if (empty($params['data'])) {
+                    return;
+                }
+                $this->__checkListParam($params['data'], 'data');
+
+                $remove = [];
+                $add = [];
+                $modify = [];
+
+                foreach ($params['data'] as $row) {
+                    if (!empty($row['id'])) {
+                        $id = $row['id'];
+                        if (is_array($row['id']) || !ctype_digit((string)$row['id'])) {
+                            throw new errorException($this->translate('The %s field must be numeric.', 'id'));
+                        }
+                        if (!empty($row['__delete'])) {
+                            $remove[] = $id;
+                        } else {
+                            unset($row['id']);
+                            $modify[$id] = $row;
+                        }
+                    } else {
+                        $add[] = $row;
+                    }
+
+
+                }
+
+                if ($remove || $add || $modify) {
+                    if (!empty($params['log'])) {
+                        $table->setWithALogTrue($params['log']);
+                    }
+
+                    $table->reCalculateFromOvers(
+                        [
+                            'modify' => $modify,
+                            'remove' => $remove,
+                            'add' => $add,
+
                         ]
                     );
                 }

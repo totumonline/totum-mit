@@ -151,7 +151,7 @@ class Conf extends ConfParent{
     
     const db=$dbExport;
     
-    public static \$timeLimit = 120;
+    public static \$timeLimit = 120; //Do not set long time limits, because this limit is used as param of a PostgreSQL transaction. If you set a very long limit — part of your database may be blocked when errors occur.
     
     const adminEmail='{$post['admin_email']}';
     

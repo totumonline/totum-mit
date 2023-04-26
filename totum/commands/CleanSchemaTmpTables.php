@@ -49,7 +49,7 @@ class CleanSchemaTmpTables extends Command
         }
 
         $minus10 = date_create();
-        $minus10->modify('-30 minutes');
+        $minus10->modify('-2 hours');
         $sql->exec('delete from _tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\''
             . $minus10->format('Y-m-d H:i') . '\'');
 

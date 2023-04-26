@@ -43,6 +43,24 @@ class CalculcateFormat extends Calculate
         ksort($this->startPanelSections);
     }
 
+    function execTableDynamic(aTable $table): mixed
+    {
+        $this->setEnvironmentVars(['name'=>'DN'], null, $table->getTbl()['params'], $table->getTbl()['params'], $table->getTbl(), $table->getTbl(), $table);
+        $this->newLog = ['text' => $this->translate('Tables dymanic format'), 'children' => []];
+        try {
+            if (!key_exists('dn=', $this->code)) {
+                return [];
+            }
+            $result = $this->execSubCode($this->code['dn='], 'dn=');
+
+            $this->newLog['text'] .= ': ' . json_encode($result, JSON_UNESCAPED_UNICODE);
+        } catch (SqlException $e) {
+            $this->error = $this->translate('Database error: [[%s]]', $e->getMessage());
+            $this->newLog['text'] .= ': ' . $this->error;
+        }
+        return $result ?? [];
+    }
+
     protected function formStartSections()
     {
         foreach ($this->code as $k => $v) {

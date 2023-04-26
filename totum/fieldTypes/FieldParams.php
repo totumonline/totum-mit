@@ -46,6 +46,11 @@ class FieldParams extends Field
         }
     }
 
+    protected function getDefaultValue()
+    {
+        return json_decode('{"type":{"Val":"string", "isOn": true}}', true);
+    }
+
     public function getValueFromCsv($val)
     {
         throw new errorException($this->translate('Import from csv is not available for [[%s]] field.', 'FieldParams'));
@@ -95,13 +100,14 @@ class FieldParams extends Field
             true);*/
 
         $category = $row['category']['v'];
-        $tableRow = $this->table->getTotum()->getTableRow($row['table_id']['v']);
-
-        if ($category === 'footer' && !is_subclass_of(
-                Totum::getTableClass($tableRow),
-                JsonTables::class
-            )) {
-            throw new criticalErrorException($this->translate('You cannot create a [[footer]] field for [[non-calculated]] tables.'));
+        if ($row['table_id']['v']) {
+            $tableRow = $this->table->getTotum()->getTableRow($row['table_id']['v']);
+            if ($category === 'footer' && !is_subclass_of(
+                    Totum::getTableClass($tableRow),
+                    JsonTables::class
+                )) {
+                throw new criticalErrorException($this->translate('You cannot create a [[footer]] field for [[non-calculated]] tables.'));
+            }
         }
 
         if (empty($val['type']['Val'])) {
@@ -109,9 +115,11 @@ class FieldParams extends Field
                 throw new criticalErrorException($this->translate('Fill in the parameter [[%s]].', 'type'));
             }
             throw new errorException($this->translate('Fill in the parameter [[%s]].', 'type'));
-        }elseif (!$isCheck){
-            if($row['category']['v']==='filter' && in_array($val['type']['Val'], ['link','text','comments','file','password','chart', 'uniq'])){
-                throw new criticalErrorException($this->translate('The field type %s cannot be in the pre-filter', $val['type']['Val']));
+        } elseif (!$isCheck) {
+            if ($row['category']['v'] === 'filter' && in_array($val['type']['Val'],
+                    ['link', 'text', 'comments', 'file', 'password', 'chart', 'uniq'])) {
+                throw new criticalErrorException($this->translate('The field type %s cannot be in the pre-filter',
+                    $val['type']['Val']));
             }
 
         }
@@ -119,10 +127,9 @@ class FieldParams extends Field
 
         if ($val['type']['Val'] === 'text') {
             $val['viewTextMaxLength']['Val'] = (int)$val['viewTextMaxLength']['Val'];
-        }
-        elseif (!$isCheck && $val['type']['Val'] === 'number' && ($val['dectimalPlaces']['Val'] ?? 0) > 10) {
+        } elseif (!$isCheck && $val['type']['Val'] === 'number' && ($val['dectimalPlaces']['Val'] ?? 0) > 10) {
             throw new criticalErrorException($this->translate('Max value of %s is %s.', ['dectimalPlaces', '10']));
-        }elseif (!$isCheck && $val['type']['Val'] === 'number' && ($val['dectimalPlaces']['Val'] ?? 0) < 0) {
+        } elseif (!$isCheck && $val['type']['Val'] === 'number' && ($val['dectimalPlaces']['Val'] ?? 0) < 0) {
             throw new criticalErrorException($this->translate('Min value of %s is %s.', ['dectimalPlaces', '0']));
         }
 

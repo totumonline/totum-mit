@@ -372,13 +372,16 @@ class InsertTableActionsForms extends WriteTableActionsForms
             ($this->insertRowData['__fixedData']['f'] ?? []) + ($this->insertRowData['__fixedData']['x'] ?? []),
             [])]];
 
-        $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', []);
-        $data['params'] = ['__save' => ['v' => null]] + $data['rows'][0];
+        $formats = $this->getTableFormats($data['rows']);
+        $data = $this->getValuesForClient(['params'=>$data['rows'][0]], $formats);
+        $data['f'] = $formats;
+        $data['params'] = ['__save' => ['v' => null]] + $data['params'];
         unset($data['rows']);
 
-        $this->addLoadedSelects($data);
-        $data['f'] = $this->getTableFormats([$data['params']]);
+
         $data['sess_hash'] = $this->insertHash;
+
+
         return ['chdata' => $data, 'sess_hash' => $this->insertHash];
     }
 
@@ -401,11 +404,12 @@ class InsertTableActionsForms extends WriteTableActionsForms
             [],
             $this->post['clearField'] ?? null)]];
         $formats = $this->getTableFormats($data['rows']);
-        $data = $this->getValuesForClient($data, $formats);
-        $row = $data['rows'][0];
+
+        $data = $this->getValuesForClient(['params'=>$data['rows'][0]], $formats);
+        $row = $data['params'];
+
         $row['__save'] = ['v' => null];
         $res = ['row' => $row, 'hash' => $this->insertHash, 'formats' => $formats];
-        $this->addLoadedSelects($res);
         return $res;
     }
 

@@ -396,7 +396,7 @@ class Select extends Field
         try {
             $list = $this->calculateSelectList($val, $row, $tbl = []);
 
-            if ($list['previewdata']) {
+            if ($list['previewdata'] ?? false) {
                 unset($list['previewdata']);
                 foreach ($list as $_v => &$l) {
                     $l[] = $this->getPreviewHtml(['v' => $_v], $row, $tbl, true);

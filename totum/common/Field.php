@@ -221,16 +221,17 @@ class Field
         return !!$this->CalculateFormat;
     }
 
-    public function addFormat(&$valArray, $row, $tbl, $pageIds)
+    public function addFormat(&$valArray, $row, $tbl, $pageIds, $vars = [])
     {
         if ($this->checkFormatObject()) {
             $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
 
+            $vars['rows'] = $this->table->getRowsForFormat($pageIds);
             if ($format = $this->CalculateFormat->getFormat($this->data['name'],
                 $row,
                 $tbl,
                 $this->table,
-                ['rows' => $this->table->getRowsForFormat($pageIds)])) {
+                Vars: $vars)) {
                 $valArray['f'] = $format;
             }
             $this->table->calcLog($Log, 'result', $format);
@@ -696,6 +697,10 @@ class Field
 
     protected function checkVal(&$newVal, $row, $isCheck = false)
     {
+        if ($this->data['dynamic'] ?? false) {
+            return;
+        }
+
         if ($newVal['e'] ?? null) {
             return;
         }

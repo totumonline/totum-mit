@@ -808,6 +808,10 @@ trait FuncArraysTrait
 
             $MainList = &$MainListMain;
             foreach ($params['path'] as $k) {
+                if (is_array($k) || is_bool($k)) {
+                    throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'path'));
+                }
+
                 if (!key_exists($k, $MainList)) {
                     $MainList[$k] = [];
                 }
@@ -1006,6 +1010,8 @@ trait FuncArraysTrait
                     $vOut = $v;
                 }
                 if ($recursive !== false && ($recursive === true || in_array($level, $recursive))) {
+                    $rowOut[$funcKeyReplace($k)] = $vOut;
+                } elseif ($recursive === false && $level === 0) {
                     $rowOut[$funcKeyReplace($k)] = $vOut;
                 } else {
                     $rowOut[$k] = $vOut;

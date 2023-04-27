@@ -115,7 +115,7 @@ abstract class JsonTables extends aTable
 
     public function isTblUpdated($level = 0, $force = false)
     {
-        if ($this->isTableDataChanged || $this->isTableAdding || !key_exists('params', $this->loadedTbl)) {
+        if ($this->isTableDataChanged || $this->isTableAdding || !key_exists('params', $this->savedTbl)) {
             $this->updated = $this->getUpdatedJson();
 
             /*Возможно, здесь тоже стоит разнести сохранение и onSaveTable, но логика сложная и можно поломать пересчеты неочевидным образом*/
@@ -130,7 +130,7 @@ abstract class JsonTables extends aTable
                 /*Это верхний уровень сохранения пересчетов для этой таблицы*/
 
                 $this->isOnSaving = true;
-                $oldTbl = $this->loadedTbl;
+                $oldTbl = $this->loadedTbl; //Exactly loaded! it's used for calculating changing in all process
 
                 if ($this->Cycle) {
                     $this->Cycle->saveTables();

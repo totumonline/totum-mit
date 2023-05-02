@@ -19,6 +19,7 @@ use totum\config\Conf;
 class File extends Field
 {
     protected static $transactionCommits = [];
+    public const DOC_PREVIEW_POSTFIX = '!docpreview!.pdf';
 
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
@@ -76,6 +77,9 @@ class File extends Field
             unlink($fullFileName);
         }
         if (is_file($preview = $fullFileName . '_thumb.jpg')) {
+            unlink($preview);
+        }
+        if (is_file($preview = $fullFileName . File::DOC_PREVIEW_POSTFIX)) {
             unlink($preview);
         }
     }
@@ -403,6 +407,8 @@ class File extends Field
                                 die(json_encode(['error' => $this->translate('Failed to copy preview.')],
                                     JSON_UNESCAPED_UNICODE));
                             }
+                        } elseif (is_file($fname . File::DOC_PREVIEW_POSTFIX)) {
+                            unlink($fname . File::DOC_PREVIEW_POSTFIX);
                         }
                         unset(static::$transactionCommits[$fname]);
                     });
@@ -435,6 +441,8 @@ class File extends Field
                                 }
                                 if (is_file($otherfname . '_thumb.jpg')) {
                                     copy($otherfname . '_thumb.jpg', $fname . '_thumb.jpg');
+                                } elseif (is_file($fname . File::DOC_PREVIEW_POSTFIX)) {
+                                    unlink($fname . File::DOC_PREVIEW_POSTFIX);
                                 }
                                 unset(static::$transactionCommits[$fname]);
                             });

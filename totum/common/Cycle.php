@@ -82,7 +82,8 @@ class Cycle
         $this->Totum->getTable('calcstable_cycle_version')->reCalculateFromOvers(
             ['add' => [
                 ['table_name' => $tableName, 'cycle' => $cycleId, 'version' => $defaults['version'], 'ord' => $defaults['default_ord'], 'auto_recalc' => $defaults['default_auto_recalc'] === 'false' ? false : true]
-            ]]
+            ]]/*,
+            Log: $this->getCyclesTable()->getCalculateLog()*/
         );
 
         return $this->cacheVersions[$tableName] = [$defaults['version'], 'true'];
@@ -319,7 +320,7 @@ class Cycle
         return $dataWithOrd;
     }
 
-    public function saveTables($forceReCalculateCyclesTableRow = false, $forceSaveTables = false)
+    public function saveTables($forceReCalculateCyclesTableRow = false, $forceSaveTables = false, $log = null)
     {
         $isChanged = false;
         /** @var calcsTable $t */
@@ -329,18 +330,17 @@ class Cycle
             }
         }
         if ($forceReCalculateCyclesTableRow || $isChanged) {
-            $this->reCalculateCyclesRow();
+            $this->reCalculateCyclesRow($log);
         }
     }
 
-    public function reCalculateCyclesRow()
+    public function reCalculateCyclesRow($log)
     {
         if ($this->getId()) {
             $CyclesTable = $this->getCyclesTable();
-
             $CyclesTable->reCalculateFromOvers([
                 'modify' => [$this->getId() => []],
-            ]);
+            ], $log);
         }
     }
 
@@ -363,6 +363,9 @@ class Cycle
         unset($t);
 
         $cyclesTable = $this->Totum->getTable($this->cyclesTableId);
+
+        $Log = $cyclesTable->calcLog(['name' => 'RECALC', 'table' => 'cycle ' . $this->getId()]);
+
         foreach ($tables as $t) {
             if ($tablesUpdates[$t->getTableRow()['id']] === $t->getLastUpdated()) {
                 /** @var calcsTable $t */
@@ -371,11 +374,15 @@ class Cycle
                 }
                 $t->reCalculateFromOvers(
                     [],
-                    $cyclesTable->getCalculateLog()
+                    $Log
                 );
+
             }
         }
-        $this->saveTables(true);
+
+        $this->saveTables(true, log: $Log);
+
+        $cyclesTable->calcLog($Log, 'result', 'done');
     }
 
     protected function afterCreate()

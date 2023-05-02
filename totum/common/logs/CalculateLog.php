@@ -34,6 +34,8 @@ class CalculateLog
     protected $section;
 
     protected $types = [];
+    protected $typesIndexed = [];
+
 
     protected $topParent;
     /**
@@ -41,7 +43,7 @@ class CalculateLog
      */
     protected $tableId;
 
-    public function __construct($params = ["Totum"], $parent = null, $tableName = null, $tableId = null, $fieldName = null, $section = null)
+    public function __construct($params = ['Totum'], $parent = null, $tableName = null, $tableId = null, $fieldName = null, $section = null)
     {
         $this->startMicrotime = microtime(true);
 
@@ -72,9 +74,22 @@ class CalculateLog
             ) . "\n\n";*/
     }
 
+    /**
+     * @return array
+     */
+    public function getTypesIndexed($type): bool
+    {
+        return $this->typesIndexed[$type] ?? false;
+    }
+
     public function setLogTypes($types)
     {
         $this->types = $types;
+        $this->typesIndexed = [];
+        foreach ($types as $k) {
+            $this->typesIndexed[$k] = true;
+        }
+
     }
 
     public function getTopParent()
@@ -108,28 +123,34 @@ class CalculateLog
         if ($params['field'] ?? null) {
             $fieldName = $params['field'];
         }
-        switch ($params['name'] ?? '') {
-            case 'RECALC':
-                $section = 'code';
-                break;
-            case 'ACTIONS':
-                $section = 'actions';
-                break;
-            case 'SELECTS AND FORMATS':
-            case 'TABLE FORMAT':
-            case 'SELECTS AND FORMATS ROWS':
-            case 'SELECTS AND FORMATS OF OTHER NON-ROWS PARTS':
-                $section = 'views';
-                break;
+        if ($params['recalculate'] ?? '') {
+            $section = 'code';
+        } else {
+            switch ($params['name'] ?? '') {
+                case 'RECALC':
+                    $section = 'code';
+                    break;
+                case 'ACTIONS':
+                    $section = 'actions';
+                    break;
+                case 'SELECTS AND FORMATS':
+                case 'TABLE FORMAT':
+                case 'SELECTS AND FORMATS ROWS':
+                case 'SELECTS AND FORMATS OF OTHER NON-ROWS PARTS':
+                    $section = 'views';
+                    break;
+            }
         }
 
+
         $logTypes = $this->topParent->getTypes();
-        if (!$logTypes) {
+        if (!$logTypes || ($logTypes === ['C'] && (($this->params['cType'] ?? false) || ($this->params['calc'] ?? false)))) {
             $log = new CalculateLogEmpty([], $this);
         } elseif ($logTypes !== ['all']) {
             switch ($section) {
                 case 'code':
-                    if (($params['field'] ?? null) && !array_intersect(['c', 'flds'], $logTypes)) {
+                    if (($params['field'] ?? $params['recalculate'] ?? null) && !array_intersect(['c', 'flds'],
+                            $logTypes)) {
                         $log = new CalculateLogEmpty([], $this);
                         break;
                     }
@@ -159,6 +180,7 @@ class CalculateLog
                     break;
             }
         }
+
         /*
          * ?
          * if ($logTypes === ['flds'] && $this->fieldName && $this->section !== 'actions') {
@@ -283,6 +305,10 @@ class CalculateLog
             }
         }
 
+
+        if (($this->params['name'] ?? null) === 'ACTIONS' && !$this->children) {
+            return null;
+        }
 
         $tree = $this->formatLogItem($tree, $this->topParent->getTypes() === ['flds']);
 
@@ -496,8 +522,18 @@ class CalculateLog
                 if ($this->params['times'] > 0.001) {
                     $tree['text'] .= ': ' . round($this->params['times'], 3) . ' c.';
                 }
-            } elseif (in_array($this->params['result'], ['changed', 'no changed'], true)) {
-                $tree['text'] .= ': ' . $this->params['result'];
+            } elseif (in_array($this->params['result'],
+                    ['changed', 'not changed'],
+                    true) || (is_array($this->params['result']) && ($this->params['result'][0] ?? null) === 'changed')) {
+                if (is_array($this->params['result'])) {
+                    $tree['text'] .= ': ' . $this->params['result'][0];
+                    $tree['children'][] = ['text' => 'CHANGES: ' . json_encode($this->params['result'][1],
+                            JSON_UNESCAPED_UNICODE), 'icon' => 'fa fa-puzzle-piece', 'children'];
+                } else {
+                    $tree['text'] .= ': ' . $this->params['result'];
+                }
+
+
                 if ($this->params['times'] > 0.001) {
                     $tree['text'] .= ': ' . round($this->params['times'], 3) . ' c.';
                 }

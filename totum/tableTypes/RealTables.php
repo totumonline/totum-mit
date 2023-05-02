@@ -104,14 +104,17 @@ abstract class RealTables extends aTable
         }
     }
 
-    public function isTblUpdated($level = 0, $force = false)
+    public function isTblUpdated($level = 0, $calcLog = null)
     {
         $tbl = $this->getTblForSave();
 
         $savedTbl = $this->savedTbl;
-        if ($force || $this->isTableDataChanged || $tbl['__nTailLength'] !== $this->nTailLength) {
+        if ($this->isTableDataChanged || $tbl['__nTailLength'] !== $this->nTailLength) {
             $this->updated = $this->getUpdatedJson();
             $this->savedTbl['params'] = $tbl;
+            $tableChanges = $this->isTableDataChanged;
+
+            $this->setIsTableDataChanged(false);
 
             /*Это чтобы лишний раз базу не дергать*/
             if ($this->isOnSaving) {
@@ -123,9 +126,8 @@ abstract class RealTables extends aTable
                 $this->saveTable();
                 $this->isOnSaving = false;
             }
-            $this->setIsTableDataChanged(false);
 
-            return true;
+            return $tableChanges ?: true;
         } else {
             return false;
         }
@@ -135,7 +137,7 @@ abstract class RealTables extends aTable
     {
         $orderMinN = null;
 
-        $this->setIsTableDataChanged(true);
+        $this->setIsTableDataChanged('ROWS_REMOVED', $remove);
         $isInnerChannel = $channel === 'inner';
 
         if ($codeActionsOnDeleteFields = $this->getFieldsForAction('Delete', 'column')) {
@@ -200,7 +202,7 @@ abstract class RealTables extends aTable
 
     public function restoreRows($restore, $channel)
     {
-        $this->setIsTableDataChanged(true);
+        $this->setIsTableDataChanged('ROWS_RESTORED', $restore);
 
         foreach ($restore as $id) {
             $this->rowsOperations('Restore', ['id' => $id]);
@@ -803,7 +805,7 @@ abstract class RealTables extends aTable
                 }
 
 
-                $this->setIsTableDataChanged(true);
+                $this->setIsTableDataChanged('ROWS_REORDERED', $reorder);
                 $this->changeIds['reordered'] = true;
             } else {
                 ;
@@ -855,7 +857,7 @@ abstract class RealTables extends aTable
                         $this->changeInOneRecalcIds['reorderedIds'][$rId] = 1;
                     }
                     $this->tbl['rows'] = [];
-                    $this->setIsTableDataChanged(true);
+                    $this->setIsTableDataChanged('ROWS_REORDERED', $reorder);
                     $this->changeIds['reordered'] = true;
                 }
             }
@@ -1202,7 +1204,7 @@ abstract class RealTables extends aTable
                 $row = static::decodeRow($row);
 
                 if ($row !== $oldRow) {
-                    $this->setIsTableDataChanged(true);
+                    $this->setIsTableDataChanged('ROW_CHANGED id' . $row['id'], $row, $oldRow);
                     $this->rowChanged($oldRow, $row, 'Change');
 
                     /******aLog  modify clear *****/
@@ -1441,7 +1443,7 @@ abstract class RealTables extends aTable
             }
             unset($fData);
 
-            $this->setIsTableDataChanged(true);
+            $this->setIsTableDataChanged('ROW_ADDED');
 
             if ($resultId = $this->model->insertPrepared($changedSaveData)) {
                 if (is_a($this->model, Table::class)) {

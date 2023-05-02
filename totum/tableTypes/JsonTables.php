@@ -113,68 +113,74 @@ abstract class JsonTables extends aTable
         return [];
     }
 
-    public function isTblUpdated($level = 0, $force = false)
+    public function isTblUpdated($level = 0, $calcLog = null)
     {
         if ($this->isTableDataChanged || $this->isTableAdding || !key_exists('params', $this->savedTbl)) {
             $this->updated = $this->getUpdatedJson();
-
+            $tableChanges = $this->isTableDataChanged;
             /*Возможно, здесь тоже стоит разнести сохранение и onSaveTable, но логика сложная и можно поломать пересчеты неочевидным образом*/
-            if ($this->isOnSaving) {
-                if ($this->Cycle) {
-                    $this->Cycle->saveTables();
-                    $this->updateReceiverTables($level);
+
+            try {
+                if ($this->isOnSaving) {
+                    if ($this->Cycle) {
+                        $this->Cycle->saveTables(log: $this->CalculateLog);
+                        $this->updateReceiverTables($level);
+                    } else {
+                        $this->saveTable();
+                    }
                 } else {
-                    $this->saveTable();
-                }
-            } else {
-                /*Это верхний уровень сохранения пересчетов для этой таблицы*/
+                    /*Это верхний уровень сохранения пересчетов для этой таблицы*/
 
-                $this->isOnSaving = true;
-                $oldTbl = $this->loadedTbl; //Exactly loaded! it's used for calculating changing in all process
+                    $this->isOnSaving = true;
+                    $oldTbl = $this->loadedTbl; //Exactly loaded! it's used for calculating changing in all process
 
-                if ($this->Cycle) {
-                    $this->Cycle->saveTables();
-                    $this->updateReceiverTables($level);
-                } else {
-                    $this->saveTable();
-                }
+                    if ($this->Cycle) {
+                        $this->Cycle->saveTables(log: $this->CalculateLog);
+                        $this->updateReceiverTables($level);
+                    } else {
+                        $this->saveTable();
+                    }
 
-                foreach ($this->tbl['rows'] as $id => $row) {
-                    $oldRow = ($oldTbl['rows'][$id] ?? []);
-                    if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
-                        $this->changeIds['deleted'][$id] = null;
-                    } elseif (!empty($oldRow) && empty($row['is_del'])) {
-                        //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
-                        if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
-                            foreach ($row as $k => $v) {
-                                /*key_exists for $oldRow[$k] не использовать!*/
-                                if ($k !== 'n' && Calculate::compare('!==',
-                                        ($oldRow[$k] ?? null),
-                                        $v,
-                                        $this->getLangObj())) {
-                                    $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
-                                    $this->changeIds['changed'][$id][$k] = null;
+                    foreach ($this->tbl['rows'] as $id => $row) {
+                        $oldRow = ($oldTbl['rows'][$id] ?? []);
+                        if ($oldRow && (!empty($row['is_del']) && empty($oldRow['is_del']))) {
+                            $this->changeIds['deleted'][$id] = null;
+                        } elseif (!empty($oldRow) && empty($row['is_del'])) {
+                            //Здесь проставляется changed для web (только ли это в web нужно?) - можно облегчить!!!! - может, делать не здесь, а при изменении?
+                            if (Calculate::compare('!==', $oldRow, $row, $this->getLangObj())) {
+                                foreach ($row as $k => $v) {
+                                    /*key_exists for $oldRow[$k] не использовать!*/
+                                    if ($k !== 'n' && Calculate::compare('!==',
+                                            ($oldRow[$k] ?? null),
+                                            $v,
+                                            $this->getLangObj())) {
+                                        $this->changeIds['changed'][$id] = $this->changeIds['changed'][$id] ?? [];
+                                        $this->changeIds['changed'][$id][$k] = null;
+                                    }
                                 }
                             }
                         }
                     }
+
+                    $this->loadedTbl['rows'] = $oldTbl['rows'] ?? [];
+                    $deleted = array_flip(array_keys(array_diff_key(
+                        $oldTbl['rows'],
+                        $this->tbl['rows']
+                    )));
+                    $added = array_flip(array_keys(array_diff_key(
+                        $this->tbl['rows'],
+                        $oldTbl['rows']
+                    )));
+                    $this->changeIds['deleted'] = $this->changeIds['deleted'] + $deleted;
+                    $this->changeIds['added'] = $this->changeIds['added'] + $added;
+
+                    $this->isOnSaving = false;
                 }
-
-                $this->loadedTbl['rows'] = $oldTbl['rows'] ?? [];
-                $deleted = array_flip(array_keys(array_diff_key(
-                    $oldTbl['rows'],
-                    $this->tbl['rows']
-                )));
-                $added = array_flip(array_keys(array_diff_key(
-                    $this->tbl['rows'],
-                    $oldTbl['rows']
-                )));
-                $this->changeIds['deleted'] = $this->changeIds['deleted'] + $deleted;
-                $this->changeIds['added'] = $this->changeIds['added'] + $added;
-
-                $this->isOnSaving = false;
+                return $tableChanges ?: true;
+            } catch (\Exception $e) {
+                $calcLog($tableChanges ?: true);
+                throw $e;
             }
-            return true;
         } else {
             return false;
         }
@@ -193,7 +199,7 @@ abstract class JsonTables extends aTable
 
         $this->savedUpdated = $updated ?? $this->savedUpdated;
         $this->updated = $this->getUpdatedJson();
-        $this->setIsTableDataChanged(true);
+        $this->setIsTableDataChanged("TABLE_DUPLICATED");
     }
 
     /**
@@ -324,7 +330,7 @@ abstract class JsonTables extends aTable
 
             $SavedRows = $newRows;
             unset($newRows);
-            $this->setIsTableDataChanged(true);
+            $this->setIsTableDataChanged('REODERED');
             $this->changeIds['reordered'] = true;
         }
 
@@ -409,7 +415,7 @@ abstract class JsonTables extends aTable
                             continue;
                         } else {
                             if (empty($row['InsDel'])) {
-                                $this->setIsTableDataChanged(true);
+                                $this->setIsTableDataChanged('INSERT_ROW_DELETED id '.$row['id']);
                                 $this->changeIds['changed'][$row['id']] = null;
                             }
                             $newRow['InsDel'] = true;
@@ -421,7 +427,7 @@ abstract class JsonTables extends aTable
 
             if (!empty($row['is_del']) || $isDeletedRow = ($remove && in_array($row['id'], $remove))) {
                 if ($isDeletedRow ?? null) {
-                    $this->setIsTableDataChanged(true);
+                    $this->setIsTableDataChanged('ROW_DELETED id '.$row['id']);
                     $aLogDelete = function ($id) use ($channel) {
                         if ($this->tableRow['type'] !== 'tmp'
                             && (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog)
@@ -454,7 +460,7 @@ abstract class JsonTables extends aTable
                             break;
                     }
                 } elseif (in_array($row['id'], $restore)) {
-                    $this->setIsTableDataChanged(true);
+                    $this->setIsTableDataChanged('ROW_RESTORED');
                     $this->changeIds['restored'][$row['id']] = null;
                     $this->changeInOneRecalcIds['restored'][$row['id']] = null;
                     if ($this->tableRow['type'] !== 'tmp'
@@ -480,7 +486,7 @@ abstract class JsonTables extends aTable
                 $this->tbl['rows'][$newRow['id']] = $newRow;
                 $this->changeIds['added'][$newRow['id']] = null;
                 $this->changeInOneRecalcIds['added'][$newRow['id']] = null;
-                $this->setIsTableDataChanged(true);
+                $this->setIsTableDataChanged('INSERT_INSERTES_ROW id'.$newRow['id']);
             }
         }
         /***insert***/
@@ -522,7 +528,7 @@ abstract class JsonTables extends aTable
                 $this->changeInOneRecalcIds['added'][$newRow['id']] = null;
                 $this->changeIds['duplicated'][$id] = $newRow['id'];
                 $this->changeInOneRecalcIds['duplicated'][$id] = $newRow['id'];
-                $this->setIsTableDataChanged(true);
+                $this->setIsTableDataChanged('ROW_DUPLICATED', $newRow['id']);
             } else {
                 throw new errorException($this->translate('Row %s not found', $id));
             }
@@ -570,14 +576,14 @@ abstract class JsonTables extends aTable
 
                     $orderDuplicatesAfter[$after][$newRow['id']] = $newRow;
                     $modify[$newRow['id']] = $addRow;
-                    $this->setIsTableDataChanged(true);
+                    $this->setIsTableDataChanged('ROW_ADDED ' . $newRow['id']);
                 }
             } else {
                 foreach (($add ?? []) as $addRow) {
                     $newRow = ['id' => $getId($addRow), '_E' => true];
                     $this->tbl['rows'][$newRow['id']] = $newRow;
                     $modify[$newRow['id']] = $addRow;
-                    $this->setIsTableDataChanged(true);
+                    $this->setIsTableDataChanged('ROW_ADDED ' . $newRow['id']);
                 }
             }
             if ($channel === 'web' && $isCheck === true) {
@@ -607,7 +613,7 @@ abstract class JsonTables extends aTable
                 }
             }
             $this->tbl['rows'] = $newRows;
-            $this->setIsTableDataChanged(true);
+            $this->setIsTableDataChanged('ROWS_DUPLICATED', $orderDuplicatesAfter);
         }
 
         if (!empty($this->tableRow['with_order_field'])) {
@@ -661,7 +667,7 @@ abstract class JsonTables extends aTable
                 $isCheck
             );
 
-            $this->checkIsModified($oldVal, $thisRow[$column['name']]);
+            $this->checkIsModified($oldVal, $thisRow[$column['name']], $column['name'], $thisRow['id']);
 
             $this->addToALogModify(
                 $Field,
@@ -750,7 +756,7 @@ abstract class JsonTables extends aTable
                     $isCheck
                 );
 
-                $this->checkIsModified($oldVal, $this->tbl['params'][$footerField['name']]);
+                $this->checkIsModified($oldVal, $this->tbl['params'][$footerField['name']], $footerField['name']);
 
                 $this->addToALogModify(
                     $Field,
@@ -1339,7 +1345,7 @@ abstract class JsonTables extends aTable
                             case '=':
                                 $value = (array)$value;
                                 foreach ($value as &$val) {
-                                    if(is_array($val)){
+                                    if (is_array($val)) {
                                         throw new errorException($this->translate('An invalid value for id filtering was passed to the select function.'));
                                     }
                                     $val = strval($val);

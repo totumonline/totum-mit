@@ -64,7 +64,7 @@ trait WebInterfaceTrait
             ]
         );
         $oldUpdated = $this->updated;
-        $this->isTblUpdated(0);
+        $this->isTblUpdated(0, null);
         if ($oldUpdated !== $this->updated) {
             $table['updated'] = $this->updated;
         }
@@ -205,7 +205,8 @@ trait WebInterfaceTrait
                 $insertRowHash
             );
         }
-        $this->calcLog($Log, 'result', $this->isTblUpdated(0) ? 'changed' : 'not changed');
+        $isUpdated = $this->isTblUpdated(0, null);
+        $this->calcLog($Log, 'result', $isUpdated !== false ? ['changed', $isUpdated] : 'not changed');
     }
 
     public function checkEditRow($editData, $tableData = null)

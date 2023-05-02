@@ -83,7 +83,7 @@ class tmpTable extends JsonTables
     {
     }
 
-    public function isTblUpdated($level = 0, $force = false)
+    public function isTblUpdated($level = 0, $calcLog = null)
     {
         $savedTbl = $this->savedTbl;
         $isOnSave = false;
@@ -131,7 +131,7 @@ class tmpTable extends JsonTables
 
             $this->isOnSaving = false;
 
-            return true;
+            return $this->isTableDataChanged ?: true;
         } else {
             return false;
         }

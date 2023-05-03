@@ -278,45 +278,33 @@ class File extends Field
         }
 
 
+        $createTmpFile = function($fileString, &$file){
+            $ftmpname = tempnam(
+                $this->table->getTotum()->getConfig()->getTmpDir(),
+                $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.'
+            );
+            file_put_contents($ftmpname, $fileString);
+
+            if (!empty($file['gz'])) {
+                `gzip $ftmpname`;
+                $ftmpname .= '.gz';
+                unset($file['gz']);
+                $file['name'] .= '.gz';
+            }
+            $file['size'] = filesize($ftmpname);
+            $file['tmpfile'] = preg_replace('`^.*/([^/]+)$`', '$1', $ftmpname);
+
+            static::checkAndCreateThumb($ftmpname, $file['name']);
+        };
+
         /*Добавление через filestring и filestringbase64 */
         foreach ($val as &$file) {
             if (!empty($file['filestring'])) {
-                $ftmpname = tempnam(
-                    $this->table->getTotum()->getConfig()->getTmpDir(),
-                    $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.'
-                );
-                file_put_contents($ftmpname, $file['filestring']);
-
-                if (!empty($file['gz'])) {
-                    `gzip $ftmpname`;
-                    $ftmpname .= '.gz';
-                    unset($file['gz']);
-                    $file['name'] .= '.gz';
-                }
-                $file['size'] = filesize($ftmpname);
-
+                $createTmpFile($file['filestring'], $file);
                 unset($file['filestring']);
-                static::checkAndCreateThumb($ftmpname, $file['name']);
-                $file['tmpfile'] = preg_replace('`^.*/([^/]+)$`', '$1', $ftmpname);
             } elseif (!empty($file['filestringbase64'])) {
-                $ftmpname = tempnam(
-                    $this->table->getTotum()->getConfig()->getTmpDir(),
-                    $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.'
-                );
-
-                file_put_contents($ftmpname, base64_decode($file['filestringbase64']));
-
-                if (!empty($file['gz'])) {
-                    `gzip $ftmpname`;
-                    $ftmpname .= '.gz';
-                    unset($file['gz']);
-                    $file['name'] .= '.gz';
-                }
-                $file['size'] = filesize($ftmpname);
-
-                static::checkAndCreateThumb($ftmpname, $file['name']);
+                $createTmpFile(base64_decode($file['filestringbase64']), $file);
                 unset($file['filestringbase64']);
-                $file['tmpfile'] = preg_replace('`^.*/([^/]+)$`', '$1', $ftmpname);
             }
         }
         unset($file);

@@ -2644,9 +2644,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return null;
     }
 
-    public function isTableServiceOn($name)
+    public function isTableServiceOn($name): bool
     {
         $data = $this->Totum->getModel('ttm__services')->get(['name' => $name], 'tables, exclusions');
+        if (!$data) {
+            return false;
+        }
+
         foreach ($data as &$v) {
             $v = json_decode($v, true);
         }

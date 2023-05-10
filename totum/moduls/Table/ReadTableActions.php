@@ -2062,17 +2062,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
     }
 
-    public function filePreview()
-    {
-        if ($this->isTableServiceOn('pdfdocpreview') && !$this->isServicesBlocked) {
-            $data = json_decode($this->post['data'], true);
-
-
-        } else {
-            throw new errorException('The function is not available');
-        }
-    }
-
     public function dblClick()
     {
         $id = (int)($this->post['id'] ?? 0);

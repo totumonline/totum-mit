@@ -42,9 +42,9 @@ class calcsTable extends JsonTables
         return $this->Cycle->getTable($this->tableRow, false, true);
     }
 
-    public function saveTable($force = false)
+    public function saveTable($force = false, $log = null)
     {
-        if (!$this->isTableDataChanged && !$force && key_exists('params', $this->loadedTbl)) {
+        if (!$this->isTableDataChanged && !$force && key_exists('params', $this->savedTbl)) {
             return;
         }
 
@@ -66,6 +66,9 @@ class calcsTable extends JsonTables
             errorException::tableUpdatedException($this);
         }
 
+        if ($log) {
+            $this->CalculateLog = $log;
+        }
 
         $saved = $this->savedTbl;
         $this->savedUpdated = $this->updated;

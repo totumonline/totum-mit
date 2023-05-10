@@ -13,11 +13,13 @@ use totum\common\Auth;
 use totum\common\Field;
 use totum\common\Lang\RU;
 use totum\common\logs\CalculateLog;
+use totum\common\Services\ServicesConnector;
 use totum\common\WithPathMessTrait;
 use totum\common\sql\SqlException;
 use totum\common\tableSaveOrDeadLockException;
 use totum\common\Totum;
 use totum\config\Conf;
+use totum\fieldTypes\File;
 use totum\models\Table;
 use totum\models\Tree;
 use totum\models\UserV;
@@ -549,10 +551,16 @@ class TableController extends interfaceController
         if (!$this->Table) {
             return;
         }
+
         /*Основная часть отдачи таблицы*/
         if (empty($error)) {
             try {
                 $Actions = $this->getTableActions($request, 'getFullTableData');
+
+                if ($Actions->isTableServiceOn('pdfdocpreview')) {
+                    $this->checkIsPreviewFileRequest($request);
+                }
+
                 $result = $Actions->getFullTableData(true);
             } catch (criticalErrorException $exception) {
                 $this->clearTotum($request, true);
@@ -699,7 +707,7 @@ class TableController extends interfaceController
                 $tableId = $tableMatches[3];
                 if (!is_numeric($tableId) && ($calcsTableRow = $this->Totum->getTableRow($tableId))) {
                     $tableId = $calcsTableRow['id'];
-                    if($tableMatches[1] === '0'){
+                    if ($tableMatches[1] === '0') {
                         $queryWith0 = true;
                     }
                 }
@@ -907,6 +915,78 @@ class TableController extends interfaceController
             } elseif ($orderCodeErrors = $this->Totum->getOrderFieldCodeErrors()) {
                 $result['FullLOGS'][] = $addOrderErrors($orderCodeErrors);
             }
+        }
+    }
+
+    protected function checkIsPreviewFileRequest(ServerRequestInterface $request)
+    {
+        if (!empty($filename = $request->getQueryParams()['docpreview'] ?? null) && !empty($fieldName = $request->getQueryParams()['field'] ?? null) && preg_match('/^[a-z][a-z0-9_]{2,50}$/',
+                $fieldName)) {
+            session_write_close();
+            if (!$this->Table) {
+                $error = $this->translate('The file table was not found.');
+            } else {
+                preg_match('/^(?<table>\d+)_(\d+_)?(\d+_)?(?<field>' . $fieldName . ')(?<hash>_[a-z_0-9]{32,32})?/',
+                    $filename,
+                    $matches);
+                /*Проверка не скормили ли неверный путь*/
+
+                if ($matches['table'] !== (string)$this->Table->getTableRow()['id']
+                    || ($this->Table->getTableRow()['type'] === 'calcs' && (int)$matches[2] !== (int)$this->Table->getCycle()->getId())
+                ) {
+                    $error = $this->translate('The file path is not formed correctly.');
+                } elseif (!($field = $this->Table->getFields()[$fieldName])) {
+                    $error = $this->translate('The file field was not found');
+                } else {
+                    $filepath = File::getFilePath($filename, $this->Config, $field);
+                }
+            }
+            if (!empty($filepath)) {
+                if (!is_file($filepath)) {
+                    $error = $this->translate('The file does not exist on the disk');
+                } else {
+                    if (!preg_match('/\.(docx|xlsx)$/i', $filepath, $ext)) {
+                        $error = $this->translate('Preview is on only for docx/xlsx files');
+                    }
+                    if (is_file($filepath . File::DOC_PREVIEW_POSTFIX)) {
+                        $filepath = $filepath . File::DOC_PREVIEW_POSTFIX;
+                    } else {
+                        $Config = $this->Table->getTotum()->getConfig();
+                        $connector = ServicesConnector::init($Config);
+                        $hash = $Config->getServicesVarObject()->getNewVarnameHash(3600);
+                        $data = [
+                            'file' => base64_encode(file_get_contents($filepath)),
+                            'type' => $ext[1],
+                            'comment' => 'doc file preview'
+                        ];
+                        $connector->sendRequest('pdf', $hash, $data);
+                        $hashes[] = $hash;
+                        try {
+                            $executes = $Config->getServicesVarObject()->waitVarValues($hashes, true);
+                            if ($executes[$hash]) {
+                                $filepath = $filepath . File::DOC_PREVIEW_POSTFIX;
+                                file_put_contents($filepath, $executes[$hash]);
+                            } else {
+                                $error = 'Preview generating error';
+                            }
+                        } catch (\Exception $e) {
+                            $error = $e->getMessage();
+                        }
+                    }
+                }
+
+                if (empty($error)) {
+                    header('Content-type: application/pdf');
+                    header('Content-Disposition: inline; filename="'.addslashes($request->getQueryParams()['title']).'"');
+                    readfile($filepath);
+                    die;
+                }
+            }
+            if ($error) {
+                http_response_code(404);
+                echo $error;
+            }
+            die;
         }
     }
 }

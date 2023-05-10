@@ -349,12 +349,49 @@ abstract class aTable
     }
 
 
-    /**
-     * @param bool $isTableDataChanged
-     */
-    protected function setIsTableDataChanged(bool $isTableDataChanged): void
+    protected function getDiffRecursiveForLog($new, $old)
     {
-        $this->isTableDataChanged = $isTableDataChanged;
+
+        $diff = [];
+        if (is_array($new) && is_array($old)) {
+            $keys = array_unique(array_keys($old + $new));
+            foreach ($keys as $k) {
+                if (($old[$k] ?? null) !== ($new[$k] ?? null)) {
+                    if (is_array($old[$k] ?? null) && is_array($new[$k] ?? null)) {
+                        $diff[$k] = $this->getDiffRecursiveForLog($new[$k], $old[$k]);
+                    } else {
+                        $diff[$k] = [$old[$k] ?? null, $new[$k] ?? null];
+                    }
+                }
+            }
+        } else {
+            $diff = [$old, $new];
+        }
+        return $diff;
+    }
+
+    /**
+     * @param $isTableDataChanged
+     */
+    protected function setIsTableDataChanged($isTableDataChanged, $new = '**NOT_USED**', $old = '**NOT_USED**'): void
+    {
+        if (!$this->Totum->getCalculateLog()->getTopParent()->getTypesIndexed('C') || $isTableDataChanged === false) {
+            $this->isTableDataChanged = $isTableDataChanged;
+        } elseif ($isTableDataChanged === true && $this->isTableDataChanged) {
+            return;
+        } else {
+            if (!is_array($this->isTableDataChanged)) {
+                $this->isTableDataChanged = [];
+            }
+            if ($new === '**NOT_USED**' && $old === '**NOT_USED**') {
+                $data = $isTableDataChanged;
+            } elseif ($old === '**NOT_USED**') {
+                $data = [$isTableDataChanged, $new];
+            } else {
+                $data = [$isTableDataChanged, $this->getDiffRecursiveForLog($new, $old)];
+            }
+            $this->isTableDataChanged[] = $data;
+        }
     }
 
     abstract protected function loadModel();
@@ -889,15 +926,18 @@ abstract class aTable
             $this->addCalculateLogInstance($Log);
         }
 
-        $Log = $this->calcLog(["name" => 'RECALC', 'table' => $this, 'inVars' => $inVars]);
+        $Log = $this->calcLog(['name' => 'RECALC', 'table' => $this, 'inVars' => $inVars]);
 
         try {
             if ($level > 20) {
                 throw new errorException($this->translate('More than 20 nesting levels of table changes. Most likely a recalculation loop'));
             }
             $this->reCalculate($inVars);
-            $result = $this->isTblUpdated($level);
-            $this->calcLog($Log, 'result', $result ? 'changed' : 'no changed');
+            $result = $this->isTblUpdated($level, function ($result) use ($Log) {
+                $this->calcLog($Log, 'result', $result !== false ? ['changed', $result] : 'not changed');
+            });
+            $this->calcLog($Log, 'result', $result !== false ? ['changed', $result] : 'not changed');
+
         } catch (Exception $exception) {
             $this->calcLog($Log, 'error', $exception->getMessage());
             throw $exception;
@@ -1031,7 +1071,11 @@ CODE;;
 
         $this->inAddRecalc = $inAddRecalc;
 
-        $this->setIsTableDataChanged(!!$isTableAdding);
+        if ($isTableAdding) {
+            $this->setIsTableDataChanged('ADDING TABLE');
+        } else {
+            $this->setIsTableDataChanged(false);
+        }
         $modify['params'] = $modify['params'] ?? [];
 
         if (($this->tableRow['deleting'] ?? null) === 'none' && !empty($remove) && $channel !== 'inner') {
@@ -1056,7 +1100,7 @@ CODE;;
 
 
         foreach (['param', 'filter', 'column'] as $category) {
-            if (!($columns = $this->sortedFields[$category] ?? []) && $category !== "column") {
+            if (!($columns = $this->sortedFields[$category] ?? []) && $category !== 'column') {
                 continue;
             }
 
@@ -1064,7 +1108,7 @@ CODE;;
             try {
                 switch ($category) {
                     case 'filter':
-                        $Log = $this->calcLog(["recalculate" => $category]);
+                        $Log = $this->calcLog(['recalculate' => $category]);
 
                         $this->reCalculateFilters(
                             $channel,
@@ -1163,7 +1207,7 @@ CODE;;
                                     $isCheck
                                 );
 
-                                $this->checkIsModified($oldVal, $newTbl['params'][$column['name']]);
+                                $this->checkIsModified($oldVal, $newTbl['params'][$column['name']], $column['name']);
 
                                 $this->addToALogModify(
                                     $Field,
@@ -2100,12 +2144,18 @@ CODE;;
         }
     }
 
-    protected function checkIsModified($oldVal, $newVal)
+    protected function checkIsModified($oldVal, $newVal, $fieldName, $id = null)
     {
-        if (!$this->isTableDataChanged) {
+        if (!$this->isTableDataChanged || $this->Totum->getCalculateLog()->getTopParent()->getTypesIndexed('C')) {
             if ($oldVal !== $newVal) {
                 if (static::isDifferentFieldData($oldVal, $newVal)) {
-                    $this->setIsTableDataChanged(true);
+                    if ($this->Totum->getCalculateLog()->getTopParent()->getTypesIndexed('C')) {
+                        $this->setIsTableDataChanged("FIELD_CHANGED $fieldName" . ($id ? "/ $id" : ''),
+                            $newVal,
+                            $oldVal);
+                    } else {
+                        $this->setIsTableDataChanged(true);
+                    }
                 }
             }
         }
@@ -2343,7 +2393,7 @@ CODE;;
         }
     }
 
-    abstract protected function isTblUpdated($level = 0, $force = false);
+    abstract protected function isTblUpdated($level = 0, $calcLog = null);
 
     protected function __getCheckSectionField($params)
     {

@@ -41,10 +41,10 @@ trait WithPhpMailerTrait
                 $mail->addAddress($_to);     // Add a recipient
             }
 
-            if($replyTo){
+            if ($replyTo) {
                 $mail->addReplyTo($replyTo);
             }
-            if($hcopy){
+            if ($hcopy) {
                 $mail->addBCC($hcopy);
             }
 
@@ -59,7 +59,11 @@ trait WithPhpMailerTrait
             $mail->isHTML(true);                                  // Set email format to HTML
             $mail->Subject = $title;
             $mail->Body = $body;
-            return $mail->send();
+            try {
+                return $mail->send();
+            } catch (\Exception) {
+                return $mail->send();
+            }
         } catch (\Exception $e) {
             throw new \ErrorException($mail->ErrorInfo);
         }

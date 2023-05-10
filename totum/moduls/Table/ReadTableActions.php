@@ -1147,7 +1147,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         );
 
         if ($settings['pdf'] ?? false) {
-            if (!$this->isTableWithPDF() || $this->isServicesBlocked) {
+            if (!$this->isTableServiceOn('pdf') || $this->isServicesBlocked) {
                 throw new errorException($this->translate('PDF printing for this table is switched off'));
             }
             $data = [
@@ -2035,8 +2035,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
-        $_tableRow['__withPDF'] = $this->isTableWithPDF() && !$this->isServicesBlocked;
-        $_tableRow['__xlsx'] = $this->isTableWithXlsxExport() && !$this->isServicesBlocked;
+        $_tableRow['__withPDF'] = $this->isTableServiceOn('pdf') && !$this->isServicesBlocked;
+        $_tableRow['__xlsx'] = $this->isTableServiceOn('xlsx') && !$this->isServicesBlocked;
+        $_tableRow['__withDocPreviews'] = $this->isTableServiceOn('pdfdocpreview') && !$this->isServicesBlocked;
 
 
         return $_tableRow;
@@ -2044,7 +2045,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     public function excelExport()
     {
-        if ($this->isTableWithXlsxExport() && !$this->isServicesBlocked) {
+        if ($this->isTableServiceOn('xlsx') && !$this->isServicesBlocked) {
             $data = json_decode($this->post['data'], true);
             $Calc = new CalculateAction('=: linkToFileDownload(file: json`{"filestring": $serv,"name": $#name, "type": "application/xlsx"}`)' . "\n" . 'serv: ServiceXlsxGenerator(template: "*NEW*"; data: $#data)');
             $filestring = $Calc->execAction('CODE',
@@ -2632,27 +2633,13 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         return null;
     }
 
-    protected function isTableWithPDF()
+    public function isTableServiceOn($name): bool
     {
-        $data = $this->Totum->getModel('ttm__services')->get(['name' => 'pdf'], 'tables, exclusions');
-        foreach ($data as &$v) {
-            $v = json_decode($v, true);
+        $data = $this->Totum->getModel('ttm__services')->get(['name' => $name], 'tables, exclusions');
+        if (!$data) {
+            return false;
         }
-        if (is_array($data['tables'])) {
-            if (in_array('*ALL*', $data['tables'])) {
-                if (!in_array($this->Table->getTableRow()['name'], $data['exclusions'])) {
-                    return true;
-                }
-            } elseif (in_array($this->Table->getTableRow()['name'], $data['tables'])) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    protected function isTableWithXlsxExport()
-    {
-        $data = $this->Totum->getModel('ttm__services')->get(['name' => 'xlsx'], 'tables, exclusions');
         foreach ($data as &$v) {
             $v = json_decode($v, true);
         }

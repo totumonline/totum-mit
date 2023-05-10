@@ -19,6 +19,7 @@ use totum\config\Conf;
 class File extends Field
 {
     protected static $transactionCommits = [];
+    public const DOC_PREVIEW_POSTFIX = '!docpreview!.pdf';
 
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])
     {
@@ -76,6 +77,9 @@ class File extends Field
             unlink($fullFileName);
         }
         if (is_file($preview = $fullFileName . '_thumb.jpg')) {
+            unlink($preview);
+        }
+        if (is_file($preview = $fullFileName . File::DOC_PREVIEW_POSTFIX)) {
             unlink($preview);
         }
     }
@@ -274,45 +278,33 @@ class File extends Field
         }
 
 
+        $createTmpFile = function($fileString, &$file){
+            $ftmpname = tempnam(
+                $this->table->getTotum()->getConfig()->getTmpDir(),
+                $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.'
+            );
+            file_put_contents($ftmpname, $fileString);
+
+            if (!empty($file['gz'])) {
+                `gzip $ftmpname`;
+                $ftmpname .= '.gz';
+                unset($file['gz']);
+                $file['name'] .= '.gz';
+            }
+            $file['size'] = filesize($ftmpname);
+            $file['tmpfile'] = preg_replace('`^.*/([^/]+)$`', '$1', $ftmpname);
+
+            static::checkAndCreateThumb($ftmpname, $file['name']);
+        };
+
         /*Добавление через filestring и filestringbase64 */
         foreach ($val as &$file) {
             if (!empty($file['filestring'])) {
-                $ftmpname = tempnam(
-                    $this->table->getTotum()->getConfig()->getTmpDir(),
-                    $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.'
-                );
-                file_put_contents($ftmpname, $file['filestring']);
-
-                if (!empty($file['gz'])) {
-                    `gzip $ftmpname`;
-                    $ftmpname .= '.gz';
-                    unset($file['gz']);
-                    $file['name'] .= '.gz';
-                }
-                $file['size'] = filesize($ftmpname);
-
+                $createTmpFile($file['filestring'], $file);
                 unset($file['filestring']);
-                static::checkAndCreateThumb($ftmpname, $file['name']);
-                $file['tmpfile'] = preg_replace('`^.*/([^/]+)$`', '$1', $ftmpname);
             } elseif (!empty($file['filestringbase64'])) {
-                $ftmpname = tempnam(
-                    $this->table->getTotum()->getConfig()->getTmpDir(),
-                    $this->table->getTotum()->getConfig()->getSchema() . '.' . $this->table->getUser()->getId() . '.'
-                );
-
-                file_put_contents($ftmpname, base64_decode($file['filestringbase64']));
-
-                if (!empty($file['gz'])) {
-                    `gzip $ftmpname`;
-                    $ftmpname .= '.gz';
-                    unset($file['gz']);
-                    $file['name'] .= '.gz';
-                }
-                $file['size'] = filesize($ftmpname);
-
-                static::checkAndCreateThumb($ftmpname, $file['name']);
+                $createTmpFile(base64_decode($file['filestringbase64']), $file);
                 unset($file['filestringbase64']);
-                $file['tmpfile'] = preg_replace('`^.*/([^/]+)$`', '$1', $ftmpname);
             }
         }
         unset($file);
@@ -403,6 +395,8 @@ class File extends Field
                                 die(json_encode(['error' => $this->translate('Failed to copy preview.')],
                                     JSON_UNESCAPED_UNICODE));
                             }
+                        } elseif (is_file($fname . File::DOC_PREVIEW_POSTFIX)) {
+                            unlink($fname . File::DOC_PREVIEW_POSTFIX);
                         }
                         unset(static::$transactionCommits[$fname]);
                     });
@@ -435,6 +429,8 @@ class File extends Field
                                 }
                                 if (is_file($otherfname . '_thumb.jpg')) {
                                     copy($otherfname . '_thumb.jpg', $fname . '_thumb.jpg');
+                                } elseif (is_file($fname . File::DOC_PREVIEW_POSTFIX)) {
+                                    unlink($fname . File::DOC_PREVIEW_POSTFIX);
                                 }
                                 unset(static::$transactionCommits[$fname]);
                             });

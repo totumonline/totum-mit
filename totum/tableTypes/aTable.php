@@ -1073,6 +1073,8 @@ CODE;;
 
         if ($isTableAdding) {
             $this->setIsTableDataChanged('ADDING TABLE');
+        } else {
+            $this->setIsTableDataChanged(false);
         }
         $modify['params'] = $modify['params'] ?? [];
 

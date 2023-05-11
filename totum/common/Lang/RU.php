@@ -417,6 +417,8 @@ class RU implements LangInterface
   'Min value of %s is %s.' => 'Минимальное значение %s - %s.',
   'User is switched off or does not have access rights' => 'Пользователь отключен или не имеет прав доступа',
   'The parameter [[%s]] should be of type row.' => 'Параметр [[%s]] должен быть типа row.',
+  'The fileDuplicateOnCopy option must be enabled for versioned files.' => 'Параметр fileDuplicateOnCopy должен быть включен для файлов с версиями.',
+  'Version adding error - file for version not found' => 'Ошибка добавления версии - файл для версии не найден',
 );
 	/**
      * Возвращает сумму прописью

@@ -415,6 +415,8 @@ class DE implements LangInterface
   'Min value of %s is %s.' => 'Der Mindestwert von %s - %s.',
   'User is switched off or does not have access rights' => 'Der Benutzer ist deaktiviert oder hat keine Zugriffsrechte',
   'The parameter [[%s]] should be of type row.' => 'Der Parameter [[%s]] muss vom Typ row sein.',
+  'The fileDuplicateOnCopy option must be enabled for versioned files.' => NULL,
+  'Version adding error - file for version not found' => NULL,
 );
 	/**
      * Возвращает сумму прописью

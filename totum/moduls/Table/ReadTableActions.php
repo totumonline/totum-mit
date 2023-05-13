@@ -1956,6 +1956,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 $fields['data_src']['jsonFields']['fieldSettings']['editRoles']['values']
                     = $fields['data_src']['jsonFields']['fieldSettings']['addRoles']['values']
                     = $fields['data_src']['jsonFields']['fieldSettings']['logRoles']['values']
+                    = $fields['data_src']['jsonFields']['fieldSettings']['removeVersionsRoles']['values']
                     = $fields['data_src']['jsonFields']['fieldSettings']['webRoles']['values']
                     = $fields['data_src']['jsonFields']['fieldSettings']['xmlRoles']['values']
                     = $fields['data_src']['jsonFields']['fieldSettings']['xmlEditRoles']['values']

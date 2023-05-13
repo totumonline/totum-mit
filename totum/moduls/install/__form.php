@@ -53,6 +53,7 @@
                     {name: "Русский язык", val: 'ru'},
                     {name: "English", val: 'en'},
                     {name: "Deutsch", val: 'de'},
+                    {name: "Español", val: 'es'},
                 ]
             },
             {

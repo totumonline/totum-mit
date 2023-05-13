@@ -69,6 +69,12 @@ class ServicesConnector
     public function sendRequest($type, $hash, $data)
     {
         $accountData = $this->getServicesAccountData();
+
+        if (empty($accountData['h_services_url']) || !str_starts_with($accountData['h_services_url'], 'http')) {
+            throw new errorException($this->Config->getLangObj()->translate('The [[%s]] parameter is not correct.',
+                'h_services_url'));
+        }
+
         $Data = [
             'number' => $accountData['h_services_number'],
             'key' => $accountData['h_services_key'],

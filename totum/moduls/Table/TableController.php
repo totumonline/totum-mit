@@ -959,9 +959,11 @@ class TableController extends interfaceController
                             'type' => $ext[1],
                             'comment' => 'doc file preview'
                         ];
-                        $connector->sendRequest('pdf', $hash, $data);
-                        $hashes[] = $hash;
+
                         try {
+                            $connector->sendRequest('pdf', $hash, $data);
+                            $hashes[] = $hash;
+
                             $executes = $Config->getServicesVarObject()->waitVarValues($hashes, true);
                             if ($executes[$hash]) {
                                 $filepath = $filepath . File::DOC_PREVIEW_POSTFIX;

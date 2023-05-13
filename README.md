@@ -14,6 +14,9 @@
 ```
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/autoinstall.sh && sudo bash autoinstall.sh
 ```
+\>
+
+**Avaliable lang:** `EN`, `RU`, `ES`, `DE`
 
 \>
 

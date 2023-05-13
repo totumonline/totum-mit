@@ -553,6 +553,7 @@
     "{{PRO_custom_file_folder_in_p}}": "PRO Задать подпапку для файлов",
     "{{PRO_field_divider_in_p}}": "PRO Делить на подпапку каждые N id",
     "{{PRO_secured_file_access}}": "PRO защищенный доступ к файлам",
+    "{{PRO_timer_new_version_in_p}}": "PRO Таймер перезаписи версии",
     "{{PRO_versions_del_available_for_roles}}": "PRO Удаление доступно для ролей",
     "{{PRO}}": "PRO",
     "{{Page}}": "Страница",

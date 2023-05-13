@@ -553,6 +553,7 @@
     "{{PRO_custom_file_folder_in_p}}": "PRO Set a subfolder for files",
     "{{PRO_field_divider_in_p}}": "PRO Split into a subfolder every N id",
     "{{PRO_secured_file_access}}": "PRO secured file access",
+    "{{PRO_timer_new_version_in_p}}": "PRO Version rewrite timer",
     "{{PRO_versions_del_available_for_roles}}": "PRO Delete available for roles",
     "{{PRO}}": "PRO",
     "{{Page}}": "Page",

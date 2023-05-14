@@ -6,7 +6,11 @@
 
 #### About Totum — [video on YouTube](https://www.youtube.com/watch?v=pnKm1RA4NYE)
 
-#### Demo-server — [demo.totum.online](https://demo.totum.online)
+#### `EN`-Demo-server — [demo.totum.online](https://demo.totum.online) or [en-live-demo](https://n-f79b352-23614.demo.totum.online/)
+
+- `ES`-Demo — [demoes.totum.online](https://demoes.totum.online) or [es-live-demo](https://n-5f894e2-69564.demoes.totum.online/)
+
+- `RU`-Demo — [demoru.totum.online](https://demoru.totum.online) or [ru-live-demo](https://n-5f894e2-69564.demoes.totum.online/)
 
 \>
 

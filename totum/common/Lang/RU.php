@@ -419,6 +419,8 @@ class RU implements LangInterface
   'The parameter [[%s]] should be of type row.' => 'Параметр [[%s]] должен быть типа row.',
   'The fileDuplicateOnCopy option must be enabled for versioned files.' => 'Параметр fileDuplicateOnCopy должен быть включен для файлов с версиями.',
   'Version adding error - file for version not found' => 'Ошибка добавления версии — файл для версии не найден',
+  'The time to delete/replace the last file version has expired' => 'Время удаления/замены последней версии файла истекло',
+  'File %s versions' => 'Версии файла %s',
 );
 	/**
      * Возвращает сумму прописью

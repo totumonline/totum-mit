@@ -417,6 +417,8 @@ class ES implements LangInterface
   'The parameter [[%s]] should be of type row.' => 'El parámetro [[%s]] debe ser del tipo fila.',
   'The fileDuplicateOnCopy option must be enabled for versioned files.' => 'El parámetro fileDuplicateOnCopy debe estar activado para los archivos versionados.',
   'Version adding error - file for version not found' => 'Añadir error de versión — archivo de versión no encontrado',
+  'The time to delete/replace the last file version has expired' => 'El tiempo para borrar/reemplazar la última versión del archivo ha expirado.',
+  'File %s versions' => 'Versiones de archivo %s',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

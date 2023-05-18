@@ -15,12 +15,17 @@ class Password extends Field
 {
     public function getModifiedLogValue($val)
     {
-        return "---";
+        return '---';
     }
 
     public function getLogValue($val, $row, $tbl = [])
     {
-        return "---";
+        return '---';
+    }
+
+    public function getFullValue($val, $rowId = null)
+    {
+        return '---';
     }
 
     public function addViewValues($viewType, array &$valArray, $row, $tbl = [])

@@ -419,6 +419,7 @@ class DE implements LangInterface
   'Version adding error - file for version not found' => 'Fehler beim Hinzufügen der Version — Datei für Version nicht gefunden',
   'The time to delete/replace the last file version has expired' => 'Die Zeit zum Löschen/Ersetzen der letzten Version der Datei ist abgelaufen',
   'File %s versions' => 'Dateiversionen %s',
+  'Field [[%s]] is required.' => 'Das Feld [[%s]] st obligatorisch.',
 );
 	/**
      * Возвращает сумму прописью

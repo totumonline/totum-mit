@@ -72,6 +72,11 @@ class FormsController extends interfaceController
         $this->applyAllOrigins();
         parent::__construct($Config, $totumPrefix);
         static::$pageTemplate = __DIR__ . '/__template.php';
+
+
+        $Lang = $Config->getLangObj();
+
+        $Lang->replaceTempates('Field [[%s]] of table [[%s]] is required.', 'Field [[%s]] is required.');
     }
 
     public function doIt(ServerRequestInterface $request, bool $output)

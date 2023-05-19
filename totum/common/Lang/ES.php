@@ -419,6 +419,7 @@ class ES implements LangInterface
   'Version adding error - file for version not found' => 'Añadir error de versión — archivo de versión no encontrado',
   'The time to delete/replace the last file version has expired' => 'El tiempo para borrar/reemplazar la última versión del archivo ha expirado.',
   'File %s versions' => 'Versiones de archivo %s',
+  'Field [[%s]] is required.' => 'Campo [[%s]] es obligatorio.',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

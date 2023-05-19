@@ -421,6 +421,7 @@ class RU implements LangInterface
   'Version adding error - file for version not found' => 'Ошибка добавления версии — файл для версии не найден',
   'The time to delete/replace the last file version has expired' => 'Время удаления/замены последней версии файла истекло',
   'File %s versions' => 'Версии файла %s',
+  'Field [[%s]] is required.' => 'Поле [[%s]]  обязательно для заполнения.',
 );
 	/**
      * Возвращает сумму прописью

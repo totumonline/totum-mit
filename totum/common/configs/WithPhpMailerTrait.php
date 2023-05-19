@@ -45,7 +45,9 @@ trait WithPhpMailerTrait
                 $mail->addReplyTo($replyTo);
             }
             if ($hcopy) {
-                $mail->addBCC($hcopy);
+                foreach ((array) $hcopy as $_h){
+                    $mail->addBCC($_h);
+                }
             }
 
             foreach ($attachments as $innrName => $fileString) {

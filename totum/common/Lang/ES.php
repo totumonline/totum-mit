@@ -155,7 +155,7 @@ class ES implements LangInterface
   'Page processing time: %s sec.<br/>
     RAM: %sM. of %s.<br/>
     Sql Schema: %s, V %s<br/>' => 'Tiempo de procesamiento: %s sec.<br/>     RAM: %sM. of %s.<br/>     Sql Schema: %s, V %s<br/>',
-  'Order field calculation errors' => 'Errores de cálculo de campo de orden',
+  'Order field calculation errors' => 'Errores de orden de cálculo o referencia a campos de filas suprimidas',
   'in %s table in fields:' => 'en la tabla %s en los campos: ',
   'Settings for sending mail are not set.' => 'No se han configurado los ajustes para enviar correos electrónicos.',
   'The path to ssh script %s is not set.' => 'La ruta al script ssh %s no está configurada.',

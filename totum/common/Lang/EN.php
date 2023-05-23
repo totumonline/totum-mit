@@ -10,6 +10,7 @@ class EN implements LangInterface
     use SearchTrait;
 
     public const TRANSLATES = array (
+  'Order field calculation errors' => 'Calculation order errors or reference to fields of deleted rows',
   'Version adding error - file for version not found' => 'Version adding error — file for version not found',
 );
 	public function dateFormat(DateTime $date, $fStr): string

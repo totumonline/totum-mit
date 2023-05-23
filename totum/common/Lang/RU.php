@@ -157,7 +157,7 @@ class RU implements LangInterface
     Sql Schema: %s, V %s<br/>' => 'Время обработки страницы: %s сек.<br/>
     Оперативная память: %sM. из %s.<br/>
     Sql схема: %s, V %s<br/>',
-  'Order field calculation errors' => 'Ошибки порядка расчета полей',
+  'Order field calculation errors' => 'Ошибки порядка расчета или обращение к полям удаленных строк',
   'in %s table in fields:' => 'в таблице %s в полях: ',
   'Settings for sending mail are not set.' => 'Настройки для отправки почты не заданы.',
   'The path to ssh script %s is not set.' => 'Не задан путь к ssh скрипту %s.',

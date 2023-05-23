@@ -155,7 +155,7 @@ class DE implements LangInterface
   'Page processing time: %s sec.<br/>
     RAM: %sM. of %s.<br/>
     Sql Schema: %s, V %s<br/>' => 'Bearbeitungszeit der Seite: %s сек.<br/> Arbeitspeicher:%sM. von %s.<br/>     Sql Schema: %s, V %s<br/>',
-  'Order field calculation errors' => 'Fehler in der Feldberechnungsreihenfolge',
+  'Order field calculation errors' => 'Fehler in der Berechnungsreihenfolge oder Verweis auf Felder von gelöschten Zeilen',
   'in %s table in fields:' => 'in der Tabelle %s in den Feldern: ',
   'Settings for sending mail are not set.' => 'Die Einstellungen für den E-Mail-Versand sind nicht festgelegt.',
   'The path to ssh script %s is not set.' => 'Der Pfad zum ssh-Skript %s ist nicht festgelegt.',

@@ -966,7 +966,7 @@ abstract class aTable
 
     abstract public function addField($field);
 
-    public function selectSourceTableAction($fieldName, $itemData)
+    public function selectSourceTableAction($fieldName, $itemData, bool $isPlus)
     {
         if (empty($this->fields[$fieldName]['selectTableAction'])) {
             if (!empty($this->fields[$fieldName]['selectTable'])) {
@@ -979,6 +979,10 @@ CODE;;
                 } else {
                     $param = '#' . $fieldName;
                 }
+                if ($isPlus) {
+                    $param = '""';
+                }
+
                 $this->fields[$fieldName]['selectTableAction'] = '=: linkToPanel(table: "' . $this->fields[$fieldName]['selectTable'] . '"; id: ' . $param . ')' . $row2;
             } else {
                 throw new errorException($this->translate('The field is not configured.'));
@@ -2176,7 +2180,8 @@ CODE;;
         $addFilters = false,
         $modify = [],
         $setValuesToDefaults = []
-    ) {
+    )
+    {
         $params = $modify['params'] ?? [];
 
         if ($channel === 'inner') {

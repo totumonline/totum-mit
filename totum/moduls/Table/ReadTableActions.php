@@ -257,9 +257,19 @@ class ReadTableActions extends Actions
         return ['ok' => 1];
     }
 
-    public function getValue()
+    public function getValuePack()
     {
         $data = json_decode($this->post['data'], true) ?? [];
+        $results = [];
+        foreach ($data as $row) {
+            $results[] = $this->getValue($row);
+        }
+        return ['values' => $results];
+    }
+
+    public function getValue($data = null)
+    {
+        $data = $data ?? json_decode($this->post['data'], true) ?? [];
 
         if (empty($data['fieldName'])) {
             throw new errorException($this->translate('The name of the field is not set.'));
@@ -1574,9 +1584,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $vars = [];
 
         if ($click = is_string($this->post['data']) ? (json_decode(
-                $this->post['data'],
-                true
-            ) ?? []) : $this->post['data']) {
+            $this->post['data'],
+            true
+        ) ?? []) : $this->post['data']) {
             if ($click['item'] === 'params') {
                 $row = $this->Table->getTbl()['params'];
             } elseif (is_string($click['item']) && $click['item'][0] === 'i') {

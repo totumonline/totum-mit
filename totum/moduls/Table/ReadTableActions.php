@@ -791,7 +791,11 @@ class ReadTableActions extends Actions
             }
         } else {
             if ($field['category'] !== 'filter') {
-                $row = [];
+                if (key_exists($field['name'], $row)) {
+                    $row = $cleareRow([$field['name'] => $row[$field['name']]]);
+                } else {
+                    $row = [];
+                }
             } else {
                 $row = $cleareRow($row);
             }

@@ -155,7 +155,7 @@ class ES implements LangInterface
   'Page processing time: %s sec.<br/>
     RAM: %sM. of %s.<br/>
     Sql Schema: %s, V %s<br/>' => 'Tiempo de procesamiento: %s sec.<br/>     RAM: %sM. of %s.<br/>     Sql Schema: %s, V %s<br/>',
-  'Order field calculation errors' => 'Errores de cálculo de campo de orden',
+  'Order field calculation errors' => 'Errores de orden de cálculo o referencia a campos de filas suprimidas',
   'in %s table in fields:' => 'en la tabla %s en los campos: ',
   'Settings for sending mail are not set.' => 'No se han configurado los ajustes para enviar correos electrónicos.',
   'The path to ssh script %s is not set.' => 'La ruta al script ssh %s no está configurada.',
@@ -419,6 +419,7 @@ class ES implements LangInterface
   'Version adding error - file for version not found' => 'Añadir error de versión — archivo de versión no encontrado',
   'The time to delete/replace the last file version has expired' => 'El tiempo para borrar/reemplazar la última versión del archivo ha expirado.',
   'File %s versions' => 'Versiones de archivo %s',
+  'Field [[%s]] is required.' => 'Campo [[%s]] es obligatorio.',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

@@ -242,7 +242,8 @@ class WriteTableActions extends ReadTableActions
         }
         $this->Table->selectSourceTableAction(
             $this->post['field_name'],
-            $itemData
+            $itemData,
+            ($this->post['isPlus'] ?? false) === 'true'
         );
         return ['ok' => true];
     }

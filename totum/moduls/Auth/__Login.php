@@ -20,7 +20,8 @@ use totum\config\Conf;
         input.error {
             border-color: red;
         }
-        body{
+
+        body {
             background: url(/imgs/mailttm.png) no-repeat center center fixed;
             background-size: cover;
         }
@@ -31,17 +32,18 @@ use totum\config\Conf;
     <div class="center-block">
         <form method="post"
               id='form'>
-            <div class="form-group"><label><?=$this->translate('Login/Email')?>:</label><input type="text"
-                                                                      name="login"
-                                                                      value=""
-                                                                      class="form-control"
+            <div class="form-group"><label><?= $this->translate('Login/Email') ?>:</label><input type="text"
+                                                                                                 name="login"
+                                                                                                 value=""
+                                                                                                 class="form-control"
                 /></div>
-            <div class="form-group"><label><?=$this->translate('Password')?>:</label><input type="password"
-                                                                 name="pass"
-                                                                 class="form-control"/></div>
+            <div class="form-group"><label><?= $this->translate('Password') ?>:</label><input type="password"
+                                                                                              name="pass"
+                                                                                              class="form-control"/>
+            </div>
             <div class="form-group"><input type="submit"
-                                           value="<?=$this->translate('Log in')?>"
-                                           style="width: 79px;margin-top:4px;"
+                                           value="<?= $this->translate('Log in') ?>"
+                                           style="width: auto; padding: 0px 22px;margin-top:4px;"
                                            id="login"
                                            class="form-control"/>
 
@@ -52,7 +54,7 @@ use totum\config\Conf;
             <button
                     style=";margin-top:4px;"
                     id="recover"
-                    class="form-control btn btn-default"><?=$this->translate('Send new password to email')?>
+                    class="form-control btn btn-default"><?= $this->translate('Send new password to email') ?>
             </button>
             <?php
         } ?>

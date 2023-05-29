@@ -64,7 +64,8 @@ trait WebInterfaceTrait
             ]
         );
         $oldUpdated = $this->updated;
-        $this->isTblUpdated(0, null);
+        $this->isTblUpdated(0, function () {
+        });
         if ($oldUpdated !== $this->updated) {
             $table['updated'] = $this->updated;
         }
@@ -205,7 +206,9 @@ trait WebInterfaceTrait
                 $insertRowHash
             );
         }
-        $isUpdated = $this->isTblUpdated(0, null);
+        $isUpdated = $this->isTblUpdated(0, function ($result) use ($Log) {
+            $this->calcLog($Log, 'result', $result !== false ? ['changed', $result] : 'not changed');
+        });
         $this->calcLog($Log, 'result', $isUpdated !== false ? ['changed', $isUpdated] : 'not changed');
     }
 
@@ -637,8 +640,8 @@ trait WebInterfaceTrait
                 $data[$field['name']] = $this->tbl['params'][$field['name']];
             }
             return $this->getValuesAndFormatsForClient(['params' => $data],
-                    'csv',
-                    array_keys($this->tbl['rows']))['params'] ?? [];
+                'csv',
+                array_keys($this->tbl['rows']))['params'] ?? [];
         };
 
         $addRowsByCategory = function ($categoriFields, $categoryTitle) use ($prepareCategoryDataData, $useThisField, $getAndCheckVal, &$csv, $visibleFields) {
@@ -747,8 +750,8 @@ trait WebInterfaceTrait
                 $data[] = $_row;
             }
             return $this->getValuesAndFormatsForClient(['rows' => $data],
-                    'csv',
-                    array_keys($this->tbl['rows']))['rows'] ?? [];
+                'csv',
+                array_keys($this->tbl['rows']))['rows'] ?? [];
         };
 
 

@@ -1306,13 +1306,6 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             return 'common';
         }
 
-        if (($tree = $this->Table->getFields()['tree'] ?? null)
-            && $tree['category'] === 'column'
-            && $tree['type'] === 'tree'
-            && !empty($tree['treeViewType'])) {
-            return 'tree';
-        }
-
         if ($this->Request->getQueryParams()['iframe'] ?? false) ; elseif (($panelViewSettings = ($this->Table->getTableRow()['panels_view'] ?? null))
         ) {
             if (($this->post['panelsView'] ?? false) === 'true') {
@@ -1340,6 +1333,12 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     return 'commonByCount';
                 }
             }
+        }
+        if (($tree = $this->Table->getFields()['tree'] ?? null)
+            && $tree['category'] === 'column'
+            && $tree['type'] === 'tree'
+            && !empty($tree['treeViewType'])) {
+            return 'tree';
         }
 
         return 'common';

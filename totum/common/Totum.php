@@ -27,7 +27,7 @@ use totum\tableTypes\tmpTable;
  */
 class Totum
 {
-    public const VERSION = '4.10.54.2';
+    public const VERSION = '4.10.54.3';
 
 
     public const TABLE_CODE_PARAMS = ['row_format', 'table_format', 'on_duplicate', 'default_action'];
@@ -77,6 +77,7 @@ class Totum
     protected $CalculateLog;
     protected $fieldObjectsCachesVar;
     protected array $orderFieldCodeErrors = [];
+    protected array $creatorWarnings = [];
 
 
     /**
@@ -106,6 +107,17 @@ class Totum
     {
         $this->orderFieldCodeErrors[$Table->getTableRow()['name']][$nameVar] = 1;
     }
+
+    public function addCreatorWarnings($warningText)
+    {
+        $this->creatorWarnings[$warningText] = 1;
+    }
+
+    public function getCreatorWarnings()
+    {
+       return $this->creatorWarnings;
+    }
+
 
 
     public function getMessenger()

@@ -420,6 +420,8 @@ class DE implements LangInterface
   'The time to delete/replace the last file version has expired' => 'Die Zeit zum Löschen/Ersetzen der letzten Version der Datei ist abgelaufen',
   'File %s versions' => 'Dateiversionen %s',
   'Field [[%s]] is required.' => 'Das Feld [[%s]] st obligatorisch.',
+  'Creator warnings' => 'Notificaciones al Administrador',
+  'BFL-log is on' => 'Protokollierung von Fehlern und externen Zugriffen aktiviert',
 );
 	/**
      * Возвращает сумму прописью

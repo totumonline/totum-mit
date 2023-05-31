@@ -422,6 +422,8 @@ class RU implements LangInterface
   'The time to delete/replace the last file version has expired' => 'Время удаления/замены последней версии файла истекло',
   'File %s versions' => 'Версии файла %s',
   'Field [[%s]] is required.' => 'Поле [[%s]]  обязательно для заполнения.',
+  'Creator warnings' => 'Нотификации Администратору',
+  'BFL-log is on' => 'Включен журнал ошибок и внешних обращений',
 );
 	/**
      * Возвращает сумму прописью

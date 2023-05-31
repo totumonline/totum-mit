@@ -77,6 +77,7 @@ class Totum
     protected $CalculateLog;
     protected $fieldObjectsCachesVar;
     protected array $orderFieldCodeErrors = [];
+    protected array $creatorWarnings = [];
 
 
     /**
@@ -106,6 +107,17 @@ class Totum
     {
         $this->orderFieldCodeErrors[$Table->getTableRow()['name']][$nameVar] = 1;
     }
+
+    public function addCreatorWarnings($warningText)
+    {
+        $this->creatorWarnings[$warningText] = 1;
+    }
+
+    public function getCreatorWarnings()
+    {
+       return $this->creatorWarnings;
+    }
+
 
 
     public function getMessenger()

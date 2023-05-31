@@ -12,6 +12,8 @@ class EN implements LangInterface
     public const TRANSLATES = array (
   'Order field calculation errors' => 'Calculation order errors or reference to fields of deleted rows',
   'Version adding error - file for version not found' => 'Version adding error — file for version not found',
+  'Creator warnings' => 'Notifications to the Administrator',
+  'BFL-log is on' => 'Log of errors and external accesses enabled',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

@@ -19,7 +19,7 @@ class OutersLog extends AbstractLogger
     protected $PDO;
     protected $userId;
 
-    public function __construct(Totum $Totum, $userId)
+    public function __construct(protected Totum $Totum, $userId)
     {
         $this->PDO = $Totum->getConfig()->getSql(false)->getPDO();
         $this->userId = $userId;
@@ -36,12 +36,8 @@ class OutersLog extends AbstractLogger
                 $this->PDO->quote(json_encode($data, JSON_UNESCAPED_UNICODE))
             ));
 
-
-            if (($error = $this->PDO->errorInfo()) && $error[2]) {
-                throw new SqlException($error[2]);
-            }
-        } catch (SqlException $exception) {
-            if ($afterError) {
+        } catch (\PDOException $exception) {
+            if ($afterError || $exception->getCode() != '42P01') {
                 throw new criticalErrorException($exception->getMessage());
             }
 
@@ -52,7 +48,6 @@ class OutersLog extends AbstractLogger
   type text,
   data jsonb
 )');
-
             $this->add($category, $type, $data, true);
         }
     }

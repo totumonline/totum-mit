@@ -420,6 +420,8 @@ class ES implements LangInterface
   'The time to delete/replace the last file version has expired' => 'El tiempo para borrar/reemplazar la última versión del archivo ha expirado.',
   'File %s versions' => 'Versiones de archivo %s',
   'Field [[%s]] is required.' => 'Campo [[%s]] es obligatorio.',
+  'Creator warnings' => 'Benachrichtigungen an den Administrator',
+  'BFL-log is on' => 'Registro de errores y accesos externos activado',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

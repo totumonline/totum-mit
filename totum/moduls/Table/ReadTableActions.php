@@ -1346,7 +1346,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
     protected function isPagingView($type = null): bool
     {
-        if (($this->Table->getTableRow()['pagination'] ?? '0/0') === '0/0') {
+        if (($this->Table->getTableRow()['pagination'] ?? '0/0') === '0/0' || !preg_match('/^[\d]+\/[\d]+/', $this->Table->getTableRow()['pagination'])) {
             return false;
         }
         if ($type === 'tree') {

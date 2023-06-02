@@ -78,10 +78,10 @@ class Actions
 
     protected function chechPostData($post)
     {
-        foreach (['onPage', 'pageCount'] as $param){
+        foreach (['onPage', 'pageCount'] as $param) {
             if (key_exists($param, $post) && $post[$param]) {
-                if(!ctype_digit($post[$param])){
-                    throw new errorException('Front error message with parametr '.$param);
+                if (!ctype_digit($post[$param])) {
+                    throw new errorException('Front error message with parametr ' . $param);
                 }
             }
         }
@@ -102,6 +102,11 @@ class Actions
         $this->Totum->addToInterfaceLink($this->Request->getParsedBody()['location'], 'self', 'reload');
 
         return ['ok' => 1];
+    }
+
+    public function getSchemaFormats()
+    {
+        return ['formats' => ['date' => $this->Totum->getConfig()->getSettings('dates_format') ?? 'd.m.Y'] + $this->Totum->getConfig()->getSettings('numbers_format') ?? []];
     }
 
     public

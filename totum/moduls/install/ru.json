@@ -26,6 +26,8 @@
     "{{Add_calculation_tables}}": "Добавить расчетные таблицы",
     "{{Add_change}}": "Добавлять\/Изменять",
     "{{Add_form}}": "Добавить форму",
+    "{{Add_header}}": "Добавить заголовок 'list-unsubscribe'",
+    "{{Add_link_in_body}}": "Добавить ссылку в письмо",
     "{{Add_quick_form}}": "Добавить форму",
     "{{Add_tables_by_name}}": "Добавить таблицы по name",
     "{{Add_tables_by_title}}": "Добавить таблицы по title",
@@ -375,6 +377,10 @@
     "{{LDAP_only_for_at_type_of_login}}": "Только для @ типа логирования",
     "{{LDAP_settings}}": "Настройки LDAP",
     "{{LDAP}}": "LDAP",
+    "{{LU_blocked_email}}": "Блокированный адрес",
+    "{{LU_date}}": "Дата",
+    "{{LU_enable}}": "Включить",
+    "{{LU_title}}": "Заголовок письма",
     "{{Label_for_the_All_option_ALL}}": "Название для опции Все (*ALL*)",
     "{{Label_for_the_Empty_option}}": "Название для опции Пустое ()",
     "{{Label_for_the_Nothing_in_p}}": "Название для опции Ничего (*NONE*)",
@@ -434,6 +440,7 @@
     "{{Link}}": "Ссылка",
     "{{List_of_export_id}}": "Список выгружаемых id",
     "{{List_of_values_in_p}}": "Список значений",
+    "{{List_unsubscribe}}": "List unsubscribe",
     "{{Logging_of_external_calls_and_errors}}": "Логирование внешних обращений и ошибок",
     "{{Login_page}}": "Страница входа:",
     "{{Login}}": "Логин",
@@ -947,5 +954,6 @@
     "{{ttm__search_catalog}}": "Каталоги MeiliSearch",
     "{{ttm__search_settings}}": "Настройки MeiliSearch",
     "{{ttm__tmp_change_tree_links}}": "ttm__tmp_change_tree_links",
-    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp"
+    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp",
+    "{{ttm_list_unsubscribe}}": "List unsubscribe"
 }

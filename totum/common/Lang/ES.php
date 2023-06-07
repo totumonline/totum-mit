@@ -422,6 +422,10 @@ class ES implements LangInterface
   'Field [[%s]] is required.' => 'Campo [[%s]] es obligatorio.',
   'Creator warnings' => 'Benachrichtigungen an den Administrator',
   'BFL-log is on' => 'Registro de errores y accesos externos activado',
+  'list-ubsubscribe-link-text' => 'Unsubscribe',
+  'list-ubsubscribe-Blocked-from-sending' => 'Este correo electrónico está bloqueado para el envío',
+  'list-ubsubscribe-done' => 'Está hecho',
+  'list-ubsubscribe-wrong-link' => 'Enlace incorrecto',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

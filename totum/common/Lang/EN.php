@@ -14,6 +14,10 @@ class EN implements LangInterface
   'Version adding error - file for version not found' => 'Version adding error — file for version not found',
   'Creator warnings' => 'Notifications to the Administrator',
   'BFL-log is on' => 'Log of errors and external accesses enabled',
+  'list-ubsubscribe-link-text' => 'Unsubscribe',
+  'list-ubsubscribe-Blocked-from-sending' => 'This email is blocked from sending',
+  'list-ubsubscribe-done' => 'Done',
+  'list-ubsubscribe-wrong-link' => 'Wrong link',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

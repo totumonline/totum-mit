@@ -26,6 +26,8 @@
     "{{Add_calculation_tables}}": "Agregar tablas de cálculo",
     "{{Add_change}}": "Agregar\/Cambiar",
     "{{Add_form}}": "Agregar formulario",
+    "{{Add_header}}": "Añadir cabecera 'list-unsubscribe'",
+    "{{Add_link_in_body}}": "Añadir enlace en cuerpo",
     "{{Add_quick_form}}": "Agregar formulario rápido",
     "{{Add_tables_by_name}}": "Agregar tablas por nombre",
     "{{Add_tables_by_title}}": "Agregar tablas por título",
@@ -375,6 +377,10 @@
     "{{LDAP_only_for_at_type_of_login}}": "Solo para el tipo de inicio de sesión @",
     "{{LDAP_settings}}": "Configuración LDAP",
     "{{LDAP}}": "LDAP",
+    "{{LU_blocked_email}}": "Email bloqueado",
+    "{{LU_date}}": "Fecha",
+    "{{LU_enable}}": "Activar",
+    "{{LU_title}}": "Título del e-mail",
     "{{Label_for_the_All_option_ALL}}": "Etiqueta para la opción Todo (*ALL*)",
     "{{Label_for_the_Empty_option}}": "Etiqueta para la opción Vacío ()",
     "{{Label_for_the_Nothing_in_p}}": "Etiqueta para la opción Nada (*NONE*)",
@@ -434,6 +440,7 @@
     "{{Link}}": "Enlace",
     "{{List_of_export_id}}": "Lista de ids para exportar",
     "{{List_of_values_in_p}}": "Lista de valores",
+    "{{List_unsubscribe}}": "List unsubscribe",
     "{{Logging_of_external_calls_and_errors}}": "Registro de llamadas externas y errores",
     "{{Login_page}}": "Página de inicio de sesión:",
     "{{Login}}": "Inicio de sesión",
@@ -947,5 +954,6 @@
     "{{ttm__search_catalog}}": "Catálogos de búsqueda MeiliSearch",
     "{{ttm__search_settings}}": "Configuración de búsqueda MeiliSearch",
     "{{ttm__tmp_change_tree_links}}": "ttm__tmp_change_tree_links",
-    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp"
+    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp",
+    "{{ttm_list_unsubscribe}}": "List unsubscribe"
 }

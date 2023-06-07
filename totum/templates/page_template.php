@@ -19,7 +19,7 @@
     } ?>
 
     <script src="/js/main.js?v=74af3ae"></script>
-    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?1"></script>
+    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?2"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 
 

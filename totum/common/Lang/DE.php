@@ -422,6 +422,10 @@ class DE implements LangInterface
   'Field [[%s]] is required.' => 'Das Feld [[%s]] st obligatorisch.',
   'Creator warnings' => 'Notificaciones al Administrador',
   'BFL-log is on' => 'Protokollierung von Fehlern und externen Zugriffen aktiviert',
+  'list-ubsubscribe-link-text' => 'Abmeldung',
+  'list-ubsubscribe-Blocked-from-sending' => 'Diese Email ist für den Versand gesperrt',
+  'list-ubsubscribe-done' => 'Es ist getan',
+  'list-ubsubscribe-wrong-link' => 'Falscher Link',
 );
 	/**
      * Возвращает сумму прописью

@@ -26,6 +26,8 @@
     "{{Add_calculation_tables}}": "Berechnungstabellen hinzufügen",
     "{{Add_change}}": "Hinzufügen\/Ändern",
     "{{Add_form}}": "Formular hinzufügen",
+    "{{Add_header}}": "Kopfzeile 'list-unsubscribe' hinzufügen",
+    "{{Add_link_in_body}}": "Link im Text hinzufügen",
     "{{Add_quick_form}}": "Formular hinzufügen",
     "{{Add_tables_by_name}}": "Tabellen nach Namen hinzufügen",
     "{{Add_tables_by_title}}": "Tabellen nach Titel hinzufügen",
@@ -375,6 +377,10 @@
     "{{LDAP_only_for_at_type_of_login}}": "Nur für @ Protokollierungsart",
     "{{LDAP_settings}}": "LDAP-Einstellungen",
     "{{LDAP}}": "LDAP",
+    "{{LU_blocked_email}}": "Blockierte E-Mail",
+    "{{LU_date}}": "Datum",
+    "{{LU_enable}}": "Aktivieren Sie",
+    "{{LU_title}}": "E-Mail-Titel",
     "{{Label_for_the_All_option_ALL}}": "Bezeichnung für die Option Alle (*ALL*)",
     "{{Label_for_the_Empty_option}}": "Name für die Option Leer ()",
     "{{Label_for_the_Nothing_in_p}}": "Name für die Option Nichts (*NONE*)",
@@ -434,6 +440,7 @@
     "{{Link}}": "Link",
     "{{List_of_export_id}}": "Liste der entladenen Id's",
     "{{List_of_values_in_p}}": "Liste von Werten",
+    "{{List_unsubscribe}}": "List unsubscribe",
     "{{Logging_of_external_calls_and_errors}}": "Protokollierung externer Anrufe und Fehler",
     "{{Login_page}}": "Anmeldeseite:",
     "{{Login}}": "Benutzername",
@@ -947,5 +954,6 @@
     "{{ttm__search_catalog}}": "MeiliSearch Verzeichnisse",
     "{{ttm__search_settings}}": "MeiliSearch Einstellungen",
     "{{ttm__tmp_change_tree_links}}": "ttm__tmp_change_tree_links",
-    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp"
+    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp",
+    "{{ttm_list_unsubscribe}}": "List unsubscribe"
 }

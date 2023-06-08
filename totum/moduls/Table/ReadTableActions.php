@@ -2185,9 +2185,11 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 );
 
 
-                if (($this->post['onPage'] ?? false) && (count($pageIds) + count($changedIds['added'])) > (int)$this->post['onPage']) {
-                    $displaceOffset = $this->post['onPage'] - (count($pageIds) + count($changedIds['added']));
-                    $displaced = array_slice($pageIds, $displaceOffset);
+                $excess = 100;
+
+                if (($this->post['onPage'] ?? false) && (count($pageIds) + count($changedIds['added'])) > (int)$this->post['onPage'] + $excess) {
+                    $displaceOffset = $this->post['onPage'] + $excess - (count($pageIds) + count($changedIds['added']));
+                    $displaced = array_slice($pageIds, 0, -1 * $displaceOffset);
                 }
 
                 array_push($pageIds, ...array_keys($changedIds['added']));

@@ -26,6 +26,8 @@
     "{{Add_calculation_tables}}": "Add calculation tables",
     "{{Add_change}}": "Add\/change",
     "{{Add_form}}": "Add form",
+    "{{Add_header}}": "Add header 'list-unsubscribe'",
+    "{{Add_link_in_body}}": "Add link in body",
     "{{Add_quick_form}}": "Add form",
     "{{Add_tables_by_name}}": "Add tables by name",
     "{{Add_tables_by_title}}": "Add tables by title",
@@ -375,6 +377,10 @@
     "{{LDAP_only_for_at_type_of_login}}": "Only for «at» type of login",
     "{{LDAP_settings}}": "LDAP settings",
     "{{LDAP}}": "LDAP",
+    "{{LU_blocked_email}}": "Blocked email",
+    "{{LU_date}}": "Date",
+    "{{LU_enable}}": "Enable",
+    "{{LU_title}}": "Email title",
     "{{Label_for_the_All_option_ALL}}": "Label for the All option (*ALL*)",
     "{{Label_for_the_Empty_option}}": "Label for the Empty option ()",
     "{{Label_for_the_Nothing_in_p}}": "Label for the Nothing (*NONE*) option",
@@ -434,6 +440,7 @@
     "{{Link}}": "Link",
     "{{List_of_export_id}}": "List of export id",
     "{{List_of_values_in_p}}": "List of values",
+    "{{List_unsubscribe}}": "List unsubscribe",
     "{{Logging_of_external_calls_and_errors}}": "Logging of external calls and errors",
     "{{Login_page}}": "Login page:",
     "{{Login}}": "Login",
@@ -947,5 +954,6 @@
     "{{ttm__search_catalog}}": "MeiliSearch  catalogs",
     "{{ttm__search_settings}}": "MeiliSearch settings",
     "{{ttm__tmp_change_tree_links}}": "ttm__tmp_change_tree_links",
-    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp"
+    "{{ttm_form_params_tmp}}": "ttm_form_params_tmp",
+    "{{ttm_list_unsubscribe}}": "List unsubscribe"
 }

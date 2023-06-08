@@ -424,6 +424,10 @@ class RU implements LangInterface
   'Field [[%s]] is required.' => 'Поле [[%s]]  обязательно для заполнения.',
   'Creator warnings' => 'Нотификации Администратору',
   'BFL-log is on' => 'Включен журнал ошибок и внешних обращений',
+  'list-ubsubscribe-link-text' => 'Отписаться',
+  'list-ubsubscribe-Blocked-from-sending' => 'Отправка на данный email заблокирована',
+  'list-ubsubscribe-done' => 'Готово',
+  'list-ubsubscribe-wrong-link' => 'Неверная ссылка',
 );
 	/**
      * Возвращает сумму прописью

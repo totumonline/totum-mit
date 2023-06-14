@@ -141,7 +141,12 @@ SQL;
                     $params['width'] ?? null,
                     $params['refresh'] ?? false,
                     ['header' => $params['header'] ?? true,
-                        'footer' => $params['footer'] ?? true]
+                        'footer' => $params['footer'] ?? true,
+                        'topbuttons' => $params['topbuttons'] ?? true,
+                        'bottombuttons' => $params['bottombuttons'] ?? true,
+                        'pointing' => $params['pointing'] ?? null,
+                        'hidedots' => $this->__checkBoolOrNull($params['hidedots'] ?? null),
+                    ]
                 );
             } else {
                 $table = [

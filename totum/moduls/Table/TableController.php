@@ -578,7 +578,7 @@ class TableController extends interfaceController
             }
         }
 
-        $result['isCreatorView'] = $this->User->isCreator();
+        $result['isCreatorView'] = $Actions->isCreatorView();
         $result['checkIsUpdated'] = (in_array(
             $this->Table->getTableRow()['actual'],
             ['none', 'disable']

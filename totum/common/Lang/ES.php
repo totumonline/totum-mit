@@ -426,6 +426,7 @@ class ES implements LangInterface
   'list-ubsubscribe-Blocked-from-sending' => 'Este correo electrónico está bloqueado para el envío',
   'list-ubsubscribe-done' => 'Está hecho',
   'list-ubsubscribe-wrong-link' => 'Enlace incorrecto',
+  'There is no access to excel-import in this table' => 'No hay acceso a excel-import en esta tabla',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

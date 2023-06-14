@@ -84,7 +84,7 @@ abstract class ConfParent
     protected $Lang;
 
 
-    /** @noinspection PhpNewClassMissingParameterListInspection */
+
     public function __construct($env = self::ENV_LEVELS['production'])
     {
         $this->mktimeStart = microtime(true);
@@ -780,6 +780,12 @@ SQL
             }
             $this->Lang = new ('totum\\common\\Lang\\' . strtoupper($Settings['lang']))();
         }
+    }
+
+    protected array $techTables = ['ttm__prepared_data_import'];
+
+    public function isTechTable(string $name){
+        return in_array($name, $this->techTables);
     }
 
 }

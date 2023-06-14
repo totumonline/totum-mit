@@ -113,9 +113,9 @@ class CalculateAction extends Calculate
                     $eml = '<style>' . $template['styles'] . '</style>' . $template['body'];
 
                     $toBfl = $params['bfl'] ?? in_array(
-                            'email',
-                            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-                        );
+                        'email',
+                        $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+                    );
 
                     try {
                         foreach ($emails as $email) {
@@ -672,9 +672,9 @@ class CalculateAction extends Calculate
         }
 
         $toBfl = $params['bfl'] ?? in_array(
-                'email',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'email',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
 
         try {
             $r = $this->Table->getTotum()->getConfig()->sendMail(
@@ -734,9 +734,9 @@ class CalculateAction extends Calculate
 
 
         $toBfl = $params['bfl'] ?? in_array(
-                'soap',
-                $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-            );
+            'soap',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
         try {
             $soapClient = new SoapClient(
                 $params['wsdl'] ?? null,
@@ -1984,7 +1984,10 @@ class CalculateAction extends Calculate
                             'modify' => $modify,
                             'remove' => $remove,
                             'add' => $add,
-
+                            'channel' => match ($params['channel']) {
+                                'web', 'xml' => $params['channel'],
+                                default => 'inner'
+                            }
                         ]
                     );
                 }

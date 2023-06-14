@@ -166,7 +166,7 @@ CODE;
     public function getTableData()
     {
         $data = parent::getTableData();
-        $data['isCreatorView'] = true;
+        $data['isCreatorView'] = $this->isCreatorView();
         return $data;
     }
 

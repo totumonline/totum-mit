@@ -426,6 +426,7 @@ class DE implements LangInterface
   'list-ubsubscribe-Blocked-from-sending' => 'Diese Email ist für den Versand gesperrt',
   'list-ubsubscribe-done' => 'Es ist getan',
   'list-ubsubscribe-wrong-link' => 'Falscher Link',
+  'There is no access to excel-import in this table' => 'In dieser Tabelle gibt es keinen Zugang zum Excel-Import',
 );
 	/**
      * Возвращает сумму прописью

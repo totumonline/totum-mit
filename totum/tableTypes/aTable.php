@@ -225,10 +225,10 @@ abstract class aTable
         } elseif ($hash = $hashData) {
             $this->insertRowHash = $hash;
             $loadData = TmpTables::init($this->getTotum()->getConfig())->getByHash(
-                    TmpTables::SERVICE_TABLES['insert_row'],
-                    $this->getUser(),
-                    $hash
-                ) ?? [];
+                TmpTables::SERVICE_TABLES['insert_row'],
+                $this->getUser(),
+                $hash
+            ) ?? [];
             if ($clearField) {
                 unset($loadData[$clearField]);
             }
@@ -827,6 +827,14 @@ abstract class aTable
 
                             $dynamicFields = $dynamicFields ?? $getDynamicFields();
                             $i = 0;
+
+                            if (!is_array($dynamicFields[$fName]['order'] ?? null)) {
+                                $dynamicFields[$fName]['order'] = null;
+                            }
+                            if (!is_array($dynamicFields[$fName]['titles'] ?? null)) {
+                                $dynamicFields[$fName]['titles'] = null;
+                            }
+
                             foreach (($dynamicFields[$fName]['order'] ?? array_keys($dynamicFields[$fName]['titles'] ?? [])) as $k) {
                                 ++$i;
                                 $t = $dynamicFields[$fName]['titles'][$k] ?? $field['title'] . '/' . $i;
@@ -895,7 +903,8 @@ abstract class aTable
     /**
      * @return CalculateLog
      */
-    public function getCalculateLog()
+    public
+    function getCalculateLog()
     {
         if (empty($this->CalculateLog)) {
             debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
@@ -903,17 +912,20 @@ abstract class aTable
         return $this->CalculateLog;
     }
 
-    public function getUpdatedJson()
+    public
+    function getUpdatedJson()
     {
         return static::formUpdatedJson($this->Totum->getUser());
     }
 
-    public static function formUpdatedJson(User $User)
+    public
+    static function formUpdatedJson(User $User)
     {
         return json_encode(['dt' => date('Y-m-d H:i'), 'code' => mt_rand(), 'user' => $User->getId()]);
     }
 
-    public function getSavedUpdated()
+    public
+    function getSavedUpdated()
     {
         return $this->savedUpdated;
     }
@@ -2595,10 +2607,10 @@ CODE;;
                                 }
                             } else {
                                 $offset = $offset ?? $this->countByParams(
-                                        $params,
-                                        $this->orderParamsForLoadRows(true),
-                                        $prevLastId
-                                    ) - 1;
+                                    $params,
+                                    $this->orderParamsForLoadRows(true),
+                                    $prevLastId
+                                ) - 1;
                             }
 
                             if ($offset < $onPage) {
@@ -2619,10 +2631,10 @@ CODE;;
                             $offset = $offset ?? $allCount - $onPage;
                         } elseif (is_array($lastId) || $lastId > 0) {
                             $offset = $offset ?? $this->countByParams(
-                                    $params,
-                                    $this->orderParamsForLoadRows(true),
-                                    $lastId
-                                );
+                                $params,
+                                $this->orderParamsForLoadRows(true),
+                                $lastId
+                            );
                         }
 
                         $filteredIds = $this->loadRowsByParams(

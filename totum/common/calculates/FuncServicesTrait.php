@@ -55,15 +55,16 @@ trait FuncServicesTrait
 
         $this->__checkNotArrayParams($params, ['comment', 'withformats', 'filestring', 'file']);
         $withFormats = !!$params['withformats'];
+        $withColumns = !!$params['withcolumns'];
 
         $data = [];
         if ($params['filestring'] ?? null) {
             foreach ((array)$params['filestring'] as $_file) {
-                $data[] = ['file' => base64_encode($_file), 'f' => $withFormats];
+                $data[] = ['file' => base64_encode($_file), 'f' => $withFormats, 'c' => $withColumns];
             }
         } elseif ($params['file'] ?? null) {
             foreach ((array)$params['file'] as $_file) {
-                $data[] = ['file' => base64_encode(File::getContent($_file, $Config)), 'f' => $withFormats];
+                $data[] = ['file' => base64_encode(File::getContent($_file, $Config)), 'f' => $withFormats, 'c' => $withColumns];
             }
         }
 

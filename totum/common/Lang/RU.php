@@ -429,6 +429,7 @@ class RU implements LangInterface
   'list-ubsubscribe-done' => 'Готово',
   'list-ubsubscribe-wrong-link' => 'Неверная ссылка',
   'There is no access to excel-import in this table' => 'Нет доступа к excel-импорту в этой таблице',
+  'The [[%s]] must be equal to the [[%s]].' => '[[%s]] должен быть равен [[%s]].',
 );
 	/**
      * Возвращает сумму прописью

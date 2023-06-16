@@ -427,6 +427,7 @@ class DE implements LangInterface
   'list-ubsubscribe-done' => 'Es ist getan',
   'list-ubsubscribe-wrong-link' => 'Falscher Link',
   'There is no access to excel-import in this table' => 'In dieser Tabelle gibt es keinen Zugang zum Excel-Import',
+  'The [[%s]] must be equal to the [[%s]].' => 'Der [[%s]] muss gleich dem [[%s]] sein.',
 );
 	/**
      * Возвращает сумму прописью

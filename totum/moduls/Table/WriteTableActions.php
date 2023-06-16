@@ -170,9 +170,9 @@ class WriteTableActions extends ReadTableActions
             $calc = new CalculateAction(<<<CODE
 = : linkToFileUpload(title: $#title; code: \$code; limit: 1; type: ".xlsx"; var: "title" = $#title; var: 'table'=$#table; refresh: true)
 ```code:totum
-=: linkToDataTable(table: 'ttm__prepared_data_import'; title: $#title;  params: \$params;  target: "iframe"; width: 800; refresh: true; bottombuttons: 'force')
+=: linkToDataTable(table: 'ttm__prepared_data_import'; title: $#title;  params: \$params;  target: "iframe"; width: "90wv"; refresh: true; bottombuttons: 'force')
 params: rowCreate(field: "h_import_data" = \$fileData; field: "h_table" = $#table)
-fileData: serviceXlsxParser(filestring: $#input[0][filestring]; withformats: false)
+~fileData: serviceXlsxParser(filestring: $#input[0][filestring]; withformats: false)
 ```
 CODE
             );

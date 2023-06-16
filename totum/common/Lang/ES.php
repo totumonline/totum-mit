@@ -427,6 +427,7 @@ class ES implements LangInterface
   'list-ubsubscribe-done' => 'Está hecho',
   'list-ubsubscribe-wrong-link' => 'Enlace incorrecto',
   'There is no access to excel-import in this table' => 'No hay acceso a excel-import en esta tabla',
+  'The [[%s]] must be equal to the [[%s]].' => 'El [[%s]] debe ser igual al [[%s]].',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

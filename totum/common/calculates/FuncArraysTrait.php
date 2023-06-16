@@ -444,6 +444,10 @@ trait FuncArraysTrait
             return [];
         }
 
+        foreach ($params['item'] ?? [] as $item) {
+            $params['list'][] = [$item];
+        }
+
         foreach ($params['list'] as $i => $list) {
             if ($list) {
                 $this->__checkListParam($list, 'list' . (++$i));
@@ -467,10 +471,6 @@ trait FuncArraysTrait
                 }
             }
         }
-        foreach ($params['item'] ?? [] as $item) {
-            $MainList = array_diff($MainList, [$item]);
-        }
-
         return array_values($MainList ?? []);
     }
 

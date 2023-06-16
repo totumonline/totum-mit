@@ -326,7 +326,7 @@ class JsonController extends Controller
             foreach ($this->arrayIn['import']['rows-set-where'] as $set) {
                 $where = [];
                 foreach ($set['where'] as $_where) {
-                    if (count(array_intersect_key(
+                    if (!is_array($_where) || count(array_intersect_key(
                             $_where,
                             array_flip(['field', 'operator', 'value'])
                         )) !== 3) {

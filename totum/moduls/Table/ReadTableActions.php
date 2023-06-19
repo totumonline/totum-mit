@@ -2227,7 +2227,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                     foreach ($sortedVisibleFields['column'] as $k => $v) {
                         if ((($v['type'] === 'select' || $v['type'] === 'tree') && !empty($v['codeSelectIndividual'])) || !empty($v['format'])) {
                             $selectOrFormatColumns[$k] = true;
-                            if ($v['__dynamic'] ?? true) {
+                            if ($v['__dynamic'] ?? false) {
                                 $selectOrFormatColumns[$v['__dynamic']] = true;
                             }
                         }

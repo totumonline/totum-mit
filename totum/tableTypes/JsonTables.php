@@ -415,7 +415,7 @@ abstract class JsonTables extends aTable
                             continue;
                         } else {
                             if (empty($row['InsDel'])) {
-                                $this->setIsTableDataChanged('INSERT_ROW_DELETED id '.$row['id']);
+                                $this->setIsTableDataChanged('INSERT_ROW_DELETED id ' . $row['id']);
                                 $this->changeIds['changed'][$row['id']] = null;
                             }
                             $newRow['InsDel'] = true;
@@ -427,7 +427,7 @@ abstract class JsonTables extends aTable
 
             if (!empty($row['is_del']) || $isDeletedRow = ($remove && in_array($row['id'], $remove))) {
                 if ($isDeletedRow ?? null) {
-                    $this->setIsTableDataChanged('ROW_DELETED id '.$row['id']);
+                    $this->setIsTableDataChanged('ROW_DELETED id ' . $row['id']);
                     $aLogDelete = function ($id) use ($channel) {
                         if ($this->tableRow['type'] !== 'tmp'
                             && (in_array($channel, ['web', 'xml']) || $this->recalculateWithALog)
@@ -486,7 +486,7 @@ abstract class JsonTables extends aTable
                 $this->tbl['rows'][$newRow['id']] = $newRow;
                 $this->changeIds['added'][$newRow['id']] = null;
                 $this->changeInOneRecalcIds['added'][$newRow['id']] = null;
-                $this->setIsTableDataChanged('INSERT_INSERTES_ROW id'.$newRow['id']);
+                $this->setIsTableDataChanged('INSERT_INSERTES_ROW id' . $newRow['id']);
             }
         }
         /***insert***/
@@ -687,9 +687,14 @@ abstract class JsonTables extends aTable
             $newVal = $modify[$thisRow['id']][$column['name']] ?? null;
             $_channel = $channel;
 
+            $modify[$thisRow['id']] = $modify[$thisRow['id']] ?? [];
+            if (!is_array($modify[$thisRow['id']])) {
+                $modify[$thisRow['id']] = [];
+            }
+
             if (!key_exists(
                     $column['name'],
-                    $modify[$thisRow['id']] ?? []
+                    $modify[$thisRow['id']]
                 ) && $this->insertRowSetData && key_exists(
                     $column['name'],
                     $this->insertRowSetData
@@ -712,7 +717,7 @@ abstract class JsonTables extends aTable
                     $channel,
                     $this->tbl,
                     $thisRow,
-                    $this->insertRowSetData ?? $modify[$thisRow['id']] ?? []);
+                    $this->insertRowSetData ?? $modify[$thisRow['id']]);
             }
             unset($this->insertRowSetData[$column['name']]);
         };

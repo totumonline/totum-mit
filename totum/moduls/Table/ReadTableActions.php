@@ -24,6 +24,7 @@ use totum\tableTypes\tmpTable;
 
 class ReadTableActions extends Actions
 {
+
     protected bool $creatorCommonView = false;
     protected $kanban_bases = [];
 
@@ -1539,7 +1540,16 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
 
         $result['updated'] = $this->Table->getSavedUpdated();
+
         return $result;
+    }
+
+    public function isCreatorView()
+    {
+        if ($this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name'])) {
+            return false;
+        }
+        return $this->User->isCreator();
     }
 
     public function viewRow()
@@ -1614,6 +1624,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             try {
                 $fields = $this->Table->getVisibleFields('web');
+
                 /* Проверка доступа к нажатию кнопки */
                 if (!key_exists($click['fieldName'], $fields)) {
                     throw new errorException($this->translate('Access to the field is denied'));
@@ -2049,10 +2060,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
         }
         $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
-        $_tableRow['__withPDF'] = $this->isTableServiceOn('pdf') && !$this->isServicesBlocked;
-        $_tableRow['__xlsx'] = $this->isTableServiceOn('xlsx') && !$this->isServicesBlocked;
-        $_tableRow['__withDocPreviews'] = $this->isTableServiceOn('pdfdocpreview') && !$this->isServicesBlocked;
-
+        $_tableRow['__withPDF'] = $this->isTableServiceOn('pdf') && !$this->isServicesBlocked && !$this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name']);
+        $_tableRow['__xlsx'] = $this->isTableServiceOn('xlsx') && !$this->isServicesBlocked && !$this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name']);
+        $_tableRow['__xlsx_import'] = is_a($this, WriteTableActions::class) && $this->isTableServiceOn('xlsximport') && !$this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name']) && !$this->isServicesBlocked && key_exists($this->Totum->getTableRow('ttm__prepared_data_import')['id'], $this->User->getTables());
+        $_tableRow['__withDocPreviews'] = $this->isTableServiceOn('pdfdocpreview') && !$this->isServicesBlocked && !$this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name']);
 
         return $_tableRow;
     }
@@ -2211,10 +2222,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if (!empty($pageIds)) {
 
                     $sortedVisibleFields = $this->Table->getVisibleFields('web', true);
+
                     $selectOrFormatColumns = [];
                     foreach ($sortedVisibleFields['column'] as $k => $v) {
                         if ((($v['type'] === 'select' || $v['type'] === 'tree') && !empty($v['codeSelectIndividual'])) || !empty($v['format'])) {
                             $selectOrFormatColumns[$k] = true;
+                            if ($v['__dynamic'] ?? false) {
+                                $selectOrFormatColumns[$v['__dynamic']] = true;
+                            }
                         }
                     }
 

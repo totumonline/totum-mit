@@ -22,13 +22,13 @@ trait FuncNumbersTrait
             $mod = bcmod($val, 1, 10);
             if ($val > 0) {
                 if (($type === 'up' && (int)(substr($mod,
-                                $dectimal + 2) ?? 0)) ||
+                            $dectimal + 2) ?? 0)) ||
                     ($type != 'down' && ($mod[$dectimal + 2] ?? 0) >= 5)) {
                     $val = bcadd($val, number_format(1 / (10 ** $dectimal), $dectimal, '.', ''), $dectimal);
                 }
             } elseif ($val < 0) {
                 if (($type === 'down' && (int)(substr($mod,
-                                $dectimal + 3) ?? 0)) || ($type !== 'up' && ($mod[$dectimal + 3] ?? 0) >= 5)) {
+                            $dectimal + 3) ?? 0)) || ($type !== 'up' && ($mod[$dectimal + 3] ?? 0) >= 5)) {
                     $val = bcsub($val, number_format(1 / (10 ** $dectimal), $dectimal, '.', ''), $dectimal);
                 }
             }
@@ -50,7 +50,7 @@ trait FuncNumbersTrait
         }
 
         if (bccomp($val, 0, 10) === 0) {
-        } elseif (!empty($step)) {
+        } elseif (!empty((float)$step)) {
 
             $fig = 10 ** $dectimal;
             $stepMul = bcmul($step, $fig, 10);

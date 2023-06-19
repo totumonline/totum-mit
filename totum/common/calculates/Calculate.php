@@ -54,7 +54,7 @@ class Calculate
      * @var aTable
      */
     protected $Table;
-    protected $vars;
+    protected $vars = [];
     protected $fixedCodeNames = [];
     protected $fixedCodeVars = [];
     protected $CodeLineParams = [];

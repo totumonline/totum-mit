@@ -104,6 +104,10 @@ class Actions
         return ['ok' => 1];
     }
 
+    public function isCreatorView(){
+        return $this->User->isCreator();
+    }
+
     public function getSchemaFormats()
     {
         return ['formats' => ['date' => $this->Totum->getConfig()->getSettings('dates_format') ?? 'd.m.Y'] + $this->Totum->getConfig()->getSettings('numbers_format') ?? []];

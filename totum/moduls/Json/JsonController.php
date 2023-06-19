@@ -86,6 +86,7 @@ class JsonController extends Controller
         15 => 'Remote {var} does not exist or is not available to you',
         16 => 'The name for remote is not set',
         17 => 'Due to exceeding the number of password attempts, your IP is blocked',
+        18 => 'Incorrect set in the rows-set-where section',
     ];
     private static $translates = ['header' => 'param', 'footer' => 'footer', 'rows' => 'column'];
 
@@ -113,9 +114,9 @@ class JsonController extends Controller
 
         try {
             $this->arrayIn = json_decode($jsonString, true) ?? json_decode(
-                    $request->getParsedBody()['data'] ?? '',
-                    true
-                );
+                $request->getParsedBody()['data'] ?? '',
+                true
+            );
             if (!is_array($this->arrayIn)) {
                 $this->throwError(1);
             }
@@ -183,7 +184,7 @@ class JsonController extends Controller
                 }
                 $params['where'][] = $where;
             }
-            $params['field']='id';
+            $params['field'] = 'id';
             /*TODO ограничение по фильтру*/
             $ids = $this->Table->getByParams($params, 'list');
             $inVars['modify'] = array_map(
@@ -315,7 +316,7 @@ class JsonController extends Controller
             foreach ($itemArray as $k => $v) {
                 if (empty($fields[$k]) || $fields[$k]['category'] !== $category) {
                     throw new errorException(
-                        $this->translate('The %s field in %s table does not exist',[$k, $path]),
+                        $this->translate('The %s field in %s table does not exist', [$k, $path]),
                         10
                     );
                 }
@@ -326,7 +327,7 @@ class JsonController extends Controller
             foreach ($this->arrayIn['import']['rows-set-where'] as $set) {
                 $where = [];
                 foreach ($set['where'] as $_where) {
-                    if (count(array_intersect_key(
+                    if (!is_array($_where) || count(array_intersect_key(
                             $_where,
                             array_flip(['field', 'operator', 'value'])
                         )) !== 3) {
@@ -347,7 +348,7 @@ class JsonController extends Controller
                         $rP =& $import['setValuesToPinned'][(int)$id];
                         unset($set['set']['id']);
                         $handleItem(
-                            $set['set'],
+                            $set['set'] ?? [],
                             'column',
                             'rows',
                             $r,

@@ -47,6 +47,35 @@ trait FuncServicesTrait
         return $answer;
     }
 
+    protected function funcServiceXlsxParser($params)
+    {
+        $params = $this->getParamsArray($params);
+        $Config = $this->Table->getTotum()->getConfig();
+
+
+        $this->__checkNotArrayParams($params, ['comment', 'withformats', 'filestring', 'file']);
+        $withFormats = !!$params['withformats'];
+        $withColumns = !!$params['withcolumns'];
+
+        $data = [];
+        if ($params['filestring'] ?? null) {
+            foreach ((array)$params['filestring'] as $_file) {
+                $data[] = ['file' => base64_encode($_file), 'f' => $withFormats, 'c' => $withColumns];
+            }
+        } elseif ($params['file'] ?? null) {
+            foreach ((array)$params['file'] as $_file) {
+                $data[] = ['file' => base64_encode(File::getContent($_file, $Config)), 'f' => $withFormats, 'c' => $withColumns];
+            }
+        }
+
+        if (empty($data)) {
+            return [];
+        }
+        $answers = $this->serviceRequests($Config, 'xlsx', $data, $params['comment'] ?? null);
+
+        return json_decode($answers[0], true);
+    }
+
     protected function funcServiceXlsxGenerator($params)
     {
         $params = $this->getParamsArray($params);

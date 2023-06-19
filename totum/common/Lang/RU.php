@@ -428,6 +428,9 @@ class RU implements LangInterface
   'list-ubsubscribe-Blocked-from-sending' => 'Отправка на данный email заблокирована',
   'list-ubsubscribe-done' => 'Готово',
   'list-ubsubscribe-wrong-link' => 'Неверная ссылка',
+  'There is no access to excel-import in this table' => 'Нет доступа к excel-импорту в этой таблице',
+  'The [[%s]] must be equal to the [[%s]].' => '[[%s]] должен быть равен [[%s]].',
+  'Excel import to %s' => 'Excel импорт в %s',
 );
 	/**
      * Возвращает сумму прописью

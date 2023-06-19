@@ -237,7 +237,7 @@ trait FuncArraysTrait
             $filtered = [];
             $nIsRow = false;
 
-            if ((array_keys($list) !== range(0, count($list) - 1))) {
+            if ($params['savekeys'] ?? false || (array_keys($list) !== range(0, count($list) - 1))) {
                 $nIsRow = true;
             }
             foreach ($list as $k => $v) {
@@ -444,6 +444,10 @@ trait FuncArraysTrait
             return [];
         }
 
+        foreach ($params['item'] ?? [] as $item) {
+            $params['list'][] = [$item];
+        }
+
         foreach ($params['list'] as $i => $list) {
             if ($list) {
                 $this->__checkListParam($list, 'list' . (++$i));
@@ -467,10 +471,6 @@ trait FuncArraysTrait
                 }
             }
         }
-        foreach ($params['item'] ?? [] as $item) {
-            $MainList = array_diff($MainList, [$item]);
-        }
-
         return array_values($MainList ?? []);
     }
 
@@ -957,6 +957,15 @@ trait FuncArraysTrait
 
                 throw new errorException($this->translate('The number of the [[%s]] must be equal to the number of [[%s]].',
                     ['from', 'to']));
+            }
+            $keys1 = array_keys($params['from']);
+            $keys2 = array_keys($params['to']);
+            ksort($keys1);
+            ksort($keys2);
+
+            if ($keys1 !== $keys2) {
+                throw new errorException($this->translate('The [[%s]] must be equal to the [[%s]].',
+                    ['from keys', 'to keys']));
             }
         }
 

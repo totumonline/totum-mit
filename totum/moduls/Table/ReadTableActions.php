@@ -1624,6 +1624,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             try {
                 $fields = $this->Table->getVisibleFields('web');
+
                 /* Проверка доступа к нажатию кнопки */
                 if (!key_exists($click['fieldName'], $fields)) {
                     throw new errorException($this->translate('Access to the field is denied'));
@@ -2221,10 +2222,14 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
                 if (!empty($pageIds)) {
 
                     $sortedVisibleFields = $this->Table->getVisibleFields('web', true);
+
                     $selectOrFormatColumns = [];
                     foreach ($sortedVisibleFields['column'] as $k => $v) {
                         if ((($v['type'] === 'select' || $v['type'] === 'tree') && !empty($v['codeSelectIndividual'])) || !empty($v['format'])) {
                             $selectOrFormatColumns[$k] = true;
+                            if ($v['__dynamic'] ?? true) {
+                                $selectOrFormatColumns[$v['__dynamic']] = true;
+                            }
                         }
                     }
 

@@ -166,7 +166,7 @@ class WriteTableActions extends ReadTableActions
 
     public function excelImport()
     {
-        if ($this->isTableServiceOn('xlsx_import')) {
+        if ($this->isTableServiceOn('xlsximport')) {
             $calc = new CalculateAction(<<<CODE
 = : linkToFileUpload(title: $#title; code: \$code; limit: 1; type: ".xlsx"; var: "title" = $#title; var: 'table'=$#table; refresh: true)
 ```code:totum

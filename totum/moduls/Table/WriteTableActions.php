@@ -177,7 +177,7 @@ params: rowCreate(field: "h_import_data" = \$fileData; field: "h_table" = $#tabl
 CODE
             );
             $calc->execAction('CODE', [], [], [], [], $this->Table, 'exec', [
-                'title' => 'Excel import to '.$this->post['title'],
+                'title' => $this->translate('Excel import to %s', $this->post['title']),
                 'table' => $this->Table->getTableRow()['name']
             ]);
 

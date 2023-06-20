@@ -390,7 +390,12 @@ abstract class JsonTables extends aTable
                 $newRow['_E'] = true;
             }
             if (!empty($insertField)) {
-                if (key_exists('c', $row['insert'])) {
+                if(is_null($row['insert']??null)){
+                    $newRow['_E'] = true;
+                    $c = null;
+                    $newRow['insert']['v'] = null;
+                }
+                elseif (key_exists('c', $row['insert'])) {
                     $c = $row['insert']['c'];
                 } else {
                     $c = $row['insert']['v'];

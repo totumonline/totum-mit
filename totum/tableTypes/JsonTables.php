@@ -371,7 +371,7 @@ abstract class JsonTables extends aTable
                 if (in_array($this->fields['insert']['type'], ['select', 'tree', 'listRow'])) {
                     $type = SORT_REGULAR;
                 }
-                if (count(array_unique(
+                if (count(@array_unique(
                         $insertList,
                         $type
                     )) !== count($insertList)) {

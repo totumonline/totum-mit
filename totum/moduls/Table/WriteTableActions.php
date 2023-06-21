@@ -92,9 +92,10 @@ class WriteTableActions extends ReadTableActions
             $this->post['tableData'] ?? [],
             $this->post['clearField'] ?? null)]];
 
+        $rawRow = $data['rows'][0];
         $data = $this->Table->getValuesAndFormatsForClient($data, 'edit', [], fieldNames: $onlyFields);
         $res = ['row' => $data['rows'][0], 'hash' => $hash];
-        $this->addLoadedSelects($res);
+        $res['selects'] = $this->getSelectsForLoading($res['row'], $rawRow, 'insertable');
         return $res;
     }
 
@@ -128,12 +129,12 @@ class WriteTableActions extends ReadTableActions
         if (empty($onlyFields)) {
             $onlyFields = null;
         }
+        $rawRow = $row;
         $res['row'] = $this->Table->getValuesAndFormatsForClient(['rows' => [$row]],
             'edit',
             [],
             fieldNames: $onlyFields)['rows'][0];
-        $this->addLoadedSelects($res);
-
+        $res['selects'] = $this->getSelectsForLoading($res['row'], $rawRow, 'editable');
         return $res;
     }
 
@@ -181,7 +182,7 @@ CODE
             $calc->execAction('CODE', [], [], [], [], $this->Table, 'exec', [
                 'title' => $this->translate('Excel import to %s', $this->post['title']),
                 'table' => $this->Table->getTableRow()['name'],
-                'width'=> 0.8 * $this->post['bwidth']
+                'width' => 0.8 * $this->post['bwidth']
             ]);
 
         } else {
@@ -273,15 +274,22 @@ CODE
         return ['ok' => true];
     }
 
-    protected function addLoadedSelects(array &$res)
+    /**
+     * @param array $rowWithFormats
+     * @param array $rawRow
+     * @param string $editType editable,insertable
+     * @return array
+     * @throws errorException
+     */
+    protected function getSelectsForLoading(array $rowWithFormats, array $rawRow, string $editType): array
     {
         if (!empty($this->post['loadSelects'])) {
             $selects = [];
             foreach ($this->Table->getSortedFields()['column'] as $field) {
-                if ($field['type'] === 'select' && $this->Table->isField('editable', 'web', $field)) {
-                    if (($res['row'][$field['name']]['f']['block'] ?? false) != true) {
+                if ($field['type'] === 'select' && $this->Table->isField($editType, 'web', $field)) {
+                    if (($rowWithFormats[$field['name']]['f']['block'] ?? false) != true) {
                         if ($this->post['loadSelects'] === 'all' || ($field['codeSelectIndividual'] ?? false)) {
-                            $item = $res['row'];
+                            $item = $rawRow;
                             $item = array_map(fn($x) => is_array($x) && key_exists('v', $x) ? $x['v'] : $x, $item);
                             $selects[$field['name']] = $this->getEditSelect(['field' => $field['name'], 'item' => $item],
                                 null,
@@ -291,11 +299,13 @@ CODE
                     }
                 }
             }
-            $res['selects'] = $selects;
+            return $selects;
         }
+        return [];
     }
 
-    protected function getEditRow(string $hash, array $editData, array $tableData)
+    protected
+    function getEditRow(string $hash, array $editData, array $tableData)
     {
         $this->Table->reCalculateFilters(
             'web',

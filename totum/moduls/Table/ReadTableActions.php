@@ -646,6 +646,10 @@ class ReadTableActions extends Actions
             );
         }
 
+        if (method_exists($this->Table, 'withoutNotLoaded')) {
+            $this->Table->withoutNotLoaded();
+        }
+
 
         switch ($pageViewType = $this->getPageViewType()) {
             case 'tree':
@@ -2168,6 +2172,10 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     {
         $return = [];
         if ($force || $this->Table->getTableRow()['type'] === 'tmp' || $this->Totum->isAnyChages() || !empty($data['refresh']) || $this->Totum->getConfig()->procVar()) {
+
+            if (method_exists($this->Table, 'withoutNotLoaded')) {
+                $this->Table->withoutNotLoaded();
+            }
 
 
             $this->Table->reCalculateFilters(

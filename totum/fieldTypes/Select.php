@@ -837,6 +837,13 @@ class Select extends Field
                         $modifyVal->sign)),
                 };
             } else {
+
+                $modifyVal = match ($modifyVal) {
+                    false => 'false',
+                    true => 'true',
+                    default => (string)$modifyVal
+                };
+
                 $tmpVal = substr($modifyVal, 1);
                 if (empty($oldVal)) {
                     $oldVal = array();

@@ -843,26 +843,6 @@ class Select extends Field
                     true => 'true',
                     default => (string)$modifyVal
                 };
-
-                $tmpVal = substr($modifyVal, 1);
-                if (empty($oldVal)) {
-                    $oldVal = array();
-                }
-                switch ($modifyVal[0]) {
-                    case '-':
-                        $modifyVal = [];
-                        foreach ($oldVal as $v) {
-                            if ($v == $tmpVal) {
-                                continue;
-                            }
-                            $modifyVal[] = $v;
-                        }
-                        break;
-                    case '+':
-                        $modifyVal = $oldVal;
-                        $modifyVal[] = $tmpVal;
-                        break;
-                }
             }
             if ($modifyVal === '' || $modifyVal === null) {
                 $modifyVal = [];

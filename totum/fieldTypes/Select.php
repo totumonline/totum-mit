@@ -837,25 +837,12 @@ class Select extends Field
                         $modifyVal->sign)),
                 };
             } else {
-                $tmpVal = substr($modifyVal, 1);
-                if (empty($oldVal)) {
-                    $oldVal = array();
-                }
-                switch ($modifyVal[0]) {
-                    case '-':
-                        $modifyVal = [];
-                        foreach ($oldVal as $v) {
-                            if ($v == $tmpVal) {
-                                continue;
-                            }
-                            $modifyVal[] = $v;
-                        }
-                        break;
-                    case '+':
-                        $modifyVal = $oldVal;
-                        $modifyVal[] = $tmpVal;
-                        break;
-                }
+
+                $modifyVal = match ($modifyVal) {
+                    false => 'false',
+                    true => 'true',
+                    default => (string)$modifyVal
+                };
             }
             if ($modifyVal === '' || $modifyVal === null) {
                 $modifyVal = [];

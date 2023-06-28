@@ -491,6 +491,9 @@ class ReadTableActions extends Actions
         }
         $prevLastId = (int)($this->post['prevLastId'] ?? 0);
         $onPage = $this->post['pageCount'] ?? 0;
+        if ($onPage > 30000) {
+            $onPage = 30000;
+        }
         $this->Table->reCalculateFilters(
             'web',
             true,

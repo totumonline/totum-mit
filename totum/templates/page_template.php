@@ -4,7 +4,7 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=ead40ab">
-    <script src="/js/libs.js?v=c27fdf7"></script>
+    <script src="/js/libs.js?v=665342a"></script>
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=02ce1a8">
@@ -18,7 +18,7 @@
         <?php
     } ?>
 
-    <script src="/js/main.js?v=b8ee01c"></script>
+    <script src="/js/main.js?v=1227aeb"></script>
     <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?4"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 

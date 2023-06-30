@@ -1483,7 +1483,7 @@ abstract class RealTables extends aTable
         $params = [];
 
 
-        if ($withoutDeleted && count($paramsWhere) === 1 && !key_exists('qrow',
+        if ($withoutDeleted && count($paramsWhere) === 1 && is_array($paramsWhere[0] ?? false) && !key_exists('qrow',
                 $paramsWhere[0]) && $paramsWhere[0]['field'] === 'id' && $paramsWhere[0]['operator'] === '=') {
             $withoutDeleted = false;
         }
@@ -1536,8 +1536,7 @@ abstract class RealTables extends aTable
 
         foreach ($paramsWhere as $wI) {
             if (!is_array($wI)) {
-                $where[] = $wI;
-                continue;
+                throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'where'));
             }
 
             if (key_exists('qrow', $wI)) {

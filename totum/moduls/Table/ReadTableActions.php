@@ -140,6 +140,13 @@ class ReadTableActions extends Actions
     public function getPanelFormats()
     {
         $result = null;
+        $vars = [];
+        list($fieldName, $dynamic) = explode('/', $this->post['field'] . '/');
+        if ($dynamic) {
+            $this->post['field'] = $fieldName;
+            $vars['nfd'] = $dynamic;
+        }
+
         if (!empty($this->post['field']) && !empty($field = $this->Table->getFields()[$this->post['field']])) {
             $this->Table->reCalculateFilters(
                 'web',
@@ -166,7 +173,7 @@ class ReadTableActions extends Actions
 
             $Field = Field::init($field, $this->Table);
             $result = $Field->getPanelFormat($item,
-                $tbl);
+                $tbl, $vars);
         }
         return ['panelFormats' => $result];
     }

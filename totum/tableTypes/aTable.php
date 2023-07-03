@@ -815,8 +815,7 @@ abstract class aTable
                         $field
                     )) {
 
-                        if (($field['dynamic'] ?? false)) {
-
+                        if ($field['category'] === 'column' && ($field['dynamic'] ?? false)) {
 
                             if ($this->User->isCreator()) {
                                 $bField = $field;

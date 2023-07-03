@@ -815,7 +815,7 @@ abstract class aTable
                         $field
                     )) {
 
-                        if ($field['category'] === 'column' && ($field['dynamic'] ?? false)) {
+                        if ($field['category'] === 'column' && ($field['dynamic'] ?? false) && $this->tableRow['name'] === 'ttm__prepared_data_import') {
 
                             if ($this->User->isCreator()) {
                                 $bField = $field;

@@ -238,11 +238,11 @@ class Field
         }
     }
 
-    public function getPanelFormat($row, $tbl)
+    public function getPanelFormat($row, $tbl, $vars = [])
     {
         if ($this->checkFormatObject()) {
             $Log = $this->table->calcLog(['itemId' => $row['id'] ?? null, 'cType' => 'format', 'field' => $this->data['name']]);
-            $result = $this->CalculateFormat->getPanelFormat($this->data['name'], $row, $tbl, $this->table);
+            $result = $this->CalculateFormat->getPanelFormat($this->data['name'], $row, $tbl, $this->table, $vars);
             $this->table->calcLog($Log, 'result', $result);
         } else {
             $result = null;

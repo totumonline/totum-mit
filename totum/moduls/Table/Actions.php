@@ -110,7 +110,7 @@ class Actions
 
     public function getSchemaFormats()
     {
-        return ['formats' => ['date' => $this->Totum->getConfig()->getSettings('dates_format') ?? 'd.m.Y'] + $this->Totum->getConfig()->getSettings('numbers_format') ?? []];
+        return ['formats' => ['date' => $this->Totum->getConfig()->getSettings('dates_format') ?? 'd.m.Y'] + ($this->Totum->getConfig()->getSettings('numbers_format') ?? [])];
     }
 
     public

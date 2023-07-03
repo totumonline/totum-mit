@@ -643,15 +643,20 @@ abstract class aTable
                             $fForLink = $fields[$f['linkFieldName']] ?? null;
                         } elseif ($linkTableRow['type'] === 'calcs') {
                             if ($this->Totum->getConfig()->getTableRow($tableId)['type'] === 'calcs') {
-                                $_version = $this->Totum->getCycle(
-                                    $cycleId,
-                                    $linkTableRow['tree_node_id']
-                                )->getVersionForTable($f['linkTableName'])[0];
+                                if ($f['category'] !== 'column') {
+                                    if ($_data = $this->Totum->getCycle(
+                                        $cycleId,
+                                        $linkTableRow['tree_node_id']
+                                    )->getVersionForTable($f['linkTableName'])) {
+                                        $_version = $_data[0];
+                                    }
+                                }
                             } else {
                                 $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
                             }
-
-                            $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
+                            if (!is_null($_version ?? null)) {
+                                $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
+                            }
                         } else {
                             $fForLink = ($this->loadFields($linkTableId)[$f['linkFieldName']]) ?? null;
                         }
@@ -810,8 +815,7 @@ abstract class aTable
                         $field
                     )) {
 
-                        if (($field['dynamic'] ?? false)) {
-
+                        if ($field['category'] === 'column' && ($field['dynamic'] ?? false) && $this->tableRow['name'] === 'ttm__prepared_data_import') {
 
                             if ($this->User->isCreator()) {
                                 $bField = $field;
@@ -1378,6 +1382,8 @@ CODE;;
                         return [];
                     }
                     return $sectionReplaces($this->tbl['params']);
+                case 'rows':
+                    throw new errorException($this->translate('Not correct field name in query to [[%s]] table.', $this->tableRow['name']));
             }
         }
 

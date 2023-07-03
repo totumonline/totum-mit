@@ -1237,7 +1237,7 @@ abstract class JsonTables extends aTable
         $isDelInFields = (key_exists(
                 'where',
                 $params
-            ) && count($params['where']) === 1 && key_exists('field',
+            ) && count($params['where']) === 1 && is_array($params['where'][0]) && key_exists('field',
                 $params['where'][0]) && $params['where'][0]['field'] === 'id' && $params['where'][0]['operator'] === '=');
 
         if (isset($params['where'])) {
@@ -1334,7 +1334,9 @@ abstract class JsonTables extends aTable
             };
 
             foreach ($params['where'] as $wI) {
-
+                if(!is_array($wI)){
+                    throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'where'));
+                }
 
                 if (key_exists('qrow', $wI)) {
                     $where[] = $getCheckNeededRow($wI['qrow']);

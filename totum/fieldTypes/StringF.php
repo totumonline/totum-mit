@@ -58,7 +58,7 @@ class StringF extends Field
         parent::addViewValues($viewType, $valArray, $row, $tbl);
         if (!is_null($valArray['v'])) {
             if ($viewType == 'web') {
-                if(is_array($valArray['v'])){
+                if (!($this->data['dynamic'] ?? false) && is_array($valArray['v'])){
                     $valArray['e']=$this->translate('Field data type error');
                 }
             }

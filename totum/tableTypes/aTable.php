@@ -643,15 +643,20 @@ abstract class aTable
                             $fForLink = $fields[$f['linkFieldName']] ?? null;
                         } elseif ($linkTableRow['type'] === 'calcs') {
                             if ($this->Totum->getConfig()->getTableRow($tableId)['type'] === 'calcs') {
-                                $_version = $this->Totum->getCycle(
-                                    $cycleId,
-                                    $linkTableRow['tree_node_id']
-                                )->getVersionForTable($f['linkTableName'])[0];
+                                if ($f['category'] !== 'column') {
+                                    if ($_data = $this->Totum->getCycle(
+                                        $cycleId,
+                                        $linkTableRow['tree_node_id']
+                                    )->getVersionForTable($f['linkTableName'])) {
+                                        $_version = $_data[0];
+                                    }
+                                }
                             } else {
                                 $_version = CalcsTablesVersions::init($this->Totum->getConfig())->getDefaultVersion($f['linkTableName']);
                             }
-
-                            $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
+                            if (!is_null($_version ?? null)) {
+                                $fForLink = ($this->loadFields($linkTableId, $_version)[$f['linkFieldName']]) ?? null;
+                            }
                         } else {
                             $fForLink = ($this->loadFields($linkTableId)[$f['linkFieldName']]) ?? null;
                         }

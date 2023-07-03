@@ -1383,6 +1383,8 @@ CODE;;
                         return [];
                     }
                     return $sectionReplaces($this->tbl['params']);
+                case 'rows':
+                    throw new errorException($this->translate('Not correct field name in query to [[%s]] table.', $this->tableRow['name']));
             }
         }
 

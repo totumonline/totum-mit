@@ -591,7 +591,7 @@ trait WebInterfaceTrait
         $csv = [];
 
         $useThisField = function ($field) use ($visibleFields) {
-            return in_array($field['name'], $visibleFields) && !in_array($field['type'], ['file', 'button']);
+            return in_array($field['name'], $visibleFields) && !in_array($field['type'], ['file', 'button', 'chart']);
         };
 
         $getAndCheckVal = function ($valArray, $fieldName, $id = null) {

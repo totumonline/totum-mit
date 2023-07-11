@@ -18,7 +18,7 @@ use totum\tableTypes\aTable;
 class CalculcateFormat extends Calculate
 {
     protected const formats = ['block', 'color', 'bold', 'background', 'italic', 'decoration', 'progress', 'progresscolor', 'icon', 'text', 'comment', 'hideinpanel', 'tab', 'align', 'editbutton', 'hide', 'placeholder', 'showhand', 'expand', 'textasvalue'];
-    protected const tableformats = ['dotbuttons', 'hidedots', 'buttons', 'topbuttons', 'extbuttons', 'blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'tabletext', 'tablehtml', 'tablecomment', 'browsertitle', 'interlace', 'printbuttons', 'hideadd'];
+    protected const tableformats = ['dotbuttons', 'hidedots', 'buttons', 'topbuttons', 'extbuttons', 'blockadd', 'blockdelete', 'block', 'blockorder', 'background', 'blockduplicate', 'tabletitle', 'rowstitle', 'fieldtitle', 'fieldhide', 'fieldshide', 'tabletext', 'tablehtml', 'tablecomment', 'browsertitle', 'interlace', 'printbuttons', 'hideadd'];
     protected const rowformats = ['block', 'blockdelete', 'blockorder', 'blockduplicate', 'color', 'bold', 'background', 'italic', 'decoration', 'rowcomment'];
     protected const floatFormat = ['fill', 'glue', 'maxheight', 'maxwidth', 'nextline', 'blocknum', 'height', 'breakwidth'];
 
@@ -45,7 +45,7 @@ class CalculcateFormat extends Calculate
 
     function execTableDynamic(aTable $table): mixed
     {
-        $this->setEnvironmentVars(['name'=>'DN'], null, $table->getTbl()['params'], $table->getTbl()['params'], $table->getTbl(), $table->getTbl(), $table);
+        $this->setEnvironmentVars(['name' => 'DN'], null, $table->getTbl()['params'], $table->getTbl()['params'], $table->getTbl(), $table->getTbl(), $table);
         $this->newLog = ['text' => $this->translate('Tables dymanic format'), 'children' => []];
         try {
             if (!key_exists('dn=', $this->code)) {
@@ -425,7 +425,16 @@ class CalculcateFormat extends Calculate
                                 $fieldname = $this->__getValue($fieldparam[0]);
                                 $fieldvalue = $this->__getValue($fieldparam[1]);
 
-                                $this->formatArray[$format][$fieldname] = $fieldvalue;
+                                if (is_string($fieldname)) {
+                                    $this->formatArray[$format][$fieldname] = $fieldvalue;
+                                }
+                            }
+                        } elseif ($format === 'fieldshide') {
+                            $fieldnames = is_string($params[$format]) ? $this->__getValue($this->getCodes($params[$format])[0]) : $params[$format];
+                            foreach ((array)$fieldnames as $fieldname) {
+                                if (is_string($fieldname)) {
+                                    $this->formatArray['fieldhide'][$fieldname] = 'force';
+                                }
                             }
                         } else {
                             $this->formatArray[$format] = is_string($params[$format]) ? $this->__getValue($this->getCodes($params[$format])[0]) : $params[$format];
@@ -433,6 +442,15 @@ class CalculcateFormat extends Calculate
                         }
                     }
                 }
+            } elseif (key_exists('fieldshide', $params)) {
+
+                $fieldnames = is_string($params['fieldshide']) ? $this->__getValue($this->getCodes($params['fieldshide'])[0]) : $params['fieldshide'];
+                foreach ((array)$fieldnames as $fieldname) {
+                    if (is_string($fieldname)) {
+                        $this->formatArray['fieldhide'][$fieldname] = false;
+                    }
+                }
+
             }
         }
 

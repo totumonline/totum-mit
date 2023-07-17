@@ -10,7 +10,7 @@
 
 - `ES`-Demo — [demoes.totum.online](https://demoes.totum.online) or [es-live-demo](https://n-5f894e2-69564.demoes.totum.online/)
 
-- `RU`-Demo — [demoru.totum.online](https://demoru.totum.online) or [ru-live-demo](https://n-5f894e2-69564.demoes.totum.online/)
+- `RU`-Cloud — [ru.totum.online/demo](https://ru.totum.online/demo) or [ru-live-demo](https://live-demo.ttmapp.ru)
 
 \>
 

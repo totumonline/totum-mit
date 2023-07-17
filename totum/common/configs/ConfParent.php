@@ -208,6 +208,11 @@ abstract class ConfParent
         return $this->hostName;
     }
 
+    public function getMainHostName()
+    {
+        return $this->hostName;
+    }
+
     public function getFilesDir()
     {
         return $this->baseDir . 'http/fls/';

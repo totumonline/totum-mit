@@ -431,6 +431,10 @@ class RU implements LangInterface
   'There is no access to excel-import in this table' => 'Нет доступа к excel-импорту в этой таблице',
   'The [[%s]] must be equal to the [[%s]].' => '[[%s]] должен быть равен [[%s]].',
   'Excel import to %s' => 'Excel импорт в %s',
+  'Token is not exists or is expired' => 'Токен не существует или срок его действия истек',
+  'This is a service user. He cannot be authorized by a token' => 'Это сервисный пользователь. Он не может быть авторизован по токену',
+  'This user have Creator role. He cannot be authorized by a token' => 'Этот пользователь имеет роль Создатель. Он не может быть авторизован по токену',
+  'This is not web user. He cannot be authorized by a token' => 'Это не веб-пользователь. Он не может быть авторизован по токену',
 );
 	/**
      * Возвращает сумму прописью

@@ -429,6 +429,10 @@ class ES implements LangInterface
   'There is no access to excel-import in this table' => 'No hay acceso a excel-import en esta tabla',
   'The [[%s]] must be equal to the [[%s]].' => 'El [[%s]] debe ser igual al [[%s]].',
   'Excel import to %s' => 'Importación Excel a %s',
+  'Token is not exists or is expired' => 'El token no existe o ha caducado',
+  'This is a service user. He cannot be authorized by a token' => 'Se trata de un usuario de servicio. No puede ser autorizado por un token',
+  'This user have Creator role. He cannot be authorized by a token' => 'Este usuario tiene el rol de Creador. No puede ser autorizado por un token',
+  'This is not web user. He cannot be authorized by a token' => 'No es un usuario web. No puede ser autorizado por un token',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

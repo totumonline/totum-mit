@@ -40,4 +40,17 @@ trait MultiTrait
         $Conf->setHostSchema($this->hostName, $this->schemaName);
         return $Conf;
     }
+
+    public function getMainHostName()
+    {
+        $host = $this->hostName;
+        if ($this->getHiddenHosts()[$this->hostName] ?? false) {
+            foreach (static::getSchemas() as $host => $schema) {
+                if ($schema === $this->schemaName) {
+                    return $host;
+                }
+            }
+        }
+        return $host;
+    }
 }

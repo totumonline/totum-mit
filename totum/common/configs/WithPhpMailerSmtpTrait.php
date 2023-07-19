@@ -4,6 +4,7 @@
 namespace totum\common\configs;
 
 use PHPMailer\PHPMailer\PHPMailer;
+use totum\common\errorException;
 
 trait WithPhpMailerSmtpTrait
 {
@@ -18,6 +19,10 @@ trait WithPhpMailerSmtpTrait
 
             $mail->SMTPDebug = $this->env !== static::ENV_LEVELS["production"];
             $mail->isSMTP();
+
+            if (!property_exists($this, 'SmtpData') || empty($this->SmtpData) || empty($this->SmtpData['host'] || empty($this->SmtpData['port']))){
+                throw new errorException($this->translate('Fill in the parameter [[%s]]', 'Conf.php SmtpData'));
+            }
 
 
             $mail->Host = $this->SmtpData['host'];

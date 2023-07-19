@@ -429,6 +429,10 @@ class DE implements LangInterface
   'There is no access to excel-import in this table' => 'In dieser Tabelle gibt es keinen Zugang zum Excel-Import',
   'The [[%s]] must be equal to the [[%s]].' => 'Der [[%s]] muss gleich dem [[%s]] sein.',
   'Excel import to %s' => 'Excel-Import in %s',
+  'Token is not exists or is expired' => 'Token ist nicht vorhanden oder abgelaufen',
+  'This is a service user. He cannot be authorized by a token' => 'Dies ist ein Dienstbenutzer. Er kann nicht durch ein Token autorisiert werden',
+  'This user have Creator role. He cannot be authorized by a token' => 'Dieser Benutzer hat die Rolle "Ersteller". Er kann nicht durch ein Token autorisiert werden',
+  'This is not web user. He cannot be authorized by a token' => 'Dies ist kein Web-Benutzer. Er kann nicht durch ein Token autorisiert werden',
 );
 	/**
      * Возвращает сумму прописью

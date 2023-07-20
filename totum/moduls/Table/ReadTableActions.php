@@ -949,7 +949,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
 
             foreach ($fields as $field) {
                 if ($field['category'] === $category) {
-                    if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
+                    if (!$table || ($field['tableBreakBefore'] ?? false) || $width > $sosiskaMaxWidth) {
                         $width = $settings['fields'][$field['name']];
                         if ($table) {
                             $tableAll[] = $table[0] . $width . $table[1] . implode(
@@ -1137,7 +1137,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         /*Общие футеры*/
         foreach ($fields as $field) {
             if ($field['category'] === 'footer' && empty($field['column'])) {
-                if (!$table || $field['tableBreakBefore'] || $width > $sosiskaMaxWidth) {
+                if (!$table || ($field['tableBreakBefore'] ?? false) || $width > $sosiskaMaxWidth) {
                     if ($table) {
                         $tableAll[] = $table[0] . $width . $table[1] . implode(
                                 '',

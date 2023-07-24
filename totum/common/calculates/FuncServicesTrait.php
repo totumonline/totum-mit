@@ -76,6 +76,41 @@ trait FuncServicesTrait
         return json_decode($answers[0], true);
     }
 
+    protected function funcServiceAskOpenaiList($params)
+    {
+        $params = $this->getParamsArray($params);
+        $Config = $this->Table->getTotum()->getConfig();
+        $this->__checkNotEmptyParams($params, ['instruction']);
+        $this->__checkNotArrayParams($params, ['comment']);
+        $this->__checkNumericParam($params['maxtokens'], 'maxtokens');
+
+        $data = [];
+        if (!empty($params['data'])) {
+            foreach ((array)$params['data'] as $i => $_data) {
+                $data[] = ['d' => $_data, 'i' =>
+                    is_array($params['instruction'])
+                        ? ($params['instruction'][$i] ?? throw new errorException($this->translate('The number of the [[%s]] must be equal to the number of [[%s]].', ['instruction', 'data'])))
+                        : $params['instruction']
+                ];
+            }
+        } else {
+            foreach ((array)$params['instruction'] as $_instruction) {
+                $data[] = ['i' => $_instruction];
+            }
+        }
+        if (!empty($params['maxtokens'])) {
+            $data['max'] = $params['maxtokens'];
+        }
+
+        $answers = $this->serviceRequests($Config, 'openai', [$data], $params['comment'] ?? null);
+
+        foreach ($answers as &$answer) {
+            $answer = json_decode($answer, true);
+        }
+
+        return $answers;
+    }
+
     protected function funcServiceXlsxGenerator($params)
     {
         $params = $this->getParamsArray($params);

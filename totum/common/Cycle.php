@@ -304,7 +304,9 @@ class Cycle
             $dec = 1;
             while (key_exists($ord, $dataWithOrd)) {
                 $ord += 5 * (1 / (10 ** $dec));
+                $ord = (string) $ord;
                 $dec++;
+
             }
             $dataWithOrd[$ord] = $r['table_name'];
         }

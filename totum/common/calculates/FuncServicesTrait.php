@@ -82,7 +82,6 @@ trait FuncServicesTrait
         $Config = $this->Table->getTotum()->getConfig();
         $this->__checkNotEmptyParams($params, ['instruction']);
         $this->__checkNotArrayParams($params, ['comment']);
-        $this->__checkNumericParam($params['maxtokens'], 'maxtokens');
 
         $data = [];
         if (!empty($params['data'])) {
@@ -99,6 +98,7 @@ trait FuncServicesTrait
             }
         }
         if (!empty($params['maxtokens'])) {
+            $this->__checkNumericParam($params['maxtokens'], 'maxtokens');
             $data['max'] = $params['maxtokens'];
         }
 

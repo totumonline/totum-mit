@@ -303,7 +303,7 @@ class Cycle
             $ord = $r['ord'] ?? $r['sort'];
             $dec = 1;
             while (key_exists($ord, $dataWithOrd)) {
-                $ord += 5 * (1 / (10 ^ $dec));
+                $ord += 5 * (1 / (10 ** $dec));
                 $dec++;
             }
             $dataWithOrd[$ord] = $r['table_name'];

@@ -282,7 +282,7 @@ class TableController extends interfaceController
                     $ord = $field['ord'];
                     $dec = 1;
                     while (key_exists($ord, $orderedInners)) {
-                        $ord += 5 * (1 / (10 ^ $dec));
+                        $ord += 5 * (1 / (10 ** $dec));
                         $dec++;
                     }
 
@@ -304,7 +304,7 @@ class TableController extends interfaceController
             foreach ($tables as $ord => $table) {
                 $dec = 1;
                 while (key_exists($ord, $orderedInners)) {
-                    $ord += 5 * (1 / (10 ^ $dec));
+                    $ord += 5 * (1 / (10 ** $dec));
                     $dec++;
                 }
                 $orderedInners[$ord] = $table;

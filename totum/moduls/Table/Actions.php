@@ -104,7 +104,22 @@ class Actions
         return ['ok' => 1];
     }
 
-    public function isCreatorView(){
+    public
+    function getReUsers()
+    {
+        if (!Auth::isCanBeOnShadow($this->User)) {
+            throw new errorException($this->translate('The function is not available to you.'));
+        }
+        $q = null;
+        if(!empty($this->post['q']) && is_string($this->post['q'])){
+            $q = $this->post['q'];
+        }
+        $users = Auth::getUsersForShadow($this->Totum->getConfig(), $this->User, q: $q);
+        return ['users' => $users];
+    }
+
+    public function isCreatorView()
+    {
         return $this->User->isCreator();
     }
 

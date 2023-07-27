@@ -88,12 +88,17 @@ class Auth
         } elseif ($q) {
             $qs = preg_split('/\s+/', $q);
             $_q = '';
-            foreach ($qs as $qEl){
-                if($_q){
-                    $_q.=' AND ';
+            foreach ($qs as $qEl) {
+                if ($_q) {
+                    $_q .= ' AND ';
                 }
-                $_q .= "fio->>'v' like ?";
-                $params[] = '%'.$qEl.'%';
+                if (str_contains($qEl, '@')) {
+                    $_q .= "lower(email->>'v') like ?";
+                    $params[] = '%' . mb_strtolower($qEl) . '%';
+                } else {
+                    $_q .= "lower(fio->>'v') like ?";
+                    $params[] = '%' . mb_strtolower($qEl) . '%';
+                }
             }
 
         }

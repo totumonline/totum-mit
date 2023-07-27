@@ -254,7 +254,7 @@ sudo timedatectl set-timezone $TOTUMTIMEZONE
 sudo apt -y install php8.0 php8.0-bcmath php8.0-cli php8.0-curl php8.0-fpm php8.0-gd php8.0-mbstring php8.0-opcache php8.0-pgsql php8.0-xml php8.0-zip php8.0-soap php8.0-ldap
 sudo service apache2 stop
 sudo systemctl disable apache2
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_fpm.conf
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/main/totum/moduls/install/totum_fpm.conf
 sudo chown root:root ./totum_fpm.conf
 sudo mv ./totum_fpm.conf /etc/php/8.0/fpm/pool.d/totum.conf
 sudo sed -i "s:Europe/London:${TOTUMTIMEZONE}:g" /etc/php/8.0/fpm/pool.d/totum.conf
@@ -276,7 +276,7 @@ cd ~
 # Install Nginx
 
 sudo apt -y install nginx
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_nginx.conf
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/totum/moduls/install/totum_nginx.conf
 sudo chown root:root ./totum_nginx.conf
 sudo mv ./totum_nginx.conf /etc/nginx/sites-available/totum.online.conf
 sudo sed -i "s:/var/www/:/home/totum/:g" /etc/nginx/sites-available/totum.online.conf
@@ -306,14 +306,14 @@ sudo -u totum bash -c "openssl rand -base64 64 > /home/totum/totum-mit/Crypto.ke
 
 # Obtain SSL cert 
 
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/certbot/etc_letsencrypt/cli.ini
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/totum/moduls/install/cli.ini
 sudo chown root:root ./cli.ini
 sudo mv ./cli.ini /etc/letsencrypt/cli.ini
 
 sudo certbot register --email $CERTBOTEMAIL --agree-tos --no-eff-email
 sudo certbot certonly -d $CERTBOTDOMAIN
 
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit-docker/main/nginx_fpm_conf/totum_nginx_SSL.conf
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/totum/moduls/install/totum_nginx_SSL.conf
 sudo chown root:root ./totum_nginx_SSL.conf
 sudo mv ./totum_nginx_SSL.conf /etc/nginx/sites-available/totum.online.conf
 

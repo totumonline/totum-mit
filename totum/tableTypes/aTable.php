@@ -1568,6 +1568,7 @@ CODE;;
                     if ($f['dynamic'] === 'dynamic') {
                         if (!empty($row[$f['__dynamic']]) && is_array($baseValue = $row[$f['__dynamic']]['v'] ?? [])) {
                             $row[$f['name']] = ['v' => $baseValue[$f['__dynamic_key']] ?? null];
+                            $rowIn[$f['name']] = ['v' => $baseValue[$f['__dynamic_key']] ?? null];
                             $dynamic = $f['__dynamic_key'];
                         } else {
                             continue;
@@ -1609,6 +1610,7 @@ CODE;;
                         $pageIds,
                         ['nfd' => $dynamic]
                     );
+
                 }
             }
 

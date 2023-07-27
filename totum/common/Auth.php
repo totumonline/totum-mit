@@ -74,22 +74,68 @@ class Auth
         return array_intersect(static::$shadowRoles, $User->getRoles())[0] ?? 0;
     }
 
-    public static function getUsersForShadow(Conf $Config, User $User, $id = null): array
+    public static function getUsersForShadow(Conf $Config, User $User, $id = null, $q = ''): array
     {
-        $_id = $id ? 'id = ' . (int)$id : 'true';
+        $_id = 'true';
+        $_q = 'true';
+        $params = [];
+        $limitNum = 10;
+        $limit = 'ORDER By id limit ' . $limitNum;
+
+        if ($id) {
+            $_id = 'id = ' . (int)$id;
+            $limit = '';
+        } elseif ($q) {
+            $qs = preg_split('/\s+/', $q);
+            $_q = '';
+            foreach ($qs as $qEl) {
+                if ($_q) {
+                    $_q .= ' AND ';
+                }
+                if (str_contains($qEl, '@')) {
+                    $_q .= "lower(email->>'v') like ?";
+                    $params[] = '%' . mb_strtolower($qEl) . '%';
+                } else {
+                    $_q .= "lower(fio->>'v') like ?";
+                    $params[] = '%' . mb_strtolower($qEl) . '%';
+                }
+            }
+
+        }
+
+
         $_roles = 'true';
         if (Auth::getShadowRole($User) !== 1) {
             $_roles = "(roles->'v' @> '[\"1\"]'::jsonb) = FALSE";
         }
-        $r = $Config->getModel('users')->preparedSimple(
-            "select id, fio->>'v' as fio from users where interface->>'v'='web'" .
-            " AND on_off->>'v'='true' AND (login->>'v' NOT IN ('service', 'cron', 'anonim') OR login->>'v' is null) " .
-            " AND $_id AND $_roles " .
-            " AND is_del = false"
-        );
-        $r->execute();
-        $r = $r->fetchAll(\PDO::FETCH_ASSOC);
-        return $r;
+
+        $getQuery = function ($fields) use ($_q, $_roles, $_id) {
+            return <<<SQL
+select $fields from users where interface->>'v'='web' 
+AND on_off->>'v'='true' AND (login->>'v' NOT IN ('service', 'cron', 'anonim') OR login->>'v' is null)  
+AND $_id AND $_roles AND $_q  
+
+SQL;
+        };
+
+        if (!$id) {
+            $countPrepared = $Config->getModel('users')->preparedSimple($getQuery('count(*)'));
+            $countPrepared->execute($params);
+            $count = $countPrepared->fetchColumn();
+            $r = $Config->getModel('users')->preparedSimple($getQuery("id, fio->>'v' as fio ") . $limit);
+            $r->execute($params);
+
+            return [
+                'sliced' => $count > $limitNum,
+                'users' => $r->fetchAll(\PDO::FETCH_ASSOC)
+            ];
+
+        } else {
+            $r = $Config->getModel('users')->preparedSimple($getQuery("id, fio->>'v' as fio "));
+            $r->execute($params);
+            $r = $r->fetchAll(\PDO::FETCH_ASSOC);
+            return $r;
+        }
     }
 
     public static function getUserManageTables(Conf $Config, User $User)
@@ -176,10 +222,10 @@ class Auth
             return static::$AuthStatuses['BLOCKED_BY_CRACKING_PROTECTION'];
         } else {
             if (($userRow = $userRow ?? Auth::getUserRowWithServiceRestriction(
-                        $login,
-                        $Config,
-                        $interface
-                    )) && static::checkUserPass(
+                    $login,
+                    $Config,
+                    $interface
+                )) && static::checkUserPass(
                     $pass,
                     $userRow['pass']
                 )) {

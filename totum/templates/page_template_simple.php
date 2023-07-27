@@ -7,9 +7,9 @@
     <script src="/js/libs.js?v=665342a"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=fd5e453">
-    <script src="/js/main.js?v=001fb1b"></script>
-    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?5"></script>
+          href="/css/main.css?v=9bc166f">
+    <script src="/js/main.js?v=4a54260"></script>
+    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?6"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

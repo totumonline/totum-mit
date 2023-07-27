@@ -112,7 +112,7 @@ class Services implements ServicesVarsInterface
                     }
                     unset($notDoneHashes[$row['name']]);
                 }
-                usleep(0.02 * 10 ^ 6);
+                usleep(0.02 * 10 ** 6);
             }
             return $executes;
 

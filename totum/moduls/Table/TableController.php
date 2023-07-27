@@ -282,7 +282,7 @@ class TableController extends interfaceController
                     $ord = $field['ord'];
                     $dec = 1;
                     while (key_exists($ord, $orderedInners)) {
-                        $ord += 5 * (1 / (10 ^ $dec));
+                        $ord += 5 * (1 / (10 ** $dec));
                         $dec++;
                     }
 
@@ -301,10 +301,12 @@ class TableController extends interfaceController
             }
 
             $tables = $this->Cycle->getViewTablesWithOrds();
+
             foreach ($tables as $ord => $table) {
                 $dec = 1;
                 while (key_exists($ord, $orderedInners)) {
-                    $ord += 5 * (1 / (10 ^ $dec));
+                    $ord += 5 * (1 / (10 ** $dec));
+                    $ord = (string)$ord;
                     $dec++;
                 }
                 $orderedInners[$ord] = $table;
@@ -397,10 +399,9 @@ class TableController extends interfaceController
                 $suDo = Auth::isCanBeOnShadow($this->User);
                 if ($suDo || $userManager) {
                     if ($suDo) {
-                        $reUsers = Auth::getUsersForShadow($this->Config, $this->User);
                         $this->__addAnswerVar(
                             'reUsers',
-                            array_combine(array_column($reUsers, 'id'), array_column($reUsers, 'fio'))
+                            true
                         );
                         $this->__addAnswerVar('isCreatorNotItself', Auth::isUserNotItself());
                     } else {

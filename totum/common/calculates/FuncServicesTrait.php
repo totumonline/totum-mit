@@ -76,6 +76,131 @@ trait FuncServicesTrait
         return json_decode($answers[0], true);
     }
 
+    protected function funcServiceAskOpenaiList($params)
+    {
+        $params = $this->getParamsArray($params);
+        $Config = $this->Table->getTotum()->getConfig();
+
+        $data = [];
+        if (!empty($params['system']) && is_array($params['system'])) {
+            foreach ($params['system'] as $i => $_data) {
+                $row['s'] = $_data;
+                if (key_exists('user', $params)) {
+                    if (is_array($params['user'])) {
+                        if (!key_exists($i, $params['user'])) {
+                            throw new errorException($this->translate('The number of the [[%s]] must be equal to the number of [[%s]].', ['system', 'user']));
+                        }
+                        $row['u'] = $params['user'][$i];
+                    } else {
+                        $row['u'] = $params['user'];
+                    }
+                }
+                $data[] = $row;
+            }
+        } elseif (!empty($params['user']) && is_array($params['user'])) {
+            foreach ($params['user'] as $i => $_data) {
+                $row['u'] = $_data;
+                if (key_exists('system', $params)) {
+                    if (is_array($params['system'])) {
+                        if (!key_exists($i, $params['system'])) {
+                            throw new errorException($this->translate('The number of the [[%s]] must be equal to the number of [[%s]].', ['system', 'user']));
+                        }
+                        $row['s'] = $params['system'][$i];
+                    } else {
+                        $row['s'] = $params['system'];
+                    }
+                }
+                $data[] = $row;
+            }
+        } else {
+            $row = [];
+            if (!empty($params['user'])) {
+                $row['u'] = $params['user'];
+            }
+            if (!empty($params['system'])) {
+                $row['s'] = $params['system'];
+            }
+            if (empty($row)) {
+                $this->__checkNotEmptyParams($params, ['user']);
+            }
+            $data[] = $row;
+        }
+        if (!empty($params['maxtokens'])) {
+            $this->__checkNumericParam($params['maxtokens'], 'maxtokens');
+            $data['max'] = $params['maxtokens'];
+        }
+
+        $answers = $this->serviceRequests($Config, 'openai', [$data], $params['comment'] ?? null);
+
+        $results = [];
+
+        foreach ($answers as &$answer) {
+            $answer = json_decode($answer, true);
+            $results[] = !empty($answer['error']) ? ['error' => $answer['error']] : match ($params['answer'] ?? 'full') {
+                'content' => $answer[0]['message']['content'],
+                'json' => json_decode($answer[0]['message']['content'], true),
+                default => $answer,
+            };
+        }
+
+        return $results;
+    }
+
+    protected function funcServiceAskOpenai($params)
+    {
+        $params = $this->getParamsArray($params, ['system', 'user'], ['system', 'user']);
+        $this->__checkNotArrayParams($params, ['comment']);
+
+        $datas['system'] = [];
+        $datas['user'] = [];
+        foreach (['system', 'user'] as $type) {
+            foreach ($params[$type] ?? [] as $_s) {
+                $fieldparam = $this->getCodes($_s);
+                switch (count($fieldparam)) {
+                    case 1:
+                        $datas[$type][] = $this->__getValue($fieldparam[0]);
+                        break;
+                    case 3:
+                        $val = '';
+                        foreach ([$this->__getValue($fieldparam[0]), ' ', $this->__getValue($fieldparam[1])] as $_d) {
+                            $val .= (is_array($_d) ? json_encode($_d, JSON_UNESCAPED_UNICODE) : $_d);
+                        }
+                        $datas[$type][] = $val;
+                        break;
+                    default:
+                        throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                            $_s));
+                }
+            }
+        }
+
+        if (!empty($datas['system'])) {
+            $data['s'] = implode("\n\n", $datas['system']);
+        }
+        if (!empty($datas['user'])) {
+            $data['u'] = implode("\n\n", $datas['user']);
+        }
+
+        if (!empty($params['maxtokens'])) {
+            $this->__checkNumericParam($params['maxtokens'], 'maxtokens');
+            $data['max'] = $params['maxtokens'];
+        }
+        $Config = $this->Table->getTotum()->getConfig();
+        $answers = $this->serviceRequests($Config, 'openai', [[$data]], $params['comment'] ?? null);
+
+        if (!($answer = @json_decode($answers[0], true))) {
+            throw new errorException($this->translate('Error: %s', 'Service not answered'));
+        }
+        if (!empty($answer['error'])) {
+            throw new errorException($this->translate('Error: %s', $answer['error']));
+        }
+        return match ($params['answer'] ?? 'full') {
+            'content' => $answer[0]['message']['content'],
+            'json' => json_decode($answer[0]['message']['content'], true),
+            default => $answer,
+        };
+    }
+
     protected function funcServiceXlsxGenerator($params)
     {
         $params = $this->getParamsArray($params);

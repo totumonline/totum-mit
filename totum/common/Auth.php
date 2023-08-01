@@ -112,7 +112,7 @@ class Auth
         $getQuery = function ($fields) use ($_q, $_roles, $_id) {
             return <<<SQL
 select $fields from users where interface->>'v'='web' 
-AND on_off->>'v'='true' AND (login->>'v' NOT IN ('service', 'cron', 'anonim') OR login->>'v' is null)  
+AND on_off->>'v'='true' AND is_del = false AND (login->>'v' NOT IN ('service', 'cron', 'anonim') OR login->>'v' is null)  
 AND $_id AND $_roles AND $_q  
 
 SQL;

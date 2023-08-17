@@ -435,6 +435,9 @@ class RU implements LangInterface
   'This is a service user. He cannot be authorized by a token' => 'Это сервисный пользователь. Он не может быть авторизован по токену',
   'This user have Creator role. He cannot be authorized by a token' => 'Этот пользователь имеет роль Создатель. Он не может быть авторизован по токену',
   'This is not web user. He cannot be authorized by a token' => 'Это не веб-пользователь. Он не может быть авторизован по токену',
+  'The OnlyOffice service table was successfully created. Repeat the operation.' => 'Таблица обслуживания OnlyOffice успешно создана. Повторите операцию.',
+  'File key is not exists or is expired' => 'Ключ файла не существует или срок его действия истек',
+  'OnlyOfficeSaveTimeoutError' => 'Что-то пошло не так.                          Если изменений не было - все правильно, просто закройте окно редактора.                          Если были и это excel - уберите фокус из ячейки и попробуйте еще раз.',
 );
 	/**
      * Возвращает сумму прописью

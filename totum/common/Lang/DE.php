@@ -433,6 +433,9 @@ class DE implements LangInterface
   'This is a service user. He cannot be authorized by a token' => 'Dies ist ein Dienstbenutzer. Er kann nicht durch ein Token autorisiert werden',
   'This user have Creator role. He cannot be authorized by a token' => 'Dieser Benutzer hat die Rolle "Ersteller". Er kann nicht durch ein Token autorisiert werden',
   'This is not web user. He cannot be authorized by a token' => 'Dies ist kein Web-Benutzer. Er kann nicht durch ein Token autorisiert werden',
+  'The OnlyOffice service table was successfully created. Repeat the operation.' => 'Die OnlyOffice-Dienstetabelle wurde erfolgreich erstellt. Wiederholen Sie den Vorgang.',
+  'File key is not exists or is expired' => 'Der Dateischlüssel ist nicht vorhanden oder abgelaufen',
+  'OnlyOfficeSaveTimeoutError' => 'Etwas ist schief gelaufen. Wenn es keine Änderungen gab, ist alles in Ordnung, schließen Sie einfach das Editorfenster. Wenn es Änderungen gab und es Excel ist - entfernen Sie den Fokus von der Zelle und versuchen Sie es erneut.',
 );
 	/**
      * Возвращает сумму прописью

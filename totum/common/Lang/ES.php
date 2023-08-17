@@ -433,6 +433,9 @@ class ES implements LangInterface
   'This is a service user. He cannot be authorized by a token' => 'Se trata de un usuario de servicio. No puede ser autorizado por un token',
   'This user have Creator role. He cannot be authorized by a token' => 'Este usuario tiene el rol de Creador. No puede ser autorizado por un token',
   'This is not web user. He cannot be authorized by a token' => 'No es un usuario web. No puede ser autorizado por un token',
+  'The OnlyOffice service table was successfully created. Repeat the operation.' => 'La tabla de servicio OnlyOffice se ha creado correctamente. Repita la operación.',
+  'File key is not exists or is expired' => 'La clave del fichero no existe o ha caducado',
+  'OnlyOfficeSaveTimeoutError' => 'Algo ha ido mal. Si no hubo cambios - todo está correcto, simplemente cierre la ventana del editor. Si había y es excel - quitar el foco de la celda y vuelva a intentarlo.',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

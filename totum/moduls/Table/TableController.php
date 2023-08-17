@@ -283,6 +283,7 @@ class TableController extends interfaceController
                     $dec = 1;
                     while (key_exists($ord, $orderedInners)) {
                         $ord += 5 * (1 / (10 ** $dec));
+                        $ord = (string)$ord;
                         $dec++;
                     }
 

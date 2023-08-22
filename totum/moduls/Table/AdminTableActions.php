@@ -3,6 +3,7 @@
 
 namespace totum\moduls\Table;
 
+use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Lang\RU;
@@ -54,7 +55,7 @@ class AdminTableActions extends WriteTableActions
         $fieldName = null;
         $fieldId = null;
         if ($this->post['type']['pl'] ?? false) {
-            (function ($category, $type, $fieldNum) use(&$fieldName, &$fieldId) {
+            (function ($category, $type, $fieldNum) use (&$fieldName, &$fieldId) {
                 /** @var aTable $this */
                 $num = 1;
                 foreach ($this->fields as $name => $field) {
@@ -76,11 +77,29 @@ class AdminTableActions extends WriteTableActions
             })->bindTo($Table, $Table)($this->post['type']['pl'], $this->post['type']['code'], $this->post['fieldNum'] ?? false);
         }
 
-        $Actions = new WriteTableActions($this->Request, $this->modulePath, $Table, null);
-        match ($this->post['pageType']??false){
-            'main'=>$Actions->getFullTableData(true),
-            default=> $Actions->loadPage(true)
+        if ($this->post['user'] ?? false) {
+            $User = Auth::getUserById($this->Totum->getConfig(), $this->post['user']);
+        } else {
+            $User = $this->User;
+        }
+
+        $request = $this->Request;
+
+        if (!key_exists($this->Table->getTableRow()['id'], $User->getTables())) {
+            return ['ok' => 'Permission is denied for selected user'];
+        } elseif ($this->User->isCreator()) {
+            $Actions = new AdminTableActions($request, $this->modulePath, $this->Table, null);
+        } elseif ($User->getTables()[$this->Table->getTableRow()['id']]) {
+            $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
+        } else {
+            $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
+        }
+        match ($this->post['pageType'] ?? false) {
+            'main' => $Actions->getFullTableData(true),
+            default => $Actions->loadPage(true)
         };
+
+        $this->Totum->getConfig()->getSql(true)->transactionRollBack();
         return ['ok' => 1, 'fieldName' => $fieldName, 'fieldId' => $fieldId];
     }
 

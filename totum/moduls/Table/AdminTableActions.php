@@ -52,29 +52,46 @@ class AdminTableActions extends WriteTableActions
         set_time_limit($this->post['timeLimit']);
 
         $Table = $this->Table;
-        $fieldName = null;
-        $fieldId = null;
-        if ($this->post['type']['pl'] ?? false) {
-            (function ($category, $type, $fieldNum) use (&$fieldName, &$fieldId) {
+        $fields = null;
+        if ($this->post['types'] ?? false) {
+            (function ($types, $fieldNums) use (&$fields) {
                 /** @var aTable $this */
-                $num = 1;
-                foreach ($this->fields as $name => $field) {
-                    if ($field['category'] === $category) {
-                        if ($field[$type] ?? false) {
-                            if ($fieldNum) {
-                                if ($fieldNum < $num) {
-                                    break;
+
+                foreach ($types as $i => $type) {
+                    if ($type['table'] ?? false) {
+                        if ($this->tableRow[$type['table']] ?? null) {
+                            $this->tableRow[$type['table']] = '';
+                        }
+                    } else {
+                        $category = $type['pl'] ?? false;
+                        $code = $type['code'] ?? false;
+                        $num = 1;
+                        foreach ($this->fields as $name => $field) {
+                            if ($field['category'] === $category) {
+                                if ($field[$code] ?? false) {
+                                    if (!$fieldNums) {
+                                        if ($i === 0) {
+                                            $fields[] = ['id' => $field['id'], 'name' => $field['name']];
+                                        }
+                                        unset($this->fields[$name][$code]);
+                                    } else {
+                                        if ($i === 0) {
+                                            if (in_array($field['id'], $fieldNums)) {
+                                                unset($this->fields[$name][$code]);
+                                            }
+                                        } else {
+                                            unset($this->fields[$name][$code]);
+
+                                        }
+
+                                    }
                                 }
                             }
-                            $fieldName = $name;
-                            $fieldId = $field['id'];
-                            unset($this->fields[$name][$type]);
-                            $num++;
                         }
                     }
                 }
                 $this->sortedFields = static::sortFields($this->fields);
-            })->bindTo($Table, $Table)($this->post['type']['pl'], $this->post['type']['code'], $this->post['fieldNum'] ?? false);
+            })->bindTo($Table, $Table)($this->post['types'], $this->post['fieldNum'] ?? false);
         }
 
         if ($this->post['user'] ?? false) {
@@ -86,7 +103,7 @@ class AdminTableActions extends WriteTableActions
         $request = $this->Request;
 
         if (!key_exists($this->Table->getTableRow()['id'], $User->getTables())) {
-            return ['ok' => 'Permission is denied for selected user'];
+            return ['ok' => $this->translate('Permission is denied for selected user')];
         } elseif ($this->User->isCreator()) {
             $Actions = new AdminTableActions($request, $this->modulePath, $this->Table, null);
         } elseif ($User->getTables()[$this->Table->getTableRow()['id']]) {
@@ -100,7 +117,7 @@ class AdminTableActions extends WriteTableActions
         };
 
         $this->Totum->getConfig()->getSql(true)->transactionRollBack();
-        return ['ok' => 1, 'fieldName' => $fieldName, 'fieldId' => $fieldId];
+        die(json_encode(['ok' => 1, 'fields' => $fields, 'tableId' => $this->Table->getTableRow()['id']], JSON_UNESCAPED_UNICODE));
     }
 
     public function getAllTables()

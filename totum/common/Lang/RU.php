@@ -438,6 +438,7 @@ class RU implements LangInterface
   'The OnlyOffice service table was successfully created. Repeat the operation.' => 'Таблица обслуживания OnlyOffice успешно создана. Повторите операцию.',
   'File key is not exists or is expired' => 'Ключ файла не существует или срок его действия истек',
   'OnlyOfficeSaveTimeoutError' => 'Что-то пошло не так.                          Если изменений не было - все правильно, просто закройте окно редактора.                          Если были и это excel - уберите фокус из ячейки и попробуйте еще раз.',
+  'Permission is denied for selected user' => 'Выбранный пользователь лишен права доступа',
 );
 	/**
      * Возвращает сумму прописью

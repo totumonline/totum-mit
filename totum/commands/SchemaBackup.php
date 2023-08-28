@@ -22,6 +22,7 @@ class SchemaBackup extends Command
         }
         $this->addOption('gz', '', InputOption::VALUE_NONE, 'Use for file gziping')
             ->addOption('no-logs', '', InputOption::VALUE_NONE, 'For not duplicating logs')
+            ->addOption('no-privileges', 'x', InputOption::VALUE_NONE, 'Prevent dumping of access privileges (grant/revoke commands)')
             ->addOption('no-content',
                 '',
                 InputOption::VALUE_OPTIONAL,
@@ -77,6 +78,10 @@ class SchemaBackup extends Command
             }
         }
         $gz=($gz ? '| gzip' : '');
+
+        if ($input->getOption('no-privileges')) {
+            $exclude .= ' -x';
+        }
 
         `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' $gz > "{$path}"`;
     }

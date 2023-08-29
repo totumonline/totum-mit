@@ -436,6 +436,7 @@ class ES implements LangInterface
   'The OnlyOffice service table was successfully created. Repeat the operation.' => 'La tabla de servicio OnlyOffice se ha creado correctamente. Repita la operación.',
   'File key is not exists or is expired' => 'La clave del fichero no existe o ha caducado',
   'OnlyOfficeSaveTimeoutError' => 'Algo ha ido mal. Si no hubo cambios - todo está correcto, simplemente cierre la ventana del editor. Si había y es excel - quitar el foco de la celda y vuelva a intentarlo.',
+  'Permission is denied for selected user' => 'Permiso denegado para el usuario seleccionado',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

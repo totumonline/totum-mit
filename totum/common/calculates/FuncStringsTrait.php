@@ -291,6 +291,23 @@ trait FuncStringsTrait
         $this->__checkRequiredParams($params, ['str', 'from', 'to'], 'strRepeat');
         $this->__checkNotArrayParams($params, ['str'], 'strRepeat');
 
+        if (is_array($params['from']) != is_array($params['to'])) {
+            if (is_array($params['to'])) {
+                throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.', ['to if the from not a list']));
+            } else {
+                throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.', ['from if the to not a list']));
+            }
+        } elseif (is_array($params['from'])) {
+            foreach (['from', 'to'] as $p) {
+                foreach ($params[$p] as &$f) {
+                    if (is_array($f)) {
+                        $f = json_encode($f, JSON_UNESCAPED_UNICODE);
+                    }
+                }
+                unset($f);
+            }
+        }
+
         return str_replace($params['from'], $params['to'], $params['str']);
     }
 
@@ -435,10 +452,10 @@ trait FuncStringsTrait
                 ) . '</body>';
         } else {
             return $this->replaceTemplates($mainTemplate,
-                    $params['data'] ?? [],
-                    $getTemplate,
-                    $style,
-                    $usedStyles) ?? '';
+                $params['data'] ?? [],
+                $getTemplate,
+                $style,
+                $usedStyles) ?? '';
         }
     }
 

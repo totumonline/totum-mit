@@ -3,6 +3,7 @@
 
 namespace totum\moduls\Table;
 
+use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Lang\RU;
@@ -10,6 +11,7 @@ use totum\models\CalcsTableCycleVersion;
 use totum\models\CalcsTablesVersions;
 use totum\models\Table;
 use totum\models\TablesFields;
+use totum\tableTypes\aTable;
 
 class AdminTableActions extends WriteTableActions
 {
@@ -42,6 +44,80 @@ class AdminTableActions extends WriteTableActions
             return [$this->post['param'] => $row[$this->post['param']]];
         }
         throw new errorException($this->translate('Table is not found.') . ' ' . $this->translate('May be insert row has expired.'));
+    }
+
+    public function bugFinder()
+    {
+        $this->Totum->getConfig()->getSql(true)->transactionStart();
+        set_time_limit($this->post['timeLimit']);
+
+        $Table = $this->Table;
+        $fields = null;
+        if ($this->post['types'] ?? false) {
+            (function ($types, $fieldNums) use (&$fields) {
+                /** @var aTable $this */
+
+                foreach ($types as $i => $type) {
+                    if ($type['table'] ?? false) {
+                        if ($this->tableRow[$type['table']] ?? null) {
+                            $this->tableRow[$type['table']] = '';
+                        }
+                    } else {
+                        $category = $type['pl'] ?? false;
+                        $code = $type['code'] ?? false;
+                        $num = 1;
+                        foreach ($this->fields as $name => $field) {
+                            if ($field['category'] === $category) {
+                                if ($field[$code] ?? false) {
+                                    if (!$fieldNums) {
+                                        if ($i === 0) {
+                                            $fields[] = ['id' => $field['id'], 'name' => $field['name']];
+                                        }
+                                        unset($this->fields[$name][$code]);
+                                    } else {
+                                        if ($i === 0) {
+                                            if (in_array($field['id'], $fieldNums)) {
+                                                unset($this->fields[$name][$code]);
+                                            }
+                                        } else {
+                                            unset($this->fields[$name][$code]);
+
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                $this->sortedFields = static::sortFields($this->fields);
+            })->bindTo($Table, $Table)($this->post['types'], $this->post['fieldNum'] ?? false);
+        }
+
+        if ($this->post['user'] ?? false) {
+            $User = Auth::getUserById($this->Totum->getConfig(), $this->post['user']);
+        } else {
+            $User = $this->User;
+        }
+
+        $request = $this->Request;
+
+        if (!key_exists($this->Table->getTableRow()['id'], $User->getTables())) {
+            return ['ok' => $this->translate('Permission is denied for selected user')];
+        } elseif ($this->User->isCreator()) {
+            $Actions = new AdminTableActions($request, $this->modulePath, $this->Table, null);
+        } elseif ($User->getTables()[$this->Table->getTableRow()['id']]) {
+            $Actions = new WriteTableActions($request, $this->modulePath, $this->Table, null);
+        } else {
+            $Actions = new ReadTableActions($request, $this->modulePath, $this->Table, null);
+        }
+        match ($this->post['pageType'] ?? false) {
+            'main' => $Actions->getFullTableData(true),
+            default => $Actions->loadPage(true)
+        };
+
+        $this->Totum->getConfig()->getSql(true)->transactionRollBack();
+        die(json_encode(['ok' => 1, 'fields' => $fields, 'tableId' => $this->Table->getTableRow()['id']], JSON_UNESCAPED_UNICODE));
     }
 
     public function getAllTables()
@@ -217,7 +293,7 @@ CODE;
                     $this->Table->getTbl(),
                     $this->Table,
                     'exec',
-                    ['title' => $this->translate('Add form'), 'data'=>['h_table_name'=>$this->Table->getTableRow()['name']]]
+                    ['title' => $this->translate('Add form'), 'data' => ['h_table_name' => $this->Table->getTableRow()['name']]]
                 );
 
 

@@ -436,6 +436,7 @@ class DE implements LangInterface
   'The OnlyOffice service table was successfully created. Repeat the operation.' => 'Die OnlyOffice-Dienstetabelle wurde erfolgreich erstellt. Wiederholen Sie den Vorgang.',
   'File key is not exists or is expired' => 'Der Dateischlüssel ist nicht vorhanden oder abgelaufen',
   'OnlyOfficeSaveTimeoutError' => 'Etwas ist schief gelaufen. Wenn es keine Änderungen gab, ist alles in Ordnung, schließen Sie einfach das Editorfenster. Wenn es Änderungen gab und es Excel ist - entfernen Sie den Fokus von der Zelle und versuchen Sie es erneut.',
+  'Permission is denied for selected user' => 'Berechtigung wird für ausgewählten Benutzer verweigert',
 );
 	/**
      * Возвращает сумму прописью

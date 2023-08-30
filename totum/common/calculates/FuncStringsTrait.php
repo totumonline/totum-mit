@@ -291,14 +291,12 @@ trait FuncStringsTrait
         $this->__checkRequiredParams($params, ['str', 'from', 'to'], 'strRepeat');
         $this->__checkNotArrayParams($params, ['str'], 'strRepeat');
 
-        if (is_array($params['from']) != is_array($params['to'])) {
-            if (is_array($params['to'])) {
-                throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.', ['to if the from not a list']));
-            } else {
-                throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.', ['from if the to not a list']));
-            }
-        } elseif (is_array($params['from'])) {
-            foreach (['from', 'to'] as $p) {
+        if (!is_array($params['from']) && is_array($params['to'])) {
+            throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.', ['to if the from not a list']));
+        }
+
+        foreach (['from', 'to'] as $p) {
+            if (is_array($params[$p])) {
                 foreach ($params[$p] as &$f) {
                     if (is_array($f)) {
                         $f = json_encode($f, JSON_UNESCAPED_UNICODE);

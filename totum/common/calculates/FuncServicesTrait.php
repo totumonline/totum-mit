@@ -212,7 +212,7 @@ trait FuncServicesTrait
 
         $this->__checkNotEmptyParams($params, ['template']);
         $this->__checkNotArrayParams($params, ['comment']);
-        $this->__checkListParam($params, ['data']);
+        $this->__checkListParam($params, ['data', 'titles']);
 
         if (is_array($params['template']) && key_exists(0, $params['data'])) {
             if (count($params['template']) != count($params['data'])) {
@@ -234,6 +234,11 @@ trait FuncServicesTrait
 
         $Config = $this->Table->getTotum()->getConfig();
 
+        if ($isTitles = !empty($params['titles'])) {
+            $isMenyTitles = is_array($params['titles'][0] ?? null);
+        }
+
+
         $preparedData = [];
         foreach ($templates as $i => $template) {
             $pdf = $params['pdf'] ?? false;
@@ -242,9 +247,22 @@ trait FuncServicesTrait
                 'true', true => true,
                 default => is_array($_pdf) ? $_pdf : false
             };
+            $titles = [];
+            if ($template === '*NEW*' && $isTitles) {
+                foreach ($isMenyTitles ? ($params['titles'][$i] ?? []) : $params['titles'] as $title) {
+                    if (is_array($title)) {
+                        $title = json_encode($title, true);
+                    }
+                    $titles[] = $title;
+                }
+                if ($titles) {
+                    $titles = [$titles];
+                }
+            }
+
             $preparedData[] = [
                 'template' => $template === '*NEW*' ? '*NEW*' : base64_encode(File::getContent($template, $Config)),
-                'data' => $datas[$i],
+                'data' => array_merge($titles, $datas[$i]),
                 'pdf' => $_pdf,
             ];
         }

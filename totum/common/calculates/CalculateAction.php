@@ -948,6 +948,8 @@ class CalculateAction extends Calculate
                     $hash = $params['hash'];
                 } elseif ($this->Table->getTableRow()['id'] === $tableRow['id']) {
                     $hash = $this->Table->getTableRow()['sess_hash'];
+                }else{
+                    $this->__checkNotEmptyParams($params, ['hash']);
                 }
                 if (!empty($hash)) {
                     $link .= '?sess_hash=' . $hash;

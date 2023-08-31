@@ -120,6 +120,14 @@ class AdminTableActions extends WriteTableActions
         die(json_encode(['ok' => 1, 'fields' => $fields, 'tableId' => $this->Table->getTableRow()['id']], JSON_UNESCAPED_UNICODE));
     }
 
+    public function delete()
+    {
+        if (!empty($this->post['force']) && $this->post['force']==='true') {
+            $this->Table->setDeleteForce();
+        }
+       return parent::delete();
+    }
+
     public function getAllTables()
     {
         $tables = [];

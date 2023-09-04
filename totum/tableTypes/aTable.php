@@ -1282,22 +1282,24 @@ CODE;;
         $params['pfield'] = (array)($params['pfield'] ?? []);
 
         foreach ($params['field'] ?? [] as $i => $fName) {
-            switch ($fName) {
-                case '*ALL*':
-                    unset($params['field'][$i]);
-                    $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['column']));
-                    $params['field'] = array_unique($params['field']);
-                    break;
-                case '*HEADER*':
-                    unset($params['field'][$i]);
-                    $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['param']));
-                    $params['field'] = array_unique($params['field']);
-                    break;
-                case '*FOOTER*':
-                    unset($params['field'][$i]);
-                    $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['footer']));
-                    $params['field'] = array_unique($params['field']);
-                    break;
+            if (is_string($fName)) {
+                switch ($fName) {
+                    case '*ALL*':
+                        unset($params['field'][$i]);
+                        $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['column']));
+                        $params['field'] = array_unique($params['field']);
+                        break;
+                    case '*HEADER*':
+                        unset($params['field'][$i]);
+                        $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['param']));
+                        $params['field'] = array_unique($params['field']);
+                        break;
+                    case '*FOOTER*':
+                        unset($params['field'][$i]);
+                        $params['field'] = array_merge($params['field'], array_keys($this->getSortedFields()['footer']));
+                        $params['field'] = array_unique($params['field']);
+                        break;
+                }
             }
         }
 
@@ -1305,14 +1307,28 @@ CODE;;
         if (empty($Field)) {
             throw new errorException($this->translate('No select field specified'));
         }
+        if (is_array($Field)) {
+            $Field = $Field[0] ?? '';
+        }
 
         if (in_array($returnType, ['list', 'field']) && count($params['field']) > 1) {
             throw new errorException($this->translate('More than one field/sfield is specified'));
         }
 
 
-        $fieldsOrder = $params['fieldOrder'] ?? array_merge($params['field'], $params['sfield'], $params['pfield']);
-        $params['fieldOrder'] = $fieldsOrder;
+        $params['fieldOrder'] = [];
+        foreach (['field', 'sfield', 'pfield'] as $type) {
+            if (!empty($params[$type])) {
+                foreach ($params[$type] as $i => $field) {
+                    if (!is_array($field)) {
+                        $field = [$field, $field];
+                    }
+                    $field[] = $type;
+                    $params['fieldOrder'][] = $field;
+                    $params[$type][$i] = $field[0];
+                }
+            }
+        }
 
         if (!empty($params['sfield'])) {
             $params['field'] = array_merge($params['field'], $params['sfield']);
@@ -1322,6 +1338,9 @@ CODE;;
         }
 
         foreach ($params['field'] as $fName) {
+            if (is_array($fName) && key_exists(0, $fName)) {
+                $fName = $fName[0];
+            }
             if (!is_string($fName)) {
                 throw new errorException($this->translate('Not correct field name in query to [[%s]] table.',
                     [$this->tableRow['name']]));
@@ -1334,31 +1353,27 @@ CODE;;
 
         $sectionReplaces = function ($row) use ($params) {
             $rowReturn = [];
-            foreach ($params['fieldOrder'] as $fName) {
+            foreach ($params['fieldOrder'] as $_fName) {
+                list($fName, $pseudo, $type) = $_fName;
                 if (!array_key_exists(
                     $fName,
                     $row
                 )) {
-
-                    // debug_print_backtrace(0, 3);
                     throw new errorException($this->translate('Field [[%s]] is not found.', $fName));
                 }
 
-                //sfield
                 if (Model::isServiceField($fName)) {
-                    $rowReturn[$fName] = $row[$fName];
-                } //field
-                elseif (in_array($fName, $params['sfield'])) {
+                    $rowReturn[$pseudo] = $row[$fName];
+                } elseif ($type === 'sfield') {
                     $Field = Field::init($this->fields[$fName], $this);
                     $selectValue = $Field->getSelectValue(
                         $row[$fName]['v'] ?? null,
                         $row,
                         $this->tbl
                     );
-                    $rowReturn[$fName] = $selectValue;
-                } //id||n||is_del
-                else {
-                    $rowReturn[$fName] = $row[$fName]['v'];
+                    $rowReturn[$pseudo] = $selectValue;
+                } else {
+                    $rowReturn[$pseudo] = $row[$fName]['v'];
                 }
             }
 
@@ -1371,12 +1386,12 @@ CODE;;
                     if (!key_exists('params', $this->tbl)) {
                         return null;
                     }
-                    return $sectionReplaces($this->tbl['params'] ?? [])[$Field] ?? null;
+                    return array_values($sectionReplaces($this->tbl['params'] ?? []))[0] ?? null;
                 case 'list':
                     if (!key_exists('params', $this->tbl)) {
                         return [];
                     }
-                    return [$sectionReplaces($this->tbl['params'])[$Field]];
+                    return array_values($sectionReplaces($this->tbl['params'] ?? []));
                 case 'row':
                     if (!key_exists('params', $this->tbl)) {
                         return [];

@@ -366,10 +366,52 @@ SQL;
         return $vals;
     }
 
+    protected function processFieldsForRowSelect(&$params): void
+    {
+        foreach (['field', 'sfield'] as $_fn) {
+            if (empty($params[$_fn])) {
+                continue;
+            }
+            foreach ($params[$_fn] as &$field) {
+                $c = $this->getCodes($field, ['as']);
+                switch (count($c)) {
+                    case 1:
+                        $val = $this->__getValue($c[0]);
+                        $field = $val;
+                        break;
+                    case 3:
+                        if ($c[1]['type'] === 'as') {
+                            $_cv1 = $this->__getValue($c[0]);
+                            $_cv2 = $this->__getValue($c[2]);
+                            if (is_array($_cv1) || is_array($_cv2)) {
+                                throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.',
+                                    $_fn));
+                            }
+                            if (is_bool($_cv1)) {
+                                $_cv1 = $_cv1 ? 'true' : 'false';
+                            }
+                            if (is_bool($_cv2)) {
+                                $_cv2 = $_cv2 ? 'true' : 'false';
+                            }
+                            $field = [$_cv1, $_cv2];
+                            break;
+                        }
+                    default:
+                        throw new errorException($this->translate('TOTUM-code format error [[%s]].',
+                            $this->getReadCodeForLog($field)));
+                }
+            }
+            unset($field);
+        }
+    }
+
     protected
     function funcSelectRow(string $params)
     {
-        $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
+        $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield'], ['field', 'sfield']);
+
+        $this->processFieldsForRowSelect($params);
+
         if (!empty($params['fields'])) {
             $params['field'] = array_merge($params['field'] ?? [], (array)$params['fields']);
         }
@@ -384,6 +426,7 @@ SQL;
             $this->row['id'] ?? null,
             get_class($this) === Calculate::class
         );
+
         if (!empty($row['__sectionFunction'])) {
             $row = $row['__sectionFunction']();
         }
@@ -393,7 +436,9 @@ SQL;
     protected
     function funcSelectRowList(string $params)
     {
-        $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield']);
+        $params = $this->getParamsArray($params, ['where', 'order', 'field', 'sfield', 'tfield'], ['field', 'sfield']);
+
+        $this->processFieldsForRowSelect($params);
 
         if (!empty($params['fields'])) {
             $params['field'] = array_merge($params['field'] ?? [], (array)$params['fields']);

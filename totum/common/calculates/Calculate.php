@@ -489,7 +489,7 @@ class Calculate
         return null;
     }
 
-    protected function getCodes($stringIN)
+    protected function getCodes($stringIN, array $spesialSections = [])
     {
         $cacheString =& self::$codes;
 
@@ -497,7 +497,16 @@ class Calculate
             $cacheString = &$this->cachedCodes;
         }*/
 
-        if (empty($cacheString[$stringIN])) {
+        if ($spesialSections) {
+            $spesialSections = '|(?<as>\b' . implode('\b|\b', $spesialSections) . '\b)';
+        } else {
+            $spesialSections = '';
+        }
+
+        $cachKey = $stringIN . $spesialSections;
+
+
+        if (empty($cacheString[$cachKey])) {
             $i = 0;
             $done = 1;
             $code = [];
@@ -514,7 +523,9 @@ class Calculate
                     '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
                     '|(?<bool>false|true)' .   //10
                     '|(?<param>(?<param_name>(?:\$@|@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l|pnl)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
-                    '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?:\.(?<dog_field2>[a-zA-Z0-9_]{2,}))?(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))`',
+                    '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?:\.(?<dog_field2>[a-zA-Z0-9_]{2,}))?(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' .
+                    $spesialSections .      //as
+                    '`',
                     //dog,dog_table, dog_field,dog_items
 
                     function ($matches) use ($string, &$done, &$code) {
@@ -586,8 +597,12 @@ class Calculate
                                     'field2' => $matches['dog_field2'],
                                     'items' => $matches['dog_items']
                                 ];
+                            } elseif ($param = $matches['as']) {
+                                $code[] = [
+                                    'type' => 'as',
+                                    'string' => $param
+                                ];
                             }
-
 
                             $done = 1;
                         }
@@ -602,10 +617,10 @@ class Calculate
                     throw new errorException($this->translate('TOTUM-code format error [[%s]].', $string));
                 }
             }
-            $cacheString[$stringIN] = $code;
+            $cacheString[$cachKey] = $code;
         }
 
-        return $cacheString[$stringIN];
+        return $cacheString[$cachKey];
     }
 
     public function getLogVar()
@@ -1072,9 +1087,9 @@ class Calculate
                     if (!empty($paramArray['field2'])) {
                         $r = $processHardSelect($paramArray['field2']);
                     } elseif ($paramArray['field'] === 'id' || $paramArray['field'] === 'n' || ($this->Table->getTotum()->getTable($paramArray['table'],
-                                $this->Table->getCycle()?->getId()
-                                ?? (($this->row['id'] ?? null) && $this->Table->isCalcsTableFromThisCyclesTable($paramArray['table']) ? $this->row['id'] : null)
-                            )->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
+                            $this->Table->getCycle()?->getId()
+                            ?? (($this->row['id'] ?? null) && $this->Table->isCalcsTableFromThisCyclesTable($paramArray['table']) ? $this->row['id'] : null)
+                        )->getFields()[$paramArray['field']]['category'] ?? null) === 'column') {
                         $r = $processHardSelect('id');
                     } else {
                         $r = $this->Table->getSelectByParams(
@@ -1175,7 +1190,7 @@ class Calculate
                         $codeName = substr($param, 1);
                     }
 
-                    if(is_array($codeName) || is_bool($codeName)){
+                    if (is_array($codeName) || is_bool($codeName)) {
                         throw new errorException($this->translate('[[%s]] should be of type string.', 'Code line'));
                     }
                     $inVars = [];
@@ -1521,7 +1536,7 @@ class Calculate
     {
         return match ($paramArray['type']) {
             'param' => $this->getParam($paramArray['param'], $paramArray),
-            'string' => $paramArray['string'],
+            'as', 'string' => $paramArray['string'],
             'stringParam' => match ($spec = substr($this->CodeStrings[$paramArray['string']], 0, 4)) {
                 'math' => $this->parseTotumMath(substr($this->CodeStrings[$paramArray['string']], 4)),
                 'json' => $this->parseTotumJson($str = substr($this->CodeStrings[$paramArray['string']], 4)),

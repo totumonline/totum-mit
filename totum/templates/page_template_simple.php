@@ -8,8 +8,8 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=7f3689c">
-    <script src="/js/main.js?v=7870ff1"></script>
-    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?9"></script>
+    <script src="/js/main.js?v=775dad7"></script>
+    <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?10"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 
     <link rel="shortcut icon" type="image/png" href="/fls/6_favicon.png"/>

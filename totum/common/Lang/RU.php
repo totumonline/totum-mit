@@ -439,6 +439,13 @@ class RU implements LangInterface
   'File key is not exists or is expired' => 'Ключ файла не существует или срок его действия истек',
   'OnlyOfficeSaveTimeoutError' => 'Что-то пошло не так.                          Если изменений не было - все правильно, просто закройте окно редактора.                          Если были и это excel - уберите фокус из ячейки и попробуйте еще раз.',
   'Permission is denied for selected user' => 'Выбранный пользователь лишен права доступа',
+  'New secret code was sent' => 'Отправлен новый секретный код',
+  'You can\'t resend the secret yet.' => 'Повторная отправка секретного кода пока невозможна',
+  'Wrong secret code' => 'Неверный секретный код',
+  'Secret code expired' => 'Секретный код устарел',
+  'Resend secret' => 'Отправить секретный код повторно',
+  'You can resend a secret via <span></span> sec' => 'Повторно отправить секретный код можно через <span></span> сек',
+  'Secret code' => 'Секретный код',
 );
 	/**
      * Возвращает сумму прописью

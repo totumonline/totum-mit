@@ -74,9 +74,11 @@ class AuthController extends interfaceController
                     )] . str_pad(mt_rand(1, 9999), 4, 0);
             };
 
-            if (empty($post['login'])) {
+            if (empty($post['login']) || is_array($post['login'])) {
                 return ['error' => $this->translate('Fill in the Login/Email field')];
             }
+
+
 
             if (empty($post['recover'])) {
                 if (empty($post['pass'])) {

@@ -55,6 +55,9 @@ class SchemaUserUnblock extends Command
         }
 
         $model = $Conf->getModel('auth_log');
+
+        $login = mb_strtolower($login);
+
         $record = $model->get(['login' => $login, 'status' => 2, 'datetime->>\'v\'>=\'' . $block_date . '\'',],
             '*',
             'id desc');

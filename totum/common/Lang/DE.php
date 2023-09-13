@@ -437,6 +437,13 @@ class DE implements LangInterface
   'File key is not exists or is expired' => 'Der Dateischlüssel ist nicht vorhanden oder abgelaufen',
   'OnlyOfficeSaveTimeoutError' => 'Etwas ist schief gelaufen. Wenn es keine Änderungen gab, ist alles in Ordnung, schließen Sie einfach das Editorfenster. Wenn es Änderungen gab und es Excel ist - entfernen Sie den Fokus von der Zelle und versuchen Sie es erneut.',
   'Permission is denied for selected user' => 'Berechtigung wird für ausgewählten Benutzer verweigert',
+  'New secret code was sent' => 'Neuer Geheimcode wurde gesendet',
+  'You can\'t resend the secret yet.' => 'Sie können das Geheimnis noch nicht zurückschicken.',
+  'Wrong secret code' => 'Falscher Geheimcode',
+  'Secret code expired' => 'Geheimcode abgelaufen',
+  'Resend secret' => 'Geheimnis erneut senden',
+  'You can resend a secret via <span></span> sec' => 'Sie können ein Geheimnis erneut über <span></span> sec',
+  'Secret code' => 'Geheimcode',
 );
 	/**
      * Возвращает сумму прописью

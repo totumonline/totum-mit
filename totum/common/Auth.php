@@ -212,6 +212,7 @@ SQL;
     {
         $ip = ($_SERVER['REMOTE_ADDR'] ?? null);
         $now_date = date_create();
+        $login = mb_strtolower($login);
 
         if (($block_time = $Config->getSettings('h_time')) && ($error_count = (int)$Config->getSettings('error_count'))) {
             $BlockDate = date_create()->modify('-' . $block_time . 'minutes');

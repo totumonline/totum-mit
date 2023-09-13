@@ -437,6 +437,13 @@ class ES implements LangInterface
   'File key is not exists or is expired' => 'La clave del fichero no existe o ha caducado',
   'OnlyOfficeSaveTimeoutError' => 'Algo ha ido mal. Si no hubo cambios - todo está correcto, simplemente cierre la ventana del editor. Si había y es excel - quitar el foco de la celda y vuelva a intentarlo.',
   'Permission is denied for selected user' => 'Permiso denegado para el usuario seleccionado',
+  'New secret code was sent' => 'Se envió un nuevo código secreto',
+  'You can\'t resend the secret yet.' => 'Todavía no puedes reenviar el secreto.',
+  'Wrong secret code' => 'Código secreto incorrecto',
+  'Secret code expired' => 'Código secreto caducado',
+  'Resend secret' => 'Reenviar secreto',
+  'You can resend a secret via <span></span> sec' => 'Puedes reenviar un secreto de <span></span> sec',
+  'Secret code' => 'Código secreto',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

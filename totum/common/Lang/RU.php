@@ -444,7 +444,7 @@ class RU implements LangInterface
   'Wrong secret code' => 'Неверный секретный код',
   'Secret code expired' => 'Секретный код устарел',
   'Resend secret' => 'Отправить секретный код повторно',
-  'You can resend a secret via <span></span> sec' => 'Повторно отправить секретный код можно через <span></span> сек',
+  'You can resend a secret via <span></span> sec' => 'Повторно отправить код можно через <span></span> сек',
   'Secret code' => 'Секретный код',
 );
 	/**

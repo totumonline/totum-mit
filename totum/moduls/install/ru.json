@@ -69,6 +69,7 @@
     "{{Authorizations}}": "Авторизации",
     "{{Auto_recalculation_by_default}}": "Автопересчет по умолчанию",
     "{{Automatic_recalculation}}": "Автоматический пересчет",
+    "{{Autoriz_secret_code}}": "Запрос кода",
     "{{Autoriz_token}}": "Token",
     "{{BY_DEFAULT}}": "BY DEFAULT",
     "{{Bar_chart}}": "Столбчатая",

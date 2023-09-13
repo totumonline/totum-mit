@@ -442,7 +442,7 @@ class ES implements LangInterface
   'Wrong secret code' => 'Código secreto incorrecto',
   'Secret code expired' => 'Código secreto caducado',
   'Resend secret' => 'Reenviar secreto',
-  'You can resend a secret via <span></span> sec' => 'Puedes reenviar un secreto a través de <span></span> sec',
+  'You can resend a secret via <span></span> sec' => 'Puedes reenviar un secreto de <span></span> sec',
   'Secret code' => 'Código secreto',
 );
 	public function dateFormat(DateTime $date, $fStr): string

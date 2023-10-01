@@ -509,6 +509,11 @@ class JsonController extends Controller
             }
             foreach ($sortedXmlFields['column'] ?? [] as $fName => $field) {
                 if (in_array($fName, $this->arrayIn['export']['fields'])) {
+
+                    if (!array_key_exists($fName, $row)) {
+                        throw new errorException($this->translate('Recalculate cycle with id %s before export.', $this->Table->getCycle()?->getId()));
+                    }
+
                     $addToXmlOut($rowOut, $field, $row[$fName]);
                 }
             }

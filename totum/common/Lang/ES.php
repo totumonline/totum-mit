@@ -444,6 +444,7 @@ class ES implements LangInterface
   'Resend secret' => 'Reenviar secreto',
   'You can resend a secret via <span></span> sec' => 'Puedes reenviar un secreto de <span></span> sec',
   'Secret code' => 'Código secreto',
+  'Recalculate cycle with id %s before export.' => 'Recalcular ciclo con id %s antes de exportar.',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

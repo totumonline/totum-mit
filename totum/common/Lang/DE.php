@@ -444,6 +444,7 @@ class DE implements LangInterface
   'Resend secret' => 'Geheimnis erneut senden',
   'You can resend a secret via <span></span> sec' => 'Sie können ein Geheimnis erneut über <span></span> sec',
   'Secret code' => 'Geheimcode',
+  'Recalculate cycle with id %s before export.' => 'Zyklus mit der ID %s vor dem Export neu berechnen.',
 );
 	/**
      * Возвращает сумму прописью

@@ -446,6 +446,7 @@ class RU implements LangInterface
   'Resend secret' => 'Отправить секретный код повторно',
   'You can resend a secret via <span></span> sec' => 'Повторно отправить код можно через <span></span> сек',
   'Secret code' => 'Секретный код',
+  'Recalculate cycle with id %s before export.' => 'Пересчитайте цикл с id %s перед экспортом.',
 );
 	/**
      * Возвращает сумму прописью

@@ -192,7 +192,7 @@ class Calculate
                 $treeListPrep = 'PP/';
 
                 $v = ['v' => $rows[0][$params['parent']] ?? null, '__isForChildTree' => true];
-                $parentList = $ParentField->calculateSelectList($v, $rows[0], $sourceTable);
+                $parentList = $rows ? $ParentField->calculateSelectList($v, $rows[0], $sourceTable) : [];
                 unset($parentList['previewdata']);
 
                 if ($ParentField->getData('type') === 'tree') {

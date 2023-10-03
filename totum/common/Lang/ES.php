@@ -435,7 +435,7 @@ class ES implements LangInterface
   'This is not web user. He cannot be authorized by a token' => 'No es un usuario web. No puede ser autorizado por un token',
   'The OnlyOffice service table was successfully created. Repeat the operation.' => 'La tabla de servicio OnlyOffice se ha creado correctamente. Repita la operación.',
   'File key is not exists or is expired' => 'La clave del fichero no existe o ha caducado',
-  'OnlyOfficeSaveTimeoutError' => 'Algo ha ido mal. Si no hubo cambios - todo está correcto, simplemente cierre la ventana del editor. Si había y es excel - quitar el foco de la celda y vuelva a intentarlo.',
+  'OnlyOfficeSaveTimeoutError' => 'No se puede guardar debido a la falta de cambios en el documento. Si está editando un archivo xlsx u otra hoja de cálculo, por favor, presione Enter primero para guardar los datos en la celda editable o mueva el enfoque a otra celda.',
   'Permission is denied for selected user' => 'Permiso denegado para el usuario seleccionado',
   'New secret code was sent' => 'Se envió un nuevo código secreto',
   'You can\'t resend the secret yet.' => 'Todavía no puedes reenviar el secreto.',

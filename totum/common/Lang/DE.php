@@ -435,7 +435,7 @@ class DE implements LangInterface
   'This is not web user. He cannot be authorized by a token' => 'Dies ist kein Web-Benutzer. Er kann nicht durch ein Token autorisiert werden',
   'The OnlyOffice service table was successfully created. Repeat the operation.' => 'Die OnlyOffice-Dienstetabelle wurde erfolgreich erstellt. Wiederholen Sie den Vorgang.',
   'File key is not exists or is expired' => 'Der Dateischlüssel ist nicht vorhanden oder abgelaufen',
-  'OnlyOfficeSaveTimeoutError' => 'Etwas ist schief gelaufen. Wenn es keine Änderungen gab, ist alles in Ordnung, schließen Sie einfach das Editorfenster. Wenn es Änderungen gab und es Excel ist - entfernen Sie den Fokus von der Zelle und versuchen Sie es erneut.',
+  'OnlyOfficeSaveTimeoutError' => 'Nicht möglich zu speichern aufgrund fehlender Änderungen im Dokument. Wenn Sie eine xlsx oder eine andere Tabelle bearbeiten, drücken Sie bitte zuerst die Eingabetaste, um die Daten in der bearbeitbaren Zelle zu speichern, oder verschieben Sie den Fokus auf eine andere Zelle.',
   'Permission is denied for selected user' => 'Berechtigung wird für ausgewählten Benutzer verweigert',
   'New secret code was sent' => 'Neuer Geheimcode wurde gesendet',
   'You can\'t resend the secret yet.' => 'Sie können das Geheimnis noch nicht zurückschicken.',

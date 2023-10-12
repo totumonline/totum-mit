@@ -174,11 +174,21 @@ trait FuncServicesTrait
             }
         }
 
+        $arraysToJson = function ($params) {
+            foreach ($params as &$param) {
+                if (is_array($param)) {
+                    $param = json_encode($param, JSON_UNESCAPED_UNICODE);
+                }
+            }
+            unset($param);
+            return $params;
+        };
+
         if (!empty($datas['system'])) {
-            $data['s'] = implode("\n\n", $datas['system']);
+            $data['s'] = implode("\n\n", $arraysToJson($datas['system']));
         }
         if (!empty($datas['user'])) {
-            $data['u'] = implode("\n\n", $datas['user']);
+            $data['u'] = implode("\n\n", $arraysToJson($datas['user']));
         }
 
         if (!empty($params['maxtokens'])) {

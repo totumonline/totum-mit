@@ -437,7 +437,7 @@ class RU implements LangInterface
   'This is not web user. He cannot be authorized by a token' => 'Это не веб-пользователь. Он не может быть авторизован по токену',
   'The OnlyOffice service table was successfully created. Repeat the operation.' => 'Таблица обслуживания OnlyOffice успешно создана. Повторите операцию.',
   'File key is not exists or is expired' => 'Ключ файла не существует или срок его действия истек',
-  'OnlyOfficeSaveTimeoutError' => 'Что-то пошло не так.                          Если изменений не было - все правильно, просто закройте окно редактора.                          Если были и это excel - уберите фокус из ячейки и попробуйте еще раз.',
+  'OnlyOfficeSaveTimeoutError' => 'Не получается сохранить из-за отсутствия изменений в документе. Если вы изменяете xlsx или другую таблицу — сначала нажмите enter для сохранения данных в изменяемой ячейке или переместите фокус в другую ячейку.',
   'Permission is denied for selected user' => 'Выбранный пользователь лишен права доступа',
   'New secret code was sent' => 'Отправлен новый секретный код',
   'You can\'t resend the secret yet.' => 'Повторная отправка секретного кода пока невозможна',

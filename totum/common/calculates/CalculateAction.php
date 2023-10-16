@@ -948,7 +948,7 @@ class CalculateAction extends Calculate
                     $hash = $params['hash'];
                 } elseif ($this->Table->getTableRow()['id'] === $tableRow['id']) {
                     $hash = $this->Table->getTableRow()['sess_hash'];
-                }else{
+                } else {
                     $this->__checkNotEmptyParams($params, ['hash']);
                 }
                 if (!empty($hash)) {
@@ -1104,13 +1104,13 @@ class CalculateAction extends Calculate
 
         $width = $params['width'] ?? 600;
 
-        $htmlspecialchars = htmlspecialchars(is_array($params['text']) ?
+        $params['text'] = is_array($params['text']) ?
             'OBJECT: ' . json_encode($params['text'], JSON_UNESCAPED_UNICODE) :
-            $params['text'] ?? '');
+            $params['text'] ?? '';
 
         $this->Table->getTotum()->addToInterfaceDatas(
             'text',
-            ['title' => $title, 'width' => $width, 'height' => ($params['height'] ?? null), 'text' => $htmlspecialchars, 'close' => !!($params['close'] ?? false)],
+            ['title' => $title, 'width' => $width, 'height' => ($params['height'] ?? null), 'htmlescaping' => true, 'text' => $params['text'], 'close' => !!($params['close'] ?? false)],
             $params['refresh'] ?? false
         );
     }

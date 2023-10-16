@@ -354,6 +354,11 @@ abstract class JsonTables extends aTable
                     throw new errorException($this->translate('Error processing field insert: [[%s]]',
                         $insertCalcs->getError()));
                 }
+
+                if ($insertList === '' || is_null($insertList)) {
+                    $insertList = [];
+                }
+
                 if (!is_array($insertList)) {
                     throw new errorException($this->translate('The [[insert]] field should return list - Table [[%s]]',
                         $this->tableRow['title']));
@@ -390,12 +395,11 @@ abstract class JsonTables extends aTable
                 $newRow['_E'] = true;
             }
             if (!empty($insertField)) {
-                if(is_null($row['insert']??null)){
+                if (is_null($row['insert'] ?? null)) {
                     $newRow['_E'] = true;
                     $c = null;
                     $newRow['insert']['v'] = null;
-                }
-                elseif (key_exists('c', $row['insert'])) {
+                } elseif (key_exists('c', $row['insert'])) {
                     $c = $row['insert']['c'];
                 } else {
                     $c = $row['insert']['v'];
@@ -1334,7 +1338,7 @@ abstract class JsonTables extends aTable
             };
 
             foreach ($params['where'] as $wI) {
-                if(!is_array($wI)){
+                if (!is_array($wI)) {
                     throw new errorException($this->translate('The [[%s]] parameter is not correct.', 'where'));
                 }
 

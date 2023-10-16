@@ -18,7 +18,7 @@ class EN implements LangInterface
   'list-ubsubscribe-Blocked-from-sending' => 'This email is blocked from sending',
   'list-ubsubscribe-done' => 'Done',
   'list-ubsubscribe-wrong-link' => 'Wrong link',
-  'OnlyOfficeSaveTimeoutError' => 'Something went wrong. If there were no changes - everything is correct, just close the editor window. If there were and it is excel - remove the focus from the cell and try again.',
+  'OnlyOfficeSaveTimeoutError' => 'Unable to save due to lack of changes in the document. If you are editing a xlsx or another spreadsheet, please press Enter first to save the data in the editable cell or move focus to another cell.',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

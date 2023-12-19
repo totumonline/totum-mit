@@ -186,10 +186,10 @@ class Sql
         $this->startedTransactionsCounter--;
         $this->Log->debug('commit:' . $this->startedTransactionsCounter);
         if (!$this->startedTransactionsCounter) {
+            $this->exec('COMMIT');
             foreach ($this->onCommit as $func) {
                 $func();
             }
-            $this->exec('COMMIT');
             return true;
         }
         return false;

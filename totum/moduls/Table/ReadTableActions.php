@@ -1938,7 +1938,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         $_tableRow = array_intersect_key($tableRow, array_flip($fields));
         foreach (Totum::TABLE_CODE_PARAMS as $name) {
             if (key_exists($name, $_tableRow)) {
-                $_tableRow[$name] = trim($_tableRow[$name]);
+                $_tableRow[$name] = trim($_tableRow[$name] ?? '');
                 $_tableRow[$name] = !!preg_match('/^\s*[a-z0-9]*\=\:\s*[^\s]+/mu', $_tableRow[$name]);
             }
         }
@@ -1971,7 +1971,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             }
 
         }
-        $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description']);
+        $_tableRow['description'] = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $_tableRow['description'] ?? '');
         $_tableRow['__withPDF'] = $this->isTableServiceOn('pdf') && !$this->isServicesBlocked && !$this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name']);
         $_tableRow['__xlsx'] = $this->isTableServiceOn('xlsx') && !$this->isServicesBlocked && !$this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name']);
         $_tableRow['__xlsx_import'] = is_a($this, WriteTableActions::class) && $this->isTableServiceOn('xlsximport') && !$this->Totum->getConfig()->isTechTable($this->Table->getTableRow()['name']) && !$this->isServicesBlocked && key_exists($this->Totum->getTableRow('ttm__prepared_data_import')['id'], $this->User->getTables());

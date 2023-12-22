@@ -36,6 +36,7 @@ abstract class aTable
     use WebInterfaceTrait;
     use ActionsTrait;
 
+    protected mixed $dataRow;
     protected $isTableAdding = false;
 
     protected const TABLES_IDS = [

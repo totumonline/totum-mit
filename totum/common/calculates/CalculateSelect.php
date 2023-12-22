@@ -21,7 +21,6 @@ class CalculateSelect extends Calculate
     /**
      * @var mixed
      */
-    protected $parentName;
     protected $columnVals;
 
     public function exec($fieldData, array $newVal, $oldRow, $row, $oldTbl, $tbl, aTable $table, $vars = []): mixed

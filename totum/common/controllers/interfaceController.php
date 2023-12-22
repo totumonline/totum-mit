@@ -75,7 +75,7 @@ abstract class interfaceController extends Controller
             $data = json_encode($this->answerVars, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
             if ($this->User && $this->User->isCreator()) {
-                $error =  $this->translate('Error generating JSON response to client [[%s]].', $exception->getMessage());
+                $error = $this->translate('Error generating JSON response to client [[%s]].', $exception->getMessage());
             } else {
                 $error = $this->translate('Request processing error.');
             }
@@ -123,7 +123,7 @@ abstract class interfaceController extends Controller
                         $v = $funcQuote($v);
                     }
                 } else {
-                    $var = htmlspecialchars($var);
+                    $var = htmlspecialchars($var ?? '');
                     if ($name === 'error') {
                         $var = str_replace('&lt;br/&gt;', '<br/><br/>', $var);
                     }

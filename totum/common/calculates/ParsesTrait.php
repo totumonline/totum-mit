@@ -223,7 +223,7 @@ trait ParsesTrait
                         [><=]
                         )`x',
             $string,
-            null,
+            -1,
             PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
         );
 
@@ -550,7 +550,7 @@ trait ParsesTrait
         $actions = preg_split(
             '`((?<=[^(+\-^*/])[()+\-^*/]|[(])`',
             $string,
-            null,
+            -1,
             PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
         );
 

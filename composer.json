@@ -3,13 +3,13 @@
   "description": "CRM, ERP and custom constructor",
   "type": "project",
   "require": {
-    "php": "^8.0",
+    "php": "^8.3",
     "phpmailer/phpmailer": "~6.6.3",
     "salsify/json-streaming-parser": "^8.2",
-    "psr/http-message": "^1.0",
-    "psr/log": "^1.1",
-    "guzzlehttp/psr7": "^1.6",
-    "symfony/console": "^4.4",
+    "psr/http-message": "^2.0",
+    "psr/log": "^3.0.0",
+    "guzzlehttp/psr7": "^2.6.2",
+    "symfony/console": "^v7.0.1",
     "ext-pdo": "*",
     "ext-json": "*",
     "ext-openssl": "*",
@@ -24,12 +24,12 @@
   "repositories": [
     {
       "type": "github",
-      "url": "https://github.com/totumonline/totum-front/"
+      "url": "https://github.com/totumonline/totum-front/",
+      "reference":"dev"
     }
   ],
   "require-dev": {
     "phpunit/phpunit": "^9.4",
-    "friendsofphp/php-cs-fixer": "^3.0",
     "totumonline/totum-front": "dev-dev",
     "pheromone/phpcs-security-audit": "^2.0.1"
   },

@@ -27,7 +27,7 @@ use totum\tableTypes\tmpTable;
  */
 class Totum
 {
-    public const VERSION = '4.11.57.0';
+    public const VERSION = '5.11.57.0';
 
 
     public const TABLE_CODE_PARAMS = ['row_format', 'table_format', 'on_duplicate', 'default_action'];
@@ -313,7 +313,7 @@ class Totum
 
     public function getNamedModel(string $className, $isService = false): Model
     {
-        return $this->getModel(TablesModelsTrait::getTableNameByModel($className), $isService);
+        return $this->getModel(Conf::getTableNameByModel($className), $isService);
     }
 
     public function getModel(string $tableName, $isService = false): Model

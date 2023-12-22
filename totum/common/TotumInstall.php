@@ -40,6 +40,10 @@ class TotumInstall
      */
     protected $confClassCode;
     private $installSettings;
+    /**
+     * @var mixed|logs\CalculateLog
+     */
+    protected mixed $CalculateLog;
 
     public function __construct($Config, $user, $outputConsole = null, $CalculateLog = null)
     {

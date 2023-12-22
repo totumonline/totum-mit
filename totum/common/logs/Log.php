@@ -4,6 +4,7 @@ namespace totum\common\logs;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
+use Stringable;
 use totum\common\Lang\LangInterface;
 use totum\common\Lang\RU;
 
@@ -81,7 +82,7 @@ class Log implements LoggerInterface
         fclose($this->logFileResource);
     }
 
-    public function log($level, $message, array $context = [])
+    public function log($level, Stringable|string $message, array $context = []):void
     {
         if (key_exists($level, $this->levels)) {
             $this->printToFile($level, $message, $context);

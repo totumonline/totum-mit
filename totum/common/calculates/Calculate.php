@@ -63,6 +63,7 @@ class Calculate
      * @var array
      */
     protected $CodeLineCatches;
+    protected $parentName;
 
 
     public function __construct($code)

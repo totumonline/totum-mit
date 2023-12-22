@@ -343,7 +343,9 @@ class Sql
         $this->lastQuery['time'] = $query_time_pad;
         $this->lastQuery['rows'] = '(prep)';
 
-        $stmt->num = ++$this->preparedCount;
+
+        /*TODO fix later*/
+        @$stmt->num = ++$this->preparedCount;
         $this->Log->debug($query_time_pad . ' (prep' . $stmt->num . ') >> ' . $query_string);
 
         $stmt->setFetchMode(PDO::FETCH_ASSOC);

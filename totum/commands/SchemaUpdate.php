@@ -35,7 +35,7 @@ class SchemaUpdate extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -80,5 +80,7 @@ class SchemaUpdate extends Command
         $cont = $TotumInstall->applyMatches($cont, $matches);
 
         $TotumInstall->updateSchema($cont, true, $sourceName);
+
+        return 0;
     }
 }

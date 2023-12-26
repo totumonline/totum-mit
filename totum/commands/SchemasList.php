@@ -17,7 +17,7 @@ class SchemasList extends Command
             ->setDescription('List of active schemas');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $schemas=array_unique(array_values(Conf::getSchemas()));
         sort($schemas, SORT_STRING);
@@ -25,5 +25,7 @@ class SchemasList extends Command
         foreach ($schemas as $schemaName) {
             $output->writeln($schemaName);
         }
+
+        return 0;
     }
 }

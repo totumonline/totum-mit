@@ -27,7 +27,7 @@ class SchemaAdd extends Command
             ->addArgument('user_pass', InputOption::VALUE_REQUIRED, 'Enter totum admin password', '1111');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -70,5 +70,7 @@ class SchemaAdd extends Command
         $ConfFileContent= preg_replace('~(\/\*\*\*getSchemas\*\*\*\/[^$]*{[^$]*return\s*)([^$]*)(\}[^$]*/\*\*\*getSchemasEnd\*\*\*/)~', '$1'.var_export($schemas, 1).';$3', $ConfFileContent);
         copy($ConfFile, $ConfFile.'_old');
         file_put_contents($ConfFile, $ConfFileContent);
+
+        return 0;
     }
 }

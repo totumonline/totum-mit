@@ -33,7 +33,7 @@ class SchemaBackup extends Command
 
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -84,5 +84,7 @@ class SchemaBackup extends Command
         }
 
         `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' $gz > "{$path}"`;
+
+        return 0;
     }
 }

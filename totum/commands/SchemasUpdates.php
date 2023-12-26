@@ -25,7 +25,7 @@ class SchemasUpdates extends Command
             ->addOption('exclude', mode: InputOption::VALUE_IS_ARRAY|InputOption::VALUE_OPTIONAL, description: 'Enter schema names for exclude', default: []);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $matches = $input->getArgument('matches');
         $file = $input->getArgument('file');
@@ -54,5 +54,6 @@ class SchemasUpdates extends Command
             }
             pclose($p);
         }
+        return 0;
     }
 }

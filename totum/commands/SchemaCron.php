@@ -28,7 +28,7 @@ class SchemaCron extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
 
@@ -79,5 +79,7 @@ class SchemaCron extends Command
                 $Conf = $Conf->getClearConf();
             }
         }
+
+        return 0;
     }
 }

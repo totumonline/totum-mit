@@ -16,7 +16,7 @@ class CleanTmps extends Command
             ->setDescription('Clean tmp dir. Set in crontab one time in 10 minutes.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
         $dir = $Conf->getTmpDir();
@@ -30,5 +30,7 @@ class CleanTmps extends Command
                 closedir($dh);
             }
         }
+
+        return 0;
     }
 }

@@ -40,7 +40,7 @@ class Install extends Command
                 'Enter dbstring: postgresql://user:pass@host/dbname');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (class_exists(Conf::class)) {
             throw new Exception('Conf exists');
@@ -97,5 +97,7 @@ class Install extends Command
             return __DIR__ . '/../moduls/install/' . $file;
         });
         $output->write('done', true);
+
+        return 0;
     }
 }

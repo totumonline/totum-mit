@@ -17,10 +17,12 @@ class SchemasCrons extends Command
             ->setDescription('Execute crons of schemas for muti-install');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         foreach (array_unique(array_values(Conf::getSchemas())) as $schemaName) {
             `{$_SERVER['SCRIPT_FILENAME']} schema-crons "" $schemaName > /dev/null 2>&1 &`;
         }
+
+        return 0;
     }
 }

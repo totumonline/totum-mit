@@ -23,7 +23,7 @@ class GitUpdate extends Command
             ->setDescription('update from git origin master && composer && schema(s)-update');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$input->getOption('force')) {
             $error = true;

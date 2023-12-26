@@ -28,7 +28,7 @@ class Vacuum extends Command
         $this->addOption('analyze', 'a', InputOption::VALUE_NONE, 'With analyze');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');

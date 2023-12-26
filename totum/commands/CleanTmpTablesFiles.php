@@ -21,7 +21,7 @@ class CleanTmpTablesFiles extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -44,5 +44,6 @@ class CleanTmpTablesFiles extends Command
             }
         }
 
+        return 0;
     }
 }

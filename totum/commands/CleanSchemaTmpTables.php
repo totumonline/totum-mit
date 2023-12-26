@@ -22,7 +22,7 @@ class CleanSchemaTmpTables extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
 
@@ -54,5 +54,7 @@ class CleanSchemaTmpTables extends Command
             . $minus10->format('Y-m-d H:i') . '\'');
 
         $sql->exec('VACUUM _tmp_tables');
+
+        return 0;
     }
 }

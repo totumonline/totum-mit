@@ -24,7 +24,7 @@ class SchemaDuplicate extends Command
             ->addOption('no-content', '', InputOption::VALUE_OPTIONAL, 'Enter table names separated by commas for not duplicating it\'s content');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -155,5 +155,7 @@ class SchemaDuplicate extends Command
                 }
             }
         }
+
+        return 0;
     }
 }

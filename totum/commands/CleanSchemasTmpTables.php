@@ -17,7 +17,7 @@ class CleanSchemasTmpTables extends Command
             ->setDescription('Clean tmp_tables in schemas. For multi install. Set in crontab one time in 10 minutes.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
         $sql = $Conf->getSql(withSchema: false);
@@ -31,5 +31,6 @@ class CleanSchemasTmpTables extends Command
             $sql->exec('delete from "'.$schema.'"._tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\'' . $minus10->format('Y-m-d H:i') . '\'');
             $sql->exec('VACUUM "'.$schema.'"._tmp_tables');
         }
+        return 0;
     }
 }

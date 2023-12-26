@@ -113,7 +113,7 @@ class AdminTableActions extends WriteTableActions
         }
         match ($this->post['pageType'] ?? false) {
             'main' => $Actions->getFullTableData(true),
-            default => $Actions->loadPage(true)
+            default => $Actions->loadPage()
         };
 
         $this->Totum->getConfig()->getSql(true)->transactionRollBack();

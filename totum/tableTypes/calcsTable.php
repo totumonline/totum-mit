@@ -21,7 +21,6 @@ class calcsTable extends JsonTables
     /**
      * @var array|bool|mixed|string
      */
-    protected $dataRow;
 
     public function __construct(Totum $Totum, $tableRow, Cycle $Cycle, $light = false)
     {

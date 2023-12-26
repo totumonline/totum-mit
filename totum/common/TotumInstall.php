@@ -621,7 +621,7 @@ CONF;
 
         if (!empty($schemaData['tables_settings']['sys_data'])) {
             $this->consoleLog('Set settings in table tables for "tables" and "tables_fields"');
-            $this->updateSysTablesRows($schemaData['tables_settings']['sys_data'], 2);
+            $this->updateSysTablesRows($schemaData['tables_settings']['sys_data']);
         }
         $schemaRows = $schemaData['tables'];
 

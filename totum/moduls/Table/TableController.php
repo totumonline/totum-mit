@@ -957,7 +957,7 @@ class TableController extends interfaceController
                 } elseif (!($field = $this->Table->getFields()[$fieldName])) {
                     $error = $this->translate('The file field was not found');
                 } else {
-                    $filepath = File::getFilePath($filename, $this->Config, $field);
+                    $filepath = File::getFilePath($filename, $this->Config);
                 }
             }
             if (!empty($filepath)) {

@@ -372,7 +372,7 @@ trait FuncServicesTrait
 
     protected function getNamedAnswers($answertype, $names, $answers, $exts)
     {
-        $getName = $this->getNamesFunction($names, 'pdf');
+        $getName = $this->getNamesFunction($names);
 
         switch ($answertype) {
             case 'filestring':

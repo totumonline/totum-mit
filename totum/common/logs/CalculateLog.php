@@ -375,7 +375,7 @@ class CalculateLog
             } else {
                 foreach ($this->children as $child) {
                     foreach ($child->getLogsByElements($tableId) as $k => $v) {
-                        if (ctype_digit($k)) {
+                        if (ctype_digit((string)$k)) {
                             foreach ($v as $f => $_v) {
                                 $fields[$k][$f] = array_merge($fields[$k][$f] ?? [], $_v);
                             }

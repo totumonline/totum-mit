@@ -3,8 +3,8 @@
     <script>App = {}</script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/libs.css?v=ead40ab">
-    <script src="/js/libs.js?v=665342a"></script>
+          href="/css/libs.css?v=3710809">
+    <script src="/js/libs.js?v=63416c5"></script>
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=1f0a57c">

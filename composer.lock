@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d5a033b3f9724d1e4ef20c473946b9d4",
+    "content-hash": "8bf289fc1d173fbeffd2c5c7e5bcd75a",
     "packages": [
         {
             "name": "guzzlehttp/psr7",
@@ -3059,38 +3059,11 @@
                 }
             ],
             "time": "2023-11-20T00:12:19+00:00"
-        },
-        {
-            "name": "totumonline/totum-front",
-            "version": "dev-dev",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/totumonline/totum-front.git",
-                "reference": "9af66568e249a367b61ebd806db6b79c3c8f1b57"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/totumonline/totum-front/zipball/9af66568e249a367b61ebd806db6b79c3c8f1b57",
-                "reference": "9af66568e249a367b61ebd806db6b79c3c8f1b57",
-                "shasum": ""
-            },
-            "type": "package",
-            "license": [
-                "MIT"
-            ],
-            "description": "totum frontend",
-            "support": {
-                "source": "https://github.com/totumonline/totum-front/tree/dev",
-                "issues": "https://github.com/totumonline/totum-front/issues"
-            },
-            "time": "2023-12-20T09:43:00+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "totumonline/totum-front": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

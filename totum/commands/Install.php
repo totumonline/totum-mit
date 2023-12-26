@@ -9,7 +9,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use totum\common\errorException;
-use totum\common\Totum;
 use totum\common\TotumInstall;
 use totum\config\Conf;
 

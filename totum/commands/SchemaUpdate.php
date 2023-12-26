@@ -8,13 +8,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 use totum\common\configs\MultiTrait;
-use totum\common\errorException;
 use totum\common\TotumInstall;
 use totum\common\User;
 use totum\config\Conf;
-use totum\config\Conf2;
 
 class SchemaUpdate extends Command
 {
@@ -46,7 +43,7 @@ class SchemaUpdate extends Command
                 $Conf->setHostSchema(null, $schema);
             }else{
                 $output->writeln('Set option -s for identify the schema or use schemas-update for update all ones');
-                return;
+                return 0;
             }
         }
         $sourceName = $input->getArgument('matches');

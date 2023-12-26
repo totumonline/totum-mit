@@ -7,13 +7,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
-use totum\common\Auth;
 use totum\common\configs\MultiTrait;
 use totum\common\errorException;
-use totum\common\Totum;
 use totum\config\Conf;
-use totum\models\Table;
 use totum\tableTypes\RealTables;
 
 class SchemaUserUnblock extends Command

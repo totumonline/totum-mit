@@ -72,7 +72,7 @@ class SchemaReplace extends Command
 
                     if (!($host = $helper->ask($input, $output, $question))) {
                         $output->writeln('Host is required');
-                        return;
+                        return 0;
                     }
                 }
             }
@@ -92,7 +92,7 @@ class SchemaReplace extends Command
 
             if (!$helper->ask($input, $output, $question)) {
                 $output->write('Nothing\'s done.');
-                return;
+                return 0;
             }
         }
 

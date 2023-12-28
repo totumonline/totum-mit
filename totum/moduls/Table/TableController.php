@@ -791,7 +791,7 @@ class TableController extends interfaceController
                     case null:
                         $this->__addAnswerVar(
                             'html',
-                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html'])
+                            preg_replace('#<script(.*?)>(.*?)</script>#is', '', $branchData['html']??'')
                         );
                         break;
                     case 'anchor':

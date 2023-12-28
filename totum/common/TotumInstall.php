@@ -456,7 +456,7 @@ CONF;
                         $matches[2]
                     ) . ')';
             },
-            $code
+            $code ?? ""
         );
     }
 

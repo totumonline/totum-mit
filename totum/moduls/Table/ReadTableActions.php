@@ -2576,7 +2576,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
         }
 
         foreach ($data as &$v) {
-            $v = json_decode($v, true);
+            $v = json_decode($v??'', true);
         }
         if (is_array($data['tables'])) {
             if (in_array('*ALL*', $data['tables'])) {

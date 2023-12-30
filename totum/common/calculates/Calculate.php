@@ -759,7 +759,7 @@ class Calculate
             default => throw new errorException($this->translate('Unknown operator [[%s]].')),
         };
 
-        $res = $func($left, $right, 10);
+        $res = $func($left ?? '', $right, 10);
         return Calculate::rtrimZeros($res);
     }
 

@@ -21,6 +21,15 @@ if (!class_exists(Conf::class)) {
     if (preg_match('/^\/ServicesAnswer(\/|\?|$)/', $_SERVER['REQUEST_URI'])) {
         \totum\common\Services\ServicesConnector::init($Config)->setAnswer(ServerRequest::fromGlobals());
         die('true');
+    } elseif (str_starts_with($_SERVER['REQUEST_URI'], '/go-licenser')) {
+        try {
+            $data = $Config->proGoModuleSocketSend(['method' => 'license', 'host' => $_SERVER['HTTP_HOST']]);
+            die($_SERVER['HTTP_HOST'].'/'.$Config->getSchema().'/'.$data['str']);
+        }catch (\Exception $e){
+            die($e->getMessage());
+        }
+
+
     }
     list($module, $lastPath) = $Config->getActivationData($_SERVER['REQUEST_URI']);
 }

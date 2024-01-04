@@ -88,7 +88,7 @@ trait ParsesTrait
         $isInCodeNamed = null;
         $codeType = null;
         $codeContent = '';
-        foreach (preg_split('/[\r\n]+/', trim($code)) as $row) {
+        foreach (preg_split('/[\r\n]+/', trim($code ?? '')) as $row) {
 
             if ($isInCodeNamed) {
                 /*codeBlockEnd*/

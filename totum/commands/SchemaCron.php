@@ -61,10 +61,12 @@ class SchemaCron extends Command
                     $Table = $Totum->getTable('crons');
 
                     $code = $cronRow['code'];
+
                     if ($cronRow['ttm__overlay_control'] === true) {
                         $code = $Table->getFields()['do_it_now']['codeAction'];
-                        $cronRow = RealTables::decodeRow($cronRowRaw);
                     }
+                    $cronRow = RealTables::decodeRow($cronRowRaw);
+
 
                     $Calc = new CalculateAction($code);
                     $Calc->execAction('CRON',

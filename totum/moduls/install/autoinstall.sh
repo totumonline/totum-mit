@@ -192,6 +192,8 @@ echo
   exit 0
 fi
 
+sudo apt update
+
 if [[ $(sudo certbot --version 2>&1 | grep -c 'command not found') -eq 1 ]]
 then
 sudo apt -y install certbot

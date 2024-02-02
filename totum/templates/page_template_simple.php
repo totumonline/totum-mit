@@ -4,11 +4,11 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=3710809">
-    <script src="/js/libs.js?v=63416c5"></script>
+    <script src="/js/libs.js?v=b101ece"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=7ab4468">
-    <script src="/js/main.js?v=3b67150"></script>
+          href="/css/main.css?v=2bf625b">
+    <script src="/js/main.js?v=f7ecbad"></script>
     <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?10"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 

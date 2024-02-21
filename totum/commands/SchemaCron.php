@@ -65,13 +65,13 @@ class SchemaCron extends Command
                     if ($cronRow['ttm__overlay_control'] === true) {
                         $code = $Table->getFields()['do_it_now']['codeAction'];
                     }
-                    $cronRow = RealTables::decodeRow($cronRowRaw);
+                    $cronRowV = RealTables::decodeRow($cronRowRaw);
 
 
                     $Calc = new CalculateAction($code);
                     $Calc->execAction('CRON',
-                        $cronRow,
-                        $cronRow,
+                        $cronRowV,
+                        $cronRowV,
                         $Table->getTbl(),
                         $Table->getTbl(),
                         $Table,

@@ -136,7 +136,7 @@ class TableController extends interfaceController
             if ($links = $this->Totum->getInterfaceDatas()) {
                 $result['interfaceDatas'] = $links;
             }
-            if ($tableChanged && $method !== 'refresh') {
+            if ($tableChanged && $method !== 'refresh' && $this->Table->getTableRow()['actual'] != 'disable') {
                 $tableChanged['username'] = $this->Totum->getNamedModel(UserV::class)->getFio($tableChanged['user'],
                     true);
                 $result['tableChanged'] = $tableChanged;

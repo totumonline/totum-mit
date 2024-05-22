@@ -48,17 +48,9 @@ Email — `totum at totum.online`
 
 If you have done a project on Totum — [tell about it here](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌
 
-
-
-
-
-
-
 ## Interface
 
-![365_653_file](https://github.com/totumonline/totum-mit/assets/55755565/71b0b30a-9477-4669-83f6-3731cd0c6e55)
-Cards in [PRO-version](https://totum.online/pro)
-
+![main](https://github.com/totumonline/totum-mit/assets/55755565/a2dcf16f-a393-4efe-b3d7-c4b91dd7d97c)
 
 ## Using
 
@@ -75,7 +67,6 @@ Cards in [PRO-version](https://totum.online/pro)
 
 + **See people's completed projects — [in this section of the GitHub forum](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌**
 
-
 ## All you need is a browser
 
 Development and operation are in the same environment.
@@ -83,7 +74,6 @@ Development and operation are in the same environment.
 Tables, fields and their settings are created and managed with the mouse.
 
 The developer can instantly hide the developer UI elements to see what the solution looks like for the user or switch to a specific user and perform an action from that user.
-
 
 ## Program the logic with simple codes
 
@@ -119,7 +109,6 @@ listNumbers: selectList(table: 'orders'; field: 'number'; where: 'date' >= #firs
 
 You can implement complex logic, even with the lowest programming skills. You will be able to understand it with — [the free training course](https://docs.totum.online/training-course), [forum](https://github.com/totumonline/totum-ru-issues-and-discussions/discussions) 👌
 
-
 ## Database as interface - x10 to development speed 🏃💨
 
 Use a variety of ready-made elements:
@@ -136,8 +125,6 @@ Use a variety of ready-made elements:
 
 ![fields](https://github.com/totumonline/totum-mit/assets/55755565/2fb48dd6-706b-4fec-aed6-464eaeea7ece)
 
-
-
 ## And a few more details... 👀
 
 Don't worry about concurrent access — transactions are atomic
@@ -145,7 +132,6 @@ Don't worry about concurrent access — transactions are atomic
 **All actions line up in chains:** if a cancellation or error occurs while the chain is in progress — the whole chain will be cancelled.
 
 **You can work in parallel:** if two users make a changes to the same table at the same time, the action saved by the second one will automatically restart.
-
 
 ## API, for any interaction
 
@@ -159,14 +145,11 @@ Write your own microservice on `totum-code` responding to `GET/POST` requests.
 
 You will be able to write integrations with the website, bank, messengers and any other services working in `web`.
 
-
 ## Perks 📣
-
 
 ### Free
 
 The Community version of Totum is distributed under an MIT-licence. Free for any type of use!
-
 
 ### All information can be located in the company's secure network
 
@@ -174,11 +157,9 @@ Totum is self hosted. You can set up any access policies for the server you mana
 
 You also control what can be transmitted outside of this contour and what cannot.
 
-
 ### A copy of Totum will stay with you forever
 
 You make a full copy of all platform scripts to your own server — you are not dependent on the availability of the developers servers, and you can modify the platform code as needed.
-
 
 ### Totum is scalable
 
@@ -187,7 +168,6 @@ In the event of dramatic success and large-scale growth of your database, the To
 Even if some elements of the solution turn out to be designed for a lower load — you can modify them without rewriting the whole solution.
 
 In addition, the database underlying Totum allows it to be clustered across multiple servers, including in large certified clouds.
-
 
 ## Technical basis (double elefant)
 
@@ -200,8 +180,6 @@ In addition, the database underlying Totum allows it to be clustered across mult
 + Installation on your own server.
 
 + Easy interaction with other software products via a simple API.
-
-
 
 ## How to try?
 
@@ -220,9 +198,3 @@ Email — `totum at totum.online`
 If you have done a project on totum — [tell about him here](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌
 
 ![for_favico](https://github.com/totumonline/totum-mit/assets/55755565/8289bf38-d0d1-4772-9fe4-abe830634bcf)
-
-
-
-
-
-

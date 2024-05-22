@@ -205,7 +205,7 @@ In addition, the database underlying Totum allows it to be clustered across mult
 
 ## How to try?
 
-Welcome to the demo server — [demo.totum.online](https://demo.totum.online) 🎉
+Welcome to the demo server — [totum.online/demo](https://totum.online/demo) 🎉
 
 Site — [totum.online](https://totum.online)
 

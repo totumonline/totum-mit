@@ -196,5 +196,3 @@ Forum in English — [questions, answers, suggestions, announcements ](https://g
 Email — `totum at totum.online`
 
 If you have done a project on totum — [tell about him here](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌
-
-![for_favico](https://github.com/totumonline/totum-mit/assets/55755565/8289bf38-d0d1-4772-9fe4-abe830634bcf)

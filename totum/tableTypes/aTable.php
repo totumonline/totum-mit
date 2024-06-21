@@ -2952,7 +2952,7 @@ CODE;;
                 break;
             case 'xml':
                 foreach ($this->fields as $field) {
-                    if ($field['category'] === 'filter' && $field['showInXml'] === true) {
+                    if ($field['category'] === 'filter' && ($field['showInXml'] ?? false) === true) {
                         return $isActiveFilter($field);
                     }
                 }
@@ -3037,7 +3037,7 @@ CODE;;
                 return match ($property) {
                     'visible' => $visible,
                     'insertable' => $visible && $field['apiInsertable'],
-                    'filterable' => $field['showInXml'],
+                    'filterable' => ($field['showInXml'] ?? false),
                     'editable' => $visible && $field['apiEditable'] && $isInRoles($field['xmlEditRoles'] ?? []),
                     default => throw new errorException('In channel ' . $channel . ' not supported action ' . $property),
                 };

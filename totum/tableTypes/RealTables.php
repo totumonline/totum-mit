@@ -1621,7 +1621,7 @@ abstract class RealTables extends aTable
             }
 
             if ($fieldName === 'id') {
-                $fieldQuoted = '(id)::NUMERIC';
+                $fieldQuoted = 'id';
                 $isNumeric = true;
             } elseif ($fieldName !== 'n') {
                 $fieldQuoted = "$fieldQuoted::NUMERIC";

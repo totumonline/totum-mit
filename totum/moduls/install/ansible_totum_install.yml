@@ -1,0 +1,501 @@
+---
+
+- hosts: localhost
+  become: true
+
+  tasks:
+
+  # Ubuntu version, local and timezone
+
+  - name: Check if the distribution is Ubuntu and version is 24.04
+    fail:
+      msg: "This playbook only supports Ubuntu 24.04."
+    when: ansible_distribution != 'Ubuntu' or ansible_distribution_version != '24.04'
+
+  - name: Continue with tasks if the distribution and version are correct
+    debug:
+      msg: "The distribution is Ubuntu 24.04. Proceeding with tasks."
+
+  - name: Ensure locales package is installed
+    apt:
+      name: locales
+      state: present
+
+  - name: Update /etc/locale.gen to include en_US.UTF-8
+    lineinfile:
+      path: /etc/locale.gen
+      regexp: '^#?en_US.UTF-8 UTF-8'
+      line: 'en_US.UTF-8 UTF-8'
+
+  - name: Generate en_US.UTF-8 locale
+    command: locale-gen
+
+  - name: Set /etc/default/locale to en_US.UTF-8
+    copy:
+      dest: /etc/default/locale
+      content: LANG=en_US.UTF-8
+
+  - name: Source /etc/default/locale to apply locale settings
+    shell: source /etc/default/locale
+    args:
+      executable: /bin/bash
+
+  - name: Set the timezone
+    command: timedatectl set-timezone {{ lookup('env', 'TOTUMTIMEZONE') }}
+
+  # Add PPA and some packages
+
+  - name: Add PHP repository
+    apt_repository:
+      repo: ppa:ondrej/php
+      state: present
+
+  - name: Apt update
+    apt:
+      update_cache: yes
+
+  - name: apt install some common packages
+    apt:
+      name:
+        - git
+        - unzip
+        - curl
+        - nano
+        - htop
+        - wget
+        - certbot
+        - ufw
+      state: latest
+
+  - name: Allow HTTP traffic on port 22
+    ufw:
+      rule: allow
+      port: 22
+      proto: tcp
+
+
+  - name: Allow HTTP traffic on port 80
+    ufw:
+      rule: allow
+      port: 80
+      proto: tcp
+
+  - name: Allow HTTPS traffic on port 443
+    ufw:
+      rule: allow
+      port: 443
+      proto: tcp
+
+  - name: Ensure UFW is enabled
+    ufw:
+      state: enabled
+
+  # Get a certificate
+
+  - name: Check for certbot certificate directory
+    stat:
+      path: /etc/letsencrypt/live/{{ lookup('env', 'CERTBOTDOMAIN') }}
+    register: certbot_certificate_directory
+
+  - name: Certificate exist
+    debug:
+      msg: "Certificate exist!"
+    when: certbot_certificate_directory.stat.exists
+
+  - name: Run certbot dry run for check domain
+    shell: "certbot certonly --standalone --dry-run --non-interactive --register-unsafely-without-email --agree-tos -d {{ lookup('env', 'CERTBOTDOMAIN') }}"
+    register: certbot_check_domain_result
+    when: not certbot_certificate_directory.stat.exists
+
+  - name: Debug certbot check domain result
+    debug:
+      msg: "{{ certbot_check_domain_result.stdout | to_nice_yaml }}"
+    when: not certbot_certificate_directory.stat.exists
+
+  - name: Check for success message in certbot output
+    assert:
+      that:
+        - "'The dry run was successful.' in certbot_check_domain_result.stdout"
+      fail_msg: "Certbot did't get certificate for you domain! Check DNS for you domain and try again later! If you setup NS or DNS less than 3 hours ago, maybe these changes have not reached the Let's encrypt servers. Wait one hour and try again."
+    when: not certbot_certificate_directory.stat.exists
+
+  - name: Check for Certbot registration directory
+    stat:
+      path: /etc/letsencrypt/accounts/acme-v02.api.letsencrypt.org/directory
+    register: certbot_registration
+
+  - name: Certbot is registered
+    debug:
+      msg: "Certbot is registered!"
+    when: certbot_registration.stat.exists
+
+  - name: Run certbot registration
+    shell: "certbot register --email {{ lookup('env', 'CERTBOTEMAIL') }} --agree-tos --no-eff-email"
+    register: certbot_registration_result
+    when: not certbot_registration.stat.exists
+
+  - name: Debug certbot registration result
+    debug:
+      msg: "{{ certbot_registration_result.stdout | to_nice_yaml }}"
+    when: not certbot_registration.stat.exists
+
+  - name: Run certbot to obtain a certificate
+    shell: "certbot certonly --standalone --non-interactive -d {{ lookup('env', 'CERTBOTDOMAIN') }}"
+    register: certbot_certificate_result
+    ignore_errors: no
+    when: not certbot_certificate_directory.stat.exists
+
+  - name: Debug certbot certificate result
+    debug:
+      msg: "{{ certbot_certificate_result.stdout | to_nice_yaml }}"
+    when: not certbot_certificate_directory.stat.exists
+
+  - name: Check for success message in certbot certificate output
+    assert:
+      that:
+        - "'Successfully received certificate.' in certbot_certificate_result.stdout"
+      fail_msg: "Certbot did't get certificate for you domain!"
+    when: not certbot_certificate_directory.stat.exists
+
+  - name: Final check for certbot certificate directory
+    stat:
+      path: /etc/letsencrypt/live/{{ lookup('env', 'CERTBOTDOMAIN') }}
+    register: certbot_certificate_final_check
+
+  - name: Fail if certbot certificate directory does not exist
+    fail:
+      msg: "Certbot directory for domain {{ lookup('env', 'CERTBOTDOMAIN') }} does not exist. Please ensure Certbot is registered and the certificate has been obtained."
+    when: not certbot_certificate_final_check.stat.exists
+
+  - name: Create Certbot CLI configuration file
+    copy:
+      dest: /etc/letsencrypt/cli.ini
+      content: |
+        authenticator = webroot
+        webroot-path = /var/www/html
+        post-hook = service nginx reload
+        text = True
+      owner: root
+      group: root
+    when: certbot_certificate_final_check.stat.exists
+
+  # Create a user
+
+  - name: Create group totum
+    group:
+      name: totum
+      state: present
+
+  - name: Add user totum
+    user:
+      name: totum
+      group: totum
+      shell: /bin/bash
+      state: present
+      create_home: yes
+
+  - name: Set permissions for the home directory of user totum
+    file:
+      path: /home/totum
+      state: directory
+      mode: '0755'
+    when: ansible_facts['getent_passwd']['totum'] is defined
+
+
+  # Install PHP and modules
+
+  - name: apt install PHP 8.3 and modules
+    apt:
+      name:
+        - php8.3
+        - php8.3-bcmath
+        - php8.3-cli
+        - php8.3-curl
+        - php8.3-fpm
+        - php8.3-gd
+        - php8.3-mbstring
+        - php8.3-opcache
+        - php8.3-pgsql
+        - php8.3-xml
+        - php8.3-zip
+        - php8.3-soap
+        - php8.3-ldap
+      state: latest
+
+  - name: Check if totum_fpm.conf file exists
+    stat:
+      path: /etc/php/8.3/fpm/pool.d/totum.conf
+    register: totum_fpm_conf
+
+  - name: Download totum_fpm.conf
+    get_url:
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_pool.conf
+      dest: /etc/php/8.3/fpm/pool.d/totum.conf
+      owner: root
+      group: root
+    when: not totum_fpm_conf.stat.exists
+
+  - name: Replace timezone in totum.conf
+    replace:
+      path: /etc/php/8.3/fpm/pool.d/totum.conf
+      regexp: 'Europe/London'
+      replace: "{{ lookup('env', 'TOTUMTIMEZONE') }}"
+    when: not totum_fpm_conf.stat.exists
+
+  - name: Create sessions_totum directory
+    file:
+      path: /var/lib/php/sessions_totum
+      state: directory
+      owner: root
+      group: root
+      mode: '1733'
+
+  - name: Remove default www.conf
+    file:
+      path: /etc/php/8.3/fpm/pool.d/www.conf
+      state: absent
+
+  - name: Restart PHP FPM service
+    service:
+      name: php8.3-fpm
+      state: restarted
+
+  # Install Nginx
+
+  - name: apt install nginx
+    apt:
+      name: nginx
+      state: latest
+
+  - name: Check if totum.online.conf file exists
+    stat:
+      path: /etc/nginx/sites-available/totum.online.conf
+    register: totum_online_conf
+
+  - name: Download totum.online.conf
+    get_url:
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum.online.conf
+      dest: /etc/nginx/sites-available/totum.online.conf
+      owner: root
+      group: root
+    when: not totum_online_conf.stat.exists
+
+  - name: Create directory for acme-challenge
+    file:
+      path: /var/www/html/.well-known/acme-challenge
+      state: directory
+      owner: root
+      group: root
+
+  - name: Remove default Nginx site configuration (available)
+    file:
+      path: /etc/nginx/sites-available/default
+      state: absent
+
+  - name: Remove default Nginx site configuration (enabled)
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+
+  - name: Create symlink for Totum Nginx configuration
+    file:
+      src: /etc/nginx/sites-available/totum.online.conf
+      dest: /etc/nginx/sites-enabled/totum.online.conf
+      state: link
+
+  - name: Create Nginx acme configuration file
+    copy:
+      dest: /etc/nginx/acme
+      content: |
+        location /.well-known {
+            root /var/www/html;
+        }
+
+  - name: Replace domain in totum.online.conf
+    replace:
+      path: /etc/nginx/sites-available/totum.online.conf
+      regexp: 'YOUR_DOMAIN'
+      replace: "{{ lookup('env', 'CERTBOTDOMAIN') }}"
+
+  - name: Restart Nginx service
+    service:
+      name: nginx
+      state: restarted
+
+  # Install PostgreSQL
+
+  - name: apt install postgresql
+    apt:
+      name: postgresql
+      state: present
+
+  - name: apt install python3-psycopg2
+    apt:
+      name: python3-psycopg2
+      state: present
+
+  - name: Create PostgreSQL user
+    become_user: postgres
+    postgresql_user:
+      name: "totum"
+      password: "{{ lookup('env', 'TOTUMBASEPASS') }}"
+      encrypted: yes
+      state: present
+
+  - name: Create PostgreSQL database
+    become_user: postgres
+    postgresql_db:
+      name: "totum"
+      owner: "totum"
+      state: present
+
+  - name: Grant all privileges on database totum to user totum
+    become_user: postgres
+    postgresql_privs:
+      db: "totum"
+      role: "totum"
+      privs: ALL
+      type: database
+      state: present
+
+  # Install Totum
+
+  - name: Check if totum-mit directory exists
+    stat:
+      path: /home/totum/totum-mit
+    register: totum_mit
+
+  - name: Clone Totum repository
+    git:
+      repo: https://github.com/totumonline/totum-mit.git
+      dest: /home/totum/totum-mit
+      version: dev
+      update: yes
+    become_user: totum
+    when: not totum_mit.stat.exists
+
+  - name: Check if composer.phar file exists
+    stat:
+      path: /home/totum/totum-mit/composer.phar
+    register: composer_phar
+
+  - name: Download Composer installer
+    get_url:
+      url: https://getcomposer.org/installer
+      dest: /home/totum/totum-mit/composer-setup.php
+      owner: totum
+      group: totum
+    when: not composer_phar.stat.exists
+
+  - name: Unpack Composer installer
+    shell: php /home/totum/totum-mit/composer-setup.php --quiet
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+      executable: /bin/bash
+    when: not composer_phar.stat.exists
+
+  - name: Run Composer install
+    shell: php /home/totum/totum-mit/composer.phar install --no-dev
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+      executable: /bin/bash
+
+  - name: Replace timezone in CLI.totum.php.ini
+    replace:
+      path: /home/totum/totum-mit/CLI.totum.php.ini
+      regexp: 'Europe/London'
+      replace: "{{ lookup('env', 'TOTUMTIMEZONE') }}"
+
+  - name: Check if Conf.php file exists
+    stat:
+      path: /home/totum/totum-mit/Conf.php
+    register: conf_php
+
+  - name: Install totum via bin/totum install tool
+    shell: bin/totum install --pgdump=pg_dump --psql=psql -e -- {{ lookup('env', 'TOTUMLANG') }} multi totum {{ lookup('env', 'CERTBOTEMAIL') }} {{ lookup('env', 'CERTBOTDOMAIN') }} admin {{ lookup('env', 'TOTUMADMINPASS') }} totum localhost totum {{ lookup('env', 'TOTUMBASEPASS') }}
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+      executable: /bin/bash
+    when: not conf_php.stat.exists
+    register: totum_install_output
+
+  - name: Display totum install output
+    debug:
+      msg: "{{ totum_install_output.stdout | to_nice_yaml }}"
+    when: not conf_php.stat.exists
+
+  - name: Check if Crypto.key file exists
+    stat:
+      path: /home/totum/totum-mit/Crypto.key
+    register: crypto_key
+
+  - name: Generate Crypto.key
+    shell: openssl rand -base64 64 > /home/totum/totum-mit/Crypto.key
+    become_user: totum
+    args:
+      executable: /bin/bash
+    when: not crypto_key.stat.exists
+
+  # Add Crons
+
+  - name: Generate a random minute for cron job
+    set_fact:
+      random_minute: "{{ 1 + (59 | random) }}"
+
+  - name: Add cron job for certbot renew with random minute
+    cron:
+      name: "certbot-renew"
+      minute: "{{ random_minute }}"
+      hour: "*/12"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      user: "root"
+      job: "certbot renew --quiet --allow-subset-of-names"
+
+  - name: Add cron job for totum schemas-crons
+    cron:
+      name: "bin/totum schemas-crons"
+      minute: "*"
+      hour: "*"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      user: "totum"
+      job: "cd /home/totum/totum-mit/ && bin/totum schemas-crons"
+
+  - name: Add cron job for totum clean-tmp-dir
+    cron:
+      name: "bin/totum clean-tmp-dir"
+      minute: "*/10"
+      hour: "*"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      user: "totum"
+      job: "cd /home/totum/totum-mit/ && bin/totum clean-tmp-dir"
+
+  - name: Add cron job for totum clean-schemas-tmp-tables
+    cron:
+      name: "bin/totum clean-schemas-tmp-tables"
+      minute: "*/10"
+      hour: "*"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      user: "totum"
+      job: "cd /home/totum/totum-mit/ && bin/totum clean-schemas-tmp-tables"
+
+  - name: Add cron job for totum clean-tmp-tables-files-multi
+    cron:
+      name: "bin/totum clean-tmp-tables-files-multi"
+      minute: "0"
+      hour: "*/3"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      user: "totum"
+      job: "cd /home/totum/totum-mit/ && bin/totum clean-tmp-tables-files-multi"

@@ -124,7 +124,6 @@
       msg: "Aborted by user"
     when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) not in ['a', 'n']
 
-
   - name: Prompt for correct external IP if necessary
     pause:
       prompt: "Please enter the correct external IP:"
@@ -153,10 +152,9 @@
       line: "export TOTUMSERVIP={{ external_ip }}"
     when: check_domain == "" and check_ip == ""
 
-  - name: Export TOTUMSERVIP user variable
-    shell: export TOTUMSERVIP={{ external_ip }}
-    when: check_domain == "" and check_ip == ""
-
+  - name: Set variable for external IP
+    set_fact:
+      ip_for_install: "{{ lookup('env', 'TOTUMSERVIP') if check_ip != '' else external_ip }}"
 
   # Get a certificate
 
@@ -323,8 +321,9 @@
     when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Export GitHub email variable
-    shell: export TOTUMGITHUBEMAIL={{ github_email_new.user_input }}
-    when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    set_fact:
+      set_github_email: "{{ lookup('env', 'TOTUMGITHUBEMAIL') if github_email != '' else github_email_new.user_input }}"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Check TOTUMGITHUBUSER environment variable
     set_fact:
@@ -355,21 +354,22 @@
     when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Export GitHub user variable
-    shell: export TOTUMGITHUBUSER={{ github_user_new.user_input }}
-    when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    set_fact:
+      set_github_user: "{{ lookup('env', 'TOTUMGITHUBUSER') if github_user != '' else github_user_new.user_input }}"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Configure Git User for PRO
 
   - name: Configure Git user.name
     become_user: totum
-    shell: git config --local user.name "{{ github_user }}"
+    shell: git config --local user.name "{{ set_github_user }}"
     args:
       chdir: /home/totum/totum-mit
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Configure Git user.email
     become_user: totum
-    shell: git config --local user.email "{{ github_email }}"
+    shell: git config --local user.email "{{ set_github_email }}"
     args:
       chdir: /home/totum/totum-mit
     when: lookup('env', 'TOTUMVERSION') == 'pro'
@@ -386,7 +386,7 @@
     community.crypto.openssh_keypair:
       path: /home/totum/.ssh/totum_pro_key
       type: ed25519
-      comment: "{{ lookup('env', 'TOTUMGITHUBEMAIL') }}"
+      comment: "{{ set_github_email }}"
       owner: totum
       group: totum
       mode: '0600'
@@ -676,11 +676,11 @@
 
   - name: Set install_url based on check_domain
     set_fact:
-      install_url: "{{ lookup('env', 'CERTBOTEMAIL') if check_domain != '' else lookup('env', 'TOTUMSERVIP') }}"
+      install_url: "{{ lookup('env', 'CERTBOTEMAIL') if check_domain != '' else ip_for_install }}"
 
   - name: Show install_url variable
-      debug:
-        msg: "The install_url is: {{ install_url }}"
+    debug:
+      msg: "The install_url is: {{ install_url }}"
 
   - name: Install totum via bin/totum install tool
     shell: bin/totum install --pgdump=pg_dump --psql=psql -e -- {{ lookup('env', 'TOTUMLANG') }} multi totum {{ lookup('env', 'CERTBOTEMAIL') }} {{ install_url }} admin {{ lookup('env', 'TOTUMADMINPASS') }} totum localhost totum {{ lookup('env', 'TOTUMBASEPASS') }}

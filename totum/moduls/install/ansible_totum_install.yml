@@ -16,32 +16,32 @@
     debug:
       msg: "The distribution is Ubuntu 24.04. Proceeding with tasks."
 
-  - name: Ensure locales package is installed
-    apt:
-      name: locales
-      state: present
+#  - name: Ensure locales package is installed
+#    apt:
+#      name: locales
+#      state: present
 
-  - name: Update /etc/locale.gen to include en_US.UTF-8
-    lineinfile:
-      path: /etc/locale.gen
-      regexp: '^#?en_US.UTF-8 UTF-8'
-      line: 'en_US.UTF-8 UTF-8'
+#  - name: Update /etc/locale.gen to include en_US.UTF-8
+#    lineinfile:
+#      path: /etc/locale.gen
+#      regexp: '^#?en_US.UTF-8 UTF-8'
+#      line: 'en_US.UTF-8 UTF-8'
 
-  - name: Generate en_US.UTF-8 locale
-    command: locale-gen
+#  - name: Generate en_US.UTF-8 locale
+#    command: locale-gen
 
-  - name: Set /etc/default/locale to en_US.UTF-8
-    copy:
-      dest: /etc/default/locale
-      content: LANG=en_US.UTF-8
+#  - name: Set /etc/default/locale to en_US.UTF-8
+#    copy:
+#      dest: /etc/default/locale
+#      content: LANG=en_US.UTF-8
 
-  - name: Source /etc/default/locale to apply locale settings
-    shell: source /etc/default/locale
-    args:
-      executable: /bin/bash
+#  - name: Source /etc/default/locale to apply locale settings
+#    shell: source /etc/default/locale
+#    args:
+#      executable: /bin/bash
 
-  - name: Set the timezone
-    command: timedatectl set-timezone {{ lookup('env', 'TOTUMTIMEZONE') }}
+#  - name: Set the timezone
+#    command: timedatectl set-timezone {{ lookup('env', 'TOTUMTIMEZONE') }}
 
   # Add PPA and some packages
 
@@ -50,9 +50,16 @@
       repo: ppa:ondrej/php
       state: present
 
-  - name: Apt update
-    apt:
-      update_cache: yes
+  - name: Add the MeiliSearch repository to the sources list
+    lineinfile:
+      path: /etc/apt/sources.list.d/fury.list
+      line: 'deb [trusted=yes] https://apt.fury.io/meilisearch/ /'
+      create: yes
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+#  - name: Apt update
+#    apt:
+#      update_cache: yes
 
   - name: apt install some common packages
     apt:
@@ -90,82 +97,146 @@
     ufw:
       state: enabled
 
+  # Chek IP
+
+  - name: Check CERTBOTDOMAIN environment variable
+    set_fact:
+      check_domain: "{{ lookup('env', 'CERTBOTDOMAIN') }}"
+
+  - name: Check TOTUMSERVIP environment variable if CERTBOTDOMAIN is empty
+    set_fact:
+      check_ip: "{{ lookup('env', 'TOTUMSERVIP') }}"
+    when: check_domain == ""
+
+  - name: Determine external IP if CERTBOTDOMAIN and TOTUMSERVIP are empty
+    set_fact:
+      external_ip: "{{ ansible_default_ipv4.address }}"
+    when: check_domain == "" and check_ip == ""
+
+  - name: Show determined external IP and confirm
+    pause:
+      prompt: "Determined external IP is {{ external_ip }}. Is this the correct external IP of the server? Type (Y) or (N)"
+    register: ip_confirmation
+    when: check_domain == "" and check_ip == ""
+
+  - name: Fail if the user gave an incorrect answer
+    fail:
+      msg: "Aborted by user"
+    when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) not in ['y', 'n']
+
+
+  - name: Prompt for correct external IP if necessary
+    pause:
+      prompt: "Please enter the correct external IP:"
+    register: new_external_ip
+    when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
+
+  - name: Confirm entered external IP
+    pause:
+      prompt: "You entered {{ new_external_ip.user_input }}. Is this correct? Type (Y) or (Ctrl + C)"
+    register: confirm_correct_ip
+    when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
+
+  - name: Fail if user did not confirm correct IP
+    fail:
+      msg: "Aborted by user"
+    when: confirm_correct_ip.user_input is defined and (confirm_correct_ip.user_input | lower) != 'y' and check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
+
+  - name: Set final external IP
+    set_fact:
+      external_ip: "{{ new_external_ip.user_input }}"
+    when: check_domain == "" and check_ip == "" and new_external_ip.user_input is defined
+
+  - name: Append TOTUMSERVIP to totum_install_vars
+    lineinfile:
+      path: "{{ playbook_dir }}/totum_install_vars"
+      line: "export TOTUMSERVIP={{ external_ip }}"
+    when: check_domain == "" and check_ip == ""
+
+  - name: Export TOTUMSERVIP user variable
+    shell: export TOTUMSERVIP={{ external_ip }}
+    when: check_domain == "" and check_ip == ""
+
+
   # Get a certificate
 
   - name: Check for certbot certificate directory
     stat:
       path: /etc/letsencrypt/live/{{ lookup('env', 'CERTBOTDOMAIN') }}
     register: certbot_certificate_directory
+    when: check_domain != ""
 
   - name: Certificate exist
     debug:
       msg: "Certificate exist!"
-    when: certbot_certificate_directory.stat.exists
+    when: certbot_certificate_directory.stat is defined and certbot_certificate_directory.stat.exists and check_domain != ""
 
   - name: Run certbot dry run for check domain
     shell: "certbot certonly --standalone --dry-run --non-interactive --register-unsafely-without-email --agree-tos -d {{ lookup('env', 'CERTBOTDOMAIN') }}"
     register: certbot_check_domain_result
-    when: not certbot_certificate_directory.stat.exists
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != ""
 
   - name: Debug certbot check domain result
     debug:
-      msg: "{{ certbot_check_domain_result.stdout | to_nice_yaml }}"
-    when: not certbot_certificate_directory.stat.exists
+      msg: "{{ certbot_check_domain_result.stdout }}"
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != ""
 
   - name: Check for success message in certbot output
     assert:
       that:
         - "'The dry run was successful.' in certbot_check_domain_result.stdout"
       fail_msg: "Certbot did't get certificate for you domain! Check DNS for you domain and try again later! If you setup NS or DNS less than 3 hours ago, maybe these changes have not reached the Let's encrypt servers. Wait one hour and try again."
-    when: not certbot_certificate_directory.stat.exists
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != ""
 
   - name: Check for Certbot registration directory
     stat:
       path: /etc/letsencrypt/accounts/acme-v02.api.letsencrypt.org/directory
     register: certbot_registration
+    when: check_domain != ""
 
   - name: Certbot is registered
     debug:
       msg: "Certbot is registered!"
-    when: certbot_registration.stat.exists
+    when: certbot_certificate_directory.stat is defined and certbot_registration.stat.exists and check_domain != ""
 
   - name: Run certbot registration
     shell: "certbot register --email {{ lookup('env', 'CERTBOTEMAIL') }} --agree-tos --no-eff-email"
     register: certbot_registration_result
-    when: not certbot_registration.stat.exists
+    when: certbot_certificate_directory.stat is defined and not certbot_registration.stat.exists and check_domain != ""
 
   - name: Debug certbot registration result
     debug:
-      msg: "{{ certbot_registration_result.stdout | to_nice_yaml }}"
-    when: not certbot_registration.stat.exists
+      msg: "{{ certbot_registration_result.stdout }}"
+    when: certbot_certificate_directory.stat is defined and not certbot_registration.stat.exists and check_domain != ""
 
   - name: Run certbot to obtain a certificate
     shell: "certbot certonly --standalone --non-interactive -d {{ lookup('env', 'CERTBOTDOMAIN') }}"
     register: certbot_certificate_result
     ignore_errors: no
-    when: not certbot_certificate_directory.stat.exists
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != ""
 
   - name: Debug certbot certificate result
     debug:
-      msg: "{{ certbot_certificate_result.stdout | to_nice_yaml }}"
-    when: not certbot_certificate_directory.stat.exists
+      msg: "{{ certbot_certificate_result.stdout }}"
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != ""
 
   - name: Check for success message in certbot certificate output
     assert:
       that:
         - "'Successfully received certificate.' in certbot_certificate_result.stdout"
       fail_msg: "Certbot did't get certificate for you domain!"
-    when: not certbot_certificate_directory.stat.exists
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != ""
 
   - name: Final check for certbot certificate directory
     stat:
       path: /etc/letsencrypt/live/{{ lookup('env', 'CERTBOTDOMAIN') }}
     register: certbot_certificate_final_check
+    when: check_domain != ""
 
   - name: Fail if certbot certificate directory does not exist
     fail:
       msg: "Certbot directory for domain {{ lookup('env', 'CERTBOTDOMAIN') }} does not exist. Please ensure Certbot is registered and the certificate has been obtained."
-    when: not certbot_certificate_final_check.stat.exists
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_final_check.stat.exists and check_domain != ""
 
   - name: Create Certbot CLI configuration file
     copy:
@@ -177,7 +248,7 @@
         text = True
       owner: root
       group: root
-    when: certbot_certificate_final_check.stat.exists
+    when: check_domain != ""
 
   # Create a user
 
@@ -199,8 +270,185 @@
       path: /home/totum
       state: directory
       mode: '0755'
-    when: ansible_facts['getent_passwd']['totum'] is defined
 
+  # Add GitHup SSH-key for PRO
+
+  - name: Create .ssh directory
+    file:
+      path: /home/totum/.ssh
+      state: directory
+      mode: '0700'
+      owner: totum
+      group: totum
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Create SSH config file
+    copy:
+      dest: /home/totum/.ssh/config
+      content: |
+        Host *
+          AddKeysToAgent yes
+          IdentityFile ~/.ssh/totum_pro_key
+      owner: totum
+      group: totum
+      mode: '0664'
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check TOTUMGITHUBEMAIL environment variable
+    set_fact:
+      github_email: "{{ lookup('env', 'TOTUMGITHUBEMAIL') }}"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Prompt for GitHub email if not set
+    pause:
+      prompt: "Enter your GitHub EMAIL:"
+    register: github_email_new
+    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Confirm the GitHub email
+    pause:
+      prompt: "You entered '{{ github_email_new.user_input }}'. If you are ready to go, type (A) or cancel (Ctrl + C):"
+    register: check_github_email_new
+    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check confirmation input
+    fail:
+      msg: "Operation cancelled by the user."
+    when: github_email == "" and check_github_email_new.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Append GitHub email to totum_install_vars
+    lineinfile:
+      path: "{{ playbook_dir }}/totum_install_vars"
+      line: "export TOTUMGITHUBEMAIL={{ github_email_new.user_input }}"
+    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Export GitHub email variable
+    shell: export TOTUMGITHUBEMAIL={{ github_email_new.user_input }}
+    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check TOTUMGITHUBUSER environment variable
+    set_fact:
+      github_user: "{{ lookup('env', 'TOTUMGITHUBUSER') }}"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Prompt for GitHub user if not set
+    pause:
+      prompt: "Enter your GitHub USERNAME:"
+    register: github_user_new
+    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Confirm the GitHub user
+    pause:
+      prompt: "You entered '{{ github_user_new.user_input }}'. If you are ready to go, type (A) or cancel (Ctrl + C):"
+    register: check_github_user_new
+    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check confirmation input
+    fail:
+      msg: "Operation cancelled by the user."
+    when: github_user == "" and check_github_user_new.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Append GitHub user to totum_install_vars
+    lineinfile:
+      path: "{{ playbook_dir }}/totum_install_vars"
+      line: "export TOTUMGITHUBUSER={{ github_user_new.user_input }}"
+    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Export GitHub user variable
+    shell: export TOTUMGITHUBUSER={{ github_user_new.user_input }}
+    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  # Configure Git User for PRO
+
+  - name: Configure Git user.name
+    become_user: totum
+    shell: git config --local user.name "{{ github_user }}"
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Configure Git user.email
+    become_user: totum
+    shell: git config --local user.email "{{ github_email }}"
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  # Create GitHub key for PRO
+
+  - name: Check if totum_pro_key exist
+    stat:
+      path: /home/totum/.ssh/totum_pro_key
+    register: totum_pro_key
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Generate SSH key pair
+    community.crypto.openssh_keypair:
+      path: /home/totum/.ssh/totum_pro_key
+      type: ed25519
+      comment: "{{ lookup('env', 'TOTUMGITHUBEMAIL') }}"
+      owner: totum
+      group: totum
+      mode: '0600'
+    register: ssh_keypair
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and not totum_pro_key.stat.exists
+
+  - name: Check TOTUMGITHUBCONNECT environment variable
+    set_fact:
+      github_connect: "{{ lookup('env', 'TOTUMGITHUBCONNECT') }}"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Read SSH public key
+    become_user: totum
+    shell: cat ~/.ssh/totum_pro_key.pub
+    register: ssh_public_key
+    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Display message to add SSH key to GitHub
+    debug:
+      msg: "Go to the GitHub page https://github.com/settings/keys and add the key in the SSH keys section (New SSH Key). Enter a title and paste the key string: {{ ssh_public_key.stdout }}"
+    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Confirm the GitHub key created
+    pause:
+      prompt: "If you already added the key to GitHub and ready to go, type (A) or cancel (Ctrl + C):"
+    register: check_github_key
+    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check confirmation input
+    fail:
+      msg: "Operation cancelled by the user."
+    when: github_connect == "" and check_github_key.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  # Check GitHub connection for PRO
+
+  - name: Ensure pexpect is installed
+    apt:
+      name: python3-pexpect
+      state: present
+    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Perform SSH to GitHub
+    become_user: totum
+    expect:
+      command: ssh -T git@github.com
+      chdir: /home/totum/totum-mit
+      responses:
+          ".*yes/no.*": "yes"
+    register: ssh_output
+    failed_when: '"successfully authenticated" not in ssh_output.stdout'
+    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Debug SSH output
+    debug:
+      msg: "{{ ssh_output.stdout }}"
+    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Append GitHub connect to totum_install_vars
+    lineinfile:
+      path: "{{ playbook_dir }}/totum_install_vars"
+      line: "export TOTUMGITHUBCONNECT=true"
+    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Install PHP and modules
 
@@ -272,14 +520,6 @@
       path: /etc/nginx/sites-available/totum.online.conf
     register: totum_online_conf
 
-  - name: Download totum.online.conf
-    get_url:
-      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum.online.conf
-      dest: /etc/nginx/sites-available/totum.online.conf
-      owner: root
-      group: root
-    when: not totum_online_conf.stat.exists
-
   - name: Create directory for acme-challenge
     file:
       path: /var/www/html/.well-known/acme-challenge
@@ -297,12 +537,6 @@
       path: /etc/nginx/sites-enabled/default
       state: absent
 
-  - name: Create symlink for Totum Nginx configuration
-    file:
-      src: /etc/nginx/sites-available/totum.online.conf
-      dest: /etc/nginx/sites-enabled/totum.online.conf
-      state: link
-
   - name: Create Nginx acme configuration file
     copy:
       dest: /etc/nginx/acme
@@ -311,11 +545,38 @@
             root /var/www/html;
         }
 
+  # Actions for domain or ip install
+
+  - name: Download totum.online.conf
+    get_url:
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum.online.conf
+      dest: /etc/nginx/sites-available/totum.online.conf
+      owner: root
+      group: root
+    when: not totum_online_conf.stat.exists and check_domain != ""
+
+  - name: Download totum.online.conf
+    get_url:
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum.online.conf.ip
+      dest: /etc/nginx/sites-available/totum.online.conf
+      owner: root
+      group: root
+    when: not totum_online_conf.stat.exists and check_domain == ""
+
   - name: Replace domain in totum.online.conf
     replace:
       path: /etc/nginx/sites-available/totum.online.conf
       regexp: 'YOUR_DOMAIN'
       replace: "{{ lookup('env', 'CERTBOTDOMAIN') }}"
+    when: check_domain != ""
+
+  # Restart nginx
+
+  - name: Create symlink for Totum Nginx configuration
+    file:
+      src: /etc/nginx/sites-available/totum.online.conf
+      dest: /etc/nginx/sites-enabled/totum.online.conf
+      state: link
 
   - name: Restart Nginx service
     service:
@@ -413,6 +674,10 @@
       path: /home/totum/totum-mit/Conf.php
     register: conf_php
 
+  - name: Export IP to CERTBOTDOMAIN user variable
+    shell: export CERTBOTDOMAIN={{ lookup('env', 'TOTUMSERVIP') }}
+    when: check_domain == "" and not conf_php.stat.exists
+
   - name: Install totum via bin/totum install tool
     shell: bin/totum install --pgdump=pg_dump --psql=psql -e -- {{ lookup('env', 'TOTUMLANG') }} multi totum {{ lookup('env', 'CERTBOTEMAIL') }} {{ lookup('env', 'CERTBOTDOMAIN') }} admin {{ lookup('env', 'TOTUMADMINPASS') }} totum localhost totum {{ lookup('env', 'TOTUMBASEPASS') }}
     become_user: totum
@@ -424,7 +689,7 @@
 
   - name: Display totum install output
     debug:
-      msg: "{{ totum_install_output.stdout | to_nice_yaml }}"
+      msg: "{{ totum_install_output.stdout }}"
     when: not conf_php.stat.exists
 
   - name: Check if Crypto.key file exists
@@ -438,6 +703,96 @@
     args:
       executable: /bin/bash
     when: not crypto_key.stat.exists
+
+  - name: Update secure setting in Conf.php if check_domain is not empty
+    replace:
+      path: /home/totum/totum-mit/Conf.php
+      regexp: "\\/\\*'secure' => true,\\*\\/"
+      replace: "'secure' => true,"
+    when: check_domain != ""
+
+  # Switch to the PRO repository
+
+  - name: Set Git remote URL to PRO repository
+    shell: git remote set-url origin git@github.com:totumonline/totum-pro.git
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check current Git branch
+    shell: git rev-parse --abbrev-ref HEAD
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+    register: current_branch
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  # have to change gomodule here
+  - name: Fetch data from origin pro
+    shell: git fetch origin gomodule
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and current_branch.stdout != "gomodule"
+
+  # have to change gomodule here
+  - name: Checkout to new branch pro
+    shell: git checkout -b gomodule origin/gomodule -t
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and current_branch.stdout != "gomodule"
+
+  - name: Pull latest scripts
+    shell: git pull
+    become_user: totum
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+
+  # Add totum-gom service
+
+  - name: Create symlink for Totum service configuration
+    file:
+      src: /home/totum/totum-mit/totum-gom.service
+      dest: /etc/systemd/system/totum-gom.service
+      state: link
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Reload systemd manager configuration
+    systemd:
+      daemon_reload: yes
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Enable totum-gom service
+    systemd:
+      name: totum-gom
+      enabled: yes
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Start totum-gom service
+    systemd:
+      name: totum-gom
+      state: started
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check totum-gom service status
+    systemd:
+      name: totum-gom
+      state: started
+      enabled: yes
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Add sudoers entry for totum-gom restart
+    lineinfile:
+      path: /etc/sudoers.d/restart-totum-gom
+      line: 'totum ALL=(ALL) NOPASSWD: /usr/sbin/service totum-gom restart'
+      create: yes
+      mode: '0440'
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
 
   # Add Crons
 
@@ -499,3 +854,86 @@
       weekday: "*"
       user: "totum"
       job: "cd /home/totum/totum-mit/ && bin/totum clean-tmp-tables-files-multi"
+
+  # Set execSSH for PRO
+
+  - name: Check TOTUMEXECSSH environment variable
+    set_fact:
+      exec_ssh: "{{ lookup('env', 'TOTUMEXECSSH') }}"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Confirm activating execSSH
+    pause:
+      prompt: "If you want to activate execSSH enter (Y), if not (N):"
+    register: check_exec_ssh
+    when: exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Activating execSSH in Conf.php
+    replace:
+      path: /home/totum/totum-mit/Conf.php
+      regexp: "'inner'"
+      replace: "true"
+    when: exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro' and (check_exec_ssh.user_input | lower) == 'y'
+
+  - name: Append execSSH to totum_install_vars
+    lineinfile:
+      path: "{{ playbook_dir }}/totum_install_vars"
+      line: "export TOTUMEXECSSH=true"
+    when: exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  # Install Meilisearch
+
+  - name: apt install meilisearch-http
+    apt:
+      name: meilisearch-http
+      state: present
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Hold meilisearch-http package
+    command: apt-mark hold meilisearch-http
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check if meili_masterkey file exists
+    stat:
+      path: /home/totum/meili_masterkey
+    register: meili_masterkey
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Generate a random masterkey
+    set_fact:
+      random_string: "{{ lookup('password', '/dev/null', length=24) }}"
+    when: not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Write the masterkey to a file
+    copy:
+      content: "{{ random_string }}"
+      dest: /home/totum/meili_masterkey
+    become_user: totum
+    when: not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Check if MeiliSearch is running
+    shell: ps aux | grep meilisearch | grep -v grep | wc -l
+    register: meilisearch_running
+    ignore_errors: true
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Display Meilisearch process count
+    debug:
+      msg: "{{ meilisearch_running.stdout }}"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Start MeiliSearch if not running
+    shell: meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) &
+    become_user: totum
+    args:
+      chdir: /home/totum
+      executable: /bin/bash
+    when: meilisearch_running.stdout | int == 0 and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Add MeiliSearch start command to crontab for user totum
+    cron:
+      name: "Start MeiliSearch at reboot"
+      user: totum
+      special_time: reboot
+      job: "cd ~ && exec meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) > /dev/null 2>&1 &"
+    when: lookup('env', 'TOTUMVERSION') == 'pro'

@@ -206,7 +206,7 @@ echo
 fi
 
 
-if [ "$TOTUMVERSION" == "mit" ]; then
+if [ "$TOTUMVERSION" == "mit" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 
 read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if not (N) (WARNING: To install PRO, you must have access to the repository at https://github.com/totumonline/totum-pro): " CHANGE_V
 
@@ -222,7 +222,7 @@ read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if n
 
   elif [[ "$CHANGE_V" == [Nn] ]]; then
     echo
-    echo "TOTUMVERSION remains 'MIT'."
+    echo "Proceed with 'MIT'."
     echo
 
   else
@@ -235,7 +235,7 @@ read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if n
 
 else
   echo
-  echo "TOTUMVERSION is not 'MIT'. No changes made."
+  echo "- - - >"
   echo
 
 fi

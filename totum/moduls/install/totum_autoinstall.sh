@@ -173,7 +173,9 @@ source totum_install_vars
 if [[ $SKIP -eq 1 ]]
 then
 
+echo
 echo "- - - >"
+echo
 
 else
 

@@ -678,6 +678,10 @@
     set_fact:
       install_url: "{{ lookup('env', 'CERTBOTEMAIL') if check_domain != '' else lookup('env', 'TOTUMSERVIP') }}"
 
+  - name: Show install_url variable
+      debug:
+        msg: "The install_url is: {{ install_url }}"
+
   - name: Install totum via bin/totum install tool
     shell: bin/totum install --pgdump=pg_dump --psql=psql -e -- {{ lookup('env', 'TOTUMLANG') }} multi totum {{ lookup('env', 'CERTBOTEMAIL') }} {{ install_url }} admin {{ lookup('env', 'TOTUMADMINPASS') }} totum localhost totum {{ lookup('env', 'TOTUMBASEPASS') }}
     become_user: totum

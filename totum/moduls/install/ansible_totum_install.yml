@@ -16,32 +16,32 @@
     debug:
       msg: "The distribution is Ubuntu 24.04. Proceeding with tasks."
 
-#  - name: Ensure locales package is installed
-#    apt:
-#      name: locales
-#      state: present
+  - name: Ensure locales package is installed
+    apt:
+      name: locales
+      state: present
 
-#  - name: Update /etc/locale.gen to include en_US.UTF-8
-#    lineinfile:
-#      path: /etc/locale.gen
-#      regexp: '^#?en_US.UTF-8 UTF-8'
-#      line: 'en_US.UTF-8 UTF-8'
+  - name: Update /etc/locale.gen to include en_US.UTF-8
+    lineinfile:
+      path: /etc/locale.gen
+      regexp: '^#?en_US.UTF-8 UTF-8'
+      line: 'en_US.UTF-8 UTF-8'
 
-#  - name: Generate en_US.UTF-8 locale
-#    command: locale-gen
+  - name: Generate en_US.UTF-8 locale
+    command: locale-gen
 
-#  - name: Set /etc/default/locale to en_US.UTF-8
-#    copy:
-#      dest: /etc/default/locale
-#      content: LANG=en_US.UTF-8
+  - name: Set /etc/default/locale to en_US.UTF-8
+    copy:
+      dest: /etc/default/locale
+      content: LANG=en_US.UTF-8
 
-#  - name: Source /etc/default/locale to apply locale settings
-#    shell: source /etc/default/locale
-#    args:
-#      executable: /bin/bash
+  - name: Source /etc/default/locale to apply locale settings
+    shell: source /etc/default/locale
+    args:
+      executable: /bin/bash
 
-#  - name: Set the timezone
-#    command: timedatectl set-timezone {{ lookup('env', 'TOTUMTIMEZONE') }}
+  - name: Set the timezone
+    command: timedatectl set-timezone {{ lookup('env', 'TOTUMTIMEZONE') }}
 
   # Add PPA and some packages
 
@@ -57,9 +57,9 @@
       create: yes
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
-#  - name: Apt update
-#    apt:
-#      update_cache: yes
+  - name: Apt update
+    apt:
+      update_cache: yes
 
   - name: apt install some common packages
     apt:

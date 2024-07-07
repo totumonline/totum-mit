@@ -74,7 +74,7 @@ echo "1) MIT"
 echo "2) PRO (You have to have access to the PRO repository first!)"
 echo
 
-read -p "Select language: " TOTUMVERSION
+read -p "Select version: " TOTUMVERSION
 
 if [[ $TOTUMVERSION -eq 1 ]]
 then

@@ -106,7 +106,6 @@
   - name: Check TOTUMSERVIP environment variable if CERTBOTDOMAIN is empty
     set_fact:
       check_ip: "{{ lookup('env', 'TOTUMSERVIP') }}"
-    when: check_domain == ""
 
   - name: Determine external IP if CERTBOTDOMAIN and TOTUMSERVIP are empty
     set_fact:
@@ -158,6 +157,10 @@
 
   # Get a certificate
 
+  - name: Check IPDOMAIN environment variable
+    set_fact:
+      check_ip_domain: "{{ lookup('env', 'IPDOMAIN') }}"
+
   - name: Check for certbot certificate directory
     stat:
       path: /etc/letsencrypt/live/{{ lookup('env', 'CERTBOTDOMAIN') }}
@@ -168,6 +171,12 @@
     debug:
       msg: "Certificate exist!"
     when: certbot_certificate_directory.stat is defined and certbot_certificate_directory.stat.exists and check_domain != ""
+
+  - name: Stop Nginx service
+    service:
+      name: nginx
+      state: stopped
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != "" and check_ip != "" and check_ip_domain == ""
 
   - name: Run certbot dry run for check domain
     shell: "certbot certonly --standalone --dry-run --non-interactive --register-unsafely-without-email --agree-tos -d {{ lookup('env', 'CERTBOTDOMAIN') }}"
@@ -247,6 +256,12 @@
       owner: root
       group: root
     when: check_domain != ""
+
+  - name: Start Nginx service
+    service:
+      name: nginx
+      state: started
+    when: certbot_certificate_directory.stat is defined and not certbot_certificate_directory.stat.exists and check_domain != "" and check_ip != "" and check_ip_domain == ""
 
   # Create a user
 
@@ -555,7 +570,7 @@
       group: root
     when: not totum_online_conf.stat.exists and check_domain != ""
 
-  - name: Download totum.online.conf
+  - name: Download totum.online.conf.ip
     get_url:
       url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum.online.conf.ip
       dest: /etc/nginx/sites-available/totum.online.conf
@@ -676,7 +691,7 @@
 
   - name: Set install_url based on check_domain
     set_fact:
-      install_url: "{{ lookup('env', 'CERTBOTEMAIL') if check_domain != '' else ip_for_install }}"
+      install_url: "{{ lookup('env', 'CERTBOTDOMAIN') if check_domain != '' else ip_for_install }}"
 
   - name: Show install_url variable
     debug:
@@ -942,6 +957,61 @@
       special_time: reboot
       job: "cd ~ && exec meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) > /dev/null 2>&1 &"
     when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+
+  # Chane IP to DOMAIN
+
+  - name: Check IPDOMAIN environment variable
+    set_fact:
+      check_ip_domain: "{{ lookup('env', 'IPDOMAIN') }}"
+
+  - name: Check if file folder exists
+    stat:
+      path: /home/totum/totum-mit/totum/fls/{{ lookup('env', 'TOTUMSERVIP') }}
+    register: file_folder
+    when: check_domain != "" and check_ip != "" and check_ip_domain == ""
+
+  - name: Check if secureFiles folder exists
+    stat:
+      path: /home/totum/totum-mit/secureFiles/{{ lookup('env', 'TOTUMSERVIP') }}
+    register: secure_file_folder
+    when: check_domain != "" and check_ip != "" and check_ip_domain == ""
+
+  - name: Switch IP to Domain - Download totum.online.conf
+    get_url:
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum.online.conf
+      dest: /etc/nginx/sites-available/totum.online.conf
+      owner: root
+      group: root
+    when: check_domain != "" and check_ip != "" and check_ip_domain == ""
+
+  - name: Switch IP to Domain - Replace domain in totum.online.conf
+    replace:
+      path: /etc/nginx/sites-available/totum.online.conf
+      regexp: 'YOUR_DOMAIN'
+      replace: "{{ lookup('env', 'CERTBOTDOMAIN') }}"
+    when: check_domain != "" and check_ip != "" and check_ip_domain == ""
+
+  - name: Replace IP with DOMAIN in Conf.php
+    replace:
+      path: /home/totum/totum-mit/Conf.php
+      regexp: "{{ lookup('env', 'TOTUMSERVIP') }}"
+      replace: "{{ lookup('env', 'CERTBOTDOMAIN') }}"
+    when: check_domain != "" and check_ip != "" and check_ip_domain == ""
+
+  - name: Move totum fls directory
+    command: mv /home/totum/totum-mit/totum/fls/{{ lookup('env', 'TOTUMSERVIP') }} /home/totum/totum-mit/totum/fls/{{ lookup('env', 'CERTBOTDOMAIN') }}
+    when: file_folder.stat is defined and file_folder.stat.exists and check_domain != "" and check_ip != "" and check_ip_domain == ""
+
+  - name: Move secureFiles directory
+    command: mv /home/totum/totum-mit/secureFiles/{{ lookup('env', 'TOTUMSERVIP') }} /home/totum/totum-mit/secureFiles/{{ lookup('env', 'CERTBOTDOMAIN') }}
+    when: secure_file_folder.stat is defined and secure_file_folder.stat.exists and check_domain != "" and check_ip != "" and check_ip_domain == ""
+
+  - name: Append IPDOMAIN to totum_install_vars
+    lineinfile:
+      path: "{{ playbook_dir }}/totum_install_vars"
+      line: "export IPDOMAIN=true"
+    when: check_domain != "" and check_ip != "" and check_ip_domain == ""
 
   # Final
 

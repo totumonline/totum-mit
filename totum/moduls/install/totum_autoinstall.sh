@@ -37,7 +37,7 @@ echo -e "\033[43m\033[30m   TOTUM AUTOINSTALL SCRIPT                            
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[30m   This install script will help you to install Totum online             \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
-echo -e "\033[43m\033[30m   \033[43m\033[31mONLY ON CLEAR!!! Ubuntu 20 \033[43m\033[30mwith SSL certificate.                      \033[0m"
+echo -e "\033[43m\033[30m   \033[43m\033[31mONLY ON CLEAR!!! Ubuntu 24.04 \033[43m\033[30mwith SSL certificate.                   \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[30m   For success you have to \033[43m\033[31mDELEGATE A VALID DOMAIN \033[43m\033[30mto this server.       \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
@@ -85,8 +85,6 @@ then
 else
   TOTUMVERSION=mit
 fi
-
-
 
 read -p "Enter your email: " CERTBOTEMAIL
 
@@ -208,6 +206,26 @@ if ! command -v ansible >/dev/null 2>&1; then
 
 else
   echo "Ansible already installed..."
+fi
+
+if [ -f "ansible_totum_install.yml" ]; then
+  echo
+  echo -e "\033[1mAnsible playbook downloaded — continuing the installation...\033[0m"
+  echo
+else
+
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/ansible_totum_install.yml
+
+fi
+
+if [ -f "ansible_localhost" ]; then
+  echo
+  echo -e "\033[1mAnsible localhost settings exist — continuing the installation...\033[0m"
+  echo
+else
+
+echo -e "[local]\nlocalhost ansible_connection=local" > ansible_localhost
+
 fi
 
 if [[ $EUID -eq 0 ]]

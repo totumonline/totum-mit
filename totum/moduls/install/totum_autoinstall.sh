@@ -168,7 +168,7 @@ SKIP=1
 
 fi
 
-sudo source totum_install_vars
+source totum_install_vars
 
 if [[ $SKIP -eq 1 ]]
 then
@@ -206,7 +206,7 @@ read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'pro' enter (A) if n
 
     sudo sed -i 's/export TOTUMVERSION=mit/export TOTUMVERSION=pro/' totum_install_vars
 
-    sudo source totum_install_vars
+    source totum_install_vars
 
     echo
     echo "TOTUMVERSION has been changed to 'pro' and totum_install_vars has been reloaded."

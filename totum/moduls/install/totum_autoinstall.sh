@@ -90,7 +90,7 @@ read -p "Enter your email: " CERTBOTEMAIL
 
 read -p "Create Totum superuser password: " TOTUMADMINPASS
 
-read -p "Enter domain without http/https delegated! to this server like totum.online: " CERTBOTDOMAIN
+read -p "Enter domain without http/https delegated! to this server like totum.online If you want to install without a domain and certificates, leave it BLANK and press (ENTER): " CERTBOTDOMAIN
 
 echo
 echo "1) EN"
@@ -168,7 +168,7 @@ SKIP=1
 
 fi
 
-source totum_install_vars
+sudo source totum_install_vars
 
 if [[ $SKIP -eq 1 ]]
 then
@@ -196,6 +196,45 @@ echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
 
 fi
+
+
+if [ "$TOTUMVERSION" == "mit" ]; then
+
+read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'pro' enter (A) if not (N) (WARNING: To install PRO, you must have access to the repository at https://github.com/totumonline/totum-pro): " CHANGE_V
+
+  if [[ "$CHANGE_V" == [Aa] ]]; then
+
+    sudo sed -i 's/export TOTUMVERSION=mit/export TOTUMVERSION=pro/' totum_install_vars
+
+    sudo source totum_install_vars
+
+    echo
+    echo "TOTUMVERSION has been changed to 'pro' and totum_install_vars has been reloaded."
+    echo
+
+  elif [[ "$CHANGE_V" == [Nn] ]]; then
+
+    echo
+    echo "TOTUMVERSION remains 'mit'."
+    echo
+
+  else
+
+    echo
+    echo "Invalid input. Script aborted."
+    echo
+    exit 1
+
+  fi
+
+else
+
+  echo
+  echo "TOTUMVERSION is not 'mit'. No changes made."
+  echo
+
+fi
+
 
 if ! command -v ansible >/dev/null 2>&1; then
   echo "apt install ansible"

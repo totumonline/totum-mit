@@ -37,9 +37,9 @@ echo -e "\033[43m\033[30m   TOTUM AUTOINSTALL SCRIPT                            
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[30m   This install script will help you to install Totum online             \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
-echo -e "\033[43m\033[30m   \033[43m\033[31mONLY ON CLEAR!!! Ubuntu 24.04 \033[43m\033[30mwith SSL certificate.                   \033[0m"
+echo -e "\033[43m\033[30m   \033[43m\033[31mONLY ON CLEAR!!! Ubuntu 24.04 \033[43m\033[30mwith or without SSL certificate.        \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
-echo -e "\033[43m\033[30m   For success you have to \033[43m\033[31mDELEGATE A VALID DOMAIN \033[43m\033[30mto this server.       \033[0m"
+echo -e "\033[43m\033[30m   For SSL you have to \033[43m\033[31mDELEGATE A VALID DOMAIN \033[43m\033[30mto this server.           \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[30m   If you not shure about you domain — cansel this install and check:    \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
@@ -137,7 +137,7 @@ echo
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
 
-read -p "If you ready to install with this params type (A) or cancel Ctrl + C: " TOTUMRUN2
+read -p "If you ready to install with this params type (A) or cancel (Ctrl + C): " TOTUMRUN2
 
 if [[ $TOTUMRUN2 = "A" ]]
 then

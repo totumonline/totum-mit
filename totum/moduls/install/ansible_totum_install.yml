@@ -115,14 +115,14 @@
 
   - name: Show determined external IP and confirm
     pause:
-      prompt: "Determined external IP is {{ external_ip }}. Is this the correct external IP of the server? Type (Y) or (N)"
+      prompt: "Determined external IP is {{ external_ip }}. Is this the correct external IP of the server? Type (A) or (N)"
     register: ip_confirmation
     when: check_domain == "" and check_ip == ""
 
   - name: Fail if the user gave an incorrect answer
     fail:
       msg: "Aborted by user"
-    when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) not in ['y', 'n']
+    when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) not in ['a', 'n']
 
 
   - name: Prompt for correct external IP if necessary
@@ -133,14 +133,14 @@
 
   - name: Confirm entered external IP
     pause:
-      prompt: "You entered {{ new_external_ip.user_input }}. Is this correct? Type (Y) or (Ctrl + C)"
+      prompt: "You entered {{ new_external_ip.user_input }}. Is this correct? Type (A) or (Ctrl + C)"
     register: confirm_correct_ip
     when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
 
   - name: Fail if user did not confirm correct IP
     fail:
       msg: "Aborted by user"
-    when: confirm_correct_ip.user_input is defined and (confirm_correct_ip.user_input | lower) != 'y' and check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
+    when: confirm_correct_ip.user_input is defined and (confirm_correct_ip.user_input | lower) != 'a' and check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
 
   - name: Set final external IP
     set_fact:
@@ -303,28 +303,28 @@
     pause:
       prompt: "Enter your GitHub EMAIL:"
     register: github_email_new
-    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Confirm the GitHub email
     pause:
       prompt: "You entered '{{ github_email_new.user_input }}'. If you are ready to go, type (A) or cancel (Ctrl + C):"
     register: check_github_email_new
-    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Check confirmation input
     fail:
       msg: "Operation cancelled by the user."
-    when: github_email == "" and check_github_email_new.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_email is defined and github_email == "" and check_github_email_new.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Append GitHub email to totum_install_vars
     lineinfile:
       path: "{{ playbook_dir }}/totum_install_vars"
       line: "export TOTUMGITHUBEMAIL={{ github_email_new.user_input }}"
-    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Export GitHub email variable
     shell: export TOTUMGITHUBEMAIL={{ github_email_new.user_input }}
-    when: github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Check TOTUMGITHUBUSER environment variable
     set_fact:
@@ -335,28 +335,28 @@
     pause:
       prompt: "Enter your GitHub USERNAME:"
     register: github_user_new
-    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Confirm the GitHub user
     pause:
       prompt: "You entered '{{ github_user_new.user_input }}'. If you are ready to go, type (A) or cancel (Ctrl + C):"
     register: check_github_user_new
-    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Check confirmation input
     fail:
       msg: "Operation cancelled by the user."
-    when: github_user == "" and check_github_user_new.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_user is defined and github_user == "" and check_github_user_new.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Append GitHub user to totum_install_vars
     lineinfile:
       path: "{{ playbook_dir }}/totum_install_vars"
       line: "export TOTUMGITHUBUSER={{ github_user_new.user_input }}"
-    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Export GitHub user variable
     shell: export TOTUMGITHUBUSER={{ github_user_new.user_input }}
-    when: github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Configure Git User for PRO
 
@@ -402,23 +402,23 @@
     become_user: totum
     shell: cat ~/.ssh/totum_pro_key.pub
     register: ssh_public_key
-    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Display message to add SSH key to GitHub
     debug:
       msg: "Go to the GitHub page https://github.com/settings/keys and add the key in the SSH keys section (New SSH Key). Enter a title and paste the key string: {{ ssh_public_key.stdout }}"
-    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Confirm the GitHub key created
     pause:
       prompt: "If you already added the key to GitHub and ready to go, type (A) or cancel (Ctrl + C):"
     register: check_github_key
-    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Check confirmation input
     fail:
       msg: "Operation cancelled by the user."
-    when: github_connect == "" and check_github_key.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and check_github_key.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Check GitHub connection for PRO
 
@@ -426,7 +426,7 @@
     apt:
       name: python3-pexpect
       state: present
-    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Perform SSH to GitHub
     become_user: totum
@@ -437,18 +437,18 @@
           ".*yes/no.*": "yes"
     register: ssh_output
     failed_when: '"successfully authenticated" not in ssh_output.stdout'
-    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Debug SSH output
     debug:
       msg: "{{ ssh_output.stdout }}"
-    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Append GitHub connect to totum_install_vars
     lineinfile:
       path: "{{ playbook_dir }}/totum_install_vars"
       line: "export TOTUMGITHUBCONNECT=true"
-    when: github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Install PHP and modules
 
@@ -674,12 +674,12 @@
       path: /home/totum/totum-mit/Conf.php
     register: conf_php
 
-  - name: Export IP to CERTBOTDOMAIN user variable
-    shell: export CERTBOTDOMAIN={{ lookup('env', 'TOTUMSERVIP') }}
-    when: check_domain == "" and not conf_php.stat.exists
+  - name: Set install_url based on check_domain
+    set_fact:
+      install_url: "{{ lookup('env', 'CERTBOTEMAIL') if check_domain != '' else lookup('env', 'TOTUMSERVIP') }}"
 
   - name: Install totum via bin/totum install tool
-    shell: bin/totum install --pgdump=pg_dump --psql=psql -e -- {{ lookup('env', 'TOTUMLANG') }} multi totum {{ lookup('env', 'CERTBOTEMAIL') }} {{ lookup('env', 'CERTBOTDOMAIN') }} admin {{ lookup('env', 'TOTUMADMINPASS') }} totum localhost totum {{ lookup('env', 'TOTUMBASEPASS') }}
+    shell: bin/totum install --pgdump=pg_dump --psql=psql -e -- {{ lookup('env', 'TOTUMLANG') }} multi totum {{ lookup('env', 'CERTBOTEMAIL') }} {{ install_url }} admin {{ lookup('env', 'TOTUMADMINPASS') }} totum localhost totum {{ lookup('env', 'TOTUMBASEPASS') }}
     become_user: totum
     args:
       chdir: /home/totum/totum-mit
@@ -810,6 +810,7 @@
       weekday: "*"
       user: "root"
       job: "certbot renew --quiet --allow-subset-of-names"
+    when: check_domain != ""
 
   - name: Add cron job for totum schemas-crons
     cron:
@@ -864,22 +865,22 @@
 
   - name: Confirm activating execSSH
     pause:
-      prompt: "If you want to activate execSSH enter (Y), if not (N):"
+      prompt: "If you want to activate execSSH enter (A), if not (N):"
     register: check_exec_ssh
-    when: exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: exec_ssh is defined and exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Activating execSSH in Conf.php
     replace:
       path: /home/totum/totum-mit/Conf.php
       regexp: "'inner'"
       replace: "true"
-    when: exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro' and (check_exec_ssh.user_input | lower) == 'y'
+    when: exec_ssh is defined and exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro' and (check_exec_ssh.user_input | lower) == 'a'
 
   - name: Append execSSH to totum_install_vars
     lineinfile:
       path: "{{ playbook_dir }}/totum_install_vars"
       line: "export TOTUMEXECSSH=true"
-    when: exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: exec_ssh is defined and exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Install Meilisearch
 
@@ -902,14 +903,14 @@
   - name: Generate a random masterkey
     set_fact:
       random_string: "{{ lookup('password', '/dev/null', length=24) }}"
-    when: not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: meili_masterkey.stat is defined and not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Write the masterkey to a file
     copy:
       content: "{{ random_string }}"
       dest: /home/totum/meili_masterkey
     become_user: totum
-    when: not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: meili_masterkey.stat is defined and not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Check if MeiliSearch is running
     shell: ps aux | grep meilisearch | grep -v grep | wc -l
@@ -928,7 +929,7 @@
     args:
       chdir: /home/totum
       executable: /bin/bash
-    when: meilisearch_running.stdout | int == 0 and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: meilisearch_running.stdout is defined and meilisearch_running.stdout | int == 0 and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Add MeiliSearch start command to crontab for user totum
     cron:
@@ -937,3 +938,19 @@
       special_time: reboot
       job: "cd ~ && exec meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) > /dev/null 2>&1 &"
     when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  # Final
+
+  - name: Show installation completion message
+    debug:
+      msg: "NOW YOU CAN OPEN YOUR BROWSER AT HTTP://{{ install_url }} AND LOGIN AS admin AND {{ lookup('env', 'TOTUMADMINPASS') }}"
+
+  - name: Ask to upgrade software on the server
+    pause:
+      prompt: "Do you want to upgrade the software on the server? If yes, enter (A). If no, enter (N)"
+    register: upgrade_response
+
+  - name: Perform apt upgrade if user agreed
+    apt:
+      upgrade: safe
+    when: upgrade_response.user_input | lower == 'a'

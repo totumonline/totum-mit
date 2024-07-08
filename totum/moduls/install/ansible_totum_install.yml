@@ -114,7 +114,7 @@
 
   - name: Show determined external IP and confirm
     pause:
-      prompt: "Determined external IP is {{ external_ip }}. Is this the correct external IP of the server? Type (A) or (N)"
+      prompt: "Determined external IP is '{{ external_ip }}'. Is this the correct external IP of the server? Type (A) or (N)"
     register: ip_confirmation
     when: check_domain == "" and check_ip == ""
 
@@ -125,13 +125,13 @@
 
   - name: Prompt for correct external IP if necessary
     pause:
-      prompt: "Please enter the correct external IP:"
+      prompt: "Please enter the correct external IP"
     register: new_external_ip
     when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
 
   - name: Confirm entered external IP
     pause:
-      prompt: "You entered {{ new_external_ip.user_input }}. Is this correct? Type (A) or (Ctrl + C)"
+      prompt: "You entered '{{ new_external_ip.user_input }}'. If this is correct, type (A) or cancel (Ctrl + C)"
     register: confirm_correct_ip
     when: check_domain == "" and check_ip == "" and ip_confirmation.user_input is defined and (ip_confirmation.user_input | lower) == 'n'
 
@@ -315,13 +315,13 @@
 
   - name: Prompt for GitHub email if not set
     pause:
-      prompt: "Enter your GitHub EMAIL:"
+      prompt: "Enter your GitHub EMAIL"
     register: github_email_new
     when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Confirm the GitHub email
     pause:
-      prompt: "You entered '{{ github_email_new.user_input }}'. If you are ready to go, type (A) or cancel (Ctrl + C):"
+      prompt: "You entered '{{ github_email_new.user_input }}'. If this is correct, type (A) or cancel (Ctrl + C)"
     register: check_github_email_new
     when: github_email is defined and github_email == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
@@ -348,13 +348,13 @@
 
   - name: Prompt for GitHub user if not set
     pause:
-      prompt: "Enter your GitHub USERNAME:"
+      prompt: "Enter your GitHub USERNAME"
     register: github_user_new
     when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Confirm the GitHub user
     pause:
-      prompt: "You entered '{{ github_user_new.user_input }}'. If you are ready to go, type (A) or cancel (Ctrl + C):"
+      prompt: "You entered '{{ github_user_new.user_input }}'. If this is correct, type (A) or cancel (Ctrl + C)"
     register: check_github_user_new
     when: github_user is defined and github_user == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
@@ -429,7 +429,7 @@
 
   - name: Confirm the GitHub key created
     pause:
-      prompt: "If you already added the key to GitHub and ready to go, type (A) or cancel (Ctrl + C):"
+      prompt: "If you already added the key to GitHub and ready to go, type (A) or cancel (Ctrl + C)"
     register: check_github_key
     when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro' and lookup('env', 'TOTUMKEYURL') == ""
 
@@ -901,7 +901,7 @@
 
   - name: Confirm activating execSSH
     pause:
-      prompt: "If you want to activate execSSH enter (A), if not (N):"
+      prompt: "If you want to activate execSSH type (A), if not (N)"
     register: check_exec_ssh
     when: exec_ssh is defined and exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
@@ -1043,7 +1043,7 @@
 
   - name: Ask to upgrade software on the server
     pause:
-      prompt: "Do you want to upgrade the software on the server? If yes, enter (A). If no, enter (N)"
+      prompt: "Do you want to upgrade the software on the server? If yes, type (A) or (N)"
     register: upgrade_response
 
   - name: Perform apt upgrade if user agreed

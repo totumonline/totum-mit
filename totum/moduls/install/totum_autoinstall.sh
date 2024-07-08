@@ -1,7 +1,18 @@
 #!/bin/bash
 
-if [ -f "totum_install_vars" ]; then
+if [[ $(sudo cat /etc/issue | grep -c 'Ubuntu 24.04') -ne 1 ]]
+then
   echo
+  echo "THIS SERVER IS NOT A UBUNTU 24.04 CHECK: sudo cat /etc/issue"
+  echo
+  exit 0
+else
+  echo
+  echo "Ubuntu version is OK. Let's go..."
+  echo
+fi
+
+if [ -f "totum_install_vars" ]; then
   echo -e "\033[1mFile 'totum_install_vars' exists — continuing the installation...\033[0m"
   echo
 else

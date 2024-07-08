@@ -423,7 +423,7 @@
 
   - name: Display message to add SSH key to GitHub
     debug:
-      msg: "Go to the GitHub page https://github.com/settings/keys and add the key in the SSH keys section (New SSH Key). Enter a title and paste the key string: {{ ssh_public_key.stdout }}"
+      msg: "Go to the GitHub page https://github.com/settings/keys and add SSH Key: {{ ssh_public_key.stdout }}"
     when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro' and lookup('env', 'TOTUMKEYURL') == ""
 
   - name: Confirm the GitHub key created

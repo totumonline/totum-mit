@@ -1022,6 +1022,12 @@
     command: mv /home/totum/totum-mit/secureFiles/{{ lookup('env', 'TOTUMSERVIP') }} /home/totum/totum-mit/secureFiles/{{ lookup('env', 'CERTBOTDOMAIN') }}
     when: secure_file_folder.stat is defined and secure_file_folder.stat.exists and check_domain != "" and check_ip != "" and check_ip_domain == ""
 
+  - name: Restart Nginx service
+    service:
+      name: nginx
+      state: restarted
+    when: check_domain != "" and check_ip != "" and check_ip_domain == ""
+
   - name: Append IPDOMAIN to totum_install_vars
     lineinfile:
       path: "{{ playbook_dir }}/totum_install_vars"

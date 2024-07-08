@@ -295,7 +295,7 @@ echo
 else
 
   echo
-  echo "TOTUMVERSION is not 'MIT'. No changes made."
+  echo "Skip..."
   echo
 
 fi

@@ -263,10 +263,10 @@ echo
   fi
 fi
 
-if [ "$TOTUMVERSION" == "mit" ]; then
+if [ "$TOTUMVERSION" == "mit" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
-echo "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if not (N)"
+echo "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A)."
 echo "WARNING: To install 'PRO', you must have access to the repository at https://github.com/totumonline/totum-pro"
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo

@@ -295,7 +295,7 @@ echo
 else
 
   echo
-  echo "TOTUMVERSION is not 'mit'. No changes made."
+  echo "TOTUMVERSION is not 'MIT'. No changes made."
   echo
 
 fi
@@ -311,7 +311,7 @@ if [ -z "$CERTBOTDOMAIN" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 
     read -p "Enter domain without http/https delegated! to this server like totum.online: " CERTBOTDOMAIN
     echo
-    read -p "You have entered $CERTBOTDOMAIN. To confirm and proceed, enter (A). To abort, press (Ctrl + C): " CONFIRM_D
+    read -p "You have entered $CERTBOTDOMAIN, to confirm enter (A) or (Ctrl + C) to abort: " CONFIRM_D
     echo
       if [[ "$CONFIRM_D" == [Aa] ]]; then
 

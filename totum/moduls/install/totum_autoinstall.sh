@@ -86,13 +86,9 @@ else
   TOTUMVERSION=mit
 fi
 
-echo
-
 read -p "Enter your email: " CERTBOTEMAIL
-echo
 
 read -p "Create Totum superuser password: " TOTUMADMINPASS
-echo
 
 read -p "Enter domain without http/https delegated! to this server like totum.online If you want to install without a domain and certificates, leave it BLANK and press (ENTER): " CERTBOTDOMAIN
 
@@ -122,7 +118,6 @@ else
 fi
 
 echo
-echo
 echo "- - - - - - - - - - - - - - - - - - - - - -"
 echo
 echo -e "\033[1mCheck you settings:\033[0m"
@@ -140,7 +135,6 @@ echo
 echo -e "\033[1mLang:\033[0m " $TOTUMLANG
 echo
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
-echo
 echo
 
 read -p "If you ready to install with this params type (A) or cancel (Ctrl + C): " TOTUMRUN2
@@ -174,6 +168,48 @@ SKIP=1
 
 fi
 
+if [ $# -ge 1 ]; then
+    TOTUMGITHUBUSER=$1
+    if ! grep -q "export TOTUMGITHUBUSER=" totum_install_vars; then
+      echo "export TOTUMGITHUBUSER=$TOTUMGITHUBUSER" >> totum_install_vars
+      echo
+      echo "$TOTUMGITHUBUSER has been written to totum_install_vars"
+      echo
+      else
+      echo
+      echo "TOTUMGITHUBUSER already exists in totum_install_vars"
+      echo
+    fi
+fi
+
+if [ $# -ge 2 ]; then
+    TOTUMGITHUBEMAIL=$2
+    if ! grep -q "export TOTUMGITHUBEMAIL=" totum_install_vars; then
+      echo "export TOTUMGITHUBEMAIL=$TOTUMGITHUBEMAIL" >> totum_install_vars
+      echo
+      echo "$TOTUMGITHUBEMAIL has been written to totum_install_vars"
+      echo
+      else
+      echo
+      echo "TOTUMGITHUBEMAIL already exists in totum_install_vars"
+      echo
+    fi
+fi
+
+if [ $# -ge 3 ]; then
+    TOTUMKEYURL=$3
+if ! grep -q "export TOTUMKEYURL=" totum_install_vars; then
+      echo "export TOTUMKEYURL=$TOTUMKEYURL" >> totum_install_vars
+      echo
+      echo "$TOTUMKEYURL has been written to totum_install_vars"
+      echo
+      else
+      echo
+      echo "TOTUMKEYURL already exists in totum_install_vars"
+      echo
+    fi
+fi
+
 source totum_install_vars
 
 if [[ $SKIP -eq 1 ]]
@@ -200,15 +236,40 @@ echo -e "\033[1mDomain:\033[0m " $CERTBOTDOMAIN
 echo
 echo -e "\033[1mLang:\033[0m " $TOTUMLANG
 echo
+if [ -n "$TOTUMGITHUBUSER" ]; then
+echo -e "\033[1mGitHub_user:\033[0m " $TOTUMGITHUBUSER
+echo
+fi
+if [ -n "$TOTUMGITHUBEMAIL" ]; then
+echo -e "\033[1mGitHub_email:\033[0m " $TOTUMGITHUBEMAIL
+echo
+fi
+if [ -n "$TOTUMKEYURL" ]; then
+echo -e "\033[1mGitHub_key_url:\033[0m " $TOTUMKEYURL
+echo
+fi
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
+echo
+
+read -p "Would you like to continue with the installation or reconfiguration? Press (A) to continue or (Ctrl + C) to abort: " CONTINUE
+
+  if [[ "$CONTINUE" == [Aa] ]]; then
+    echo
+    echo "Continuing the installation"
+    echo
+  else
+    echo
+    echo "Invalid input. Script aborted."
+    echo
+    exit 1
+  fi
 
 fi
 
+if [ "$TOTUMVERSION" == "mit" ]; then
 
-if [ "$TOTUMVERSION" == "mit" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
-
-read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if not (N) (WARNING: To install PRO, you must have access to the repository at https://github.com/totumonline/totum-pro): " CHANGE_V
+read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'pro' enter (A) if not (N) (WARNING: To install PRO, you must have access to the repository at https://github.com/totumonline/totum-pro): " CHANGE_V
 
   if [[ "$CHANGE_V" == [Aa] ]]; then
 
@@ -217,15 +278,17 @@ read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if n
     source totum_install_vars
 
     echo
-    echo "TOTUMVERSION has been changed to 'PRO' and totum_install_vars has been reloaded."
+    echo "TOTUMVERSION has been changed to 'pro' and totum_install_vars has been reloaded."
     echo
 
   elif [[ "$CHANGE_V" == [Nn] ]]; then
+
     echo
-    echo "Proceed with 'MIT'."
+    echo "TOTUMVERSION remains 'mit'."
     echo
 
   else
+
     echo
     echo "Invalid input. Script aborted."
     echo
@@ -234,8 +297,9 @@ read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if n
   fi
 
 else
+
   echo
-  echo "- - - >"
+  echo "TOTUMVERSION is not 'mit'. No changes made."
   echo
 
 fi
@@ -246,10 +310,8 @@ if [ -z "$CERTBOTDOMAIN" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 
   if [[ "$CHANGE_D" == [Aa] ]]; then
 
-    echo
     read -p "Enter domain without http/https delegated! to this server like totum.online: " CERTBOTDOMAIN
 
-    echo
     read -p "You have entered $CERTBOTDOMAIN. To confirm and proceed, enter (A). To abort, press (Ctrl + C): " CONFIRM_D
 
       if [[ "$CONFIRM_D" == [Aa] ]]; then
@@ -261,6 +323,7 @@ if [ -z "$CERTBOTDOMAIN" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
         echo
 
       else
+
         echo
         echo "Invalid input. Script aborted."
         echo
@@ -268,11 +331,13 @@ if [ -z "$CERTBOTDOMAIN" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
       fi
 
   elif [[ "$CHANGE_D" == [Nn] ]]; then
+
     echo
     echo "No changes made. Proceed without domain."
     echo
 
   else
+
     echo
     echo "Invalid input. Script aborted."
     echo

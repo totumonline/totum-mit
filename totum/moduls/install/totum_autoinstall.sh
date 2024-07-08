@@ -35,7 +35,7 @@ echo -e "\033[43m\033[30m- - - - - - - - - - - - - - - - - - - - - - - - - - - -
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[30m   TOTUM AUTOINSTALL SCRIPT                                              \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
-echo -e "\033[43m\033[30m   This install script will help you to install MIT/PRO Totum online     \033[0m"
+echo -e "\033[43m\033[30m   This install script will help you to install MIT/PRO Totum online.    \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[30m   \033[43m\033[31mONLY ON CLEAR!!! Ubuntu 24.04 \033[43m\033[30mwith or without SSL certificate.        \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
@@ -45,7 +45,7 @@ echo -e "\033[43m\033[30m   If you not shure about you domain — cansel this in
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[31m   ping YOU_DOMAIN                                                       \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
-echo -e "\033[43m\033[30m   If you want to install without a domain, leave the field empty.       \033[0m"
+echo -e "\033[43m\033[30m   To install without a domain, leave the domain field empty.            \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
 echo -e "\033[43m\033[30m   You will be able to add a domain and switch between MIT/PRO later.    \033[0m"
 echo -e "\033[43m\033[30m                                                                         \033[0m"
@@ -79,7 +79,7 @@ echo "2) PRO (You have to have access to the PRO repository first!)"
 echo
 
 read -p "Select version: " TOTUMVERSION
-
+echo
 if [[ $TOTUMVERSION -eq 1 ]]
 then
   TOTUMVERSION=mit
@@ -94,7 +94,13 @@ read -p "Enter your email: " CERTBOTEMAIL
 echo
 read -p "Create Totum superuser password: " TOTUMADMINPASS
 echo
-read -p "Enter domain without http/https delegated! to this server like totum.online If you want to install without a domain and certificates, leave it BLANK and press (ENTER). You will be able to add a domain later: " CERTBOTDOMAIN
+echo "- - - - - - - - - - - - - - - - - - - - - -"
+echo "Enter domain without http/https delegated! to this server, like totum.online"
+echo "If you want to install without a domain and certificates, leave it BLANK and press (ENTER)."
+echo "You will be able to add a domain later."
+echo "- - - - - - - - - - - - - - - - - - - - - -"
+echo
+read -p "Enter domain or leave this field empty: " CERTBOTDOMAIN
 
 echo
 echo "1) EN"

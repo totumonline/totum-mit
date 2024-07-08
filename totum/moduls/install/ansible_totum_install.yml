@@ -373,22 +373,6 @@
       set_github_user: "{{ lookup('env', 'TOTUMGITHUBUSER') if github_user != '' else github_user_new.user_input }}"
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
-  # Configure Git User for PRO
-
-  - name: Configure Git user.name
-    become_user: totum
-    shell: git config --local user.name "{{ set_github_user }}"
-    args:
-      chdir: /home/totum/totum-mit
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Configure Git user.email
-    become_user: totum
-    shell: git config --local user.email "{{ set_github_email }}"
-    args:
-      chdir: /home/totum/totum-mit
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
   # Create GitHub key for PRO
 
   - name: Check if totum_pro_key exist
@@ -452,36 +436,6 @@
     fail:
       msg: "Operation cancelled by the user."
     when: github_connect is defined and github_connect == "" and check_github_key.user_input is defined and check_github_key.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro' and lookup('env', 'TOTUMKEYURL') == ""
-
-  # Check GitHub connection for PRO
-
-  - name: Ensure pexpect is installed
-    apt:
-      name: python3-pexpect
-      state: present
-    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Perform SSH to GitHub
-    become_user: totum
-    expect:
-      command: ssh -T git@github.com
-      chdir: /home/totum/totum-mit
-      responses:
-          ".*yes/no.*": "yes"
-    register: ssh_output
-    failed_when: '"successfully authenticated" not in ssh_output.stdout'
-    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Debug SSH output
-    debug:
-      msg: "{{ ssh_output.stdout }}"
-    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Append GitHub connect to totum_install_vars
-    lineinfile:
-      path: "{{ playbook_dir }}/totum_install_vars"
-      line: "export TOTUMGITHUBCONNECT=true"
-    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Install PHP and modules
 
@@ -747,6 +701,52 @@
       regexp: "\\/\\*'secure' => true,\\*\\/"
       replace: "'secure' => true,"
     when: check_domain != ""
+
+  # Configure Git User for PRO
+
+  - name: Configure Git user.name
+    become_user: totum
+    shell: git config --local user.name "{{ set_github_user }}"
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Configure Git user.email
+    become_user: totum
+    shell: git config --local user.email "{{ set_github_email }}"
+    args:
+      chdir: /home/totum/totum-mit
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  # Check GitHub connection for PRO
+
+  - name: Ensure pexpect is installed
+    apt:
+      name: python3-pexpect
+      state: present
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Perform SSH to GitHub
+    become_user: totum
+    expect:
+      command: ssh -T git@github.com
+      chdir: /home/totum/totum-mit
+      responses:
+          ".*yes/no.*": "yes"
+    register: ssh_output
+    failed_when: '"successfully authenticated" not in ssh_output.stdout'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Debug SSH output
+    debug:
+      msg: "{{ ssh_output.stdout }}"
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Append GitHub connect to totum_install_vars
+    lineinfile:
+      path: "{{ playbook_dir }}/totum_install_vars"
+      line: "export TOTUMGITHUBCONNECT=true"
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Switch to the PRO repository
 

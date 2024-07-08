@@ -226,7 +226,7 @@ echo "- - - - - - - - - - - - - - - - - - - - - -"
 echo
 echo -e "\033[1mTimezone:\033[0m " $TOTUMTIMEZONE
 echo
-echo -e "\033[1mVersion:\033[0m "$TOTUMVERSION
+echo -e "\033[1mVersion:\033[0m " $TOTUMVERSION
 echo
 echo -e "\033[1mEmail:\033[0m " $CERTBOTEMAIL
 echo
@@ -302,7 +302,7 @@ fi
 
 if [ -z "$CERTBOTDOMAIN" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
   echo "- - - - - - - - - - - - - - - - - - - - - - -"
-  echo "Your installation is currently without a domain. Would you like to add a DOMAIN and SSL?"
+  echo "Your installation is currently without a domain. Would you like to add a domain and SSL?"
   echo "- - - - - - - - - - - - - - - - - - - - - - -"
   echo
   read -p "Enter (A) to set it or (N) to proceed without changes: " CHANGE_D
@@ -311,7 +311,7 @@ if [ -z "$CERTBOTDOMAIN" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 
     read -p "Enter domain without http/https delegated! to this server like totum.online: " CERTBOTDOMAIN
     echo
-    read -p "You have entered $CERTBOTDOMAIN, to confirm enter (A) or (Ctrl + C) to abort: " CONFIRM_D
+    read -p "You have entered '$CERTBOTDOMAIN', to confirm enter (A) or (Ctrl + C) to abort: " CONFIRM_D
     echo
       if [[ "$CONFIRM_D" == [Aa] ]]; then
 

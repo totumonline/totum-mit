@@ -20,25 +20,15 @@
     apt:
       name: locales
       state: present
+      
+  - name: Check if LANG=en_US.UTF-8 is set
+    shell: locale | grep -c 'LANG=en_US.UTF-8'
+    register: locale_check
 
-  - name: Update /etc/locale.gen to include en_US.UTF-8
-    lineinfile:
-      path: /etc/locale.gen
-      regexp: '^#?en_US.UTF-8 UTF-8'
-      line: 'en_US.UTF-8 UTF-8'
-
-  - name: Generate en_US.UTF-8 locale
-    command: locale-gen
-
-  - name: Set /etc/default/locale to en_US.UTF-8
-    copy:
-      dest: /etc/default/locale
-      content: LANG=en_US.UTF-8
-
-  - name: Source /etc/default/locale to apply locale settings
-    shell: source /etc/default/locale
-    args:
-      executable: /bin/bash
+  - name: Fail if LANG=en_US.UTF-8 is not set
+    fail:
+      msg: "LANG=en_US.UTF-8 is not set in the locale configuration"
+    when: locale_check.stdout | int == 0
 
   - name: Set the timezone
     command: timedatectl set-timezone {{ lookup('env', 'TOTUMTIMEZONE') }}

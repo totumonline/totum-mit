@@ -12,6 +12,30 @@ else
   echo
 fi
 
+if [[ $(sudo locale | grep -c 'LANG=en_US.UTF-8') -ne 1 ]]
+then
+  echo "- - - - - - - - - - - - - - - - - - - - - -"
+  echo -e "\e[40;1;37mTHIS SERVER HAVE NOT \e[40;1;31men_US.UTF-8\e[40;1;37m LOCALE. YOU HAVE TO EXECUTE:"
+  echo -e "sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh" 
+  echo -e "AND FOLLOW THE ON-SCREEN INSTRUCTIONS TO SETUP THE CORRECT LOCALE\033[0m"
+  echo "- - - - - - - - - - - - - - - - - - - - - -"
+  echo
+  read -p "If you ready to go, type (A) we will download and run setlocale.sh: " TOTUMLOCALE
+  echo
+else
+  TOTUMLOCALE="RUN"
+fi
+
+if [[ "$TOTUMLOCALE" == [Aa] ]]; then
+    sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh
+    echo
+elif [[ "$TOTUMLOCALE" == "RUN" ]]; then
+    echo "Locale is OK. Let's go..."
+    echo
+else
+    exit 0
+fi
+
 if [ -f "totum_install_vars" ]; then
   echo -e "\033[1mFile 'totum_install_vars' exists — continuing the installation...\033[0m"
   echo
@@ -64,20 +88,12 @@ echo -e "\033[43m\033[30m- - - - - - - - - - - - - - - - - - - - - - - - - - - -
 echo
 
 read -p "If you ready to go, type (A) or cancel (Ctrl + C) and check you domain with ping: " TOTUMRUN
-
-if [[ $TOTUMRUN = "A" ]]
-then
 echo
-echo "Started! Choose a number to select the timezone for your server..."
-echo
-elif [[ $TOTUMRUN = "a" ]]
-then
-echo
-echo "Started! Choose a number to select the timezone for your server..."
-echo
+if [[ "$TOTUMRUN" == [Aa] ]]; then
+    echo "Started! Choose a number to select the timezone for your server..."
+    echo
 else
-echo
-  exit 0
+    exit 0
 fi
 
 TOTUMTIMEZONE=$(tzselect)
@@ -160,16 +176,12 @@ echo
 
 read -p "If you ready to install with this params type (A) or cancel (Ctrl + C): " TOTUMRUN2
 echo
-if [[ $TOTUMRUN2 = "A" ]]
-then
-echo "Start installation"
-echo
-elif [[ $TOTUMRUN2 = "a" ]]
-then
-echo "Start installation"
-echo
+
+if [[ "$TOTUMRUN2" == [Aa] ]]; then
+    echo "Start installation"
+    echo
 else
-  exit 0
+    exit 0
 fi
 
 echo "export TOTUMTIMEZONE=${TOTUMTIMEZONE}" >> totum_install_vars

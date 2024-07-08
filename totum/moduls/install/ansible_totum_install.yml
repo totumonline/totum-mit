@@ -406,7 +406,25 @@
       group: totum
       mode: '0600'
     register: ssh_keypair
-    when: lookup('env', 'TOTUMVERSION') == 'pro' and not totum_pro_key.stat.exists
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and not totum_pro_key.stat.exists and lookup('env', 'TOTUMKEYURL') == ""
+
+  - name: Download totum_pro_key
+    get_url:
+      url: https://{{ lookup('env', 'TOTUMKEYURL') }}
+      dest: /home/totum/.ssh/totum_pro_key
+      owner: totum
+      group: totum
+      mode: '0600'
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and not totum_pro_key.stat.exists and lookup('env', 'TOTUMKEYURL') != ""
+
+  - name: Download totum_pro_key
+    get_url:
+      url: https://{{ lookup('env', 'TOTUMKEYURL') }}_P
+      dest: /home/totum/.ssh/totum_pro_key.pub
+      owner: totum
+      group: totum
+      mode: '0644'
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and not totum_pro_key.stat.exists and lookup('env', 'TOTUMKEYURL') != ""
 
   - name: Check TOTUMGITHUBCONNECT environment variable
     set_fact:
@@ -422,18 +440,18 @@
   - name: Display message to add SSH key to GitHub
     debug:
       msg: "Go to the GitHub page https://github.com/settings/keys and add the key in the SSH keys section (New SSH Key). Enter a title and paste the key string: {{ ssh_public_key.stdout }}"
-    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro' and lookup('env', 'TOTUMKEYURL') == ""
 
   - name: Confirm the GitHub key created
     pause:
       prompt: "If you already added the key to GitHub and ready to go, type (A) or cancel (Ctrl + C):"
     register: check_github_key
-    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and lookup('env', 'TOTUMVERSION') == 'pro' and lookup('env', 'TOTUMKEYURL') == ""
 
   - name: Check confirmation input
     fail:
       msg: "Operation cancelled by the user."
-    when: github_connect is defined and github_connect == "" and check_github_key.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro'
+    when: github_connect is defined and github_connect == "" and check_github_key.user_input is defined and check_github_key.user_input not in ['A', 'a'] and lookup('env', 'TOTUMVERSION') == 'pro' and lookup('env', 'TOTUMKEYURL') == ""
 
   # Check GitHub connection for PRO
 
@@ -770,7 +788,6 @@
       chdir: /home/totum/totum-mit
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
-
   # Add totum-gom service
 
   - name: Create symlink for Totum service configuration
@@ -811,7 +828,6 @@
       create: yes
       mode: '0440'
     when: lookup('env', 'TOTUMVERSION') == 'pro'
-
 
   # Add Crons
 
@@ -957,7 +973,6 @@
       special_time: reboot
       job: "cd ~ && exec meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) > /dev/null 2>&1 &"
     when: lookup('env', 'TOTUMVERSION') == 'pro'
-
 
   # Chane IP to DOMAIN
 

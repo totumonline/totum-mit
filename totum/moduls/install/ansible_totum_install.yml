@@ -154,6 +154,7 @@
   - name: Set variable for external IP
     set_fact:
       ip_for_install: "{{ lookup('env', 'TOTUMSERVIP') if check_ip != '' else external_ip }}"
+    when: check_domain == ""
 
   # Get a certificate
 

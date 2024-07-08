@@ -146,22 +146,18 @@ echo -e "\033[1mLang:\033[0m " $TOTUMLANG
 echo
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
-echo
 
 read -p "If you ready to install with this params type (A) or cancel (Ctrl + C): " TOTUMRUN2
-
+echo
 if [[ $TOTUMRUN2 = "A" ]]
 then
-echo
 echo "Start installation"
 echo
 elif [[ $TOTUMRUN2 = "a" ]]
 then
-echo
 echo "Start installation"
 echo
 else
-echo
   exit 0
 fi
 
@@ -220,7 +216,6 @@ source totum_install_vars
 if [[ $SKIP -eq 1 ]]
 then
 
-echo
 echo "- - - >"
 echo
 
@@ -256,7 +251,7 @@ fi
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
 
-read -p "Would you like to continue with the installation or reconfiguration? Press (A) to continue or (Ctrl + C) to abort: " CONTINUE
+read -p "Continue with the installation or reconfiguration? Type (A) or (Ctrl + C): " CONTINUE
 echo
   if [[ "$CONTINUE" == [Aa] ]]; then
     echo "Continuing the installation"
@@ -270,7 +265,12 @@ fi
 
 if [ "$TOTUMVERSION" == "mit" ]; then
 
-read -p "TOTUMVERSION is 'MIT'. If you want to change it to 'pro' enter (A) if not (N) (WARNING: To install PRO, you must have access to the repository at https://github.com/totumonline/totum-pro): " CHANGE_V
+echo "- - - - - - - - - - - - - - - - - - - - - - -"
+echo "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A) if not (N)"
+echo "WARNING: To install 'PRO', you must have access to the repository at https://github.com/totumonline/totum-pro"
+echo "- - - - - - - - - - - - - - - - - - - - - - -"
+echo
+read -p "Enter (A) if not (N): " CHANGE_V
 echo
   if [[ "$CHANGE_V" == [Aa] ]]; then
 
@@ -278,7 +278,7 @@ echo
 
     source totum_install_vars
 
-    echo "TOTUMVERSION has been changed to 'pro' and totum_install_vars has been reloaded."
+    echo "TOTUMVERSION has been changed to 'PRO' and totum_install_vars has been reloaded."
     echo
 
   elif [[ "$CHANGE_V" == [Nn] ]]; then
@@ -301,8 +301,11 @@ else
 fi
 
 if [ -z "$CERTBOTDOMAIN" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
-
-  read -p "Would you like to set a DOMAIN? Enter (A) to set it or (N) to proceed without changes: " CHANGE_D
+  echo "- - - - - - - - - - - - - - - - - - - - - - -"
+  echo "Your installation is currently without a domain. Would you like to add a DOMAIN and SSL?"
+  echo "- - - - - - - - - - - - - - - - - - - - - - -"
+  echo
+  read -p "Enter (A) to set it or (N) to proceed without changes: " CHANGE_D
   echo
   if [[ "$CHANGE_D" == [Aa] ]]; then
 

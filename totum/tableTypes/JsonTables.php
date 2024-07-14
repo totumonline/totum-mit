@@ -1034,7 +1034,7 @@ abstract class JsonTables extends aTable
 
 
             $codeAction = $this->tableRow['default_action'] ?? null;
-            if ($codeAction && !preg_match('/^\s*=\s*:\s*$/', $codeAction)) {
+            if ($codeAction && !Calculate::hasStartSection($codeAction)){
                 $this->execDefaultTableAction($codeAction, $loadedTbl, $tbl);
             }
 

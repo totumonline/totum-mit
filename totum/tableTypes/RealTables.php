@@ -633,7 +633,7 @@ abstract class RealTables extends aTable
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
 
         $codeAction = $this->tableRow['default_action'] ?? null;
-        if ($codeAction && preg_match('/^\s*=\s*:\s*$/', $codeAction)) {
+        if ($codeAction && !Calculate::hasStartSection($codeAction)) {
             $codeAction = null;
         }
 

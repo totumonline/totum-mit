@@ -89,6 +89,11 @@ class Calculate
         $this->formStartSections();
     }
 
+    static function hasStartSection($code): bool
+    {
+        return preg_match('/^([a-z0-9]*=\s*)\s*(?<catch>[a-zA-Z0-9_]*)\s*:(.*)$/', $code);
+    }
+
     public function setStartSections($sections)
     {
         $this->startSections = [];

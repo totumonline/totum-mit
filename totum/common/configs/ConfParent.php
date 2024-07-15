@@ -657,7 +657,8 @@ ON CONFLICT (name) DO UPDATE
         $returnData = function ($prepare) use($params) {
             if ($data = $prepare->fetch()) {
                 if ($params['date'] ?? false) {
-                    return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];
+                    list($date, $tail) = explode('.', $data['dt']);
+                    return ['date' => $date, 'secpart'=>$tail, 'value' => json_decode($data['value'], true)['v']];
                 } else {
                     return json_decode($data['value'], true)['v'];
                 }

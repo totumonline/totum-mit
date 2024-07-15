@@ -654,7 +654,7 @@ ON CONFLICT (name) DO UPDATE
         };
 
 
-        $returnData = function ($prepare) {
+        $returnData = function ($prepare) use($params) {
             if ($data = $prepare->fetch()) {
                 if ($params['date'] ?? false) {
                     return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];

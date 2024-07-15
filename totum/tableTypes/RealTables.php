@@ -244,7 +244,7 @@ abstract class RealTables extends aTable
 
             if (Field::isFieldListValues($field['type'], $field['multiple'] ?? false)) {
                 $normalizeFunc = function ($r) {
-                    return json_decode($r, true);
+                    return json_decode($r ?? '[]', true);
                 };
             } elseif ($field['type'] === 'checkbox') {
                 $normalizeFunc = function ($r) {

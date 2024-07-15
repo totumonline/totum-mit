@@ -1329,7 +1329,7 @@ class CalculateAction extends Calculate
 
     protected function funcInsert($params)
     {
-        if ($params = $this->getParamsArray($params, ['field', 'cycle'], ['field'])) {
+        if ($params = $this->getParamsArray($params, ['field'], ['field'])) {
             $addedIds = [];
             $funcSet = function ($params) use (&$addedIds) {
                 $table = $this->getSourceTable($params);
@@ -1362,7 +1362,7 @@ class CalculateAction extends Calculate
 
 
             if (!empty($params['cycle'])) {
-                $cycleIds = $params['cycle'];
+                $cycleIds = (array)$params['cycle'];
                 foreach ($cycleIds as $cycleId) {
                     $params['cycle'] = $cycleId;
                     $funcSet($params);

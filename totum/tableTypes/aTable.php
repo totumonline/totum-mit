@@ -525,12 +525,12 @@ abstract class aTable
                 break;
             case 'restore':
                 if ($tableRow['deleting'] === 'hide' && ($this->User->getTables()[$tableRow['id']] ?? null)) {
-                    if ((empty($tableRow['restore_roles']) && $this->isUserCanAction('delete')) || array_intersect(
-                            $tableRow['delete_roles'],
+                    return empty($tableRow['restore_roles']) ?
+                        $this->isUserCanAction('delete') :
+                        !!array_intersect(
+                            $tableRow['restore_roles'],
                             $this->User->getRoles()
-                        )) {
-                        return true;
-                    }
+                        );
                 }
                 break;
             case 'duplicate':

@@ -1869,7 +1869,7 @@ abstract class RealTables extends aTable
                             }
                             $q .= "$fieldQuoted  IS NOT NULL $emptyString AND ";
                         } else {
-                            $q .= "$fieldQuoted  IS NULL OR";
+                            $q .= "$fieldQuoted  IS NULL OR ";
                         }
                         /*если есть непустые значения*/
                         if (!empty($value)) {

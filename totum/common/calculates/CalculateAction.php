@@ -1255,6 +1255,9 @@ class CalculateAction extends Calculate
             if ($filters) {
                 $cripted = Crypt::getCrypted(json_encode($filters, JSON_UNESCAPED_UNICODE));
                 $q_params['f'] = $cripted;
+                if (!empty($q_params['b'])) {
+                    $q_params['efl'] = $q_params['f'];
+                }
             }
         }
 

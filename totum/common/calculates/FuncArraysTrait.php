@@ -651,19 +651,23 @@ trait FuncArraysTrait
 
 
         if (empty($params['key'])) {
-            $keys = [['value', 1, null]];
+            $keys = [['value',
+                ($params["direction"] ?? "asc") === "asc" ? 1 : -1,
+                $flag,
+                null]];
         } else {
             $keys = [];
 
             $checkSortType = function (&$param) {
                 if (preg_match(
-                    '/(?i:(str|num))$/',
+                    '/(?i:(str|num|nat))$/',
                     $param,
                     $matches
                 )) {
                     $type = match ($matches[0]) {
                         'str' => SORT_STRING,
                         'num' => SORT_NUMERIC,
+                        'nat' => SORT_NATURAL,
                     };
                     $param = substr($param, 0, -3);
                 }
@@ -687,15 +691,16 @@ trait FuncArraysTrait
                 }
 
                 $key = $this->execSubCode($key, 'key');
+                $itemName = null;
                 if ($key === 'item') {
                     $this->__checkRequiredParams($params, 'item');
                     $this->__checkNotArrayParams($params, ['item']);
-                    $key = $params['item'];
+                    $itemName = $params['item'];
                 } elseif (is_array($key)) {
                     throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.',
                         'key' . ($i + 1)));
                 }
-                $keys[] = [$key, $order === 'desc' ? -1 : 1, $type ?? $flag];
+                $keys[] = [$key, $order === 'desc' ? -1 : 1, $type ?? $flag, $itemName];
             }
         }
 
@@ -704,7 +709,8 @@ trait FuncArraysTrait
 
         uksort($list, function ($a, $b) use ($flag, $list, $keys) {
             foreach ($keys as $key) {
-                list($key, $dir, $type) = $key;
+                list($key, $dir, $type, $itemName) = $key;
+
                 switch ($key) {
                     case 'key':
                         $A = $a;
@@ -715,8 +721,8 @@ trait FuncArraysTrait
                         $B = $list[$b];
                         break;
                     default:
-                        $A = $list[$a][$key] ?? null;
-                        $B = $list[$b][$key] ?? null;
+                        $A = $list[$a][$itemName ?? $key] ?? null;
+                        $B = $list[$b][$itemName ?? $key] ?? null;
                 }
                 if ($A === $B) {
                     continue;

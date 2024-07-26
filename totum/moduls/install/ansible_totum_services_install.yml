@@ -30,6 +30,9 @@
       msg: "LANG=en_US.UTF-8 is not set in the locale configuration"
     when: locale_check.stdout | int == 0
 
+  - name: Set the timezone
+    command: timedatectl set-timezone {{ lookup('env', 'TOTUMTIMEZONE') }}
+
   # Add PPA and some packages
 
   - name: Add PHP repository

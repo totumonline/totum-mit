@@ -29,6 +29,7 @@ fi
 if [[ "$TOTUMLOCALE" == [Aa] ]]; then
     sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/setlocale.sh && sudo bash setlocale.sh
     echo
+    exit 0
 elif [[ "$TOTUMLOCALE" == "RUN" ]]; then
     echo "Locale is OK. Let's go..."
     echo

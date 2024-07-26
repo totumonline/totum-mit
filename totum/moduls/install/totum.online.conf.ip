@@ -5,6 +5,7 @@ server {
     root /home/totum/totum-mit/http/;
     index index.php;
     expires off;
+    include acme;
 
     client_max_body_size 10M;
 

@@ -20,7 +20,7 @@
     apt:
       name: locales
       state: present
-      
+
   - name: Check if LANG=en_US.UTF-8 is set
     shell: locale | grep -c 'LANG=en_US.UTF-8'
     register: locale_check
@@ -128,9 +128,9 @@
       external_ip: "{{ new_external_ip.user_input }}"
     when: check_domain == "" and check_ip == "" and new_external_ip.user_input is defined
 
-  - name: Append TOTUMSERVIP to totum_install_vars
+  - name: Append TOTUMSERVIP to totum_services_install_vars
     lineinfile:
-      path: "{{ playbook_dir }}/totum_install_vars"
+      path: "{{ playbook_dir }}/totum_services_install_vars"
       line: "export TOTUMSERVIP={{ external_ip }}"
     when: check_domain == "" and check_ip == ""
 
@@ -268,7 +268,7 @@
       state: directory
       mode: '0755'
 
-  # Add GitHup SSH-key for PRO
+  # Add GitHup SSH-key for Services
 
   - name: Create .ssh directory
     file:
@@ -284,7 +284,7 @@
       content: |
         Host *
           AddKeysToAgent yes
-          IdentityFile ~/.ssh/totum_pro_key
+          IdentityFile ~/.ssh/totum_services_key
       owner: totum
       group: totum
       mode: '0664'
@@ -310,9 +310,9 @@
       msg: "Operation cancelled by the user."
     when: github_email is defined and github_email == "" and check_github_email_new.user_input not in ['A', 'a']
 
-  - name: Append GitHub email to totum_install_vars
+  - name: Append GitHub email to totum_services_install_vars
     lineinfile:
-      path: "{{ playbook_dir }}/totum_install_vars"
+      path: "{{ playbook_dir }}/totum_services_install_vars"
       line: "export TOTUMGITHUBEMAIL={{ github_email_new.user_input }}"
     when: github_email is defined and github_email == ""
 
@@ -341,9 +341,9 @@
       msg: "Operation cancelled by the user."
     when: github_user is defined and github_user == "" and check_github_user_new.user_input not in ['A', 'a']
 
-  - name: Append GitHub user to totum_install_vars
+  - name: Append GitHub user to totum_services_install_vars
     lineinfile:
-      path: "{{ playbook_dir }}/totum_install_vars"
+      path: "{{ playbook_dir }}/totum_services_install_vars"
       line: "export TOTUMGITHUBUSER={{ github_user_new.user_input }}"
     when: github_user is defined and github_user == ""
 
@@ -351,41 +351,41 @@
     set_fact:
       set_github_user: "{{ lookup('env', 'TOTUMGITHUBUSER') if github_user != '' else github_user_new.user_input }}"
 
-  # Create GitHub key for PRO
+  # Create GitHub key for Services
 
-  - name: Check if totum_pro_key exist
+  - name: Check if totum_services_key exist
     stat:
-      path: /home/totum/.ssh/totum_pro_key
-    register: totum_pro_key
+      path: /home/totum/.ssh/totum_services_key
+    register: totum_services_key
 
   - name: Generate SSH key pair
     community.crypto.openssh_keypair:
-      path: /home/totum/.ssh/totum_pro_key
+      path: /home/totum/.ssh/totum_services_key
       type: ed25519
       comment: "{{ set_github_email }}"
       owner: totum
       group: totum
       mode: '0600'
     register: ssh_keypair
-    when: not totum_pro_key.stat.exists and lookup('env', 'TOTUMKEYURL') == ""
+    when: not totum_services_key.stat.exists and lookup('env', 'TOTUMKEYURL') == ""
 
-  - name: Download totum_pro_key
+  - name: Download totum_services_key
     get_url:
       url: https://{{ lookup('env', 'TOTUMKEYURL') }}
-      dest: /home/totum/.ssh/totum_pro_key
+      dest: /home/totum/.ssh/totum_services_key
       owner: totum
       group: totum
       mode: '0600'
-    when: not totum_pro_key.stat.exists and lookup('env', 'TOTUMKEYURL') != ""
+    when: not totum_services_key.stat.exists and lookup('env', 'TOTUMKEYURL') != ""
 
-  - name: Download totum_pro_key
+  - name: Download totum_services_key
     get_url:
       url: https://{{ lookup('env', 'TOTUMKEYURL') }}_P
-      dest: /home/totum/.ssh/totum_pro_key.pub
+      dest: /home/totum/.ssh/totum_services_key.pub
       owner: totum
       group: totum
       mode: '0644'
-    when: not totum_pro_key.stat.exists and lookup('env', 'TOTUMKEYURL') != ""
+    when: not totum_services_key.stat.exists and lookup('env', 'TOTUMKEYURL') != ""
 
   - name: Check TOTUMGITHUBCONNECT environment variable
     set_fact:
@@ -393,7 +393,7 @@
 
   - name: Read SSH public key
     become_user: totum
-    shell: cat ~/.ssh/totum_pro_key.pub
+    shell: cat ~/.ssh/totum_services_key.pub
     register: ssh_public_key
     when: github_connect is defined and github_connect == ""
 
@@ -436,8 +436,8 @@
 
   - name: Download totum_services_fpm.conf
     get_url:
-      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_pool.conf
-      dest: /etc/php/8.3/fpm/pool.d/totum.conf
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_services_fpm.conf
+      dest: /etc/php/8.3/fpm/pool.d/totum_services.conf
       owner: root
       group: root
     when: not totum_fpm_conf.stat.exists
@@ -534,23 +534,7 @@
       name: nginx
       state: restarted
 
-  # Configure Git User for Services
-
-  - name: Configure Git user.name
-    become_user: totum
-    shell: git config --local user.name "{{ set_github_user }}"
-    args:
-      chdir: /home/totum/totum-mit
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Configure Git user.email
-    become_user: totum
-    shell: git config --local user.email "{{ set_github_email }}"
-    args:
-      chdir: /home/totum/totum-mit
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  # Check GitHub connection for PRO
+  # Check GitHub connection for Services
 
   - name: Ensure pexpect is installed
     apt:
@@ -562,7 +546,7 @@
     become_user: totum
     expect:
       command: ssh -T git@github.com
-      chdir: /home/totum/totum-mit
+      chdir: /home/totum
       responses:
           ".*yes/no.*": "yes"
     register: ssh_output
@@ -574,13 +558,21 @@
       msg: "{{ ssh_output.stdout }}"
     when: github_connect is defined and github_connect == ""
 
-  - name: Append GitHub connect to totum_install_vars
+  - name: Append GitHub connect to totum_services_install_vars
     lineinfile:
-      path: "{{ playbook_dir }}/totum_install_vars"
+      path: "{{ playbook_dir }}/totum_services_install_vars"
       line: "export TOTUMGITHUBCONNECT=true"
     when: github_connect is defined and github_connect == ""
 
   # Install Services
+
+  - name: Set install_url based on check_domain
+    set_fact:
+      install_url: "{{ lookup('env', 'CERTBOTDOMAIN') if check_domain != '' else ip_for_install }}"
+
+  - name: Show install_url variable
+    debug:
+      msg: "The install_url is: {{ install_url }}"
 
   - name: Check if totum-services directory exists
     stat:
@@ -589,46 +581,67 @@
 
   - name: Clone Totum repository
     git:
-      repo: https://github.com/totumonline/totum-services.git
+      repo: git@github.com:totumonline/totum-services.git
       dest: /home/totum/totum-services
-      version: master
+      version: main
       update: yes
     become_user: totum
     when: not totum_services.stat.exists
 
-  - name: Check if composer.phar file exists
-    stat:
-      path: /home/totum/totum-services/composer.phar
-    register: composer_phar
+#  - name: Check if composer.phar file exists
+#    stat:
+#      path: /home/totum/totum-services/composer.phar
+#    register: composer_phar
 
-  - name: Download Composer installer
-    get_url:
-      url: https://getcomposer.org/installer
-      dest: /home/totum/totum-services/composer-setup.php
-      owner: totum
-      group: totum
-    when: not composer_phar.stat.exists
+#  - name: Download Composer installer
+#    get_url:
+#      url: https://getcomposer.org/installer
+#      dest: /home/totum/totum-services/composer-setup.php
+#      owner: totum
+#      group: totum
+#    when: not composer_phar.stat.exists
 
-  - name: Unpack Composer installer
-    shell: php /home/totum/totum-services/composer-setup.php --quiet
-    become_user: totum
-    args:
-      chdir: /home/totum/totum-services
-      executable: /bin/bash
-    when: not composer_phar.stat.exists
+#  - name: Unpack Composer installer
+#    shell: php /home/totum/totum-services/composer-setup.php --quiet
+#    become_user: totum
+#    args:
+#      chdir: /home/totum/totum-services
+#      executable: /bin/bash
+#    when: not composer_phar.stat.exists
 
-  - name: Run Composer install
-    shell: php /home/totum/totum-services/composer.phar install --no-dev
-    become_user: totum
-    args:
-      chdir: /home/totum/totum-services
-      executable: /bin/bash
+#  - name: Run Composer install
+#    shell: php /home/totum/totum-services/composer.phar install --no-dev
+#    become_user: totum
+#    args:
+#      chdir: /home/totum/totum-services
+#      executable: /bin/bash
 
   - name: Replace timezone in CLI.totum.php.ini
     replace:
       path: /home/totum/totum-services/CLI.totum.php.ini
       regexp: 'Europe/London'
       replace: "{{ lookup('env', 'TOTUMTIMEZONE') }}"
+
+  # Install Libreoffice
+
+  - name: apt install libreoffice
+    apt:
+      name: libreoffice
+      state: latest
+
+  # Configure Git User for Services
+
+  - name: Configure Git user.name
+    become_user: totum
+    shell: git config --local user.name "{{ set_github_user }}"
+    args:
+      chdir: /home/totum/totum-services
+
+  - name: Configure Git user.email
+    become_user: totum
+    shell: git config --local user.email "{{ set_github_email }}"
+    args:
+      chdir: /home/totum/totum-services
 
   # Add Crons
 
@@ -659,7 +672,18 @@
       user: "totum"
       job: "cd /home/totum/totum-services/crons && ./folders_cleaner"
 
-  # Chane IP to DOMAIN
+  - name: Add cron job for clean log file
+    cron:
+      name: "services_logfile_cleaner"
+      minute: "0"
+      hour: "*/8"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      user: "totum"
+      job: "cd /home/totum/totum-services/ && tail -n 1000 services_log > services_log.tmp && mv services_log.tmp services_log"
+
+  # Change IP to DOMAIN
 
   - name: Check IPDOMAIN environment variable
     set_fact:
@@ -686,9 +710,9 @@
       state: restarted
     when: check_domain != "" and check_ip != "" and check_ip_domain == ""
 
-  - name: Append IPDOMAIN to totum_install_vars
+  - name: Append IPDOMAIN to totum_services_install_vars
     lineinfile:
-      path: "{{ playbook_dir }}/totum_install_vars"
+      path: "{{ playbook_dir }}/totum_services_install_vars"
       line: "export IPDOMAIN=true"
     when: check_domain != "" and check_ip != "" and check_ip_domain == ""
 
@@ -696,7 +720,7 @@
 
   - name: Show installation completion message
     debug:
-      msg: "NOW YOU CAN ADD YOUR SERVERS TO /HOME/TOTUM/TOTUM-SERVICES/CONF.PHP AND CONNECT TO HTTP://{{ install_url }}
+      msg: "NOW YOU CAN ADD YOUR TOTUM SERVER HOST TO /home/totum/totum-services/services_list AND ADD {{ install_url }} WITH PROTOCOL (HTTP/HTTPS) AS SERVICE URL IN THE SERVICE SETTINGS IN YOUR TOTUM. IF YOU INSTALLED SERVICES WITHOUT SSL, THEN IN THE Conf.php SETTINGS IN TOTUM YOU NEED TO DISABLE CERTIFICATE CHECKING WHEN CALLING SERVICES (CHECK https://docs.totum.online/srv_connection)."
 
   - name: Ask to upgrade software on the server
     pause:

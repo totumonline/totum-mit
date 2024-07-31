@@ -651,6 +651,14 @@
       group: totum
       mode: '0775'
 
+  - name: Ensure fls directory exists with correct permissions and owner
+    file:
+      path: /home/totum/totum-services/http/fls
+      state: directory
+      owner: totum
+      group: totum
+      mode: '0775'
+
   # Install Libreoffice
 
   - name: apt install libreoffice

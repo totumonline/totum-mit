@@ -244,9 +244,9 @@ if [ -z "$CERTBOTDOMAIN" ]; then
     echo
       if [[ "$CONFIRM_D" == [Aa] ]]; then
 
-        sudo sed -i "s:export CERTBOTDOMAIN=:export CERTBOTDOMAIN=${CERTBOTDOMAIN}:g" totum_install_vars
+        sudo sed -i "s:export CERTBOTDOMAIN=:export CERTBOTDOMAIN=${CERTBOTDOMAIN}:g" totum_services_install_vars
 
-        echo "$CERTBOTDOMAIN has been set to totum_install_vars."
+        echo "$CERTBOTDOMAIN has been set to totum_services_install_vars."
         echo
 
       else

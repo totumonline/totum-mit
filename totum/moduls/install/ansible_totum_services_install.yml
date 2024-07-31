@@ -637,7 +637,7 @@
     file:
       path: /home/totum/totum-services/services/xlsx
       mode: '0775'
-      
+
   - name: Set execute permission for folders_cleaner
     file:
       path: /home/totum/totum-services/crons/folders_cleaner

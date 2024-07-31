@@ -643,6 +643,14 @@
       path: /home/totum/totum-services/crons/folders_cleaner
       mode: '0775'
 
+  - name: Ensure tmp_files directory exists with correct permissions and owner
+    file:
+      path: /home/totum/totum-services/tmp_files
+      state: directory
+      owner: totum
+      group: totum
+      mode: '0775'
+
   # Install Libreoffice
 
   - name: apt install libreoffice

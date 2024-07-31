@@ -584,7 +584,7 @@
     git:
       repo: git@github.com:totumonline/totum-services.git
       dest: /home/totum/totum-services
-      version: main
+      version: services
       update: yes
     become_user: totum
     when: not totum_services.stat.exists

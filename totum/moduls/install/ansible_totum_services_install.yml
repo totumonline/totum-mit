@@ -623,6 +623,26 @@
       regexp: 'Europe/London'
       replace: "{{ lookup('env', 'TOTUMTIMEZONE') }}"
 
+  - name: Set execute permission for docx
+    file:
+      path: /home/totum/totum-services/services/docx
+      mode: '0775'
+
+  - name: Set execute permission for pdf
+    file:
+      path: /home/totum/totum-services/services/pdf
+      mode: '0775'
+
+  - name: Set execute permission for xlsx
+    file:
+      path: /home/totum/totum-services/services/xlsx
+      mode: '0775'
+      
+  - name: Set execute permission for folders_cleaner
+    file:
+      path: /home/totum/totum-services/crons/folders_cleaner
+      mode: '0775'
+
   # Install Libreoffice
 
   - name: apt install libreoffice

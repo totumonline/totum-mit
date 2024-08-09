@@ -1933,7 +1933,7 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
             );
 
         } else {
-            $tableRow['description'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $tableRow['description']);
+            $tableRow['description'] = preg_replace('`\s*<admin>.*?</admin>\s*`su', '', $tableRow['description'] ?? '');
         }
         $_tableRow = array_intersect_key($tableRow, array_flip($fields));
         foreach (Totum::TABLE_CODE_PARAMS as $name) {

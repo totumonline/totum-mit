@@ -810,6 +810,10 @@ SQL
             if ($reCheckSchemaForce) {
                 $schemaData['check'] = true;
             }
+            if($data["method"]=="license"){
+                $schemaData+=$data;
+                return $this->proGoModuleSocketSend($schemaData);
+            }
             $this->proGoModuleSocketSend($schemaData);
         }
         if (!$data) {

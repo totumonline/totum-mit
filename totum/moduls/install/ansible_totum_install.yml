@@ -64,12 +64,21 @@
         - ufw
       state: latest
 
+  - name: Deny all incoming connections by default
+    ufw:
+      default: deny
+      direction: incoming
+
+  - name: Allow all outgoing connections by default
+    ufw:
+      default: allow
+      direction: outgoing
+
   - name: Allow HTTP traffic on port 22
     ufw:
       rule: allow
       port: 22
       proto: tcp
-
 
   - name: Allow HTTP traffic on port 80
     ufw:

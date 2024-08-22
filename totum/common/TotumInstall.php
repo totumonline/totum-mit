@@ -117,11 +117,10 @@ CONF;
         }
 
 
-        $mail = 'use WithPhpMailerTrait;';
-        $useMail = 'use totum\common\configs\WithPhpMailerTrait;';
+
         if (($post['mail'] ?? false) === 'smtp') {
             $mail = <<<PHP
-
+        //use WithPhpMailerTrait;
         use WithPhpMailerSmtpTrait;
         
         protected \$SmtpData = [
@@ -132,6 +131,19 @@ CONF;
             ];
 PHP;
             $useMail = 'use totum\common\configs\WithPhpMailerSmtpTrait;';
+        }else{
+            $mail = <<<PHP
+          use WithPhpMailerTrait;
+        //use WithPhpMailerSmtpTrait;
+        
+       // protected \$SmtpData = [
+        //        'host' => 'ttm-smtp',
+       //         'port' => 25,
+        //        'login' => '',
+        //        'pass' => '',
+         //   ];
+PHP;
+            $useMail = 'use totum\common\configs\WithPhpMailerTrait;';
         }
 
 

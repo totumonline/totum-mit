@@ -54,8 +54,8 @@ class Password extends Field
         if (is_array($val)) {
             $val = '';
         }
-        if (!$isCheck && strlen($val) !== 32) {
-            $val = md5($val);
+        if (!$isCheck && strlen($val ?? '') !== 32) {
+            $val = md5($val ?? '');
         }
     }
 }

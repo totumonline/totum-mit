@@ -79,15 +79,15 @@ class TotumInstall
         $post['db_port'] = $post['db_port'] ?? 5432;
         $post['lang'] = $post['lang'] ?? 'en';
         $db = [
-            'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
-            'host' => $post['db_host'],
-            'username' => $post['db_user_login'],
-            'dbname' => $post['db_name'],
-            'password' => $post['db_user_password'],
-            'charset' => 'UTF8',
-            'pg_dump' => $post['pg_dump'],
-            'psql' => $post['psql']
-        ];
+              'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
+              'host' => $post['db_host'],
+              'username' => $post['db_user_login'],
+              'dbname' => $post['db_name'],
+              'password' => $post['db_user_password'],
+              'charset' => 'UTF8',
+              'pg_dump' => $post['pg_dump'],
+              'psql' => $post['psql']
+              ];
         $dbExport = var_export($db, true);
 
         if ($post['multy'] === '1') {
@@ -104,7 +104,6 @@ class TotumInstall
 CONF;
         } else {
             $multyPhp = <<<CONF
-
 /***** multi start ***
     use MultiTrait;
 /***** multi stop ***/
@@ -151,41 +150,46 @@ PHP;
 
 namespace totum\config;
 
-$useMail
+use totum\common\configs\WithPhpMailerTrait;
+use totum\common\configs\WithPhpMailerSmtpTrait;
 use totum\common\configs\ConfParent;
 use totum\common\configs\MultiTrait;
 
 class Conf extends ConfParent{
+
     $multyPhp
-    
-    
-    $mail
-    
-    
-    
-    
-    
+
+    use WithPhpMailerTrait;
+    //use WithPhpMailerSmtpTrait;
+
+    //protected \$SmtpData = [
+    //'host' => 'ssl://smtp.host',
+    //'port' => 465,
+    //'login' => '',
+    //'pass' => '',
+    //];
+
     const db=$dbExport;
-    
+
     public static \$timeLimit = 120; //Do not set long time limits, because this limit is used as param of a PostgreSQL transaction. If you set a very long limit — part of your database may be blocked when errors occur.
-    
+
     const adminEmail='{$post['admin_email']}';
-    
+
     const ANONYM_ALIAS='An';
-    
+
     const LANG="{$post['lang']}";
-    
+
     protected \$execSSHOn = 'inner'; //set true if you want to run ssh scripts via execSsh
-    
+
     //protected \$checkSSl = true;
-    
+
     /***getSchemas***/
     static function getSchemas()
     {
         return ['$host'=>'{$post['db_schema']}'];
     }
     /***getSchemasEnd***/
-    
+
     public function setSessionCookieParams()
     {
         session_set_cookie_params([

@@ -92,26 +92,25 @@ class TotumInstall
 
         if ($post['multy'] === '1') {
             $multyPhp = <<<CONF
-
-/***** multi start ***/
+    /***** multi start ***/
     use MultiTrait;
-/***** multi stop ***/
+    /***** multi stop ***/
 
-/***** no-multi start ***
+    /***** no-multi start ***
     protected \$hostName='$host';
     protected \$schemaName='{$post['db_schema']}';
-/***** no-multi stop ***/   
+    /***** no-multi stop ***/
 CONF;
         } else {
             $multyPhp = <<<CONF
-/***** multi start ***
+    /***** multi start ***
     use MultiTrait;
-/***** multi stop ***/
+    /***** multi stop ***/
 
-/***** no-multi start ***/
+    /***** no-multi start ***/
     protected \$hostName='$host';
     protected \$schemaName='{$post['db_schema']}';
-/***** no-multi stop ***/   
+    /***** no-multi stop ***/
 CONF;
         }
 
@@ -169,7 +168,7 @@ class Conf extends ConfParent{
     //'pass' => '',
     //];
 
-    const db=$dbExport;
+const db=$dbExport;
 
     public static \$timeLimit = 120; //Do not set long time limits, because this limit is used as param of a PostgreSQL transaction. If you set a very long limit — part of your database may be blocked when errors occur.
 

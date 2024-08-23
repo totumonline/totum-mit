@@ -626,6 +626,23 @@
       chdir: /home/totum/totum-services
       executable: /bin/bash
 
+  - name: Check if CLI.totum.php.ini file exists
+    stat:
+      path: /home/totum/totum-services/CLI.totum.php.ini
+    register: cli_totum_php_ini
+
+  - name: Create CLI.totum.php.ini file
+    copy:
+      dest: /home/totum/totum-services/CLI.totum.php.ini
+      content: |
+        opcache.enable_cli = 1
+        opcache.memory_consumption = 256M
+        date.timezone = Europe/London
+      owner: totum
+      group: totum
+      mode: '0664'
+    when: not cli_totum_php_ini.stat.exists
+
   - name: Replace timezone in CLI.totum.php.ini
     replace:
       path: /home/totum/totum-services/CLI.totum.php.ini

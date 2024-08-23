@@ -156,7 +156,7 @@ use totum\common\configs\MultiTrait;
 
 class Conf extends ConfParent{
 
-    $multyPhp
+    use MultiTrait;
 
     use WithPhpMailerTrait;
 

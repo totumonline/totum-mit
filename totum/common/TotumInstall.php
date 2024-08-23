@@ -92,7 +92,7 @@ class TotumInstall
 
         if ($post['multy'] === '1') {
             $multyPhp = <<<CONF
-    /***** multi start ***/
+/***** multi start ***/
     use MultiTrait;
     /***** multi stop ***/
 
@@ -103,7 +103,7 @@ class TotumInstall
 CONF;
         } else {
             $multyPhp = <<<CONF
-    /***** multi start ***
+/***** multi start ***
     use MultiTrait;
     /***** multi stop ***/
 
@@ -159,6 +159,7 @@ class Conf extends ConfParent{
     $multyPhp
 
     use WithPhpMailerTrait;
+
     //use WithPhpMailerSmtpTrait;
 
     //protected \$SmtpData = [

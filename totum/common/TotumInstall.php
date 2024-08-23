@@ -90,61 +90,6 @@ class TotumInstall
               ];
         $dbExport = var_export($db, true);
 
-        if ($post['multy'] === '1') {
-            $multyPhp = <<<CONF
-/***** multi start ***/
-    use MultiTrait;
-    /***** multi stop ***/
-
-    /***** no-multi start ***
-    protected \$hostName='$host';
-    protected \$schemaName='{$post['db_schema']}';
-    /***** no-multi stop ***/
-CONF;
-        } else {
-            $multyPhp = <<<CONF
-/***** multi start ***
-    use MultiTrait;
-    /***** multi stop ***/
-
-    /***** no-multi start ***/
-    protected \$hostName='$host';
-    protected \$schemaName='{$post['db_schema']}';
-    /***** no-multi stop ***/
-CONF;
-        }
-
-
-
-        if (($post['mail'] ?? false) === 'smtp') {
-            $mail = <<<PHP
-        //use WithPhpMailerTrait;
-        use WithPhpMailerSmtpTrait;
-        
-        protected \$SmtpData = [
-                'host' => 'ttm-smtp',
-                'port' => 25,
-                'login' => '',
-                'pass' => '',
-            ];
-PHP;
-            $useMail = 'use totum\common\configs\WithPhpMailerSmtpTrait;';
-        }else{
-            $mail = <<<PHP
-          use WithPhpMailerTrait;
-        //use WithPhpMailerSmtpTrait;
-        
-       // protected \$SmtpData = [
-        //        'host' => 'ttm-smtp',
-       //         'port' => 25,
-        //        'login' => '',
-        //        'pass' => '',
-         //   ];
-PHP;
-            $useMail = 'use totum\common\configs\WithPhpMailerTrait;';
-        }
-
-
         $this->confClassCode = <<<CONF
 
 namespace totum\config;
@@ -204,10 +149,9 @@ CONF;
 
         eval($this->confClassCode);
         $Conf = new Conf();
-        if ($post['multy'] === '1') {
-            $Conf->setHostSchema($host);
-        }
+        $Conf->setHostSchema($host);
         return $Conf;
+        
     }
 
     public function install($getFilePath)

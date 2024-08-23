@@ -116,7 +116,7 @@ class Conf extends ConfParent{
 
 const db=$dbExport;
 
-    public static \$timeLimit = 120; //Do not set long time limits, because this limit is used as param of a PostgreSQL transaction. If you set a very long limit — part of your database may be blocked when errors occur.
+    public static \$timeLimit = 120; // Do not set long time limits, because this limit is used as param of a PostgreSQL transaction. If you set a very long limit — part of your database may be blocked when errors occur.
 
     const adminEmail='{$post['admin_email']}';
 
@@ -124,7 +124,7 @@ const db=$dbExport;
 
     const LANG="{$post['lang']}";
 
-    protected \$execSSHOn = 'inner'; //set true if you want to run ssh scripts via execSsh
+    protected \$execSSHOn = 'inner'; // Set true as boolean (without ''), if you want to run ssh scripts via execSSH
 
     //protected \$checkSSl = true;
 
@@ -139,7 +139,7 @@ const db=$dbExport;
     {
         session_set_cookie_params([
             'path' => '/',
-            /*'secure' => true,*/ //-- uncomment this if your totum always on ssl
+            /*'secure' => true,*/ // Uncomment this if your Totum always on SSL
             'httponly' => true,
             'samesite' => 'Lax'
         ]);

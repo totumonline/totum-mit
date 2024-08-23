@@ -163,10 +163,10 @@ class Conf extends ConfParent{
     //use WithPhpMailerSmtpTrait;
 
     //protected \$SmtpData = [
-    //'host' => 'ssl://smtp.host',
-    //'port' => 465,
-    //'login' => '',
-    //'pass' => '',
+    //    'host' => 'ssl://smtp.host',
+    //    'port' => 465,
+    //    'login' => '',
+    //    'pass' => '',
     //];
 
 const db=$dbExport;

@@ -79,118 +79,67 @@ class TotumInstall
         $post['db_port'] = $post['db_port'] ?? 5432;
         $post['lang'] = $post['lang'] ?? 'en';
         $db = [
-            'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
-            'host' => $post['db_host'],
-            'username' => $post['db_user_login'],
-            'dbname' => $post['db_name'],
-            'password' => $post['db_user_password'],
-            'charset' => 'UTF8',
-            'pg_dump' => $post['pg_dump'],
-            'psql' => $post['psql']
-        ];
+              'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
+              'host' => $post['db_host'],
+              'username' => $post['db_user_login'],
+              'dbname' => $post['db_name'],
+              'password' => $post['db_user_password'],
+              'charset' => 'UTF8',
+              'pg_dump' => $post['pg_dump'],
+              'psql' => $post['psql']
+              ];
         $dbExport = var_export($db, true);
-
-        if ($post['multy'] === '1') {
-            $multyPhp = <<<CONF
-
-/***** multi start ***/
-    use MultiTrait;
-/***** multi stop ***/
-
-/***** no-multi start ***
-    protected \$hostName='$host';
-    protected \$schemaName='{$post['db_schema']}';
-/***** no-multi stop ***/   
-CONF;
-        } else {
-            $multyPhp = <<<CONF
-
-/***** multi start ***
-    use MultiTrait;
-/***** multi stop ***/
-
-/***** no-multi start ***/
-    protected \$hostName='$host';
-    protected \$schemaName='{$post['db_schema']}';
-/***** no-multi stop ***/   
-CONF;
-        }
-
-
-
-        if (($post['mail'] ?? false) === 'smtp') {
-            $mail = <<<PHP
-        //use WithPhpMailerTrait;
-        use WithPhpMailerSmtpTrait;
-        
-        protected \$SmtpData = [
-                'host' => 'ttm-smtp',
-                'port' => 25,
-                'login' => '',
-                'pass' => '',
-            ];
-PHP;
-            $useMail = 'use totum\common\configs\WithPhpMailerSmtpTrait;';
-        }else{
-            $mail = <<<PHP
-          use WithPhpMailerTrait;
-        //use WithPhpMailerSmtpTrait;
-        
-       // protected \$SmtpData = [
-        //        'host' => 'ttm-smtp',
-       //         'port' => 25,
-        //        'login' => '',
-        //        'pass' => '',
-         //   ];
-PHP;
-            $useMail = 'use totum\common\configs\WithPhpMailerTrait;';
-        }
-
 
         $this->confClassCode = <<<CONF
 
 namespace totum\config;
 
-$useMail
+use totum\common\configs\WithPhpMailerTrait;
+use totum\common\configs\WithPhpMailerSmtpTrait;
 use totum\common\configs\ConfParent;
 use totum\common\configs\MultiTrait;
 
 class Conf extends ConfParent{
-    $multyPhp
-    
-    
-    $mail
-    
-    
-    
-    
-    
-    const db=$dbExport;
-    
-    public static \$timeLimit = 120; //Do not set long time limits, because this limit is used as param of a PostgreSQL transaction. If you set a very long limit — part of your database may be blocked when errors occur.
-    
+
+    use MultiTrait;
+
+    use WithPhpMailerTrait;
+
+    //use WithPhpMailerSmtpTrait;
+
+    //protected \$SmtpData = [
+    //    'host' => 'ssl://smtp.host',
+    //    'port' => 465,
+    //    'login' => '',
+    //    'pass' => '',
+    //];
+
+const db=$dbExport;
+
+    public static \$timeLimit = 120; // Do not set long time limits, because this limit is used as param of a PostgreSQL transaction. If you set a very long limit — part of your database may be blocked when errors occur.
+
     const adminEmail='{$post['admin_email']}';
-    
+
     const ANONYM_ALIAS='An';
-    
+
     const LANG="{$post['lang']}";
-    
-    protected \$execSSHOn = 'inner'; //set true if you want to run ssh scripts via execSsh
-    
+
+    protected \$execSSHOn = 'inner'; // Set true as boolean (without ''), if you want to run ssh scripts via execSSH
+
     //protected \$checkSSl = true;
-    
+
     /***getSchemas***/
     static function getSchemas()
     {
         return ['$host'=>'{$post['db_schema']}'];
     }
     /***getSchemasEnd***/
-    
+
     public function setSessionCookieParams()
     {
         session_set_cookie_params([
             'path' => '/',
-            /*'secure' => true,*/ //-- uncomment this if your totum always on ssl
+            /*'secure' => true,*/ // Uncomment this if your Totum always on SSL
             'httponly' => true,
             'samesite' => 'Lax'
         ]);
@@ -200,10 +149,9 @@ CONF;
 
         eval($this->confClassCode);
         $Conf = new Conf();
-        if ($post['multy'] === '1') {
-            $Conf->setHostSchema($host);
-        }
+        $Conf->setHostSchema($host);
         return $Conf;
+        
     }
 
     public function install($getFilePath)

@@ -19,7 +19,6 @@ class Install extends Command
         $this->setName('install')
             ->setDescription('Install new schema and create Conf.php')
             ->addArgument('lang', InputArgument::REQUIRED, 'Enter language')
-            ->addArgument('multi', InputArgument::REQUIRED, 'Enter type of install (multi/no-multi)')
             ->addArgument('schema', InputArgument::REQUIRED, 'Enter schema name')
             ->addArgument('admin_email', InputArgument::REQUIRED, 'Enter admin email')
             ->addArgument('totum_host', InputArgument::REQUIRED, 'Enter totum host')
@@ -50,9 +49,7 @@ class Install extends Command
             throw new errorException('Language ' . $confs['lang'] . ' is not supported');
         }
 
-        $confs['multy'] = $input->getArgument('multi') === 'multi' ? '1' : '0';
-
-        if ($confs['multy'] === '1' && empty($input->getOption('schema_exists'))) {
+        if (empty($input->getOption('schema_exists'))) {
             $confs['schema_exists'] = true;
         } else {
             $confs['schema_exists'] = (bool)$input->getOption('schema_exists');
@@ -86,10 +83,6 @@ class Install extends Command
         $confs['user_pass'] = $input->getArgument('user_pass');
         $confs['admin_email'] = $input->getArgument('admin_email');
 
-
-        if (file_exists(__DIR__ . '/../../Conf.php')) {
-            $confs['mail'] = 'smtp';
-        }
 
         $TotumInstall = new TotumInstall($confs, 'admin', $output);
         $TotumInstall->install(function ($file) {

@@ -21,6 +21,7 @@ class SchemaDuplicate extends Command
             ->addArgument('name', InputArgument::REQUIRED, 'Enter new schema name')
             ->addArgument('host', InputArgument::OPTIONAL, 'Enter new schema host for connect it in Conf.php')
             ->addOption('no-logs', '', InputOption::VALUE_NONE, 'For not duplicating logs')
+            ->addOption('users-off', '', InputOption::VALUE_NONE, 'For off all users except Creator (id = 1)')
             ->addOption('no-content', '', InputOption::VALUE_OPTIONAL, 'Enter table names separated by commas for not duplicating it\'s content');
     }
 
@@ -116,6 +117,11 @@ class SchemaDuplicate extends Command
 
 
             $buffer = 'update "' . $baseName . '".crons set status=jsonb_build_object(\'v\', false);';
+
+            if ($input->getOption('users-off')){
+                $buffer .= 'update "' . $baseName . '".users set on_off=jsonb_build_object(\'v\', false) where id != 1;';
+            }
+
             $buffer .= 'ALTER SCHEMA "' . $baseName . '" RENAME TO "' . $desName . '";';
             $buffer .= 'ALTER SCHEMA "' . $tmpold . '" RENAME TO "' . $baseName . '";';
             fputs($handleTmp, $buffer);

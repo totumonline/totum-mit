@@ -25,7 +25,9 @@ class SchemaBackup extends Command
             ->addOption('no-content',
                 '',
                 InputOption::VALUE_OPTIONAL,
-                'Enter table names separated by commas for not duplicating it\'s content');
+                'Enter table names separated by commas for not duplicating it\'s content')
+            ->addOption('users-off', '', InputOption::VALUE_NONE, 'For off all users except Creator (id = 1)');
+
         $this->addArgument('filename',
             InputArgument::REQUIRED,
             'Path for save backup. You can use placeholders (%schema%, and date-time values: %d%, %H% etc');
@@ -57,7 +59,7 @@ class SchemaBackup extends Command
             return date($match);
         }, $input->getArgument('filename'));
 
-        $gz = $input->getOption('gz') ?? false;
+        $gz  = $input->getOption('gz') ?? false;
 
         if (!preg_match('/.gz$/', $path) && $gz) {
             $path .= '.gz';
@@ -76,11 +78,28 @@ class SchemaBackup extends Command
                 $exclude .= " --exclude-table-data='{$schema}.$tName'";
             }
         }
-        $gz=($gz ? '| gzip' : '');
 
         $exclude .= ' -x';
+        $gzsql = '';
+        if ($input->getOption('users-off')){
+            $sql = " echo 'update \"" . $schema . "\".users set on_off=jsonb_build_object('\''v'\'', false) where id != 1;' ; ";
+            $gzc=($gz ? '| gzip' : '');
 
-        `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' $gz > "{$path}"`;
+            `{ $pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' ; $sql } $gzc > "{$path}"`;
+
+
+        }else{
+            if($gz){
+                $gzsql.=($gz ? '| gzip' : '');
+            }
+            `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' $gzsql > "{$path}"`;
+        }
+
+
+
+
+
+
 
         return 0;
     }

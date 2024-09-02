@@ -1,4 +1,4 @@
-# Self‑hosted low‑code database for self‑development
+# Self‑hosted database with built‑in language to create internal tools with ease
 
 Universal UI, simple code-based logic, automatic actions, access rights, logging, API and lots of other stuff 👍
 

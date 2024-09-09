@@ -7,7 +7,6 @@ use \PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
 use totum\common\Lang\LangInterface;
-use totum\common\Lang\RU;
 use totum\common\tableSaveOrDeadLockException;
 
 class Sql
@@ -44,7 +43,7 @@ class Sql
     public function getPDO()
     {
         if ($this->isRollbacked) {
-            $this->Log->error('Tring to get rollbacked SQL', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
+            $this->Log->error('Trying to get rollbacked SQL', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
             throw new SqlException('Transaction was rollbacked');
         }
         return $this->PDO;

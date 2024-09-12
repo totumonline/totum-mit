@@ -7,6 +7,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use totum\common\configs\ConfParent;
 use totum\common\configs\MultiTrait;
 use totum\common\Services\Services;
 use totum\config\Conf;
@@ -28,19 +29,32 @@ class CleanSchemaTmpTables extends Command
 
         if (is_callable([$Conf, 'setHostSchema'])) {
             if ($schema = $input->getArgument('schema')) {
-                $Conf->setHostSchema(null, $schema);
             }
         }
-        $sql = $Conf->getSql();
+        if (empty($schema)){
+            $schema = $Conf->getSchema(true);
+        }
+
+
+        static::doSqlWorks($schema, $Conf);
+
+        return 0;
+    }
+
+    static function doSqlWorks(string $schema, ConfParent $Conf)
+    {
+        $sql = $Conf->getSql(true, false);
+
         $plus24 = date_create();
         $plus24->modify('-24 hours');
-        $sql->exec('delete from _tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
 
+
+        $sql->exec('delete from "'.$schema.'"._tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
 
         $minusHour = date_create();
         $minusHour->modify('-1 hour');
         try {
-            $sql->exec('delete from _services_vars where expire<\'' . $minusHour->format('Y-m-d H:i:s') . '\'');
+            $sql->exec('delete from "'.$schema.'"._services_vars where expire<\'' . $minusHour->format('Y-m-d H:i:s') . '\'');
         }catch (\Exception $exception){
             if($exception->getCode()==='42P01'){
                 $Services = Services::init($Conf);
@@ -50,11 +64,11 @@ class CleanSchemaTmpTables extends Command
 
         $minus10 = date_create();
         $minus10->modify('-2 hours');
-        $sql->exec('delete from _tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\''
+
+        $sql->exec('delete from "'.$schema.'"._tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\''
             . $minus10->format('Y-m-d H:i') . '\'');
 
-        $sql->exec('VACUUM _tmp_tables');
-
-        return 0;
+        $sql->exec('VACUUM "'.$schema.'"._tmp_tables');
     }
+
 }

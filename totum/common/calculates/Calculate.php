@@ -673,7 +673,11 @@ class Calculate
             foreach ($this->startSections as $sectionName => $section) {
                 try {
                     $r = $this->execSubCode($section, $sectionName);
-                } catch (\Exception $exception) {
+                }
+                catch (criticalErrorException $exception) {
+                    throw $exception;
+                }
+                catch (\Exception $exception) {
                     if (key_exists($sectionName, $this->CodeLineCatches)) {
                         if (key_exists($this->CodeLineCatches[$sectionName], $this->code)) {
                             $this->vars['exception'] = $exception->getMessage();

@@ -10,8 +10,7 @@ ignore_user_abort(false);
 require __DIR__ . '/../vendor/autoload.php';
 
 if (!class_exists(Conf::class)) {
-    $Config = null;
-    list($module, $lastPath) = ['install', ''];
+    die('NOT INSTALLED');
 } else {
     $Config = new Conf();
     if (is_callable([$Config, 'setHostSchema'])) {

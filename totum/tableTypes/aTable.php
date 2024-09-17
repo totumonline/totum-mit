@@ -36,6 +36,7 @@ abstract class aTable
     use WebInterfaceTrait;
     use ActionsTrait;
 
+    protected mixed $dataRow;
     protected $isTableAdding = false;
 
     protected const TABLES_IDS = [
@@ -524,12 +525,12 @@ abstract class aTable
                 break;
             case 'restore':
                 if ($tableRow['deleting'] === 'hide' && ($this->User->getTables()[$tableRow['id']] ?? null)) {
-                    if ((empty($tableRow['restore_roles']) && $this->isUserCanAction('delete')) || array_intersect(
-                            $tableRow['delete_roles'],
+                    return empty($tableRow['restore_roles']) ?
+                        $this->isUserCanAction('delete') :
+                        !!array_intersect(
+                            $tableRow['restore_roles'],
                             $this->User->getRoles()
-                        )) {
-                        return true;
-                    }
+                        );
                 }
                 break;
             case 'duplicate':
@@ -2951,7 +2952,7 @@ CODE;;
                 break;
             case 'xml':
                 foreach ($this->fields as $field) {
-                    if ($field['category'] === 'filter' && $field['showInXml'] === true) {
+                    if ($field['category'] === 'filter' && ($field['showInXml'] ?? false) === true) {
                         return $isActiveFilter($field);
                     }
                 }
@@ -3036,7 +3037,7 @@ CODE;;
                 return match ($property) {
                     'visible' => $visible,
                     'insertable' => $visible && $field['apiInsertable'],
-                    'filterable' => $field['showInXml'],
+                    'filterable' => ($field['showInXml'] ?? false),
                     'editable' => $visible && $field['apiEditable'] && $isInRoles($field['xmlEditRoles'] ?? []),
                     default => throw new errorException('In channel ' . $channel . ' not supported action ' . $property),
                 };

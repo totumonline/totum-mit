@@ -5,9 +5,7 @@ namespace totum\commands;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use totum\common\configs\MultiTrait;
 use totum\common\errorException;
 use totum\config\Conf;
 
@@ -30,7 +28,7 @@ class SetHiddenHost extends Command
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -117,5 +115,7 @@ TXT,
         copy($ConfFile, $ConfFile . '_old');
 
         file_put_contents($ConfFile, $ConfFileContent);
+
+        return 0;
     }
 }

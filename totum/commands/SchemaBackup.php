@@ -22,18 +22,19 @@ class SchemaBackup extends Command
         }
         $this->addOption('gz', '', InputOption::VALUE_NONE, 'Use for file gziping')
             ->addOption('no-logs', '', InputOption::VALUE_NONE, 'For not duplicating logs')
-            ->addOption('no-privileges', 'x', InputOption::VALUE_NONE, 'Prevent dumping of access privileges (grant/revoke commands)')
             ->addOption('no-content',
                 '',
                 InputOption::VALUE_OPTIONAL,
-                'Enter table names separated by commas for not duplicating it\'s content');
+                'Enter table names separated by commas for not duplicating it\'s content')
+            ->addOption('users-off', '', InputOption::VALUE_NONE, 'For off all users except Creator (id = 1)');
+
         $this->addArgument('filename',
             InputArgument::REQUIRED,
             'Path for save backup. You can use placeholders (%schema%, and date-time values: %d%, %H% etc');
 
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -58,7 +59,7 @@ class SchemaBackup extends Command
             return date($match);
         }, $input->getArgument('filename'));
 
-        $gz = $input->getOption('gz') ?? false;
+        $gz  = $input->getOption('gz') ?? false;
 
         if (!preg_match('/.gz$/', $path) && $gz) {
             $path .= '.gz';
@@ -77,12 +78,29 @@ class SchemaBackup extends Command
                 $exclude .= " --exclude-table-data='{$schema}.$tName'";
             }
         }
-        $gz=($gz ? '| gzip' : '');
 
-        if ($input->getOption('no-privileges')) {
-            $exclude .= ' -x';
+        $exclude .= ' -x';
+        $gzsql = '';
+        if ($input->getOption('users-off')){
+            $sql = " echo 'update \"" . $schema . "\".users set on_off=jsonb_build_object('\''v'\'', false) where id != 1;' ; ";
+            $gzc=($gz ? '| gzip' : '');
+
+            `{ $pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' ; $sql } $gzc > "{$path}"`;
+
+
+        }else{
+            if($gz){
+                $gzsql.=($gz ? '| gzip' : '');
+            }
+            `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' $gzsql > "{$path}"`;
         }
 
-        `$pgDump -O --schema '{$schema}' --no-tablespaces {$exclude} | grep -v '^--' $gz > "{$path}"`;
+
+
+
+
+
+
+        return 0;
     }
 }

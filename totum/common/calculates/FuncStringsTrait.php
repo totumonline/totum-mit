@@ -289,7 +289,7 @@ trait FuncStringsTrait
     {
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['str', 'from', 'to'], 'strRepeat');
-        $this->__checkNotArrayParams($params, ['str'], 'strRepeat');
+        $this->__checkNotArrayParams($params, ['str']);
 
         if (!is_array($params['from']) && is_array($params['to'])) {
             throw new errorException($this->translate('The parameter [[%s]] should [[not]] be of type row/list.', ['to if the from not a list']));

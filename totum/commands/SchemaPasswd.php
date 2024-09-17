@@ -7,7 +7,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 use totum\common\Auth;
 use totum\common\configs\MultiTrait;
 use totum\common\errorException;
@@ -27,7 +26,7 @@ class SchemaPasswd extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');

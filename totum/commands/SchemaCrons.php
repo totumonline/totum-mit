@@ -23,7 +23,7 @@ class SchemaCrons extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
 
@@ -76,5 +76,7 @@ class SchemaCrons extends Command
 
             `{$_SERVER['SCRIPT_FILENAME']} schema-cron $id $schemaName > /dev/null 2>&1 &`;
         }
+
+        return 0;
     }
 }

@@ -52,16 +52,19 @@ class Date extends Field
             if (!$valArray['v']) {
                 return '';
             }
-            $date = date_create($valArray['v']);
+            if ($date = date_create($valArray['v'])) {
 
-            if (!empty($this->data['dateFormat'])) {
-                $val = $date->format($this->data['dateFormat']);
-            } elseif (empty($this->data['dateTime'])) {
-                $val = $date->format('d.m.y');
-            } else {
-                $val = $date->format('d.m.y H:i');
+                if (!empty($this->data['dateFormat'])) {
+                    $val = $date->format($this->data['dateFormat']);
+                } elseif (empty($this->data['dateTime'])) {
+                    $val = $date->format('d.m.y');
+                } else {
+                    $val = $date->format('d.m.y H:i');
+                }
+                $valArray['v'] = $val;
             }
-            $valArray['v'] = $val;
+
+
         }
     }
 

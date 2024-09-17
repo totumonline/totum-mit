@@ -11,6 +11,7 @@
 namespace totum\common\configs;
 
 use totum\common\calculates\CalculateAction;
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Lang\LangInterface;
 use totum\common\logs\Log;
@@ -82,7 +83,10 @@ abstract class ConfParent
     protected $baseDir;
     protected $procVars = [];
     protected $Lang;
-
+    /**
+     * @var false|resource|null
+     */
+    protected $proGoModuleSocket;
 
 
     public function __construct($env = self::ENV_LEVELS['production'])
@@ -650,10 +654,11 @@ ON CONFLICT (name) DO UPDATE
         };
 
 
-        $returnData = function ($prepare) {
+        $returnData = function ($prepare) use($params) {
             if ($data = $prepare->fetch()) {
                 if ($params['date'] ?? false) {
-                    return ['date' => $data['dt'], 'value' => json_decode($data['value'], true)['v']];
+                    list($date, $tail) = explode('.', $data['dt']);
+                    return ['date' => $date, 'secpart'=>$tail, 'value' => json_decode($data['value'], true)['v']];
                 } else {
                     return json_decode($data['value'], true)['v'];
                 }
@@ -793,4 +798,52 @@ SQL
         return in_array($name, $this->techTables);
     }
 
+    function proGoModuleSocketSend(array $data, $close = false, $reCheckSchemaForce = false)
+    {
+
+        if (!$this->proGoModuleSocket || $reCheckSchemaForce) {
+            $this->proGoModuleSocket = @stream_socket_client("unix://" . $this->getBaseDir() . "/socket", $errno, $errstr, 30);
+            if (!$this->proGoModuleSocket) {
+                errorException::criticalException("GOMODULE: " . $errstr, $this);
+            }
+            $schemaData = ['schema' => $this->getSchema(true)];
+            if ($reCheckSchemaForce) {
+                $schemaData['check'] = true;
+            }
+            if($data["method"]=="license"){
+                $schemaData+=$data;
+                return $this->proGoModuleSocketSend($schemaData);
+            }
+            $this->proGoModuleSocketSend($schemaData);
+        }
+        if (!$data) {
+            if ($close) {
+                fclose($this->proGoModuleSocket);
+                $this->proGoModuleSocket = null;
+            }
+            return;
+        }
+
+
+        $s = fwrite($this->proGoModuleSocket, json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $result = stream_get_line($this->proGoModuleSocket, 0, "\r\n");
+
+        if ($close) {
+            fclose($this->proGoModuleSocket);
+            $this->proGoModuleSocket = null;
+        }
+        try {
+            $result = json_decode($result, true, 512, JSON_THROW_ON_ERROR);
+            if (key_exists('error', $result)) {
+                errorException::criticalException("GOMODULE: " . $result['error'], $this);
+            }
+            return $result;
+        } catch (criticalErrorException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            errorException::criticalException('GOMODULE error: ' . $e->getMessage() . ':`' . $result . '`', $this);
+        }
+
+    }
 }

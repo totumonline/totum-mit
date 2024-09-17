@@ -7,7 +7,6 @@ use \PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
 use totum\common\Lang\LangInterface;
-use totum\common\Lang\RU;
 use totum\common\tableSaveOrDeadLockException;
 
 class Sql
@@ -44,7 +43,7 @@ class Sql
     public function getPDO()
     {
         if ($this->isRollbacked) {
-            $this->Log->error('Tring to get rollbacked SQL', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
+            $this->Log->error('Trying to get rollbacked SQL', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
             throw new SqlException('Transaction was rollbacked');
         }
         return $this->PDO;
@@ -186,10 +185,10 @@ class Sql
         $this->startedTransactionsCounter--;
         $this->Log->debug('commit:' . $this->startedTransactionsCounter);
         if (!$this->startedTransactionsCounter) {
+            $this->exec('COMMIT');
             foreach ($this->onCommit as $func) {
                 $func();
             }
-            $this->exec('COMMIT');
             return true;
         }
         return false;
@@ -343,7 +342,9 @@ class Sql
         $this->lastQuery['time'] = $query_time_pad;
         $this->lastQuery['rows'] = '(prep)';
 
-        $stmt->num = ++$this->preparedCount;
+
+        /*TODO fix later*/
+        @$stmt->num = ++$this->preparedCount;
         $this->Log->debug($query_time_pad . ' (prep' . $stmt->num . ') >> ' . $query_string);
 
         $stmt->setFetchMode(PDO::FETCH_ASSOC);

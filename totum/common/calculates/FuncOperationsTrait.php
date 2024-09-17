@@ -10,6 +10,10 @@ use totum\fieldTypes\File;
 trait FuncOperationsTrait
 {
 
+    protected function funcIsItPRO($params){
+        return false;
+    }
+
     protected function cURL($url, string $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null, $method = null): bool|string|null
     {
         if ($headers) {
@@ -147,33 +151,7 @@ trait FuncOperationsTrait
 
     protected function funcExecSSH(string $params): bool|string|null
     {
-        if (!$this->Table->getTotum()->getConfig()->isExecSSHOn(true)) {
-            throw new criticalErrorException($this->translate('The ExecSSH function is disabled. Enable execSSHOn in Conf.php.'));
-        }
-        $params = $this->getParamsArray($params);
-        if (empty($params['ssh'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'ssh'));
-        }
-        $string = $params['ssh'];
-        if ($params['vars'] ?? null) {
-            $localeOld = setlocale(LC_CTYPE, 0);
-            setlocale(LC_CTYPE, 'en_US.UTF-8');
-
-            if (!is_array($params['vars'])) {
-                throw new errorException($this->translate('The parameter [[%s]] should be of type row/list.', 'vars'));
-            }
-            if (key_exists('0', $params['vars'])) {
-                foreach ($params['vars'] as $v) {
-                    $string .= ' ' . escapeshellarg($v) . '';
-                }
-            } else {
-                foreach ($params['vars'] as $k => $v) {
-                    $string .= ' ' . escapeshellcmd($k) . '=' . escapeshellarg($v) . '';
-                }
-            }
-            setlocale(LC_CTYPE, $localeOld);
-        }
-        return shell_exec($string);
+        throw new criticalErrorException($this->translate('This option works only in PRO.'));
     }
 
     protected function funcFileGetContent(string $params): bool|string|null

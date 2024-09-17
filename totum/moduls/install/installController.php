@@ -19,6 +19,7 @@ class installController extends interfaceController
      * @var mixed|string
      */
     protected string $lang = 'en';
+    protected mixed $LangObj;
 
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct()

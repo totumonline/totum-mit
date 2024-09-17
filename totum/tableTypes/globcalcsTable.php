@@ -15,6 +15,7 @@ use totum\models\Table;
 
 class globcalcsTable extends JsonTables
 {
+
     public function saveTable()
     {
         if ($this->savedUpdated === $this->updated) {

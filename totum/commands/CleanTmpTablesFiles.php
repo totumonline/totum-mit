@@ -21,7 +21,7 @@ class CleanTmpTablesFiles extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -36,7 +36,7 @@ class CleanTmpTablesFiles extends Command
         if (is_dir($dir)) {
             if ($dh = opendir($dir)) {
                 while (($file = readdir($dh)) !== false) {
-                    if (is_file($fName = $dir . '/' . $file) && strpos($file, '!tmp!') && fileatime($fName) < time() - 3600) {
+                    if (is_file($fName = $dir . '/' . $file) && str_contains($file, '!tmp!') && fileatime($fName) < time() - 3600) {
                         unlink($fName);
                     }
                 }
@@ -44,5 +44,6 @@ class CleanTmpTablesFiles extends Command
             }
         }
 
+        return 0;
     }
 }

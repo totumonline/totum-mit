@@ -63,6 +63,7 @@ class Calculate
      * @var array
      */
     protected $CodeLineCatches;
+    protected $parentName;
 
 
     public function __construct($code)
@@ -86,6 +87,11 @@ class Calculate
 
         $this->code = $code;
         $this->formStartSections();
+    }
+
+    static function hasStartSection($code): bool
+    {
+        return preg_match('/^([a-z0-9]*=\s*)\s*(?<catch>[a-zA-Z0-9_]*)\s*:(.*)$/m', $code);
     }
 
     public function setStartSections($sections)
@@ -667,7 +673,11 @@ class Calculate
             foreach ($this->startSections as $sectionName => $section) {
                 try {
                     $r = $this->execSubCode($section, $sectionName);
-                } catch (\Exception $exception) {
+                }
+                catch (criticalErrorException $exception) {
+                    throw $exception;
+                }
+                catch (\Exception $exception) {
                     if (key_exists($sectionName, $this->CodeLineCatches)) {
                         if (key_exists($this->CodeLineCatches[$sectionName], $this->code)) {
                             $this->vars['exception'] = $exception->getMessage();
@@ -758,7 +768,7 @@ class Calculate
             default => throw new errorException($this->translate('Unknown operator [[%s]].')),
         };
 
-        $res = $func($left, $right, 10);
+        $res = $func($left ?? '', $right, 10);
         return Calculate::rtrimZeros($res);
     }
 
@@ -880,26 +890,17 @@ class Calculate
                         case 'func':
                             $func = $r['func'];
 
-                            if (str_starts_with($func, 'ext')) {
-                                $func = $this->Table->getTotum()->getConfig()->getCalculateExtensionFunction($func);
-                                try {
-                                    $rTmp = $func->call($this, $r['params'], $rTmp);
-                                } catch (errorException $e) {
-                                    $e->addPath($this->translate('Function [[%s]]', $r['func']));
-                                    throw $e;
-                                }
-                            } else {
-                                $funcName = 'func' . $func;
-                                if (!is_callable([$this, $funcName])) {
-                                    throw new errorException($this->translate('Function [[%s]] is not found.', $func));
-                                }
 
-                                try {
-                                    $rTmp = $this->$funcName($r['params'], $rTmp);
-                                } catch (errorException $e) {
-                                    $e->addPath($this->translate('Function [[%s]]', $r['func']));
-                                    throw $e;
-                                }
+                            $funcName = 'func' . $func;
+                            if (!is_callable([$this, $funcName])) {
+                                throw new errorException($this->translate('Function [[%s]] is not found.', $func));
+                            }
+
+                            try {
+                                $rTmp = $this->$funcName($r['params'], $rTmp);
+                            } catch (errorException $e) {
+                                $e->addPath($this->translate('Function [[%s]]', $r['func']));
+                                throw $e;
                             }
 
 

@@ -88,7 +88,7 @@ trait ParsesTrait
         $isInCodeNamed = null;
         $codeType = null;
         $codeContent = '';
-        foreach (preg_split('/[\r\n]+/', trim($code)) as $row) {
+        foreach (preg_split('/[\r\n]+/', trim($code ?? '')) as $row) {
 
             if ($isInCodeNamed) {
                 /*codeBlockEnd*/
@@ -223,7 +223,7 @@ trait ParsesTrait
                         [><=]
                         )`x',
             $string,
-            null,
+            -1,
             PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
         );
 
@@ -550,7 +550,7 @@ trait ParsesTrait
         $actions = preg_split(
             '`((?<=[^(+\-^*/])[()+\-^*/]|[(])`',
             $string,
-            null,
+            -1,
             PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY
         );
 

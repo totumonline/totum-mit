@@ -144,12 +144,12 @@ trait FuncNumbersTrait
         }
 
         $this->__checkRequiredParams($params, ['num']);
-        $this->__checkNotArrayParams($params, ['dectimals', 'decsep', 'thousandssep', 'unittype', 'prefix']);
+        $this->__checkNotArrayParams($params, ['dectimals',  'decimals', 'decsep', 'thousandssep', 'unittype', 'prefix']);
 
         $format = function ($num) use ($params) {
             return ((string)($params['prefix'] ?? '')) . number_format(
                     (float)$num,
-                    (int)($params['dectimals'] ?? 0),
+                    (int)($params['dectimals'] ?? $params['decimals'] ?? 0),
                     (string)($params['decsep'] ?? ','),
                     (string)($params['thousandssep'] ?? '')
                 )
@@ -266,12 +266,12 @@ trait FuncNumbersTrait
     {
         $params = $this->getParamsArray($params);
         $this->__checkRequiredParams($params, ['num']);
-        $this->__checkNotArrayParams($params, ['num', 'dectimals', 'decsep', 'thousandssep', 'unittype']);
+        $this->__checkNotArrayParams($params, ['num', 'dectimals', 'dectimal', 'decimals', 'decsep', 'thousandssep', 'unittype']);
         $this->__checkNumericParam($params['num'], 'num');
 
         return Calculate::bcRoundNumber($params['num'],
             $params['step'] ?? 0,
-            $params['dectimal'] ?? 0,
+            $params['dectimal'] ?? $params['dectimals'] ?? $params['decimals']  ?? 0,
             $params['type'] ?? null,
             $this->varData);
     }

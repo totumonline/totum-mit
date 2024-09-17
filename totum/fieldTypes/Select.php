@@ -26,6 +26,10 @@ class Select extends Field
     protected $commonSelectViewList;
     protected $CalculateCodeViewSelect;
     protected $CalculateCodePreviews;
+    /**
+     * @var array|mixed
+     */
+    protected mixed $commonSelectValueList;
 
     protected function __construct($fieldData, aTable $table)
     {

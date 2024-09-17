@@ -10,3 +10,5 @@ CalculateExtensions.php
 /.github/
 totum/ext/
 /Crypto.key
+/totum-front
+CLI.totum.php.ini

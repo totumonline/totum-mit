@@ -15,6 +15,7 @@ use totum\common\Model;
 use totum\common\tableSaveOrDeadLockException;
 use totum\common\Totum;
 use totum\config\Conf;
+use totum\tableTypes\RealTables;
 
 class SchemaCron extends Command
 {
@@ -28,7 +29,7 @@ class SchemaCron extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
 
@@ -40,16 +41,14 @@ class SchemaCron extends Command
 
 
         if ($cronId = $input->getArgument('cronId')) {
-            if ($cronRow = $Conf->getModel('crons')->get(['id' => (int)$cronId, 'status' => 'true'])) {
-                $cronRow = Model::getClearValuesWithExtract($cronRow);
-            }else{
+            if ($cronRowRaw = $Conf->getModel('crons')->get(['id' => (int)$cronId, 'status' => 'true'])) {
+                $cronRow = Model::getClearValuesWithExtract($cronRowRaw);
+            } else {
                 throw new \Exception('Row cron not found or not active');
             }
-        }else{
+        } else {
             throw new \Exception('Id of cron not found or empty');
         }
-
-
 
 
         $User = Auth::loadAuthUserByLogin($Conf, 'cron', false);
@@ -60,10 +59,19 @@ class SchemaCron extends Command
                     $Totum = new Totum($Conf, $User);
                     $Totum->transactionStart();
                     $Table = $Totum->getTable('crons');
-                    $Calc = new CalculateAction($cronRow['code']);
+
+                    $code = $cronRow['code'];
+
+                    if ($cronRow['ttm__overlay_control'] === true) {
+                        $code = $Table->getFields()['do_it_now']['codeAction'];
+                    }
+                    $cronRowV = RealTables::decodeRow($cronRowRaw);
+
+
+                    $Calc = new CalculateAction($code);
                     $Calc->execAction('CRON',
-                        $cronRow,
-                        $cronRow,
+                        $cronRowV,
+                        $cronRowV,
                         $Table->getTbl(),
                         $Table->getTbl(),
                         $Table,
@@ -79,5 +87,7 @@ class SchemaCron extends Command
                 $Conf = $Conf->getClearConf();
             }
         }
+
+        return 0;
     }
 }

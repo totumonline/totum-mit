@@ -40,7 +40,7 @@ class SchemaReplace extends Command
             'Do not add new host in Conf.php');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!class_exists(Conf::class)) {
             $output->writeln('ERROR: config class not found');
@@ -72,7 +72,7 @@ class SchemaReplace extends Command
 
                     if (!($host = $helper->ask($input, $output, $question))) {
                         $output->writeln('Host is required');
-                        return;
+                        return 0;
                     }
                 }
             }
@@ -92,7 +92,7 @@ class SchemaReplace extends Command
 
             if (!$helper->ask($input, $output, $question)) {
                 $output->write('Nothing\'s done.');
-                return;
+                return 0;
             }
         }
 
@@ -185,5 +185,7 @@ class SchemaReplace extends Command
         } else {
             $output->writeln('Done');
         }
+
+        return 0;
     }
 }

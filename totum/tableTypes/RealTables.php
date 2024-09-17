@@ -244,7 +244,7 @@ abstract class RealTables extends aTable
 
             if (Field::isFieldListValues($field['type'], $field['multiple'] ?? false)) {
                 $normalizeFunc = function ($r) {
-                    return json_decode($r, true);
+                    return json_decode($r ?? '[]', true);
                 };
             } elseif ($field['type'] === 'checkbox') {
                 $normalizeFunc = function ($r) {
@@ -633,7 +633,7 @@ abstract class RealTables extends aTable
         $fieldsWithActionOnChange = $this->getFieldsForAction('Change', 'param');
 
         $codeAction = $this->tableRow['default_action'] ?? null;
-        if ($codeAction && preg_match('/^\s*=\s*:\s*$/', $codeAction)) {
+        if ($codeAction && !Calculate::hasStartSection($codeAction)) {
             $codeAction = null;
         }
 
@@ -1621,7 +1621,7 @@ abstract class RealTables extends aTable
             }
 
             if ($fieldName === 'id') {
-                $fieldQuoted = '(id)::NUMERIC';
+                $fieldQuoted = 'id';
                 $isNumeric = true;
             } elseif ($fieldName !== 'n') {
                 $fieldQuoted = "$fieldQuoted::NUMERIC";
@@ -1869,7 +1869,7 @@ abstract class RealTables extends aTable
                             }
                             $q .= "$fieldQuoted  IS NOT NULL $emptyString AND ";
                         } else {
-                            $q .= "$fieldQuoted  IS NULL OR";
+                            $q .= "$fieldQuoted  IS NULL OR ";
                         }
                         /*если есть непустые значения*/
                         if (!empty($value)) {

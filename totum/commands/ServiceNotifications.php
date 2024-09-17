@@ -26,7 +26,7 @@ class ServiceNotifications extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
 
@@ -123,5 +123,7 @@ class ServiceNotifications extends Command
             }
 
         }
+
+        return 0;
     }
 }

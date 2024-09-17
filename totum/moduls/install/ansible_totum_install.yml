@@ -617,7 +617,7 @@
     git:
       repo: https://github.com/totumonline/totum-mit.git
       dest: /home/totum/totum-mit
-      version: dev
+      version: master
       update: yes
     become_user: totum
     when: not totum_mit.stat.exists
@@ -782,21 +782,19 @@
     register: current_branch
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
-  # have to change gomodule here
   - name: Fetch data from origin pro
-    shell: git fetch origin gomodule
+    shell: git fetch origin pro
     become_user: totum
     args:
       chdir: /home/totum/totum-mit
-    when: lookup('env', 'TOTUMVERSION') == 'pro' and current_branch.stdout != "gomodule"
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and current_branch.stdout != "pro"
 
-  # have to change gomodule here
   - name: Checkout to new branch pro
-    shell: git checkout -b gomodule origin/gomodule -t
+    shell: git checkout -b pro origin/pro -t
     become_user: totum
     args:
       chdir: /home/totum/totum-mit
-    when: lookup('env', 'TOTUMVERSION') == 'pro' and current_branch.stdout != "gomodule"
+    when: lookup('env', 'TOTUMVERSION') == 'pro' and current_branch.stdout != "pro"
 
   - name: Pull latest scripts
     shell: git pull

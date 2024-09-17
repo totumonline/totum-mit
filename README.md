@@ -32,9 +32,9 @@ About Totum — [video on YouTube](https://www.youtube.com/watch?v=pnKm1RA4NYE)
 
 ## Install and docs
 
-1-Click native install on VDS/VPS Ubuntu 20 `ONLY FOR CLEAR SYSTEMS` — [video on YouTube](https://youtu.be/81G2MosjJJs) | [docs](https://docs.totum.online/ubuntu)
+1-Click native install on Ubuntu 24.04 `ONLY FOR CLEAR SYSTEMS` — [docs](https://docs.totum.online/ubuntu)
 ```
-sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/autoinstall.sh && sudo bash autoinstall.sh
+sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_autoinstall.sh && sudo bash totum_autoinstall.sh
 ```
 Avaliable lang: `EN`, `RU`, `ES`, `DE`
 

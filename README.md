@@ -22,17 +22,9 @@ On your server, easy to learn and scalable with business growth 🎉
 
 Site — [totum.online](https://totum.online)
 
-About Totum — [video on YouTube](https://www.youtube.com/watch?v=pnKm1RA4NYE)
-
-- `EN`-Demo-server — [totum.online/demo](https://totum.online/demo) or [en-live-demo](https://n-f79b352-23614.demo.totum.online/)
-
-- `RU`-Demo — [ru.totum.online/demo](https://ru.totum.online/demo) or [ru-live-demo](https://live-demo.ttmapp.ru)
-
-- `ES`-Demo — [es.totum.online/demo](https://es.totum.online/demo) or [es-live-demo](https://n-5f894e2-69564.demoes.totum.online/)
-
 ## Install and docs
 
-1-Click native install on Ubuntu 24.04 `ONLY FOR CLEAR SYSTEMS` — [docs](https://docs.totum.online/ubuntu)
+1-Click native install on Ubuntu 24.04 `ONLY FOR CLEAR SYSTEMS` — [docs.totum.online/ubuntu](https://docs.totum.online/ubuntu)
 ```
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_autoinstall.sh && sudo bash totum_autoinstall.sh
 ```

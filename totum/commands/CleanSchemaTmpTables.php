@@ -31,7 +31,7 @@ class CleanSchemaTmpTables extends Command
             if ($schema = $input->getArgument('schema')) {
             }
         }
-        if (empty($schema)){
+        if (empty($schema)) {
             $schema = $Conf->getSchema(true);
         }
 
@@ -48,27 +48,30 @@ class CleanSchemaTmpTables extends Command
         $plus24 = date_create();
         $plus24->modify('-24 hours');
 
-
-        $sql->exec('delete from "'.$schema.'"._tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
-
-        $minusHour = date_create();
-        $minusHour->modify('-1 hour');
         try {
-            $sql->exec('delete from "'.$schema.'"._services_vars where expire<\'' . $minusHour->format('Y-m-d H:i:s') . '\'');
-        }catch (\Exception $exception){
-            if($exception->getCode()==='42P01'){
-                $Services = Services::init($Conf);
-                $Services->createServicesTable();
+            $sql->exec('delete from "' . $schema . '"._tmp_tables where touched<\'' . $plus24->format('Y-m-d H:i') . '\'');
+
+            $minusHour = date_create();
+            $minusHour->modify('-1 hour');
+            try {
+                $sql->exec('delete from "' . $schema . '"._services_vars where expire<\'' . $minusHour->format('Y-m-d H:i:s') . '\'');
+            } catch (\Exception $exception) {
+                /*if ($exception->getCode() === '42P01') {
+
+                }*/
             }
+
+            $minus10 = date_create();
+            $minus10->modify('-2 hours');
+
+            $sql->exec('delete from "' . $schema . '"._tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\''
+                . $minus10->format('Y-m-d H:i') . '\'');
+
+            $sql->exec('VACUUM "' . $schema . '"._tmp_tables');
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
         }
-
-        $minus10 = date_create();
-        $minus10->modify('-2 hours');
-
-        $sql->exec('delete from "'.$schema.'"._tmp_tables where table_name SIMILAR TO \'\_%\' AND touched<\''
-            . $minus10->format('Y-m-d H:i') . '\'');
-
-        $sql->exec('VACUUM "'.$schema.'"._tmp_tables');
     }
 
 }

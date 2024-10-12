@@ -45,6 +45,10 @@ class AdminTableActions extends WriteTableActions
         }
         throw new errorException($this->translate('Table is not found.') . ' ' . $this->translate('May be insert row has expired.'));
     }
+    public function getAIProxyData()
+    {
+        return ['url'=>$this->Totum->getConfig()->getSettings('h_totum_ai_server'), 'key'=>$this->Totum->getConfig()->getSettings('h_totum_ai_key')];
+    }
 
     public function bugFinder()
     {

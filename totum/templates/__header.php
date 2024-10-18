@@ -3,6 +3,7 @@
 if (is_null($isCreatorView ?? null)) {
     return;
 } ?>
+<script>App = App || {}; App.isCreatorView = <?=json_encode($isCreatorView)?></script>
 <nav class="totbar-default navbar-default">
     <div class="container-fluid">
         <div

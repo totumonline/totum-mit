@@ -123,6 +123,15 @@ class Actions
         return $this->User->isCreator();
     }
 
+    public function getAIProxyData()
+    {
+        if ($this->isCreatorView()){
+            return ['url'=>$this->Totum->getConfig()->getSettings('h_totum_ai_server'), 'key'=>$this->Totum->getConfig()->getSettings('h_totum_ai_key')];
+        }
+        return ['error'=>'It\'s Creator function'];
+
+    }
+
     public function getSchemaFormats()
     {
         return ['formats' => ['date' => $this->Totum->getConfig()->getSettings('dates_format') ?? 'd.m.Y'] + ($this->Totum->getConfig()->getSettings('numbers_format') ?? [])];

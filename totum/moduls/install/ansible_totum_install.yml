@@ -20,7 +20,7 @@
     apt:
       name: locales
       state: present
-      
+
   - name: Check if LANG=en_US.UTF-8 is set
     shell: locale | grep -c 'LANG=en_US.UTF-8'
     register: locale_check
@@ -35,22 +35,6 @@
 
   # Add PPA and some packages
 
-  - name: Add PHP repository
-    apt_repository:
-      repo: ppa:ondrej/php
-      state: present
-
-  - name: Add the MeiliSearch repository to the sources list
-    lineinfile:
-      path: /etc/apt/sources.list.d/fury.list
-      line: 'deb [trusted=yes] https://apt.fury.io/meilisearch/ /'
-      create: yes
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Apt update
-    apt:
-      update_cache: yes
-
   - name: apt install some common packages
     apt:
       name:
@@ -63,6 +47,28 @@
         - certbot
         - ufw
       state: latest
+
+  - name: Add PHP repository
+    apt_repository:
+      repo: ppa:ondrej/php
+      state: present
+
+  - name: Add PostgreSQL repository to sources list
+    lineinfile:
+      path: /etc/apt/sources.list.d/pgdg.list
+      line: "deb [trusted=yes] http://apt.postgresql.org/pub/repos/apt noble-pgdg main"
+      create: yes
+
+  - name: Add the MeiliSearch repository to the sources list
+    lineinfile:
+      path: /etc/apt/sources.list.d/fury.list
+      line: 'deb [trusted=yes] https://apt.fury.io/meilisearch/ /'
+      create: yes
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
+  - name: Apt update
+    apt:
+      update_cache: yes
 
   - name: Deny all incoming connections by default
     ufw:
@@ -572,7 +578,7 @@
 
   # Install PostgreSQL
 
-  - name: apt install postgresql
+  - name: apt install postgresql-17
     apt:
       name: postgresql
       state: present

@@ -205,7 +205,7 @@ CODE
         if ($ids) {
             $this->Table->checkIsUserCanViewIds('web', $ids);
 
-            if (preg_match('/^\s*(a\d+)?=\s*:\s*[^\s]/', $this->Table->getTableRow()['on_duplicate'])) {
+            if (preg_match('/^\s*(a\d+)?=\s*:\s*[^\s]/', $this->Table->getTableRow()['on_duplicate']??'')) {
                 try {
                     $Calc = new CalculateAction($this->Table->getTableRow()['on_duplicate']);
                     $Calc->execAction(

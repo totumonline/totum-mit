@@ -66,3 +66,11 @@ create view tree__v(id, parent_id, title, path, top, ord, is_del, default_table,
            temp1.roles
     FROM temp1
     ORDER BY temp1.ord;
+
+
+CREATE INDEX idx_notifications_user_active_dt ON notifications
+    (
+     (user_id->>'v'),
+     (active->>'v'),
+     (active_dt_from->>'v')
+        );

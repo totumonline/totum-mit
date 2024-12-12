@@ -104,7 +104,7 @@ class CalculateAction extends Calculate
                             return match ($match[1]) {
                                 'Title_of_notification' => $params['title'],
                                 'Text' => $params['eml'],
-                                'domen' => $this->Table->getTotum()->getConfig()->getFullHostName(),
+                                'domen', 'domain' => $this->Table->getTotum()->getConfig()->getFullHostName(),
                                 default => null,
                             };
                         },

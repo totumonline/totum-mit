@@ -49,10 +49,9 @@
       state: latest
 
   - name: Add PHP repository
-    lineinfile:
-      path: /etc/apt/sources.list.d/ondrej_php.list
-      line: "deb [trusted=yes] http://ppa.launchpad.net/ondrej/php/ubuntu noble main"
-      create: yes
+    apt_repository:
+      repo: ppa:ondrej/php
+      state: present
 
   - name: Add PostgreSQL repository to sources list
     lineinfile:

@@ -103,7 +103,7 @@ TOTUMBASEPASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
 
 echo
 echo "1) MIT"
-echo "2) PRO"
+echo "2) PRO (if you do not have a 'PRO' license key, the system operates with only one user, 'admin')"
 echo
 
 read -p "Select version: " TOTUMVERSION
@@ -243,7 +243,7 @@ if [ "$TOTUMVERSION" == "mit" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A)."
-echo "WARNING: To install 'PRO', you must have access to the repository at https://github.com/totumonline/totum-pro"
+echo "WARNING: If you do not have a 'PRO' license key, the system operates with only one user, 'admin'."
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
 read -p "Enter (A) if not (N): " CHANGE_V

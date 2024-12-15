@@ -575,7 +575,7 @@
   # Switch to the PRO repository
 
   - name: Set Git remote URL to PRO repository
-    shell: git remote set-url origin git@github.com:totumonline/totum-pro.git
+    shell: git remote set-url origin https://github.com/totumonline/totum-pro.git
     become_user: totum
     args:
       chdir: /home/totum/totum-mit

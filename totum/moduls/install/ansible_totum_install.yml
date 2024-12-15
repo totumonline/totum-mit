@@ -48,30 +48,10 @@
         - ufw
       state: latest
 
-  - name: Ensure keyrings directory exists
-    file:
-      path: /etc/apt/keyrings
-      state: directory
-      mode: '0755'
-
-  - name: Check if ondrej_php.gpg directory exists
-    stat:
-      path: /etc/apt/keyrings/ondrej_php.gpg
-    register: ondrej_php
-
-  - name: Download Ondrej PHP GPG key
-    get_url:
-      url: https://packages.sury.org/php/apt.gpg
-      dest: /etc/apt/keyrings/ondrej_php.gpg
-      owner: root
-      group: root
-      mode: '0644'
-    when: not ondrej_php.stat.exists
-
-  - name: Add PHP repository manually
+  - name: Add PHP repository
     lineinfile:
       path: /etc/apt/sources.list.d/ondrej_php.list
-      line: "deb [signed-by=/etc/apt/keyrings/ondrej_php.gpg] http://ppa.launchpad.net/ondrej/php/ubuntu noble main"
+      line: "deb [trusted=yes] http://ppa.launchpad.net/ondrej/php/ubuntu noble main"
       create: yes
 
   - name: Add PostgreSQL repository to sources list

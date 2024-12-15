@@ -517,20 +517,6 @@
       name: libreoffice
       state: latest
 
-  # Configure Git User for Services
-
-  - name: Configure Git user.name
-    become_user: totum
-    shell: git config --local user.name "{{ set_github_user }}"
-    args:
-      chdir: /home/totum/totum-services
-
-  - name: Configure Git user.email
-    become_user: totum
-    shell: git config --local user.email "{{ set_github_email }}"
-    args:
-      chdir: /home/totum/totum-services
-
   # Add Crons
 
   - name: Generate a random minute for cron job

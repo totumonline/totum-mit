@@ -103,7 +103,7 @@ TOTUMBASEPASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
 
 echo
 echo "1) MIT"
-echo "2) PRO (You have to have access to the PRO repository first!)"
+echo "2) PRO"
 echo
 
 read -p "Select version: " TOTUMVERSION

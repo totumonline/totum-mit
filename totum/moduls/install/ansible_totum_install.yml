@@ -425,7 +425,7 @@
 
   # Install PostgreSQL
 
-  - name: apt install postgresql-17
+  - name: apt install postgresql
     apt:
       name: postgresql-17
       state: present

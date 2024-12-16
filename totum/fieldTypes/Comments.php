@@ -10,6 +10,7 @@ namespace totum\fieldTypes;
 
 use totum\common\Auth;
 use totum\common\calculates\Calculate;
+use totum\common\configs\ConfParent;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
@@ -34,9 +35,10 @@ class Comments extends Field
         }
     }
 
-    public static function removeViewedForField($table_id, $field_name, $Config)
+    public static function removeViewedForField($table_id, $field_name, ConfParent $Config)
     {
-        $Config->getSql()->exec('delete from ' . static::table_viewed . ' where table_id=' . $table_id . ' AND field_name=\'' . $field_name . '\'');
+        $prepared = $Config->getSql()->getPrepared('delete from ' . static::table_viewed . ' where table_id=? AND field_name=?');
+        $prepared->execute([$table_id, $field_name]);
     }
 
     public function getValueFromCsv($val)

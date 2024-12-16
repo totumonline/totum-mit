@@ -103,7 +103,7 @@ TOTUMBASEPASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
 
 echo
 echo "1) MIT"
-echo "2) PRO (You have to have access to the PRO repository first!)"
+echo "2) PRO (if you do not have a 'PRO' license key, the system operates with only one user, 'admin')"
 echo
 
 read -p "Select version: " TOTUMVERSION
@@ -199,42 +199,6 @@ SKIP=1
 
 fi
 
-if [ $# -ge 1 ]; then
-    TOTUMGITHUBUSER=$1
-    if ! grep -q "export TOTUMGITHUBUSER=" totum_install_vars; then
-      echo "export TOTUMGITHUBUSER=$TOTUMGITHUBUSER" >> totum_install_vars
-      echo "$TOTUMGITHUBUSER has been written to totum_install_vars"
-      echo
-      else
-      echo "TOTUMGITHUBUSER already exists in totum_install_vars"
-      echo
-    fi
-fi
-
-if [ $# -ge 2 ]; then
-    TOTUMGITHUBEMAIL=$2
-    if ! grep -q "export TOTUMGITHUBEMAIL=" totum_install_vars; then
-      echo "export TOTUMGITHUBEMAIL=$TOTUMGITHUBEMAIL" >> totum_install_vars
-      echo "$TOTUMGITHUBEMAIL has been written to totum_install_vars"
-      echo
-      else
-      echo "TOTUMGITHUBEMAIL already exists in totum_install_vars"
-      echo
-    fi
-fi
-
-if [ $# -ge 3 ]; then
-    TOTUMKEYURL=$3
-if ! grep -q "export TOTUMKEYURL=" totum_install_vars; then
-      echo "export TOTUMKEYURL=$TOTUMKEYURL" >> totum_install_vars
-      echo "$TOTUMKEYURL has been written to totum_install_vars"
-      echo
-      else
-      echo "TOTUMKEYURL already exists in totum_install_vars"
-      echo
-    fi
-fi
-
 source totum_install_vars
 
 if [[ $SKIP -eq 1 ]]
@@ -260,18 +224,6 @@ echo -e "\033[1mDomain:\033[0m " $CERTBOTDOMAIN
 echo
 echo -e "\033[1mLang:\033[0m " $TOTUMLANG
 echo
-if [ -n "$TOTUMGITHUBUSER" ]; then
-echo -e "\033[1mGitHub_user:\033[0m " $TOTUMGITHUBUSER
-echo
-fi
-if [ -n "$TOTUMGITHUBEMAIL" ]; then
-echo -e "\033[1mGitHub_email:\033[0m " $TOTUMGITHUBEMAIL
-echo
-fi
-if [ -n "$TOTUMKEYURL" ]; then
-echo -e "\033[1mGitHub_key_url:\033[0m " $TOTUMKEYURL
-echo
-fi
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
 
@@ -291,7 +243,7 @@ if [ "$TOTUMVERSION" == "mit" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A)."
-echo "WARNING: To install 'PRO', you must have access to the repository at https://github.com/totumonline/totum-pro"
+echo "WARNING: If you do not have a 'PRO' license key, the system operates with only one user, 'admin'."
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
 read -p "Enter (A) if not (N): " CHANGE_V

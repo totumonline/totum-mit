@@ -4,4 +4,6 @@ If you update TOTUM from version 2 to 3 visit https://docs.totum.online/update_t
 
 If you update TOTUM from version 3 to 4 visit https://docs.totum.online/update_three_four
 
-If you update TOTUM from version 4 to 5 visit https://docs.totum.online/update_four_five
+If you update TOTUM from version 4 to 5 or 6 visit https://docs.totum.online/update_four_five
+
+If you update TOTUM from version 5 to 6 visit https://docs.totum.online/update_five_six

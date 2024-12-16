@@ -48,22 +48,64 @@
         - ufw
       state: latest
 
-  - name: Add PHP repository
-    apt_repository:
-      repo: ppa:ondrej/php
-      state: present
+  # Add ondrej/php
+
+  - name: Ensure /usr/share/keyrings directory exists
+    file:
+      path: /usr/share/keyrings
+      state: directory
+      owner: root
+      group: root
+      mode: '0755'
+
+  - name: Check if ondrej_php gpg key exists
+    stat:
+      path: /usr/share/keyrings/ondrej-php.gpg
+    register: ondrej_php
+
+  - name: Download GPG key if not exists
+    get_url:
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/14aa40ec0831756756d7f66c4f4ea0aae5267a6c.asc
+      dest: /root/14aa40ec0831756756d7f66c4f4ea0aae5267a6c.asc
+      owner: root
+      group: root
+      mode: '0644'
+    when: not ondrej_php.stat.exists
+
+  - name: Import GPG key to /usr/share/keyrings
+    command: >
+      bash -c "cat /root/14aa40ec0831756756d7f66c4f4ea0aae5267a6c.asc |
+      gpg --dearmor > /usr/share/keyrings/ondrej-php.gpg"
+    when: not ondrej_php.stat.exists
+
+  - name: Add ondrej/php repository to sources list
+    lineinfile:
+      path: /etc/apt/sources.list.d/ondrej-php.list
+      line: "deb [signed-by=/usr/share/keyrings/ondrej-php.gpg] http://ppa.launchpad.net/ondrej/php/ubuntu jammy main"
+      create: yes
+      owner: root
+      group: root
+      mode: '0644'
+
+  # Add other
 
   - name: Add PostgreSQL repository to sources list
     lineinfile:
       path: /etc/apt/sources.list.d/pgdg.list
       line: "deb [trusted=yes] http://apt.postgresql.org/pub/repos/apt noble-pgdg main"
       create: yes
+      owner: root
+      group: root
+      mode: '0644'
 
   - name: Add the MeiliSearch repository to the sources list
     lineinfile:
       path: /etc/apt/sources.list.d/fury.list
       line: 'deb [trusted=yes] https://apt.fury.io/meilisearch/ /'
       create: yes
+      owner: root
+      group: root
+      mode: '0644'
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
   - name: Apt update

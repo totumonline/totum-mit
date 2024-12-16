@@ -667,6 +667,14 @@
       mode: '0440'
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
+  - name: Add sudoers entry for totum-gom status
+    lineinfile:
+      path: /etc/sudoers.d/restart-totum-gom
+      line: 'totum ALL=(ALL) NOPASSWD: /usr/sbin/service totum-gom status'
+      create: yes
+      mode: '0440'
+    when: lookup('env', 'TOTUMVERSION') == 'pro'
+
   # Add Crons
 
   - name: Generate a random minute for cron job
@@ -823,7 +831,7 @@
       job: "cd ~ && exec meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) > /dev/null 2>&1 &"
     when: lookup('env', 'TOTUMVERSION') == 'pro'
 
-  # Chane IP to DOMAIN
+  # Change IP to DOMAIN
 
   - name: Check IPDOMAIN environment variable
     set_fact:

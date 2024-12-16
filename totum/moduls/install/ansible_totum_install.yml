@@ -65,8 +65,8 @@
 
   - name: Download GPG key if not exists
     get_url:
-      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/14aa40ec0831756756d7f66c4f4ea0aae5267a6c.asc
-      dest: /root/14aa40ec0831756756d7f66c4f4ea0aae5267a6c.asc
+      url: https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/b8dc7e53946656efbce4c1dd71daeaab4ad4cab6.asc
+      dest: /root/b8dc7e53946656efbce4c1dd71daeaab4ad4cab6.asc
       owner: root
       group: root
       mode: '0644'
@@ -74,7 +74,7 @@
 
   - name: Import GPG key to /usr/share/keyrings
     command: >
-      bash -c "cat /root/14aa40ec0831756756d7f66c4f4ea0aae5267a6c.asc |
+      bash -c "cat /root/b8dc7e53946656efbce4c1dd71daeaab4ad4cab6.asc |
       gpg --dearmor > /usr/share/keyrings/ondrej-php.gpg"
     when: not ondrej_php.stat.exists
 

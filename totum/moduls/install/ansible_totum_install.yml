@@ -81,7 +81,7 @@
   - name: Add ondrej/php repository to sources list
     lineinfile:
       path: /etc/apt/sources.list.d/ondrej-php.list
-      line: "deb [signed-by=/usr/share/keyrings/ondrej-php.gpg] http://ppa.launchpad.net/ondrej/php/ubuntu jammy main"
+      line: "deb [signed-by=/usr/share/keyrings/ondrej-php.gpg] http://ppa.launchpad.net/ondrej/php/ubuntu noble main"
       create: yes
       owner: root
       group: root

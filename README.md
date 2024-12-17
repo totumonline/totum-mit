@@ -30,15 +30,11 @@ sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totu
 ```
 Avaliable lang: `EN`, `RU`, `ES`, `DE`
 
-Documentaion — [docs.totum.online](https://docs.totum.online)
+Documentaion — [docs.totum.online](https://docs.totum.online) 🔥
 
 Training course — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀
 
-Forum — [questions, answers, suggestions, announcements ](https://github.com/totumonline/totum-mit/discussions) 🔥
-
 Email — `totum at totum.online`
-
-If you have done a project on Totum — [tell about it here](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌
 
 ## Interface
 
@@ -182,8 +178,6 @@ Site — [totum.online](https://totum.online)
 Documentation — [docs.totum.online](https://docs.totum.online)
 
 Training course — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀
-
-Forum in English — [questions, answers, suggestions, announcements ](https://github.com/totumonline/totum-mit/discussions) 🔥
 
 Email — `totum at totum.online`
 

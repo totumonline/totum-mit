@@ -1,5 +1,7 @@
 # Self‑hosted database with built‑in language to create internal tools with ease
 
+This is the free version of Totum PRO: https://totum.online/pro
+
 Universal UI, simple code-based logic, automatic actions, access rights, logging, API and lots of other stuff 👍
 
 For rapid construction of business applications 💪 👀

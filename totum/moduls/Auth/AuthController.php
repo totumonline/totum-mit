@@ -96,7 +96,7 @@ class AuthController extends interfaceController
 
                         if (in_array(1, $userRow['roles'])) {
                             $schema = is_callable([$this->Config, 'setHostSchema']) ? '"' . $this->Config->getSchema() . '"' : '';
-                            `cd {$baseDir} && bin/totum check-service-notifications {$schema} &`;
+                            `cd {$baseDir} && bin/totum check-service-notifications {$schema} > /dev/null 2>&1 &`;
                         }
 
                         $this->location($_GET['from'] && $_GET['from'] !== '/' ? $_GET['from'] : Auth::getUserById($this->Config,

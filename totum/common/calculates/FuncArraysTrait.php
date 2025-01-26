@@ -1078,10 +1078,14 @@ trait FuncArraysTrait
 
         $rows = [];
         $listCount = 0;
+        if ($params['field']??[]){
+            $listCount = 1;
+        }
         foreach ($params['field'] ?? [] as $f) {
             $f = $this->getExecParamVal($f, 'field');
             $rows = array_replace($rows, $f);
         }
+
         $rowList = [];
         foreach ($rows as $list) {
             if (is_array($list) && key_exists(0, $list)) {

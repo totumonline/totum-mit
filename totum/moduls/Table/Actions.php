@@ -195,7 +195,7 @@ class Actions
     public
     function getNotificationsTable()
     {
-        $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "' . $this->translate('Notifications') . '"; width: 800; height: "80vh"; refresh: false; header: true; footer: true; topbuttons: false)');
+        $Calc = new CalculateAction('=: linkToDataTable(table: \'ttm__manage_notifications\'; title: "' . $this->translate('Notifications') . '"; width: 850; height: "80vh"; refresh: false; header: true; footer: true; topbuttons: false)');
         $Calc->execAction('KOD', [], [], [], [], $this->Totum->getTable('tables'), 'exec');
     }
 

@@ -7,15 +7,6 @@
 
   # Ubuntu version, local and timezone
 
-  - name: Check if the distribution is Ubuntu and version is 24.04
-    fail:
-      msg: "This playbook only supports Ubuntu 24.04."
-    when: ansible_distribution != 'Ubuntu' or ansible_distribution_version != '24.04'
-
-  - name: Continue with tasks if the distribution and version are correct
-    debug:
-      msg: "The distribution is Ubuntu 24.04. Proceeding with tasks."
-
   - name: Ensure locales package is installed
     apt:
       name: locales

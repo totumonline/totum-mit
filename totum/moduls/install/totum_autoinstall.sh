@@ -1,15 +1,31 @@
 #!/bin/bash
 
-if [[ $(sudo cat /etc/issue | grep -c 'Ubuntu 24.04') -ne 1 ]]
-then
-  echo
-  echo "THIS SERVER IS NOT A UBUNTU 24.04 CHECK: sudo cat /etc/issue"
-  echo
-  exit 0
+WITHOUT_CHECK=false
+
+for arg in "$@"; do
+  case $arg in
+    --without-check)
+      WITHOUT_CHECK=true
+      ;;
+    *)
+      echo "Unknown parameter: $arg"
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "$WITHOUT_CHECK" == true ]]; then
+  echo "Skipping Ubuntu version check due to --without-check parameter."
 else
-  echo
-  echo "Ubuntu version is OK. Let's go..."
-  echo
+  echo "Performing Ubuntu version check..."
+  if [[ $(grep -c 'Ubuntu 24.04' /etc/issue) -ne 1 ]]; then
+    echo "THIS SERVER IS NOT A UBUNTU 24.04 CHECK: sudo cat /etc/issue"
+    echo "If you want to install it on a different version of Ubuntu, specify the parameter --without-check"
+    echo "sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_autoinstall.sh && sudo bash totum_autoinstall.sh --without-check"
+    exit 0
+  else
+    echo "Ubuntu version is OK. Let's go..."
+  fi
 fi
 
 if [[ $(sudo locale | grep -c 'LANG=en_US.UTF-8') -ne 1 ]]

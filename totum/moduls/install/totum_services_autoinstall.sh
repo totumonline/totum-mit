@@ -18,7 +18,7 @@ if [[ "$WITHOUT_CHECK" == true ]]; then
   echo "Skipping Ubuntu version check due to --without-check parameter."
 else
   echo "Performing Ubuntu version check..."
-  if [[ $(grep -c 'Ubuntu 24.10' /etc/issue) -ne 1 ]]; then
+  if [[ $(grep -c 'Ubuntu 24.04' /etc/issue) -ne 1 ]]; then
     echo "THIS SERVER IS NOT A UBUNTU 24.04 CHECK: sudo cat /etc/issue"
     echo "If you want to install it on a different version of Ubuntu, specify the parameter --without-check"
     echo "sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_autoinstall.sh && sudo bash totum_autoinstall.sh --without-check"

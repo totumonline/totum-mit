@@ -67,7 +67,7 @@ HTML;
         } else {
             ?>
 
-            <div class="panel panel-default">
+            <div class="panel panel-default" id="ChooseTable">
                 <div class="panel-body">
                     <?= $this->translate('Choose a table') ?>
                 </div>

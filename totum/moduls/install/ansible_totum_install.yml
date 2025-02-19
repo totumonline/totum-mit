@@ -63,7 +63,7 @@
       mode: '0644'
     when: not ondrej_php.stat.exists
 
-  - name: Import GPG key to /usr/share/keyrings
+  - name: Import ondrej GPG key to /usr/share/keyrings
     command: >
       bash -c "cat /root/b8dc7e53946656efbce4c1dd71daeaab4ad4cab6.asc |
       gpg --dearmor > /usr/share/keyrings/ondrej-php.gpg"
@@ -78,16 +78,29 @@
       group: root
       mode: '0644'
 
-  # Add other
+  # Add PostgreSQL
+
+  - name: Check if postgresql gpg key exists
+    stat:
+      path: /usr/share/keyrings/postgresql-archive-keyring.gpg
+    register: postgresql_gpg
+
+  - name: Download PostgreSQL GPG key and convert to .gpg format
+    command: >
+      bash -c "curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc |
+      gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg"
+    when: not postgresql_gpg.stat.exists
 
   - name: Add PostgreSQL repository to sources list
     lineinfile:
       path: /etc/apt/sources.list.d/pgdg.list
-      line: "deb [trusted=yes] http://apt.postgresql.org/pub/repos/apt noble-pgdg main"
+      line: "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main"
       create: yes
       owner: root
       group: root
       mode: '0644'
+
+  # Add other
 
   - name: Add the MeiliSearch repository to the sources list
     lineinfile:

@@ -448,12 +448,7 @@ class RU implements LangInterface
   'Secret code' => 'Секретный код',
   'Recalculate cycle with id %s before export.' => 'Пересчитайте цикл с id %s перед экспортом.',
 );
-	/**
-     * Возвращает сумму прописью
-     * @author runcore
-     * @uses morph(...)
-     */
-    public function num2str($num): string
+	public function num2str($num): string
     {
         $nul = 'ноль';
         $ten = array(
@@ -501,28 +496,8 @@ class RU implements LangInterface
         $out[] = $kop . ' ' . static::morph($kop, $unit[0][0], $unit[0][1], $unit[0][2]); // kop
         return trim(preg_replace('/ {2,}/', ' ', join(' ', $out)));
     }
-
-    public function smallTranslit($s): string
-    {
-        return strtr(
-            $s,
-            [
-			'ß'=>'ss', 'ä'=>'a', 'ü'=>'u', 'ö'=>'o', 
-			'ñ'=>'ny',
-			'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
-        );
-    }
-
-    public function searchPrepare($string): string
-    {
-        return str_replace('ё', 'е', mb_strtolower(trim((string)$string)));
-    }
-
-    /**
-     * Склоняем словоформу
-     * @ author runcore
-     */
-    protected static function morph($n, $f1, $f2, $f5)
+	
+	protected static function morph($n, $f1, $f2, $f5)
     {
         $n = abs(intval($n)) % 100;
         if ($n > 10 && $n < 20) {
@@ -537,6 +512,20 @@ class RU implements LangInterface
         }
         return $f5;
     }
+
+    public function smallTranslit($s): string
+    {
+        return strtr(
+            $s,
+            [
+			'ß'=>'ss', 'ä'=>'a', 'ü'=>'u', 'ö'=>'o',
+			'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+			'ñ'=>'ny',
+			'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
+        );
+    }
+
+
 
     public function dateFormat(DateTime $date, $fStr): string
     {

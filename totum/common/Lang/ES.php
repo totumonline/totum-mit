@@ -446,19 +446,53 @@ class ES implements LangInterface
   'Secret code' => 'Código secreto',
   'Recalculate cycle with id %s before export.' => 'Recalcula el ciclo con id %s antes de exportar.',
 );
+	public function num2str($num): string
+	{
+	return (string) $num;
+	}
+
+
+    public function smallTranslit($s): string
+    {
+        return strtr(
+            $s,
+            [
+			'ß'=>'ss', 'ä'=>'a', 'ü'=>'u', 'ö'=>'o',
+			'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+			'ñ'=>'ny',
+			'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
+        );
+    }
+	
+	
 	public function dateFormat(DateTime $date, $fStr): string
     {
         $result = '';
         foreach (preg_split(
-                     '/([f])/',
+                     '/([DlFfM])/',
                      $fStr,
                      -1,
                      PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
                  ) as $split) {
+            $var = null;
             switch ($split) {
-                /** @noinspection PhpMissingBreakStatementInspection */ case 'f':
-                $result .= ' of ';
-                $split = 'F';
+                case 'D':
+                    $var = 'weekDaysShort';
+                // no break
+                case 'l':
+                    $var = $var ?? 'weekDays';
+                    $result .= $this->getConstant($var)[$date->format('N')];
+                    break;
+                case 'F':
+                    $var = 'months';
+                // no break
+                case 'f':
+                    $var = $var ?? 'monthRods';
+                // no break
+                case 'M':
+                    $var = $var ?? 'monthsShort';
+                    $result .= $this->getConstant($var)[$date->format('n')];
+                    break;
                 default:
                     $result .= $date->format($split);
             }
@@ -466,59 +500,69 @@ class ES implements LangInterface
         return $result;
     }
 
-    public function num2str($num): string
-{
-    $num = str_replace([',', ' '], '', trim($num));
-    if (!$num) {
-        return '';
-    }
-    $num = (int)$num;
-    $words = [];
-    $list1 = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once',
-        'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'
-    ];
-    $list2 = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
-    $list3 = ['', 'mil', 'millón', 'mil millones', 'billón', 'mil billones', 'trillón', 'mil trillones',
-        'cuatrillón', 'mil cuatrillones', 'quintillón', 'mil quintillones', 'sextillón',
-        'mil sextillones', 'septillón', 'mil septillones', 'octillón', 'mil octillones',
-        'nonillón', 'mil nonillones'
-    ];
-    $num_length = strlen($num);
-    $levels = (int)(($num_length + 2) / 3);
-    $max_length = $levels * 3;
-    $num = substr('00' . $num, -$max_length);
-    $num_levels = str_split($num, 3);
-    for ($i = 0; $i < count($num_levels); $i++) {
-        $levels--;
-        $hundreds = (int)($num_levels[$i] / 100);
-        $hundreds = ($hundreds ? ' ' . $list1[$hundreds] . ' cientos' . ' ' : '');
-        $tens = (int)($num_levels[$i] % 100);
-        $singles = '';
-        if ($tens < 20) {
-            $tens = ($tens ? ' ' . $list1[$tens] . ' ' : '');
-        } else {
-            $tens = (int)($tens / 10);
-            $tens = ' ' . $list2[$tens] . ' ';
-            $singles = (int)($num_levels[$i] % 10);
-            $singles = ' y ' . $list1[$singles] . ' ';
-        }
-        $words[] = $hundreds . $tens . $singles . (($levels && ( int )($num_levels[$i])) ? ' ' . $list3[$levels] . ' ' : '');
-    } //end for loop
-    $commas = count($words);
-    if ($commas > 1) {
-        $commas = $commas - 1;
-    }
-    return implode(' ', $words);
+    protected function getConstant($name): array
+	{
+    return match ($name) {
+        'monthsShort' => [
+            1 => 'Ene',
+            'Feb',
+            'Mar',
+            'Abr',
+            'May',
+            'Jun',
+            'Jul',
+            'Ago',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dic'
+        ],
+        'months' => [
+            1 => 'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
+        ],
+        'weekDays' => [
+            1 => 'Lunes',
+            'Martes',
+            'Miércoles',
+            'Jueves',
+            'Viernes',
+            'Sábado',
+            'Domingo'
+        ],
+        'weekDaysShort' => [
+            1 => 'Lun',
+            'Mar',
+            'Mié',
+            'Jue',
+            'Vie',
+            'Sáb',
+            'Dom'
+        ],
+        'monthRods' => [
+            1 => 'de enero',
+            'de febrero',
+            'de marzo',
+            'de abril',
+            'de mayo',
+            'de junio',
+            'de julio',
+            'de agosto',
+            'de septiembre',
+            'de octubre',
+            'de noviembre',
+            'de diciembre'
+        ],
+    };
 }
-
-    public function smallTranslit($s): string
-    {
-        return strtr(
-            $s,
-            [
-			'ß'=>'ss', 'ä'=>'a', 'ü'=>'u', 'ö'=>'o', 
-			'ñ'=>'ny',
-			'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
-        );
-    }
 }

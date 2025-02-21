@@ -104,7 +104,10 @@ trait SearchTrait
     public
     function searchPrepare($string): string
     {
-        return mb_strtolower(trim((string)$string));
+        $search = ['ё', 'á', 'é', 'í', 'ó', 'ú', 'ü'];
+        $replace = ['е', 'a', 'e', 'i', 'o', 'u', 'u'];
+
+        return str_replace($search, $replace, mb_strtolower(trim((string)$string)));
     }
 
 }

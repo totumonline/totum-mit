@@ -4,7 +4,7 @@
     <link rel="stylesheet"
           type="text/css"
           href="/css/libs.css?v=05e91a2">
-    <script src="/js/libs.js?v=b101ece"></script>
+    <script src="/js/libs.js?v=2923e3e"></script>
     <link rel="stylesheet"
           type="text/css"
           href="/css/main.css?v=a8c6456">

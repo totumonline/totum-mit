@@ -386,6 +386,11 @@ class Actions
         return ['ok' => 1];
     }
 
+    public function getHelpLinks()
+    {
+        return json_decode($this->translate('TOTUM-HELP-LINKS'), true);
+    }
+
     public
     function checkForNotifications()
     {

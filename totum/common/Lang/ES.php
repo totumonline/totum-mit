@@ -445,6 +445,7 @@ class ES implements LangInterface
   'You can resend a secret via <span></span> sec' => 'Puedes reenviar el código en <span></span> seg',
   'Secret code' => 'Código secreto',
   'Recalculate cycle with id %s before export.' => 'Recalcula el ciclo con id %s antes de exportar.',
+  'TOTUM-HELP-LINKS' => '[["📕 Documentación","https://docs.totum.online/"],["📗 Conceptos básicos para usuarios","https://docs.totum.online/user-guide"],["🚀 Licencias de la versión PRO","https://es.totum.online/pro"],["🤖 Totum AI","https://es.totum.online/ai"]]',
 );
 	public function num2str($num): string
 	{

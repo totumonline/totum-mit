@@ -120,7 +120,7 @@ class TableController extends interfaceController
             }
             $Actions = $this->getTableActions($request, $method);
 
-            if (!in_array($method, ['checkForNotifications', 'checkTableIsChanged'])) {
+            if (!in_array($method, ['checkForNotifications', 'checkTableIsChanged', 'getHelpLinks'])) {
                 $this->Totum->transactionStart();
             }
 

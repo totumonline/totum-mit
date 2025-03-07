@@ -445,95 +445,23 @@ class DE implements LangInterface
   'You can resend a secret via <span></span> sec' => 'Code kann in <span></span> Sek erneut gesendet werden',
   'Secret code' => 'Geheimcode',
   'Recalculate cycle with id %s before export.' => 'Berechnen Sie den Zyklus mit der ID %s vor dem Export neu.',
+  'TOTUM-HELP-LINKS' => '[["📕 Dokumentation","https://docs.totum.online/"],["📗 Grundlagen für Benutzer","https://docs.totum.online/user-guide"],["🚀 Lizenzen der PRO-Version","https://totum.online/pro"],["🤖 Totum AI","https://totum.online/ai"]]',
 );
-	/**
-     * Возвращает сумму прописью
-     * @author runcore
-     * @uses morph(...)
-     */
-    public function num2str($num): string
-    {
-        $nul = 'ноль';
-        $ten = array(
-            array('', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'),
-            array('', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'),
-        );
-        $a20 = array('десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать');
-        $tens = array(2 => 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто');
-        $hundred = array('', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот');
-        $unit = array( // Units
-            array('копейка', 'копейки', 'копеек', 1),
-            array('рубль', 'рубля', 'рублей', 0),
-            array('тысяча', 'тысячи', 'тысяч', 1),
-            array('миллион', 'миллиона', 'миллионов', 0),
-            array('миллиард', 'милиарда', 'миллиардов', 0),
-        );
-        //
-        list($rub, $kop) = explode('.', sprintf("%015.2f", floatval($num)));
-        $out = array();
-        if (intval($rub) > 0) {
-            foreach (str_split($rub, 3) as $uk => $v) { // by 3 symbols
-                if (!intval($v)) {
-                    continue;
-                }
-                $uk = sizeof($unit) - $uk - 1; // unit key
-                $gender = $unit[$uk][3];
-                list($i1, $i2, $i3) = array_map('intval', str_split($v, 1));
-                // mega-logic
-                $out[] = $hundred[$i1]; # 1xx-9xx
-                if ($i2 > 1) {
-                    $out[] = $tens[$i2] . ' ' . $ten[$gender][$i3];
-                } # 20-99
-                else {
-                    $out[] = $i2 > 0 ? $a20[$i3] : $ten[$gender][$i3];
-                } # 10-19 | 1-9
-                // units without rub & kop
-                if ($uk > 1) {
-                    $out[] = static::morph($v, $unit[$uk][0], $unit[$uk][1], $unit[$uk][2]);
-                }
-            } //foreach
-        } else {
-            $out[] = $nul;
-        }
-        $out[] = static::morph(intval($rub), $unit[1][0], $unit[1][1], $unit[1][2]); // rub
-        $out[] = $kop . ' ' . static::morph($kop, $unit[0][0], $unit[0][1], $unit[0][2]); // kop
-        return trim(preg_replace('/ {2,}/', ' ', join(' ', $out)));
-    }
+	public function num2str($num): string
+	{
+    return (string) $num;
+	}
 
     public function smallTranslit($s): string
     {
         return strtr(
             $s,
             [
-			'ß'=>'ss', 'ä'=>'a', 'ü'=>'u', 'ö'=>'o', 
+			'ß'=>'ss', 'ä'=>'a', 'ü'=>'u', 'ö'=>'o',
+			'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
 			'ñ'=>'ny',
 			'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'j', 'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya', 'ъ' => '', 'ь' => '']
         );
-    }
-
-    public function searchPrepare($string): string
-    {
-        return str_replace('ё', 'е', mb_strtolower(trim((string)$string)));
-    }
-
-    /**
-     * Склоняем словоформу
-     * @ author runcore
-     */
-    protected static function morph($n, $f1, $f2, $f5)
-    {
-        $n = abs(intval($n)) % 100;
-        if ($n > 10 && $n < 20) {
-            return $f5;
-        }
-        $n = $n % 10;
-        if ($n > 1 && $n < 5) {
-            return $f2;
-        }
-        if ($n === 1) {
-            return $f1;
-        }
-        return $f5;
     }
 
     public function dateFormat(DateTime $date, $fStr): string
@@ -572,68 +500,68 @@ class DE implements LangInterface
     }
 
     protected function getConstant($name): array
-    {
-        return match ($name) {
-            'monthsShort' => [
-                1 => 'янв',
-                'фев',
-                'мар',
-                'апр',
-                'май',
-                'июн',
-                'июл',
-                'авг',
-                'сент',
-                'окт',
-                'ноя',
-                'дек'
-            ],
-            'months' => [
-                1 => 'январь',
-                'февраль',
-                'март',
-                'апрель',
-                'май',
-                'июнь',
-                'июль',
-                'август',
-                'сентябрь',
-                'октябрь',
-                'ноябрь',
-                'декабрь'
-            ],
-            'weekDays' => [
-                1 => 'Понедельник',
-                'Вторник',
-                'Среда',
-                'Четверг',
-                'Пятница',
-                'Суббота',
-                'Воскресенье'
-            ],
-            'weekDaysShort' => [
-                1 => 'Пн',
-                'Вт',
-                'Ср',
-                'Чт',
-                'Пт',
-                'Сб',
-                'Вс'
-            ],
-            'monthRods' => [
-                1 => 'января',
-                'февраля',
-                'марта',
-                'апреля',
-                'мая',
-                'июня',
-                'июля',
-                'августа',
-                'сентября',
-                'октября',
-                'ноября',
-                'декабря'
-            ],
-        };
-    }
+	{
+    return match ($name) {
+        'monthsShort' => [
+            1 => 'Jan',
+            'Feb',
+            'Mär',
+            'Apr',
+            'Mai',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Okt',
+            'Nov',
+            'Dez'
+        ],
+        'months' => [
+            1 => 'Januar',
+            'Februar',
+            'März',
+            'April',
+            'Mai',
+            'Juni',
+            'Juli',
+            'August',
+            'September',
+            'Oktober',
+            'November',
+            'Dezember'
+        ],
+        'weekDays' => [
+            1 => 'Montag',
+            'Dienstag',
+            'Mittwoch',
+            'Donnerstag',
+            'Freitag',
+            'Samstag',
+            'Sonntag'
+        ],
+        'weekDaysShort' => [
+            1 => 'Mo',
+            'Di',
+            'Mi',
+            'Do',
+            'Fr',
+            'Sa',
+            'So'
+        ],
+        'monthRods' => [
+            1 => 'Januar',
+            'Februar',
+            'März',
+            'April',
+            'Mai',
+            'Juni',
+            'Juli',
+            'August',
+            'September',
+            'Oktober',
+            'November',
+            'Dezember'
+        ],
+    };
+}
 }

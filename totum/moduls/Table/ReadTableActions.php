@@ -67,6 +67,8 @@ class ReadTableActions extends Actions
 
     }
 
+
+
     protected function __getKanbanHtml()
     {
         if (!$this->kanban_bases) {

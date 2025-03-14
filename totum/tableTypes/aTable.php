@@ -11,7 +11,7 @@ namespace totum\tableTypes;
 use Exception;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
-use totum\common\calculates\CalculcateFormat;
+use totum\common\calculates\CalculateFormat;
 use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
@@ -804,7 +804,7 @@ abstract class aTable
                 $columnsFooters = [];
 
                 $getDynamicFields = function () {
-                    $calcFormatTable = new CalculcateFormat($this->tableRow['table_format']);
+                    $calcFormatTable = new CalculateFormat($this->tableRow['table_format']);
                     return $calcFormatTable->execTableDynamic($this);
                 };
 
@@ -1488,7 +1488,7 @@ CODE;;
         $sortedFields = static::sortFields($visibleFields);
 
         if ($isWithFormat && $this->tableRow['row_format'] !== '' && $this->tableRow['row_format'] !== 'f1=:') {
-            $RowFormatCalculate = new CalculcateFormat($this->tableRow['row_format']);
+            $RowFormatCalculate = new CalculateFormat($this->tableRow['row_format']);
         }
         $data['rows'] = ($data['rows'] ?? []);
 

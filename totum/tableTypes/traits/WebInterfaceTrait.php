@@ -3,7 +3,7 @@
 
 namespace totum\tableTypes\traits;
 
-use totum\common\calculates\CalculcateFormat;
+use totum\common\calculates\CalculateFormat;
 use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;

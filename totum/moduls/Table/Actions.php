@@ -6,7 +6,7 @@ namespace totum\moduls\Table;
 use Psr\Http\Message\ServerRequestInterface;
 use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
-use totum\common\calculates\CalculcateFormat;
+use totum\common\calculates\CalculateFormat;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Lang\RU;
@@ -207,7 +207,7 @@ class Actions
         $fieldData = $Table->getFields()['h_user_settings_buttons'] ?? null;
 
         if ($fieldData) {
-            $clc = new CalculcateFormat($fieldData['format']);
+            $clc = new CalculateFormat($fieldData['format']);
 
             $result = $clc->getPanelFormat(
                 'h_user_settings_buttons',

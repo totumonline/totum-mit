@@ -5,7 +5,7 @@ namespace totum\moduls\Table;
 
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
-use totum\common\calculates\CalculcateFormat;
+use totum\common\calculates\CalculateFormat;
 use totum\common\criticalErrorException;
 use totum\common\Crypt;
 use totum\common\errorException;
@@ -34,7 +34,7 @@ class ReadTableActions extends Actions
         if ($this->Table->getTableRow()['table_format'] && $this->Table->getTableRow()['table_format'] != 'f1=:') {
             $Log = $this->Table->calcLog(['name' => 'TABLE FORMAT']);
 
-            $calc = new CalculcateFormat($this->Table->getTableRow()['table_format']);
+            $calc = new CalculateFormat($this->Table->getTableRow()['table_format']);
             $tFormat = $calc->getFormat(
                 'TABLE',
                 [],
@@ -74,7 +74,7 @@ class ReadTableActions extends Actions
         if (!$this->kanban_bases) {
             $this->getKanbanData();
         }
-        $fCalc = new CalculcateFormat($this->Table->getTableRow()['panels_view']['kanban_html_code']);
+        $fCalc = new CalculateFormat($this->Table->getTableRow()['panels_view']['kanban_html_code']);
         $fCalc->setStartSections(['=']);
         $Log = $this->Table->calcLog(['name' => 'Kanban format']);
         try {

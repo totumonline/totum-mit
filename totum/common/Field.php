@@ -11,7 +11,7 @@ namespace totum\common;
 use JetBrains\PhpStorm\ExpectedValues;
 use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
-use totum\common\calculates\CalculcateFormat;
+use totum\common\calculates\CalculateFormat;
 use totum\common\Lang\RU;
 use totum\fieldTypes\Button;
 use totum\fieldTypes\Checkbox;
@@ -50,7 +50,7 @@ class Field
     protected $CalculateCode;
     protected $CalculateCodeSelect;
     protected $CalculateCodeSelectValue;
-    protected bool|null|CalculcateFormat $CalculateFormat = null;
+    protected bool|null|CalculateFormat $CalculateFormat = null;
     protected $log;
     /**
      * @var string
@@ -212,7 +212,7 @@ class Field
     {
         if (is_null($this->CalculateFormat)) {
             if (!empty($this->data['format']) && $this->data['format'] !== 'f1=:') {
-                $this->CalculateFormat = new CalculcateFormat($this->data['format']);
+                $this->CalculateFormat = new CalculateFormat($this->data['format']);
             } else {
                 $this->CalculateFormat = false;
             }

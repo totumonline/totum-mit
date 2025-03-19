@@ -27,7 +27,7 @@ use totum\tableTypes\tmpTable;
  */
 class Totum
 {
-    public const VERSION = '6.16.62.0';
+    public const VERSION = '6.16.62.1';
 
 
     public const TABLE_CODE_PARAMS = ['row_format', 'table_format', 'on_duplicate', 'default_action'];
@@ -235,7 +235,7 @@ class Totum
             die;
         }
 
-        $cacheString = $tableRow['id'] . ';' . $extraData;
+        $cacheString = $tableRow['id'] . ';' . $extraData.';'.$light;
 
         if ($forceNew) {
             unset($this->tablesInstances[$cacheString]);

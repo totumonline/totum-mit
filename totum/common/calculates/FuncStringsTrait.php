@@ -67,8 +67,12 @@ trait FuncStringsTrait
         $this->__checkRequiredParams($params, ['text']);
         $this->__checkNotArrayParams($params, ['text']);
 
+        $text = (string)$params['text'];
+        if ($text === ''){
+            return '';
+        }
         try {
-            return json_decode((string)$params['text'], true, flags: JSON_THROW_ON_ERROR);
+            return json_decode($text, true, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
             throw new errorException($this->translate('JSON parsing error: [[%s]].', $e->getMessage()));
         }

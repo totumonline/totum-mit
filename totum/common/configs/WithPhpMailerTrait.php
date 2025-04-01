@@ -27,8 +27,16 @@ trait WithPhpMailerTrait
 
                 if ($mail->SMTPAuth = !empty($smtpData['login'])) {
                     $mail->Username = $smtpData['login'];
-                    $mail->Password = $smtpData['password'] ?? '';
+                    $mail->Password = $smtpData['password'] ?? $smtpData['pass'] ?? '';
                 }
+
+                foreach ($smtpData as $k=>$v){
+                    if (str_starts_with($k, 'mail_')){
+                        $param = substr($k, 5);
+                        $mail->$param = $v;
+                    }
+                }
+
             } else {
                 $mail->isSendmail();
             }

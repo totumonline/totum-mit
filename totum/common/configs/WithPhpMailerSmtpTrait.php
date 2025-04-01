@@ -30,12 +30,21 @@ trait WithPhpMailerSmtpTrait
 
             if ($mail->SMTPAuth = !empty($this->SmtpData['login'])) {
                 $mail->Username = $this->SmtpData['login'];
-                $mail->Password = $this->SmtpData['pass'];
+                $mail->Password = $this->SmtpData['pass'] ?? $this->SmtpData['password'] ?? '';
             }
             $mail->CharSet = 'utf-8';
 
             $from = $from ?? $this->getDefaultSender();
             //Recipients
+
+            foreach ($this->SmtpData as $k=>$v){
+                if (str_starts_with($k, 'mail_')){
+                    $param = substr($k, 5);
+                    $mail->$param = $v;
+                }
+            }
+
+
             $mail->setFrom($from, $from);
             foreach ((array)$to as $_to) {
                 $mail->addAddress($_to);     // Add a recipient

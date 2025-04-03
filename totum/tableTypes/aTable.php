@@ -1637,7 +1637,8 @@ CODE;;
                     'ROW',
                     $rowIn,
                     $this->tbl,
-                    $this
+                    $this,
+                    ['rows' => $this->getRowsForFormat($ids)]
                 );
                 $this->calcLog($Log, 'result', $newRow['f']);
             } else {

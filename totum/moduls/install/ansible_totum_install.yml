@@ -37,6 +37,9 @@
         - wget
         - certbot
         - ufw
+        - gnupg
+        - tzdata
+        - openssl
       state: latest
 
   # Add ondrej/php

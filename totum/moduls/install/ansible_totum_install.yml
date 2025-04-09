@@ -726,6 +726,16 @@
 
   # Add Crons
 
+  - name: Ensure crontab is initialized for user root
+    shell: crontab -l || true
+    become: true
+    become_user: root
+
+  - name: Ensure crontab is initialized for user totum
+    shell: crontab -l || true
+    become: true
+    become_user: totum
+
   - name: Generate a random minute for cron job
     set_fact:
       random_minute: "{{ 1 + (59 | random) }}"

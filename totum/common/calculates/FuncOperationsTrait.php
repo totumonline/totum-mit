@@ -269,11 +269,11 @@ trait FuncOperationsTrait
     }
 
     protected function funcGlobVar(string $params)
-    {
+    {   
         $params = $this->getParamsArray($params, [], []);
 
         $this->__checkNotEmptyParams($params, 'name');
-
+            
         $_params = [];
         if (key_exists('value', $params)) {
             $_params['value'] = $params['value'];
@@ -310,14 +310,14 @@ trait FuncOperationsTrait
 
     protected function funcProcVar(string $params)
     {
-        $params = $this->getParamsArray($params, [], []);
+        $params = $this->getParamsArray($params, [], ['default']);
         $this->__checkNotEmptyParams($params, 'name');
 
         $_params = [];
         if (key_exists('value', $params)) {
             $_params['value'] = $params['value'];
         } elseif (key_exists('default', $params)) {
-            $_params['default'] = $params['default'];
+            $_params['default'] = function () use($params) {return $this->execSubCode($params['default'], 'default');};
         }
 
         return $this->Table->getTotum()->getConfig()->procVar($params['name'], $_params);

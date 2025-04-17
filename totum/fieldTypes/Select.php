@@ -836,7 +836,7 @@ class Select extends Field
                 }
                 $modifyVal = match ($modifyVal->sign) {
                     '-' => array_diff($oldVal, (array)$modifyVal->val),
-                    '+' => array_merge($oldVal, (array)$modifyVal->val),
+                    '+' => in_array($modifyVal->val, $oldVal) ? $oldVal : array_merge($oldVal, (array)$modifyVal->val),
                     default => throw new errorException($this->translate('Operation [[%s]] over lists is not supported.',
                         $modifyVal->sign)),
                 };

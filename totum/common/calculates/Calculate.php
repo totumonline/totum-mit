@@ -528,8 +528,8 @@ class Calculate
                     '|(?<string>"[^"]*")' .            //string
                     '|(?<comparison>!==|==|>=|<=|>|<|=|!=)' .       //comparison
                     '|(?<bool>false|true)' .   //10
-                    '|(?<param>(?<param_name>(?:\$@|@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l|pnl)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
-                    '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?:\.(?<dog_field2>[a-zA-Z0-9_]{2,}))?(?<dog_items>(?:\[\[?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' .
+                    '|(?<param>(?<param_name>(?:\$@|@\$|\$\$|\$\#?|\#(?i:(?:old|s|h|c|l|pnl)\.)?\$?)(?:[a-zA-Z0-9_]+(?:{[^}]*})?))(?<param_items>(?:\[(?:-|\[)?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' . //param,param_name,param_items
+                    '|(?<dog>@(?<dog_table>[a-zA-Z0-9_]{3,})\.(?<dog_field>[a-zA-Z0-9_]{2,})(?:\.(?<dog_field2>[a-zA-Z0-9_]{2,}))?(?<dog_items>(?:\[(?:-|\[)?\$?\#?[a-zA-Z0-9_"]+\]?\])*))' .
                     $spesialSections .      //as
                     '`',
                     //dog,dog_table, dog_field,dog_items
@@ -1421,8 +1421,8 @@ class Calculate
                             $r = null;
                             return true;
                         }
-                    } elseif (is_array($r) && array_key_exists($item, $r)) {
-                        $r = $r[$item];
+                    } elseif (is_array($r) && array_key_exists($key = (is_numeric($item) && $item < 0 ? count($r) + $item : $item), $r)) {
+                        $r = $r[$key];
                     } else {
                         $itemsNames .= '...';
                         $r = null;

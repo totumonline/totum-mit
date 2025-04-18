@@ -274,8 +274,11 @@ trait FuncArraysTrait
         $this->__checkRequiredParams($params, ['item']);
         $this->__checkNotArrayParams($params, ['item']);
 
-
-        return $params['list'][$params['item']] ?? null;
+        $number = $params['item'];
+        if($number < 0){
+            $number = count($params['list']) + $number;
+        }
+        return $params['list'][$number] ?? null;
     }
 
     protected function funcListJoin(string $params): string

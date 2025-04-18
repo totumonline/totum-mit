@@ -726,15 +726,13 @@
 
   # Add Crons
 
-  - name: Ensure crontab is initialized for user root
-    shell: crontab -l || true
+  - name: Initialize empty crontab for root if missing
+    shell: crontab -u root -l >/dev/null 2>&1 || echo '' | crontab -u root -
     become: true
-    become_user: root
 
-  - name: Ensure crontab is initialized for user totum
-    shell: crontab -l || true
+  - name: Initialize empty crontab for totum if missing
+    shell: crontab -u totum -l >/dev/null 2>&1 || echo '' | crontab -u totum -
     become: true
-    become_user: totum
 
   - name: Generate a random minute for cron job
     set_fact:

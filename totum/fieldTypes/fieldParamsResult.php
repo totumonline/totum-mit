@@ -9,7 +9,6 @@
 namespace totum\fieldTypes;
 
 use totum\common\calculates\Calculate;
-use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Field;
 use totum\common\Lang\RU;
@@ -22,9 +21,6 @@ class fieldParamsResult extends Field
     {
         if (!$isCheck) {
             if (!empty($row['data_src']['v'])) {
-                if($row['data_src']['v']['type']['Val']==='chart'){
-                    throw new criticalErrorException('Field type chart works only in PRO');
-                }
                 $val = static::getDataFromDataSrc($row['data_src']['v'], $row['table_name']['v']);
             }
         }

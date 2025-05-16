@@ -1190,6 +1190,18 @@ class CalculateAction extends Calculate
             $link .= '?' . http_build_query($q_params, '', '&', PHP_QUERY_RFC1738);
         }
 
+        $elseData = [
+            'header' => $params['header'] ?? true,
+            'footer' => $params['footer'] ?? true,
+            'topbuttons' => $params['topbuttons'] ?? true,
+            'bottombuttons' => $params['bottombuttons'] ?? true,
+            'pointing' => $params['pointing'] ?? null,
+            'hidedots' => $this->__checkBoolOrNull($params['hidedots'] ?? null),
+        ];
+
+        if ($params['tabs']??false){
+            $elseData['tabs'] = true;
+        }
 
         $this->Table->getTotum()->addToInterfaceLink(
             $link,
@@ -1198,14 +1210,7 @@ class CalculateAction extends Calculate
             null,
             $params['width'] ?? null,
             $params['refresh'] ?? false,
-            [
-                'header' => $params['header'] ?? true,
-                'footer' => $params['footer'] ?? true,
-                'topbuttons' => $params['topbuttons'] ?? true,
-                'bottombuttons' => $params['bottombuttons'] ?? true,
-                'pointing' => $params['pointing'] ?? null,
-                'hidedots' => $this->__checkBoolOrNull($params['hidedots'] ?? null),
-            ]
+            $elseData
         );
     }
 

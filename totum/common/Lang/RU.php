@@ -448,6 +448,8 @@ class RU implements LangInterface
   'Secret code' => 'Секретный код',
   'Recalculate cycle with id %s before export.' => 'Пересчитайте цикл с id %s перед экспортом.',
   'TOTUM-HELP-LINKS' => '[["📕 Документация","https://ru.docs.totum.online/"],["📗 Основы для пользователей","https://ru.docs.totum.online/user-guide"],["🚀 Лицензии PRO-версии","https://ru.totum.online/pro"],["🤖 Totum AI","https://ru.totum.online/ai"]]',
+  'TOTUM-math format error [[%s]].' => 'TOTUM-math ошибка формата [[%s]].',
+  'Tree nesting error' => 'Ошибка вложенности дерева. Дочерний элемент не может быть родительским.',
 );
 	public function num2str($num): string
     {

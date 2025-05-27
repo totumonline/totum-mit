@@ -16,17 +16,17 @@ On your server, easy to learn and scalable with business growth 🎉
 
 **— Documentation and training course** — first working table in 30 min.
 
-**— WEB, open-source** — is installed on your own server.
+**— WEB, self-hosted** — is installed on your own server.
 
 **— Two-level access** — developer-users.
 
-**— API** —  integrate with anything.
+**— API** —  integrate with anything (only in PRO).
 
 Site — [totum.online](https://totum.online)
 
 ## Install and docs
 
-1-Click native install on Ubuntu 24.04 `ONLY FOR CLEAR SYSTEMS` — [docs.totum.online/ubuntu](https://docs.totum.online/ubuntu)
+1-Click native install on Ubuntu 24.04 `ONLY FOR CLEAN SYSTEMS` — [docs.totum.online/ubuntu](https://docs.totum.online/ubuntu)
 ```
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_autoinstall.sh && sudo bash totum_autoinstall.sh
 ```
@@ -54,8 +54,6 @@ Email — `totum at totum.online`
 + CRM
 + Equipment inventory
 + ...
-
-+ **See people's completed projects — [in this section of the GitHub forum](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌**
 
 ## All you need is a browser
 
@@ -173,8 +171,6 @@ In addition, the database underlying Totum allows it to be clustered across mult
 
 ## How to try?
 
-Welcome to the demo server — [totum.online/demo](https://totum.online/demo) 🎉
-
 Site — [totum.online](https://totum.online)
 
 Documentation — [docs.totum.online](https://docs.totum.online)
@@ -182,5 +178,3 @@ Documentation — [docs.totum.online](https://docs.totum.online)
 Training course — [docs.totum.online/training-course](https://docs.totum.online/training-course) 🚀
 
 Email — `totum at totum.online`
-
-If you have done a project on totum — [tell about him here](https://github.com/totumonline/totum-mit/discussions/categories/show-and-tell) 🙌

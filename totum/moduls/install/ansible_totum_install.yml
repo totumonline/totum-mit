@@ -103,18 +103,6 @@
       group: root
       mode: '0644'
 
-  # Add other
-
-  - name: Add the MeiliSearch repository to the sources list
-    lineinfile:
-      path: /etc/apt/sources.list.d/fury.list
-      line: 'deb [trusted=yes] https://apt.fury.io/meilisearch/ /'
-      create: yes
-      owner: root
-      group: root
-      mode: '0644'
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
   - name: Apt update
     apt:
       update_cache: yes
@@ -830,63 +818,6 @@
       path: "{{ playbook_dir }}/totum_install_vars"
       line: "export TOTUMEXECSSH=true"
     when: exec_ssh is defined and exec_ssh == "" and lookup('env', 'TOTUMVERSION') == 'pro'
-
-  # Install Meilisearch
-
-  - name: apt install meilisearch-http
-    apt:
-      name: meilisearch-http
-      state: present
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Hold meilisearch-http package
-    command: apt-mark hold meilisearch-http
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Check if meili_masterkey file exists
-    stat:
-      path: /home/totum/meili_masterkey
-    register: meili_masterkey
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Generate a random masterkey
-    set_fact:
-      random_string: "{{ lookup('password', '/dev/null', length=24) }}"
-    when: meili_masterkey.stat is defined and not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Write the masterkey to a file
-    copy:
-      content: "{{ random_string }}"
-      dest: /home/totum/meili_masterkey
-    become_user: totum
-    when: meili_masterkey.stat is defined and not meili_masterkey.stat.exists and lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Check if MeiliSearch is running
-    shell: ps aux | grep meilisearch | grep -v grep | wc -l
-    register: meilisearch_running
-    ignore_errors: true
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Display Meilisearch process count
-    debug:
-      msg: "{{ meilisearch_running.stdout }}"
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Start MeiliSearch if not running
-    shell: meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) &
-    become_user: totum
-    args:
-      chdir: /home/totum
-      executable: /bin/bash
-    when: meilisearch_running.stdout is defined and meilisearch_running.stdout | int == 0 and lookup('env', 'TOTUMVERSION') == 'pro'
-
-  - name: Add MeiliSearch start command to crontab for user totum
-    cron:
-      name: "Start MeiliSearch at reboot"
-      user: totum
-      special_time: reboot
-      job: "cd ~ && exec meilisearch --no-analytics --db-path ./meilifiles --env production --master-key $(cat meili_masterkey) > /dev/null 2>&1 &"
-    when: lookup('env', 'TOTUMVERSION') == 'pro'
 
   # Change IP to DOMAIN
 

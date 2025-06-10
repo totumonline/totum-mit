@@ -260,6 +260,7 @@ if [ "$TOTUMVERSION" == "mit" ] && [ -f /home/totum/totum-mit/Conf.php ]; then
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo "TOTUMVERSION is 'MIT'. If you want to change it to 'PRO' enter (A)."
 echo "WARNING: If you do not have a 'PRO' license key, the system operates with only one user, 'admin'."
+echo "WARNING WARNING WARNING: Your 'MIT' installation must be updated to the latest version in order to switch to 'PRO'! Before proceeding, make sure to cancel the transition (Ctrl+C) and run `bin/totum git-update` from the root installation folder as the 'totum' user."
 echo "- - - - - - - - - - - - - - - - - - - - - - -"
 echo
 read -p "Enter (A) if not (N): " CHANGE_V

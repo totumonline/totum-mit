@@ -10,6 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use totum\common\Auth;
 use totum\common\calculates\CalculateAction;
 use totum\common\configs\MultiTrait;
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 use totum\common\Model;
 use totum\common\tableSaveOrDeadLockException;
@@ -32,62 +33,6 @@ class SchemaCron extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $Conf = new Conf();
-
-        if (is_callable([$Conf, 'setHostSchema'])) {
-            if ($schema = $input->getArgument('schema')) {
-                $Conf->setHostSchema(null, $schema);
-            }
-        }
-
-
-        if ($cronId = $input->getArgument('cronId')) {
-            if ($cronRowRaw = $Conf->getModel('crons')->get(['id' => (int)$cronId, 'status' => 'true'])) {
-                $cronRow = Model::getClearValuesWithExtract($cronRowRaw);
-            } else {
-                throw new \Exception('Row cron not found or not active');
-            }
-        } else {
-            throw new \Exception('Id of cron not found or empty');
-        }
-
-
-        $User = Auth::loadAuthUserByLogin($Conf, 'cron', false);
-        $i = 0;
-        while (++$i <= 4) {
-            try {
-                try {
-                    $Totum = new Totum($Conf, $User);
-                    $Totum->transactionStart();
-                    $Table = $Totum->getTable('crons');
-
-                    $code = $cronRow['code'];
-
-                    if ($cronRow['ttm__overlay_control'] === true) {
-                        $code = $Table->getFields()['do_it_now']['codeAction'];
-                    }
-                    $cronRowV = RealTables::decodeRow($cronRowRaw);
-
-
-                    $Calc = new CalculateAction($code);
-                    $Calc->execAction('CRON',
-                        $cronRowV,
-                        $cronRowV,
-                        $Table->getTbl(),
-                        $Table->getTbl(),
-                        $Table,
-                        'exec',
-                        []);
-                    $Totum->transactionCommit();
-                } catch (errorException $e) {
-                    $Conf = $Conf->getClearConf();
-                    $Conf->cronErrorActions($cronRow, $User, $e);
-                }
-                break;
-            } catch (tableSaveOrDeadLockException $exception) {
-                $Conf = $Conf->getClearConf();
-            }
-        }
-
-        return 0;
+        throw new criticalErrorException($Conf->getLangObj()->translate('This option works only in PRO.'));
     }
 }

@@ -741,7 +741,7 @@ SQL
             $this->procVars[$name] = $params['value'];
         } elseif (key_exists('default', $params)) {
             if (!key_exists($name, $this->procVars)) {
-                $this->procVars[$name] = $params['default'];
+                $this->procVars[$name] = $params['default']();
             }
         }
 

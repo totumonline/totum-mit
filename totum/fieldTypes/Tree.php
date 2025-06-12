@@ -398,6 +398,13 @@ class Tree extends Field
         }
         unset($l);
 
+        $sortTemplate = array_flip(array_keys($list));
+        $sortArray = [];
+        foreach ($objMain as $id=>$_){
+            $sortArray[$id] = $sortTemplate[$id];
+        }
+        $sortArray = array_values($sortArray);
+        array_multisort( $sortArray, $objMain);
 
         if (!empty($q)) {
             $ids = [];

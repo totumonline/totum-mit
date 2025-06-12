@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<head lang="ru">
+<head>
     <script>App = {}</script>
     <link rel="stylesheet"
           type="text/css"
@@ -7,18 +7,18 @@
     <script src="/js/libs.js?v=2923e3e"></script>
     <link rel="stylesheet"
           type="text/css"
-          href="/css/main.css?v=e690a32">
+          href="/css/main.css?v=55bd9d7">
 
     <?php
     if ($isCreatorView ?? null) { ?>
-        <script src="/js/functions.js?v=8734aec"></script>
+        <script src="/js/functions.js?v=999ac87"></script>
         <?php
         echo '<script>App.functions=App.functions.concat(' . $this->Config->getExtFunctionsTemplates() . ')</script>';
         ?>
         <?php
     } ?>
 
-    <script src="/js/main.js?v=f696ec4"></script>
+    <script src="/js/main.js?v=3358d19"></script>
     <script src="/js/i18n/<?= $this->Config->getLang() ?>.js?13"></script>
     <script>App.lang = App.langs["<?= $this->Config->getLang() ?>"]</script>
 

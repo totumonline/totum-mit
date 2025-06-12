@@ -141,62 +141,7 @@ class CalculateAction extends Calculate
                 }
             }
             if (!empty($params['custom'])) {
-                $codes = [];
-                foreach ($this->Table->getTotum()->getModel('ttm__custom_user_notific_codes')->getAll([
-                    'name' => array_column($params['custom'], 'field')
-                ], 'name, code') as $row) {
-                    $codes[$row['name']] = $row['code'];
-                };
-
-                foreach ($params['custom'] as $p) {
-                    $name = $p['field'];
-                    $html = $p['value'];
-                    if (empty($html) || empty($code = $codes[$name] ?? null)) {
-                        continue;
-                    }
-
-                    if ($this->Table->getTotum()->getConfig()->isExecSSHOn('inner')) {
-                        foreach ($users as $user) {
-                            $Vars = ['user' => $user['id'], 'title' => $params['title'], 'html' => $html];
-
-                            $data = ['code' => $code, 'vars' => $Vars];
-
-                            $data = base64_encode(json_encode($data,
-                                JSON_UNESCAPED_UNICODE));
-
-                            $path = $this->Table->getTotum()->getConfig()->getBaseDir();
-
-                            $schema = '';
-
-                            if (method_exists($this->Table->getTotum()->getConfig(), 'setHostSchema')) {
-                                $schema = '--schema "' . $this->Table->getTotum()->getConfig()->getSchema() . '"';
-                            }
-
-                            `cd {$path} && bin/totum exec {$schema} {$this->Table->getUser()->getId()} {$data} > /dev/null 2>&1 &`;
-                        }
-                    } else {
-                        $CA = new static($code);
-                        try {
-                            foreach ($users as $user) {
-                                $Vars = ['user' => $user['id'], 'title' => $params['title'], 'html' => $html];
-                                $CA->execAction(
-                                    $this->varName,
-                                    $this->oldRow,
-                                    $this->row,
-                                    $this->oldTbl,
-                                    $this->tbl,
-                                    $this->Table,
-                                    $this->vars['tpa'],
-                                    $Vars
-                                );
-                                $this->newLogParent['children'][] = $CA->getLogVar();
-                            }
-                        } catch (errorException $e) {
-                            $this->newLogParent['children'][] = $CA->getLogVar();
-                            throw $e;
-                        }
-                    }
-                }
+                throw new criticalErrorException($this->translate('This option works only in PRO.'));
             }
 
         }
@@ -663,48 +608,7 @@ class CalculateAction extends Calculate
 
     protected function funcEmailSend($params)
     {
-        $params = $this->getParamsArray($params, [], []);
-
-        if (empty($params['to'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'to'));
-        }
-        if (empty($params['title'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'title'));
-        }
-        if (empty($params['body'])) {
-            throw new errorException($this->translate('Fill in the parameter [[%s]].', 'body'));
-        }
-
-        $toBfl = $params['bfl'] ?? in_array(
-            'email',
-            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
-        );
-
-        try {
-            $r = $this->Table->getTotum()->getConfig()->sendMail(
-                $params['to'],
-                $params['title'],
-                $params['body'],
-                $params['files'] ?? [],
-                $params['from'] ?? null,
-                replyTo: $params['replyto'] ?? null,
-                hcopy: $params['hiddencopy'] ?? null,
-
-            );
-
-            if ($toBfl) {
-                $this->Table->getTotum()->getOutersLogger()->debug('email', $params);
-            }
-            return $r;
-        } catch (Exception $e) {
-            if ($toBfl) {
-                $this->Table->getTotum()->getOutersLogger()->error(
-                    'email',
-                    ['error' => $e->getMessage()] + $params
-                );
-            }
-            throw new errorException($e->getMessage());
-        }
+        throw new criticalErrorException($this->translate('This option works only in PRO.'));
     }
 
     protected function funcTryCatch($params)
@@ -1286,6 +1190,18 @@ class CalculateAction extends Calculate
             $link .= '?' . http_build_query($q_params, '', '&', PHP_QUERY_RFC1738);
         }
 
+        $elseData = [
+            'header' => $params['header'] ?? true,
+            'footer' => $params['footer'] ?? true,
+            'topbuttons' => $params['topbuttons'] ?? true,
+            'bottombuttons' => $params['bottombuttons'] ?? true,
+            'pointing' => $params['pointing'] ?? null,
+            'hidedots' => $this->__checkBoolOrNull($params['hidedots'] ?? null),
+        ];
+
+        if ($params['tabs']??false){
+            $elseData['tabs'] = true;
+        }
 
         $this->Table->getTotum()->addToInterfaceLink(
             $link,
@@ -1294,40 +1210,13 @@ class CalculateAction extends Calculate
             null,
             $params['width'] ?? null,
             $params['refresh'] ?? false,
-            [
-                'header' => $params['header'] ?? true,
-                'footer' => $params['footer'] ?? true,
-                'topbuttons' => $params['topbuttons'] ?? true,
-                'bottombuttons' => $params['bottombuttons'] ?? true,
-                'pointing' => $params['pointing'] ?? null,
-                'hidedots' => $this->__checkBoolOrNull($params['hidedots'] ?? null),
-            ]
+            $elseData
         );
     }
 
     protected function funcLinkToScript($params)
     {
-        $params = $this->getParamsArray($params, ['post'], ['post']);
-
-        $this->__checkNotEmptyParams($params, ['uri']);
-        $this->__checkNotArrayParams($params, ['uri', 'title']);
-
-
-        $link = $params['uri'];
-        $title = $params['title'] ?? $this->translate('Calling a third-party script.');
-        if (!empty($params['post'])) {
-            $post = $this->__getActionFields($params['post'], 'linkToScript');
-        }
-
-
-        $this->Table->getTotum()->addToInterfaceLink(
-            $link,
-            $params['target'] ?? 'self',
-            $title,
-            $post ?? null,
-            $params['width'] ?? null,
-            $params['refresh'] ?? false
-        );
+        throw new criticalErrorException($this->translate('This option works only in PRO.'));
     }
 
     protected function funcInsert($params)

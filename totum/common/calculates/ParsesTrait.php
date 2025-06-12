@@ -649,7 +649,7 @@ trait ParsesTrait
                 $i++;
             }
             if (count($action) !== 1 || !is_numeric((string)$action[0])) {
-                throw new errorException($this->translate('TOTUM-code format error [[%s]].', 'math:' . $string));
+                throw new errorException($this->translate('TOTUM-math format error [[%s]].', $string));
             }
             return $action[0];
         };

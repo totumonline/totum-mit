@@ -359,6 +359,7 @@ class EN implements LangInterface
   'You can resend a secret via <span></span> sec' => 'You can resend the code in <span></span> sec',
   'Recalculate cycle with id %s before export.' => 'Recalculate the cycle with id %s before exporting.',
   'TOTUM-HELP-LINKS' => '[["📕 Documentation","https://docs.totum.online/"],["📗 User Guide Basics","https://docs.totum.online/user-guide"],["🚀 PRO Version Licenses","https://totum.online/pro"],["🤖 Totum AI","https://totum.online/ai"]]',
+  'Tree nesting error' => 'Tree nesting error. A child element cannot be a parent.',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

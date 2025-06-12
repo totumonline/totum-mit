@@ -51,6 +51,7 @@ if (is_null($isCreatorView ?? null)) {
                         let reUsers = <?=json_encode($reUsers??[], JSON_UNESCAPED_UNICODE); ?>;
                         let UserTables = <?=json_encode($UserTables ?? [], JSON_UNESCAPED_UNICODE); ?>;
                         App.reUserInterface(reUsers, UserTables, <?=!empty($isCreatorNotItself) ? 'true' : 'false'?>, <?=!empty($isCreatorView) ? 'true' : 'false'?>);
+
                     }());
                 </script>
         </div><!-- /.navbar-collapse -->

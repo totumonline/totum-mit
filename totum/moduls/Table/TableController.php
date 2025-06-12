@@ -272,34 +272,9 @@ class TableController extends interfaceController
             }
 
 
-            /*Подключенные вкладки-кнопки*/
+            /*Подключенные вкладки-кнопки - tab_ для циклов -- убрано в MIT*/
             $orderedInners = [];
-            foreach ($CyclesTable->getFields() as $field) {
-                if ($field['category'] === 'column' && str_starts_with($field['name'], 'tab_') &&
-                    $field['type'] === 'button' && $CyclesTable->isField('visible', 'web', $field) &&
-                    ($CyclesTable->isUserCanAction('edit') || ($field['pressableOnOnlyRead'] ?? false))) {
 
-                    $ord = $field['ord'];
-                    $dec = 1;
-                    while (key_exists($ord, $orderedInners)) {
-                        $ord += 5 * (1 / (10 ** $dec));
-                        $ord = (string)$ord;
-                        $dec++;
-                    }
-
-                    $orderedInners[$ord] = [
-                        'id' => $cyclesTableId . '/' . $this->Cycle->getId() . '/' . $field['name']
-                        , 'text' => $field['title']
-                        , 'icon' => 'fa fa-hand-pointer-o'
-                        , 'type' => 'tab_button'
-                        , 'isCycleTable' => true
-                        , 'parent' => $idHref
-                        , 'state' => [
-                            'selected' => $this->tabButton === $field['name']
-                        ]
-                    ];
-                }
-            }
 
             $tables = $this->Cycle->getViewTablesWithOrds();
 

@@ -20,7 +20,7 @@ On your server, easy to learn and scalable with business growth 🎉
 
 **— Two-level access** — developer-users.
 
-**— API** —  integrate with anything (only in PRO).
+**— API (PRO)** —  integrate with anything (only in PRO).
 
 Site — [totum.online](https://totum.online)
 
@@ -31,6 +31,10 @@ Site — [totum.online](https://totum.online)
 sudo curl -O https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/moduls/install/totum_autoinstall.sh && sudo bash totum_autoinstall.sh
 ```
 Avaliable lang: `EN`, `RU`, `ES`, `DE`
+
+This command installs both the MIT and PRO versions. The PRO version, without additional users (only with the Admin user), works without a license.
+
+**You can also get a free PRO license for 2 additional users:** for more details, see [EN](https://docs.totum.online/free-license) / [RU](https://ru.docs.totum.online/free-license).
 
 Documentaion — [docs.totum.online](https://docs.totum.online) 🔥
 

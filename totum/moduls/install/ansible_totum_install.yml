@@ -575,9 +575,9 @@
         session.save_path = /var/lib/php/sessions_totum
         display_errors = stderr
         log_errors = On
-    owner: totum
-    group: totum
-    mode: '0664'
+      owner: totum
+      group: totum
+      mode: '0664'
     when: not fpm_totum_php_ini.stat.exists
 
   - name: Replace timezone in FPM.totum.php.ini

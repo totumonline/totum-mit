@@ -569,7 +569,7 @@
         upload_max_filesize = 10M
         post_max_size = 0
         opcache.enable = 1
-        opcache.memory_consumption = 256
+        opcache.memory_consumption = 256M
         date.timezone = Europe/London
         session.gc_maxlifetime = 3600
         session.save_path = /var/lib/php/sessions_totum

@@ -360,13 +360,6 @@
       group: root
     when: not totum_fpm_conf.stat.exists
 
-  - name: Replace timezone in totum.conf
-    replace:
-      path: /etc/php/8.3/fpm/pool.d/totum.conf
-      regexp: 'Europe/London'
-      replace: "{{ lookup('env', 'TOTUMTIMEZONE') }}"
-    when: not totum_fpm_conf.stat.exists
-
   - name: Create sessions_totum directory
     file:
       path: /var/lib/php/sessions_totum
@@ -562,6 +555,47 @@
       path: /home/totum/totum-mit/CLI.totum.php.ini
       regexp: 'Europe/London'
       replace: "{{ lookup('env', 'TOTUMTIMEZONE') }}"
+
+  - name: Check if FPM.totum.php.ini file exists
+    stat:
+      path: /home/totum/totum-mit/FPM.totum.php.ini
+    register: fpm_totum_php_ini
+
+  - name: Create FPM.totum.php.ini file
+    copy:
+      dest: /home/totum/totum-mit/FPM.totum.php.ini
+      content: |
+        memory_limit = 512M
+        upload_max_filesize = 10M
+        post_max_size = 0
+        opcache.enable = 1
+        opcache.memory_consumption = 256
+        date.timezone = Europe/London
+        session.gc_maxlifetime = 3600
+        session.save_path = /var/lib/php/sessions_totum
+        display_errors = stderr
+        log_errors = On
+    owner: totum
+    group: totum
+    mode: '0664'
+    when: not fpm_totum_php_ini.stat.exists
+
+  - name: Replace timezone in FPM.totum.php.ini
+    replace:
+      path: /home/totum/totum-mit/FPM.totum.php.ini
+      regexp: 'Europe/London'
+      replace: "{{ lookup('env', 'TOTUMTIMEZONE') }}"
+
+  - name: Create symlink for Totum PHP-FPM INI configuration
+    file:
+      src: /home/totum/totum-mit/FPM.totum.php.ini
+      dest: /etc/php/8.3/fpm/conf.d/90-FPM.totum.php.ini
+      state: link
+
+  - name: Restart PHP FPM service
+    service:
+      name: php8.3-fpm
+      state: restarted
 
   - name: Check if Conf.php file exists
     stat:

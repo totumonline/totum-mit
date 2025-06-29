@@ -46,9 +46,9 @@ class GitUpdate extends Command
 
         if (function_exists('opcache_reset')) {
             opcache_reset();
-            echo 'OPcache was reset.';
+            $output->writeln('OPcache was reset.');
         } else {
-            echo 'OPcache reset is not available. Please check that the line \'opcache.restrict_api = /home/totum/totum-mit/bin\' is present in your /home/totum/totum-mit/FPM.totum.php.ini';
+            $output->writeln('OPcache reset is not available. Please check that the line \'opcache.restrict_api = /home/totum/totum-mit/bin\' is present in your /home/totum/totum-mit/FPM.totum.php.ini');
         }
 
         $Conf = new Conf();

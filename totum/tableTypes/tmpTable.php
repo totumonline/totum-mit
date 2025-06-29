@@ -62,6 +62,10 @@ class tmpTable extends JsonTables
             );
         } else {
             $this->key = ['table_name' => $tableRow['name'], 'user_id' => $Totum->getUser()->getId(), 'hash' => $hash];
+            if($Totum->getUser()->isCreator()){
+                $this->key = ['table_name' => $tableRow['name'], 'hash' => $hash];
+            }
+
             $this->loadDataRow(true);
         }
         $this->sessHashName = $hash;

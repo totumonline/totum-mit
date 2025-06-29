@@ -42,12 +42,21 @@ class GitUpdate extends Command
             }
         }
 
+        passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev');
+
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+            echo 'OPcache was reset.';
+        } else {
+            echo 'OPcache reset is not available. Please check that the line \'opcache.restrict_api = /home/totum/totum-mit/bin\' is present in your /home/totum/totum-mit/FPM.totum.php.ini';
+        }
+
         $Conf = new Conf();
 
         if (is_callable([$Conf, 'setHostSchema'])) {
-            passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev && bin/totum schemas-update');
+            passthru('bin/totum schemas-update');
         } else {
-            passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev && bin/totum schema-update');
+            passthru('bin/totum schema-update');
         }
 
         return 0;

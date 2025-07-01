@@ -56,7 +56,7 @@ class GitUpdate extends Command
 
         $Conf = new Conf();
 
-        $uri = 'https://'.$Conf->getSomeHost().'/Commands/reset-opcache';
+        $uri = 'http://'.$Conf->getSomeHost().'/Commands/reset-opcache';
 
         $context = stream_context_create(
             [

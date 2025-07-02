@@ -40,6 +40,7 @@
         - gnupg
         - tzdata
         - openssl
+        - imagemagick
       state: latest
 
   # Add ondrej/php

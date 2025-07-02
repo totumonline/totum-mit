@@ -7,6 +7,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use totum\common\Crypt;
 use totum\common\Totum;
 use totum\config\Conf;
 
@@ -21,7 +22,7 @@ class GitUpdate extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$input->getOption('force')) {
+       if (!$input->getOption('force')) {
             $error = true;
             if ($totumClass = file_get_contents('https://raw.githubusercontent.com/totumonline/totum-mit/master/totum/common/Totum.php')) {
                 if (preg_match('/public\s*const\s*VERSION = \'(\d+)/', $totumClass, $matches)) {
@@ -42,12 +43,47 @@ class GitUpdate extends Command
             }
         }
 
+        passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev');
+
+        if (function_exists('opcache_reset') && opcache_reset()) {
+            $output->writeln('CLI OPcache was reset.');
+        } else {
+            $output->writeln('CLI OPcache reset is not available.');
+        }
+
+
+
+
         $Conf = new Conf();
 
+        $uri = 'http://'.$Conf->getSomeHost().'/Commands/reset-opcache';
+
+        $context = stream_context_create(
+            [
+                'http' => [
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\nUser-Agent: TOTUM\r\nConnection: Close\r\n\r\n",
+                    'method' => 'POST',
+                    'content' => http_build_query([
+                        'key' => Crypt::getCrypted(date('H-m-d'), $Conf->getCryptKeyFileContent()),
+                    ])
+                ],
+                'ssl' => [
+                    'verify_peer' => $Conf->isCheckSsl(),
+                    'verify_peer_name' => $Conf->isCheckSsl(),
+                ],
+            ]
+        );
+        $data = file_get_contents($uri, true, $context);
+        if ($data) {
+            echo $data;
+        }
+
+
+
         if (is_callable([$Conf, 'setHostSchema'])) {
-            passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev && bin/totum schemas-update');
+            passthru('bin/totum schemas-update');
         } else {
-            passthru('git pull origin master && php -f composer.phar self-update --2 && php -f composer.phar install --no-dev && bin/totum schema-update');
+            passthru('bin/totum schema-update');
         }
 
         return 0;

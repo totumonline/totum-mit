@@ -3,6 +3,7 @@
 
 namespace totum\common\configs;
 
+use totum\common\criticalErrorException;
 use totum\common\errorException;
 
 trait MultiTrait
@@ -14,6 +15,19 @@ trait MultiTrait
             mkdir($dir, 0755, true);
         }
         return $dir;
+    }
+
+    public function getSomeHost()
+    {
+        if($this->hostName){
+            return $this->hostName;
+        }
+
+        foreach ($this->getSchemas() as $host=>$schema){
+            return $host;
+        }
+
+        throw new criticalErrorException('Totum has not any hosts');
     }
 
     protected function getHostForDir($host)

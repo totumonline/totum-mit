@@ -126,7 +126,7 @@ const db=$dbExport;
 
     protected \$execSSHOn = 'inner'; // Set true as boolean (without ''), if you want to run ssh scripts via execSSH
 
-    protected bool $heifConvert = true;
+    protected bool \$heifConvert = true;
 
     //protected \$checkSSl = true;
 

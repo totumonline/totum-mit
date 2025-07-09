@@ -40,15 +40,17 @@ class Crypt
 
     public static function getDeCrypted($string, $sess = true)
     {
-        $c = base64_decode($string);
-        $ivlen = openssl_cipher_iv_length($cipher = "AES-128-CBC");
-        $iv = substr($c, 0, $ivlen);
-        $hmac = substr($c, $ivlen, $sha2len = 32);
-        $ciphertext_raw = substr($c, $ivlen + $sha2len);
-        $plaintext = openssl_decrypt($ciphertext_raw, $cipher, static::getKey($sess), $options = OPENSSL_RAW_DATA, $iv);
-        $calcmac = hash_hmac('sha256', $ciphertext_raw, static::getKey($sess), $as_binary = true);
-        if (hash_equals($hmac, $calcmac)) {
-            return $plaintext;
+        if (!empty($string)) {
+            $c = base64_decode($string);
+            $ivlen = openssl_cipher_iv_length($cipher = "AES-128-CBC");
+            $iv = substr($c, 0, $ivlen);
+            $hmac = substr($c, $ivlen, $sha2len = 32);
+            $ciphertext_raw = substr($c, $ivlen + $sha2len);
+            $plaintext = @openssl_decrypt($ciphertext_raw, $cipher, static::getKey($sess), $options = OPENSSL_RAW_DATA, $iv);
+            $calcmac = hash_hmac('sha256', $ciphertext_raw, static::getKey($sess), $as_binary = true);
+            if (hash_equals($hmac, $calcmac)) {
+                return $plaintext;
+            }
         }
         return false;
     }

@@ -8,6 +8,7 @@
 
 namespace totum\fieldTypes;
 
+use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
 
@@ -45,7 +46,10 @@ class Password extends Field
     {
         if ($modifyVal === '') {
             $modifyVal = $oldVal;
+        } elseif (!$isCheck) {
+            $modifyVal = $this->preparePass($modifyVal);
         }
+
         return $modifyVal;
     }
 
@@ -54,8 +58,26 @@ class Password extends Field
         if (is_array($val)) {
             $val = '';
         }
-        if (!$isCheck && strlen($val ?? '') !== 32) {
-            $val = md5($val ?? '');
+
+    }
+
+    public function add($channel, $inNewVal, $row = [], $oldTbl = [], $tbl = [], $isCheck = false, $vars = [])
+    {
+        $val = parent::add($channel, $inNewVal, $row, $oldTbl, $tbl, $isCheck, $vars);
+        if (!$isCheck){
+            $val['v'] = $this->preparePass($val['v']);
+        }
+        return $val;
+    }
+
+    protected function preparePass($modifyVal)
+    {
+        if (!empty($modifyVal)) {
+            if (($this->data['cryptoKey'] ?? false)) {
+                return Crypt::getCrypted($modifyVal, $this->table->getTotum()->getConfig()->getCryptKeyFileContent());
+            } else {
+                return md5($modifyVal);
+            }
         }
     }
 }

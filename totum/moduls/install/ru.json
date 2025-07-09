@@ -800,6 +800,7 @@
     "{{Set_pass_in_databases}}": "Set pass",
     "{{SET_PASS_IN_DBS}}": "SET PASS",
     "{{Set_pass_title_in_databases}}": "Установить пароль",
+    "{{Set_pass_to_crypto_mode}}": "Использовать strEncrypt вместо MD5",
     "{{Setting_attributes_for_search}}": "Установка настроек поиска",
     "{{Settings}}": "Настройки",
     "{{SETTINGS}}": "НАСТР.",

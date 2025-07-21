@@ -604,6 +604,7 @@
     "{{OID_fio_key}}": "Schlüssel für FIO",
     "{{OID_name}}": "OpenID-Anbietername",
     "{{OID_new_user_action}}": "Aktionscode bei Registrierung",
+    "{{OID_redirect_uri}}": "Weiterleitungs-URI",
     "{{OID_rejection_comment}}": "Ablehnungsbemerkung",
     "{{OID_roles_code}}": "Rollen-Code",
     "{{OID_scope}}": "Bereiche",

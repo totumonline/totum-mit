@@ -604,6 +604,7 @@
     "{{OID_fio_key}}": "Ключ для FIO",
     "{{OID_name}}": "Name провайдера OpenID",
     "{{OID_new_user_action}}": "Код-действия при регистрации",
+    "{{OID_redirect_uri}}": "URI перенаправления",
     "{{OID_rejection_comment}}": "Комментарий при отклонении",
     "{{OID_roles_code}}": "Код определения ролей",
     "{{OID_scope}}": "Список scopes",

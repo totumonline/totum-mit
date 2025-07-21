@@ -604,6 +604,7 @@
     "{{OID_fio_key}}": "Clave para FIO",
     "{{OID_name}}": "Nombre del proveedor OpenID",
     "{{OID_new_user_action}}": "Código de acción al registrarse",
+    "{{OID_redirect_uri}}": "URI de redirección",
     "{{OID_rejection_comment}}": "Comentario de rechazo",
     "{{OID_roles_code}}": "Código de roles",
     "{{OID_scope}}": "Ámbitos",

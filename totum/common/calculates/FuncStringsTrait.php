@@ -180,7 +180,7 @@ trait FuncStringsTrait
             if($data['type'] != 'password'){
                 throw new errorException($this->translate('Field [[%s]] is not of type password', $params['field']));
             }
-            $type = $data['cryptokey']??'md5';
+            $type = $data['cryptoKey']??'md5';
         }else{
             $type = $params['type'];
         }

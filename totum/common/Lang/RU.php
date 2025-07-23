@@ -450,6 +450,8 @@ class RU implements LangInterface
   'TOTUM-HELP-LINKS' => '[["📕 Документация","https://ru.docs.totum.online/"],["📗 Основы для пользователей","https://ru.docs.totum.online/user-guide"],["🚀 Лицензии PRO-версии","https://ru.totum.online/pro"],["🤖 Totum AI","https://ru.totum.online/ai"]]',
   'TOTUM-math format error [[%s]].' => 'TOTUM-math ошибка формата [[%s]].',
   'Tree nesting error' => 'Ошибка вложенности дерева. Дочерний элемент не может быть родительским.',
+  'Field [[%s]] is not of type password' => 'Поле [[%s]] не является паролем',
+  'Wrong [[%s]] value' => 'Неверное значение в [[%s]]',
 );
 	public function num2str($num): string
     {

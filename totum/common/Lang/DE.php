@@ -448,6 +448,8 @@ class DE implements LangInterface
   'TOTUM-HELP-LINKS' => '[["📕 Dokumentation","https://docs.totum.online/"],["📗 Grundlagen für Benutzer","https://docs.totum.online/user-guide"],["🚀 Lizenzen der PRO-Version","https://totum.online/pro"],["🤖 Totum AI","https://totum.online/ai"]]',
   'TOTUM-math format error [[%s]].' => 'TOTUM-math Formatfehler [[%s]].',
   'Tree nesting error' => 'Baum-Verschachtelungsfehler. Ein Kindelement kann kein Elternelement sein.',
+  'Field [[%s]] is not of type password' => 'Feld [[%s]] ist nicht vom Typ Passwort',
+  'Wrong [[%s]] value' => 'Ungültiger Wert in [[%s]]',
 );
 	public function num2str($num): string
 	{

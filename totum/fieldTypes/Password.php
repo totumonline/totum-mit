@@ -8,8 +8,10 @@
 
 namespace totum\fieldTypes;
 
+use totum\common\Crypt;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\config\Conf;
 
 class Password extends Field
 {
@@ -45,7 +47,10 @@ class Password extends Field
     {
         if ($modifyVal === '') {
             $modifyVal = $oldVal;
+        } elseif (!$isCheck) {
+            $modifyVal = $this->preparePass($modifyVal);
         }
+
         return $modifyVal;
     }
 
@@ -54,8 +59,42 @@ class Password extends Field
         if (is_array($val)) {
             $val = '';
         }
-        if (!$isCheck && strlen($val ?? '') !== 32) {
-            $val = md5($val ?? '');
+
+    }
+
+    public function add($channel, $inNewVal, $row = [], $oldTbl = [], $tbl = [], $isCheck = false, $vars = [])
+    {
+        $val = parent::add($channel, $inNewVal, $row, $oldTbl, $tbl, $isCheck, $vars);
+        if (!$isCheck) {
+            $val['v'] = $this->preparePass($val['v']);
         }
+        return $val;
+    }
+
+    protected function preparePass($modifyVal)
+    {
+        if (!empty($modifyVal)) {
+            switch (($this->data['cryptoKey'] ?? false)) {
+                case 'cryptokey':
+                    return Crypt::getCrypted($modifyVal, $this->table->getTotum()->getConfig()->getCryptKeyFileContent());
+                case 'argon2id':
+                    return password_hash($modifyVal, PASSWORD_ARGON2ID);
+            }
+            return md5($modifyVal);
+
+        }
+    }
+
+    static function checkPassword(Conf $Config, string $hash, string $pass, string|null $passType = null)
+    {
+        switch ($passType){
+            case 'argon2id':
+                return password_verify($pass, $hash);
+            case 'cryptokey':
+                return Crypt::getDeCrypted($hash, $Config->getCryptKeyFileContent()) === $pass;
+
+        }
+        return $hash === md5($pass);
+
     }
 }

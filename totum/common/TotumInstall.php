@@ -79,15 +79,15 @@ class TotumInstall
         $post['db_port'] = $post['db_port'] ?? 5432;
         $post['lang'] = $post['lang'] ?? 'en';
         $db = [
-              'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
-              'host' => $post['db_host'],
-              'username' => $post['db_user_login'],
-              'dbname' => $post['db_name'],
-              'password' => $post['db_user_password'],
-              'charset' => 'UTF8',
-              'pg_dump' => $post['pg_dump'],
-              'psql' => $post['psql']
-              ];
+            'dsn' => 'pgsql:host=' . $post['db_host'] . ';port=' . $post['db_port'] . ';dbname=' . $post['db_name'],
+            'host' => $post['db_host'],
+            'username' => $post['db_user_login'],
+            'dbname' => $post['db_name'],
+            'password' => $post['db_user_password'],
+            'charset' => 'UTF8',
+            'pg_dump' => $post['pg_dump'],
+            'psql' => $post['psql']
+        ];
         $dbExport = var_export($db, true);
 
         $this->confClassCode = <<<CONF
@@ -153,7 +153,7 @@ CONF;
         $Conf = new Conf();
         $Conf->setHostSchema($host);
         return $Conf;
-        
+
     }
 
     public function install($getFilePath)
@@ -771,6 +771,16 @@ CONF;
             }
         }
         $this->consoleLog('Add and modify fields for ' . $n . ' tables ', 2);
+
+        $usersPassData = $this->Totum->getConfig()->getSql()->get("select id, data_src->>'v' as data_src from tables_fields where name->>'v'='pass' AND table_name->>'v' = 'users' limit 1");
+        $usersPassDataSrc = json_decode($usersPassData['data_src'], true);
+        if (!empty($fieldsModify[$usersPassData['id']]['data_src'])) {
+            $fieldsModify[$usersPassData['id']]['data_src']['cryptoKey'] = $usersPassDataSrc['cryptoKey'] ?? [
+            "isOn"=>false
+            ];
+        }
+
+
         $this->Totum->getTable('tables_fields')->reCalculateFromOvers(['add' => $fieldsAdd, 'modify' => $fieldsModify]);
         $this->Totum->clearTables();
         $this->Totum->getConfig()->clearRowsCache();
@@ -1292,10 +1302,10 @@ CONF;
                             if (key_exists($row['id'], $addedBranches)) {
                                 if (!key_exists($row['parent_id'], $lastOrdParent)) {
                                     $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField(
-                                            'ord',
-                                            ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
-                                            'ord desc'
-                                        ) ?? 0;
+                                        'ord',
+                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                        'ord desc'
+                                    ) ?? 0;
                                 }
                                 $lastOrdParent[$row['parent_id']] += 10;
                                 $modify[$addedBranches[$row['id']]]['ord'] = $lastOrdParent[$row['parent_id']];

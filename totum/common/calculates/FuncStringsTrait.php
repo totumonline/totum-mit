@@ -159,6 +159,41 @@ trait FuncStringsTrait
         return md5($params['str']);
     }
 
+    protected function funcPasswordVerification(string $params): bool
+    {
+        $params = $this->getParamsArray($params);
+        $this->__checkRequiredParams($params, ['str', 'hash'], 'strMd5');
+        $this->__checkNotArrayParams($params, ['str', 'hash', 'type', 'table', 'field']);
+
+        if(empty($params['type'])){
+            if (empty($params['table'])){
+                throw new errorException($this->translate('Parametr [[%s]] is required.', 'table'));
+            }elseif (empty($params['field'])){
+                throw new errorException($this->translate('Parametr [[%s]] is required.', 'field'));
+            }
+            $model = $this->Table->getTotum()->getModel('tables_fields');
+            $data = $model->getPrepared(['table_name'=>$params['table'], 'name'=>$params['field']], 'data');
+            if(!$data){
+                throw new errorException($this->translate('The [[%s]] field is not found in the [[%s]] table.', [$params['field'], $params['table']]));
+            }
+            $data = json_decode($data['data'], true);
+            if($data['type'] != 'password'){
+                throw new errorException($this->translate('Field [[%s]] is not of type password', $params['field']));
+            }
+            $type = $data['cryptoKey']??'md5';
+        }else{
+            $type = $params['type'];
+        }
+
+        switch ($type){
+            case 'md5': return md5($params['str']) === $params['hash'];
+            case 'argon2id': return password_verify($params['str'],  $params['hash']);
+            case 'cryptokey': return $params['str'] === Crypt::getDeCrypted($params['hash'], $this->Table->getTotum()->getConfig()->getCryptKeyFileContent());
+        }
+
+        throw new errorException($this->translate('Wrong [[%s]] value', 'parameter type'));
+    }
+
     protected function funcStrPart(string $params): string
     {
         $params = $this->getParamsArray($params);

@@ -448,6 +448,8 @@ class ES implements LangInterface
   'TOTUM-HELP-LINKS' => '[["📕 Documentación","https://docs.totum.online/"],["📗 Conceptos básicos para usuarios","https://docs.totum.online/user-guide"],["🚀 Licencias de la versión PRO","https://es.totum.online/pro"],["🤖 Totum AI","https://es.totum.online/ai"]]',
   'TOTUM-math format error [[%s]].' => 'Error de formato TOTUM-math [[%s]].',
   'Tree nesting error' => 'Error de anidamiento del árbol. Un elemento hijo no puede ser un elemento padre.',
+  'Field [[%s]] is not of type password' => 'El campo [[%s]] no es de tipo contraseña',
+  'Wrong [[%s]] value' => 'Valor no válido en [[%s]]',
 );
 	public function num2str($num): string
 	{

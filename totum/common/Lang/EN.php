@@ -360,6 +360,7 @@ class EN implements LangInterface
   'Recalculate cycle with id %s before export.' => 'Recalculate the cycle with id %s before exporting.',
   'TOTUM-HELP-LINKS' => '[["📕 Documentation","https://docs.totum.online/"],["📗 User Guide Basics","https://docs.totum.online/user-guide"],["🚀 PRO Version Licenses","https://totum.online/pro"],["🤖 Totum AI","https://totum.online/ai"]]',
   'Tree nesting error' => 'Tree nesting error. A child element cannot be a parent.',
+  'Wrong [[%s]] value' => 'Invalid value in [[%s]]',
 );
 	public function dateFormat(DateTime $date, $fStr): string
     {

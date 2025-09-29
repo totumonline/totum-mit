@@ -458,7 +458,7 @@
 
   - name: apt install postgresql
     apt:
-      name: postgresql-17
+      name: postgresql-18
       state: present
 
   - name: apt install python3-psycopg2

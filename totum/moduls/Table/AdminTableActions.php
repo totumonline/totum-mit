@@ -219,7 +219,11 @@ CODE;
         }
 
         $set = $this->Table->changeFieldsSets(function ($set) {
-            $set[] = ['name' => trim($this->post['name']), 'fields' => $this->post['fields']];
+            if (!empty($this->post['resave']) && !empty($set[$this->post['resave']]) && $set[$this->post['resave']]['name'] === $this->post['name']){
+                $set[$this->post['resave']]['fields'] = $this->post['fields'];
+            }else{
+                $set[] = ['name' => trim($this->post['name']), 'fields' => $this->post['fields']];
+            }
             return $set;
         });
 

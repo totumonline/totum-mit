@@ -513,96 +513,105 @@ trait FuncArraysTrait
 
     protected function funcListSearch(string $params): array
     {
-        $params = $this->getParamsArray($params, [], ['key']);
+        $params = $this->getParamsArray($params, ['key'], ['key']);
         $this->__checkListParam($params['list'], 'list');
-
-        $key = &$params['key'];
-        /*str|num type*/
-        {
-            if (str_ends_with($key, 'str')) {
-                $sorttype = 'str';
-            } elseif (str_ends_with($key, 'num')) {
-                $sorttype = 'num';
-            } else {
-                $sorttype = null;
-            }
-
-            if (!empty($sorttype)) {
-                $key = substr($key, 0, -3);
-            }
-            $key = $this->getExecParamVal($key, 'key', true);
-            $key['type'] = $sorttype;
-            unset($key, $sorttype);
-        }
         $this->__checkNotEmptyParams($params, 'key');
 
-        $operator = $params['key']['operator'];
-        $value = $params['key']['value'];
-        $type = $params['key']['type'] ?? null;
 
+        foreach ($params['key'] as &$key) {
+            /*str|num type*/
+            {
+                if (str_ends_with($key, 'str')) {
+                    $sorttype = 'str';
+                } elseif (str_ends_with($key, 'num')) {
+                    $sorttype = 'num';
+                } else {
+                    $sorttype = null;
+                }
 
-        $getCompare = function ($v) use ($operator, $value, $type) {
-            if ($type ?? false) {
-                if (is_array($value) || is_array($v)) {
-                    throw new errorException($this->translate('Using a comparison type in a search in list/row is not allowed'));
+                if (!empty($sorttype)) {
+                    $key = substr($key, 0, -3);
                 }
-                switch ($type) {
-                    case 'str':
-                        $value = '_' . strval($value);
-                        $v = '_' . strval($v);
-                        break;
-                    case 'num':
-                        $value = (float)$value;
-                        $v = (float)$v;
-                        break;
+                $key = $this->getExecParamVal($key, 'key', true);
+                $key['type'] = $sorttype;
+                unset($key, $sorttype);
+            }
+        }
+
+        $filterIt = function ($list, $key) use ($params): array {
+            $operator = $key['operator'];
+            $value = $key['value'];
+            $type = $key['type'] ?? null;
+
+            $getCompare = function ($v) use ($operator, $value, $type) {
+                if ($type ?? false) {
+                    if (is_array($value) || is_array($v)) {
+                        throw new errorException($this->translate('Using a comparison type in a search in list/row is not allowed'));
+                    }
+                    switch ($type) {
+                        case 'str':
+                            $value = '_' . strval($value);
+                            $v = '_' . strval($v);
+                            break;
+                        case 'num':
+                            $value = (float)$value;
+                            $v = (float)$v;
+                            break;
+                    }
+                    return match ($v <=> $value) {
+                        0 => in_array($operator, ['>=', '<=', '=', '==']),
+                        1 => in_array($operator, ['>=', '>', '!=', '!==']),
+                        default => in_array($operator, ['<=', '<', '!=', '!==']),
+                    };
                 }
-                return match ($v <=> $value) {
-                    0 => in_array($operator, ['>=', '<=', '=', '==']),
-                    1 => in_array($operator, ['>=', '>', '!=', '!==']),
-                    default => in_array($operator, ['<=', '<', '!=', '!==']),
-                };
+                return Calculate::compare($operator, $v, $value, $this->getLangObj());
+            };
+
+            switch ($key['field']) {
+                case 'value':
+                    $filter = function ($k, $v) use ($getCompare) {
+                        return $getCompare($v);
+                    };
+                    break;
+                default:
+                    if ($key['field'] === 'item') {
+                        $this->__checkRequiredParams($params, 'item');
+                        $item = $params['item'];
+                    } else {
+                        $item = $key['field'];
+                    }
+
+                    $filter = function ($k, $v) use ($getCompare, $item) {
+                        if (!is_array($v)) {
+                            throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
+                        } elseif (!array_key_exists(
+                            $item,
+                            $v
+                        )) {
+                            throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
+                        }
+                        return $getCompare($v[$item]);
+                    };
+                    break;
+
             }
 
-
-            return Calculate::compare($operator, $v, $value, $this->getLangObj());
+            $filtered = [];
+            foreach ($list as $k => $v) {
+                if ($filter($k, $v)) {
+                    $filtered[$k] = $v;
+                }
+            }
+            return $filtered;
         };
 
-        switch ($params['key']['field']) {
-            case 'value':
-                $filter = function ($k, $v) use ($getCompare, $params) {
-                    return $getCompare($v);
-                };
-                break;
-            default:
-                if ($params['key']['field'] === 'item') {
-                    $this->__checkRequiredParams($params, 'item');
-                } else {
-                    $params['item'] = $params['key']['field'];
-                }
 
-                $filter = function ($k, $v) use ($getCompare, $params) {
-                    if (!is_array($v)) {
-                        throw new errorException($this->translate('The array element does not fit the filtering conditions - the value is not a list.'));
-                    } elseif (!array_key_exists(
-                        $params['item'],
-                        $v
-                    )) {
-                        throw new errorException($this->translate('The array element does not fit the filtering conditions - [[item]] is not found.'));
-                    }
-                    return $getCompare($v[$params['item']]);
-                };
-                break;
-
+        $filtered = $params['list'];
+        foreach ($params['key'] as $key) {
+            $filtered = $filterIt($filtered, $key);
         }
 
-        $filtered = [];
-        foreach ($params['list'] as $k => $v) {
-            if ($filter($k, $v)) {
-                $filtered[] = $k;
-            }
-        }
-
-        return $filtered;
+        return array_keys($filtered);
     }
 
     protected function funcListSection(string $params): array

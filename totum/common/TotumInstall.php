@@ -1159,7 +1159,7 @@ CONF;
                     [],
                     $TablesTable,
                     'exec',
-                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $funcRoles('all'), 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => $schemaRow['isTableCreated']]
+                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $funcRoles('all'), 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => ($schemaRow['isTableCreated'] ?? false)]
                 );
                 $TablesTable->calcLog($Log, 'result', $r);
             }

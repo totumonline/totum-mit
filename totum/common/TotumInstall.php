@@ -940,6 +940,9 @@ CONF;
                         break;
                     case 'simple':
                     case 'cycles':
+
+
+
                         if (!empty($schemaRow['data']['params'])) {
                             $header = json_decode(
                                 $TablesModel->getField('header', ['id' => $tableId]),
@@ -957,7 +960,6 @@ CONF;
 
                         if (!empty($schemaRow['data']['rows'])) {
                             $_tableModel = $this->Totum->getModel($schemaRow['name']);
-
 
                             $getRowId = function ($row) use ($_tableModel, $schemaRow) {
                                 if (!empty($schemaRow['key_fields']) || (key_exists(
@@ -1133,10 +1135,14 @@ CONF;
                                 }
                             }
                         }
+
+
+
                         $TablesModel->saveVars(
                             $tableId,
                             ['updated' => $updated = aTable::formUpdatedJson($this->Totum->getUser())]
                         );
+                        $this->Totum->getTable($tableId)->setSavedUpdated($updated);
                 }
                 $TablesTable->calcLog($Log, 'result', 'done');
             }
@@ -1161,7 +1167,7 @@ CONF;
                     [],
                     $TablesTable,
                     'exec',
-                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $funcRoles('all'), 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => $schemaRow['isTableCreated']]
+                    ['insertedIds' => $insertedIds, 'changedIds' => $changedIds, 'categories' => $categoriesMatches, 'roles' => $funcRoles('all'), 'tree' => $treeMatches, 'type' => $isInstall ? 'install' : 'update', 'is_table_created' => ($schemaRow['isTableCreated'] ?? false)]
                 );
                 $TablesTable->calcLog($Log, 'result', $r);
             }

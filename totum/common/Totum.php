@@ -434,6 +434,7 @@ class Totum
     {
         $this->tablesInstances = [];
         $this->fieldsCache = [];
+        $this->getConfig()->clearRowsCache();
     }
 
     public function getSpecialInterface()

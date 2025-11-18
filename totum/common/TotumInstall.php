@@ -1316,7 +1316,7 @@ CONF;
                                 if (!key_exists($row['parent_id'], $lastOrdParent)) {
                                     $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField(
                                         'ord',
-                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches), '!id' => 1],
                                         'ord desc'
                                     ) ?? 0;
                                 }

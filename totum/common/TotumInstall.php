@@ -567,6 +567,7 @@ CONF;
      */
     public function updateSchema(array $schemaData, $withDataAndCodes = false, $matchesName = '')
     {
+        $this->Totum->transactionStart();
         $funcCategories = $this->getFuncCategories($schemaData['categories']);
 
         $funcRoles = $this->getFuncRoles($schemaData['roles']);
@@ -667,7 +668,7 @@ CONF;
         $this->consoleLog('Add tree links and anchors', 2);
         $getTreeId('link and anchors');
 
-
+        
         if ($withDataAndCodes) {
             $this->consoleLog('Load data to tables and exec codes from schema', 2);
             $this->updateDataExecCodes(
@@ -678,8 +679,12 @@ CONF;
                 $matchesName
             );
         }
+
         $this->consoleLog('Set default tables and sort for new tree branches', 2);
+        
         $getTreeId('set default tables and sort');
+
+        $this->Totum->transactionCommit();
 
         return [$schemaRows, $funcRoles, $getTreeId, $funcCategories];
     }
@@ -1158,6 +1163,7 @@ CONF;
                     3
                 );
                 $Log = $TablesTable->calcLog(['name' => 'CODE FROM SCHEMA', 'code' => $schemaRow['code']]);
+
                 $action = new CalculateAction($schemaRow['code']);
                 $r = $action->execAction(
                     'InstallCode',
@@ -1276,7 +1282,10 @@ CONF;
             }
         }
 
-        return $getTreeId = function ($tree_node_id) use ($funcRoles, &$addedBranches, $treeIn, &$treeMatches, &$getTreeId, &$Tree, &$defaultTables) {
+        return $getTreeId = function ($tree_node_id) use ($funcRoles, &$addedBranches, $treeIn, &$treeMatches, &$getTreeId, &$defaultTables) {
+
+            $Tree = $this->Totum->getTable('tree');
+
             if (key_exists($tree_node_id, $treeMatches)) {
                 return $treeMatches[$tree_node_id];
             } elseif ($tree_node_id === 'all') {
@@ -1309,7 +1318,7 @@ CONF;
                                 if (!key_exists($row['parent_id'], $lastOrdParent)) {
                                     $lastOrdParent[$row['parent_id']] = $this->Totum->getModel('tree')->getField(
                                         'ord',
-                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches)],
+                                        ['parent_id' => $row['parent_id'], '!id' => array_values($addedBranches), '!id' => 1],
                                         'ord desc'
                                     ) ?? 0;
                                 }

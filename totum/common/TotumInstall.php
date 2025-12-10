@@ -778,11 +778,14 @@ CONF;
         $this->consoleLog('Add and modify fields for ' . $n . ' tables ', 2);
 
         $usersPassData = $this->Totum->getConfig()->getSql()->get("select id, data_src->>'v' as data_src from tables_fields where name->>'v'='pass' AND table_name->>'v' = 'users' limit 1");
-        $usersPassDataSrc = json_decode($usersPassData['data_src'], true);
-        if (!empty($fieldsModify[$usersPassData['id']]['data_src'])) {
-            $fieldsModify[$usersPassData['id']]['data_src']['cryptoKey'] = $usersPassDataSrc['cryptoKey'] ?? [
-            "isOn"=>false
-            ];
+
+        if ($usersPassData) {
+            $usersPassDataSrc = json_decode($usersPassData['data_src'], true);
+            if (!empty($fieldsModify[$usersPassData['id']]['data_src'])) {
+                $fieldsModify[$usersPassData['id']]['data_src']['cryptoKey'] = $usersPassDataSrc['cryptoKey'] ?? [
+                    "isOn" => false
+                ];
+            }
         }
 
 

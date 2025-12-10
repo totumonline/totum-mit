@@ -167,7 +167,106 @@ trait FuncOperationsTrait
 
     protected function funcGetFromScript(string $params): bool|string|null
     {
-        throw new criticalErrorException($this->translate('This option works only in PRO.'));
+        $params = $this->getParamsArray($params, ['post'], ['post']);
+
+        if (empty($params['uri']) || !preg_match(
+                '`https?://`',
+                $params['uri']
+            )) {
+            throw new errorException($this->translate('The %s parameter is required and must start with %s.',
+                ['uri', 'http/https']));
+        }
+
+        $link = $params['uri'];
+        if (!empty($params['post'])) {
+            $post = $this->__getActionFields($params['post'], 'GetFromScript');
+        } elseif (!empty($params['posts'])) {
+            $post = $params['posts'];
+        } else {
+            $post = null;
+        }
+
+
+        if (!empty($params['gets'])) {
+            $link .= !str_contains($link, '?') ? '?' : '&';
+            $link .= http_build_query($params['gets']);
+        }
+
+        $toBfl = $params['bfl'] ?? in_array(
+            'script',
+            $this->Table->getTotum()->getConfig()->getSettings('bfl') ?? []
+        );
+
+        $timeout = (($params['ssh'] ?? false) ? 'parallel' : $params['timeout'] ?? null);
+
+        if ($params['request'] ?? false) {
+            $headers = ($params['headers'] ?? []);
+            if ($headers) {
+                $headers = (array)$headers;
+            } else {
+                $headers = [];
+            }
+            if ($params['cookie'] ?? '') {
+                $headers[] = 'Cookie: ' . $params['cookie'];
+            }
+
+            return [
+                'link' => $link,
+                'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
+                'header' => $params['header'] ?? 0,
+                'post' => $post,
+                'timeout' => $timeout,
+                'headers' => $headers,
+                'method' => ($params['method'] ?? 'GET')
+            ];
+        }
+
+        try {
+            $r = $this->cURL(
+                $link,
+                'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
+                $params['header'] ?? 0,
+                $params['cookie'] ?? '',
+                $post,
+                $timeout,
+                ($params['headers'] ?? ''),
+                ($params['method'] ?? ''),
+            );
+            if ($toBfl) {
+                $this->Table->getTotum()->getOutersLogger()->error(
+                    'getFromScript',
+                    [
+                        'link' => $link,
+                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
+                        'header' => $params['header'] ?? 0,
+                        'headers' => $params['headers'] ?? 0,
+                        'cookie' => $params['cookie'] ?? '',
+                        'post' => $post,
+                        'timeout' => $timeout,
+                        'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
+                    ]
+                );
+            }
+            return $r;
+        } catch (Exception $e) {
+            if ($toBfl) {
+                $r = $r ?? '';
+                $this->Table->getTotum()->getOutersLogger()->error(
+                    'getFromScript:',
+                    ['error' => $e->getMessage()] + [
+                        'link' => $link,
+                        'ref' => 'http://' . $this->Table->getTotum()->getConfig()->getFullHostName(),
+                        'header' => $params['header'] ?? 0,
+                        'headers' => $params['headers'] ?? 0,
+                        'cookie' => $params['cookie'] ?? '',
+                        'post' => $post,
+                        'timeout' => ($params['timeout'] ?? null),
+                        'result' => mb_check_encoding($r, 'utf-8') ? $r : base64_encode($r)
+                    ]
+                );
+            }
+            throw new errorException($e->getMessage());
+        }
     }
 
     /**

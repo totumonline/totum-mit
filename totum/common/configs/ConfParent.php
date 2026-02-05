@@ -413,11 +413,11 @@ abstract class ConfParent
             die($this->translate('Error accessing the anonymous tables module.'));
         }
 
-        if(empty($split[0])){
+        if(empty($split[0]) && !str_starts_with($split[1], '/totum')){
             header('location: /totum');
             die;
         }
-        elseif($split[0] === 'totum'){
+        elseif(str_starts_with($uri, '/totum')){
             $split[0] = 'Table';
         }
 

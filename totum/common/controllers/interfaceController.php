@@ -109,7 +109,10 @@ abstract class interfaceController extends Controller
      */
     protected function location($to = null, bool $withPrefix = true)
     {
-        $to = ($withPrefix ? $this->totumPrefix : '') . ($to ?? '/');
+        if(str_starts_with('http', $to)){
+            $to = null;
+        }
+        $to = ($withPrefix ? $this->totumPrefix : '') . ($to ?? '/totum');
         header('location: ' . $to);
         die;
     }

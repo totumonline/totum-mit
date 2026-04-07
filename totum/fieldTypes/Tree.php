@@ -94,29 +94,12 @@ class Tree extends Field
         $return = '';
         if (!is_null($list)) {
             if (is_array($list)) {
-                if (!empty($this->data['multiple'])) {
-                    if ($val !== $this->data['errorText']) {
-                        foreach ($val ?? [] as $v) {
-                            if (!empty($return)) {
-                                $return .= ', ';
-                            }
-                            if (empty($list[$v])) {
-                                $return .= $v;
-                            } else {
-                                $return .= $list[$v];
-                            }
-                        }
-                    } else {
-                        $return = $this->data['errorText'];
-                    }
+                if ($v_ = $list[$val] ?? null) {
+                    $return = $v_;
+                } elseif ($this->data['withEmptyVal'] ?? false) {
+                    $return = $this->data['withEmptyVal'];
                 } else {
-                    if ($v_ = $list[$val] ?? null) {
-                        $return = $v_;
-                    } elseif ($this->data['withEmptyVal'] ?? false) {
-                        $return = $this->data['withEmptyVal'];
-                    } else {
-                        $return = $val;
-                    }
+                    $return = $val;
                 }
             } else {
                 $return = $this->data['errorText'];
@@ -129,11 +112,7 @@ class Tree extends Field
     public function getLevelValue($val, $row, $tbl = [])
     {
         if (empty($val)) {
-            if (empty($this->data['multiple'])) {
-                return null;
-            } else {
-                return [];
-            }
+            return null;
         }
 
         $arrayVal = ['v' => $val];
@@ -145,25 +124,10 @@ class Tree extends Field
 
         if (!is_null($list)) {
             if (is_array($list)) {
-                if (!empty($this->data['multiple'])) {
-                    $return = [];
-                    if ($val !== $this->data['errorText']) {
-                        foreach ($val ?? [] as $v) {
-                            if (empty($list[$v])) {
-                                $return[] = 0;
-                            } else {
-                                $return[] = $calcLevel($list[$v]);
-                            }
-                        }
-                    } else {
-                        $return = [];
-                    }
+                if (empty($list[$val])) {
+                    $return = 0;
                 } else {
-                    if (empty($list[$val])) {
-                        $return = 0;
-                    } else {
-                        $return = $calcLevel($list[$val]);
-                    }
+                    $return = $calcLevel($list[$val]);
                 }
             } else {
                 $return = null;
@@ -264,51 +228,28 @@ class Tree extends Field
 
     public function getValueFromCsv($val)
     {
-        if (!empty($this->data['multiple'])) {
-            $vals = preg_split('/\]\s*\[/', $val);
-            foreach ($vals as &$v) {
-                $v = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $v);
-                if ($v === '') {
-                    $v = null;
-                }
-            }
-            $val = $vals;
-        } else {
-            $val = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $val);
-            if ($val === '') {
-                $val = null;
-            }
+        $val = preg_replace('/^\s*\[?([a-z_\d]*).*$/', '$1', $val);
+        if ($val === '') {
+            $val = null;
         }
         return $val;
     }
 
     public function addXmlExport(\SimpleXMLElement $simpleXMLElement, $fVar)
     {
-        if (!empty($this->data['multiple'])) {
-            $paramInXml = $simpleXMLElement->addChild($this->data['name']);
-            $v_ = [];
-            foreach ($fVar['v_'] as $i_v_) {
-                $v_[$i_v_[2]] = $i_v_;
-            }
-            foreach ($fVar['v'] as $v) {
-                $value = $paramInXml->addChild('value', $v);
-                $value->addAttribute('title', $v_[$v][0]);
-                $value->addAttribute('correct', $v_[$v][0] === 1 ? '0' : '1');
-            }
-        } else {
-            if (is_array($fVar['v'])) {
-                $paramInXml = $simpleXMLElement->addChild($this->data['name'],
-                    json_encode($fVar['v'], JSON_UNESCAPED_UNICODE));
-                $fVar['e'] = 'list в немульти поле';
-            } elseif (!is_null($fVar['v']) && isset($fVar['v_'])) {
-                $paramInXml = $simpleXMLElement->addChild($this->data['name'], $fVar['v']);
 
-                $paramInXml->addAttribute('title', $fVar['v_'][0]);
-                if ($fVar['v_'][1]) {
-                    $paramInXml->addAttribute('correct', '0');
-                } else {
-                    $paramInXml->addAttribute('correct', '1');
-                }
+        if (is_array($fVar['v'])) {
+            $paramInXml = $simpleXMLElement->addChild($this->data['name'],
+                json_encode($fVar['v'], JSON_UNESCAPED_UNICODE));
+            $fVar['e'] = 'list в немульти поле';
+        } elseif (!is_null($fVar['v']) && isset($fVar['v_'])) {
+            $paramInXml = $simpleXMLElement->addChild($this->data['name'], $fVar['v']);
+
+            $paramInXml->addAttribute('title', $fVar['v_'][0]);
+            if ($fVar['v_'][1]) {
+                $paramInXml->addAttribute('correct', '0');
+            } else {
+                $paramInXml->addAttribute('correct', '1');
             }
         }
 
@@ -513,23 +454,11 @@ class Tree extends Field
         $getSelectData = function ($v, $list) use ($getParentsTitle, $getTreeItem, &$valArray) {
             if (!is_null($list)) {
                 if (is_array($list)) {
-                    if (!empty($this->data['multiple'])) {
-                        $v_ = [];
-                        if ($v !== $this->data['errorText'] && (is_null($v) || is_array($v))) {
-                            foreach (($v ?? []) as $_v) {
-                                $v_[] = $getTreeItem($_v);
-                            }
-                        } else {
-                            $v_ = [$v, 0];
-                            $valArray['e'] = $this->translate('Value format error');
-                        }
+                    if (!is_array($v)) {
+                        $v_ = $getTreeItem($v);
                     } else {
-                        if (!is_array($v)) {
-                            $v_ = $getTreeItem($v);
-                        } else {
-                            $v_ = [$this->data['errorText'], 1];
-                            $valArray['e'] = $this->translate('Multiselect instead of select');
-                        }
+                        $v_ = [$this->data['errorText'], 1];
+                        $valArray['e'] = $this->translate('Multiselect instead of select');
                     }
                     return $v_;
                 }
@@ -576,42 +505,14 @@ class Tree extends Field
                         );
                 };
 
-                if ($this->data['multiple'] && ($this->data['printTextfull'] ?? false)) {
-                    $valArray['v'] = $func($valArray['v'], $valArray['v_']);
-                } else {
-                    if ($this->data['multiple']) {
-                        if ($valArray['v']) {
-                            if (count($valArray['v']) === 1) {
-                                $valArray['v'] = $func(
-                                    $valArray['v'][count($valArray['v']) - 1],
-                                    $valArray['v_'][count($valArray['v_']) - 1]
-                                );
-                            } else {
-                                $valArray['v'] = $func('', [count($valArray['v']) . ' элем.', 0]);
-                            }
-                        } else {
-                            $valArray['v'] = '';
-                        }
-                    } else {
-                        $valArray['v'] = $func([$valArray['v']], [$valArray['v_']]);
-                    }
-                }
+
+                $valArray['v'] = $func([$valArray['v']], [$valArray['v_']]);
                 unset($valArray['v_']);
                 break;
 
             case 'csv':
 
-                $val = '';
-                if (!empty($this->data['multiple'])) {
-                    foreach ($valArray['v'] as $k => $v) {
-                        if ($val) {
-                            $val .= ' ';
-                        }
-                        $val .= '[' . $v . ':' . $valArray['v_'][$k][0] . ']';
-                    }
-                } else {
-                    $val = '[' . $valArray['v'] . ':' . $valArray['v_'][0] . ']';
-                }
+                $val = '[' . $valArray['v'] . ':' . $valArray['v_'][0] . ']';
                 $valArray['v'] = $val;
 
                 break;
@@ -639,38 +540,16 @@ class Tree extends Field
 
     protected function checkValByType(&$val, $row, $isCheck = false)
     {
-        if (($this->data['multiple'] ?? false) === true && !is_array($val)) {
-            if (is_numeric($val)) {
-                $val = [strval($val)];
-            } elseif (is_null($val)) {
-                $val = [];
+        if (is_array($val)) {
+            if (count($val) === 0 || is_null($val[0] ?? null)) {
+                $val = null;
             } else {
-                if ($v = json_decode($val, true)) {
-                    $val = strval($v);
-                } else {
-                    $val = [strval($val)];
-                }
-            }
-        }
-        if ($this->data['multiple'] ?? false) {
-            foreach ($val as &$v) {
-                if (is_array($v)) {
-                    $v = json_encode($v, JSON_UNESCAPED_UNICODE);
-                } elseif (!is_null($v)) {
-                    $v = strval($v);
-                }
+                $val = is_array($val[0]) ? json_encode($val[0], JSON_UNESCAPED_UNICODE) : strval($val[0]);
             }
         } else {
-            if (is_array($val)) {
-                if (count($val) === 0 || is_null($val[0] ?? null)) {
-                    $val = null;
-                } else {
-                    $val = is_array($val[0]) ? json_encode($val[0], JSON_UNESCAPED_UNICODE) : strval($val[0]);
-                }
-            } else {
-                $val = strval($val);
-            }
+            $val = strval($val);
         }
+
         if ($val === '') {
             $val = null;
         }
@@ -678,20 +557,7 @@ class Tree extends Field
 
     protected function getDefaultValue()
     {
-        if (!empty($this->data['multiple'])) {
-            if ($default = json_decode(($this->data['default'] ?? '[]'), true)) {
-                if (!is_array($default)) {
-                    $default = [$default];
-                }
-            } else {
-                $default = [];
-                if (key_exists('default', $this->data)) {
-                    $default = [$this->data['default']];
-                }
-            }
-        } else {
-            $default = $this->data['default'] ?? '';
-        }
+        $default = $this->data['default'] ?? '';
         return $default;
     }
 }

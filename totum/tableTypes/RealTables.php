@@ -32,7 +32,7 @@ abstract class RealTables extends aTable
     /**
      * @var array|bool|int[]|mixed|string|string[]
      */
-    protected $withoutNotLoaded = false;
+    protected $withoutNotLoaded = false; // !!! withNotLoaded !!!!
 
 
     public function getLastUpdated($force = false)

@@ -2257,6 +2257,9 @@ table tr td.title{font-weight: bold}', 'html' => '{table}'];
     protected function getTreeTopLevel($load, $open)
     {
 
+        if (method_exists($this->Table, 'withoutNotLoaded')) {
+            $this->Table->withoutNotLoaded();
+        }
 
         $result = $this->getResultTree(
             function ($k, $v) use ($load, $open) {

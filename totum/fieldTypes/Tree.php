@@ -33,6 +33,7 @@ class Tree extends Field
         if (!empty($this->data['codeSelect'])) {
             $this->CalculateCodeSelect = new CalculateSelect($this->data['codeSelect']);
         }
+        $this->data['multiple'] = $this->data['multiple'] ?? false;
     }
 
     public function clearCachedLists()

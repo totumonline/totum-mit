@@ -140,7 +140,7 @@ class Tree extends Field
         $arrayVal = ['v' => $val];
         $list = $this->calculateSelectList($arrayVal, $row, $tbl);
 
-        $calcLevel = function ($v, $level = 0) use (&$calcLevel) {
+        $calcLevel = function ($v, $level = 1) use (&$calcLevel) {
             return key_exists('path', $v) ? $calcLevel($v['path'], $level + 1) : $level;
         };
 

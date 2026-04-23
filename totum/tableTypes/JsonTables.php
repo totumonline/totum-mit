@@ -1032,9 +1032,8 @@ abstract class JsonTables extends aTable
         } else {
             //При изменении таблицы
 
-
             $codeAction = $this->tableRow['default_action'] ?? null;
-            if ($codeAction && !Calculate::hasStartSection($codeAction)){
+            if ($codeAction && Calculate::hasStartSection($codeAction)){
                 $this->execDefaultTableAction($codeAction, $loadedTbl, $tbl);
             }
 

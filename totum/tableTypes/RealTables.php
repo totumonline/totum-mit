@@ -243,7 +243,17 @@ abstract class RealTables extends aTable
             $normalizeFunc = null;
 
             if (Field::isFieldListValues($field['type'], $field['multiple'] ?? false)) {
-                $normalizeFunc = function ($r) {
+                $normalizeFunc = function ($r) use ($field) {
+                    if ($field['type'] === 'listRow') {
+                        if (is_string($r)) {
+                            if (strlen($r) > 0) {
+                                $res = json_decode($r ?? '[]', true);
+                                if (is_null($res) && $r !== 'null') {
+                                    return $r;
+                                }
+                            }
+                        }
+                    }
                     return json_decode($r ?? '[]', true);
                 };
             } elseif ($field['type'] === 'checkbox') {
@@ -384,6 +394,7 @@ abstract class RealTables extends aTable
                         $order,
                         $limit
                     )->fetchAll();
+
                     if (!empty($params['with__sectionFunction'])) {
                         foreach ($rows as &$row) {
                             $row['__sectionFunction'] = function () use ($sectionReplaces, $row, $params) {

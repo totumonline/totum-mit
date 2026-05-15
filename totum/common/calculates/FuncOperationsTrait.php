@@ -16,6 +16,8 @@ trait FuncOperationsTrait
 
     protected function cURL($url, string $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null, $method = null): bool|string|null
     {
+        $url = escapeshellarg($url);
+
         if ($headers) {
             $headers = (array)$headers;
         } else {

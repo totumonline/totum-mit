@@ -132,9 +132,6 @@ abstract class ConfParent
 
     public function setSessionCookieParams()
     {
-        $host = preg_replace('/[^a-zA-Z0-9]/', '', $this->hostName);
-        session_name($host.'-PHPSESSID');
-
         session_set_cookie_params([
             'path' => '/',
             'httponly' => true,

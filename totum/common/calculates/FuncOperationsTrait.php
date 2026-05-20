@@ -16,6 +16,8 @@ trait FuncOperationsTrait
 
     protected function cURL($url, string $ref = '', $header = 0, $cookie = '', $post = null, $timeout = null, $headers = null, $method = null): bool|string|null
     {
+
+
         if ($headers) {
             $headers = (array)$headers;
         } else {
@@ -54,6 +56,7 @@ trait FuncOperationsTrait
             setlocale(LC_CTYPE, $localeOld);
 
             $hhs = implode(' ', $hhs);
+            $url = escapeshellarg($url);
             `curl --insecure --request $method $ref $hhs $url $data  > /dev/null 2>&1 &`;
 
             return null;

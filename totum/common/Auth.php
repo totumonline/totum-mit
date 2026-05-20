@@ -285,6 +285,8 @@ SQL;
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
+        session_regenerate_id(true);
+
         $_SESSION['userId'] = $userId;
         session_write_close();
     }

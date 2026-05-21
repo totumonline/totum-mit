@@ -38,7 +38,7 @@ class Password extends Field
                 $valArray['e'] = $this->translate('Field data type error');
             }
         }
-        if ($viewType !== 'edit' || !str_starts_with($valArray['v'], '*PASSWORD*')) {
+        if ($viewType !== 'edit' || !str_starts_with($valArray['v']??'', '*PASSWORD*')) {
             $valArray['v'] = '';
         }
     }

@@ -13,6 +13,7 @@ use totum\common\calculates\Calculate;
 use totum\common\calculates\CalculateAction;
 use totum\common\errorException;
 use totum\common\Field;
+use totum\common\Lang\DE;
 use totum\common\Lang\RU;
 use totum\common\Model;
 use totum\common\sql\SqlException;
@@ -784,95 +785,99 @@ abstract class RealTables extends aTable
             /*Удаляем из reorder несуществующие id*/
             $reorder = array_intersect($reorder, array_column($old_order_arrays, 'id'));
 
-            if ($addAfter !== null) {
-                if ((string)$addAfter === '0') {
-                    $minN = $this->model->executePrepared(true,
-                        (object)['whereStr' => 'n is not null', 'params' => []],
-                        'n',
-                        'n desc')->fetch();
-                    if ($minN && $minN['n']) {
-                        $nextN = $this->getNextN(null, 0, $minN['n']);
+            if ($reorder) {
+
+                if ($addAfter !== null) {
+                    if ((string)$addAfter === '0') {
+                        $minN = $this->model->executePrepared(true,
+                            (object)['whereStr' => 'n is not null AND id not in (' .implode(',', $reorder).')', 'params' => []],
+                            'n',
+                            'n')->fetch();
+
+                        if ($minN && $minN['n']) {
+                            $nextN = $this->getNextN(null, 0, $minN['n']);
+                        } else {
+                            $nextN = 1;
+                        }
+
+                    } elseif ($getNRow = $this->model->executePrepared(true, ['id' => $addAfter], 'n, id', 'n')->fetch()) {
+                        $addAfterN = $getNRow['n'];
                     } else {
-                        $nextN = 1;
+                        throw new errorException($this->translate('Row %s not found', $addAfter));
+                    }
+                    $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
+                    foreach ($reorder as $rId) {
+                        $nextN = $nextN ?? $this->getNextN(null, $addAfterN);
+                        if (!$orderMinN) {
+                            $orderMinN = $nextN;
+                        }
+                        $this->model->updatePrepared(true, ['n' => $nextN], ['id' => [$rId]]);
+                        $addAfterN = $nextN;
+
+                        $this->changeIds['reorderedIds'][$rId] = 1;
+                        $this->changeInOneRecalcIds['reorderedIds'][$rId] = 1;
+                        $nextN = null;
                     }
 
-                } elseif ($getNRow = $this->model->executePrepared(true, ['id' => $addAfter], 'n, id', 'n')->fetch()) {
-                    $addAfterN = $getNRow['n'];
+                    $this->setIsTableDataChanged('ROWS_REORDERED', $reorder);
+                    $this->changeIds['reordered'] = true;
                 } else {
-                    throw new errorException($this->translate('Row %s not found', $addAfter));
-                }
-                $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
-                foreach ($reorder as $rId) {
-                    $nextN = $nextN ?? $this->getNextN(null, $addAfterN);
-                    if (!$orderMinN) {
-                        $orderMinN = $nextN;
-                    }
-                    $this->model->updatePrepared(true, ['n' => $nextN], ['id' => [$rId]]);
-                    $addAfterN = $nextN;
-
-                    $this->changeIds['reorderedIds'][$rId] = 1;
-                    $this->changeInOneRecalcIds['reorderedIds'][$rId] = 1;
-                    $nextN = null;
-                }
-
-
-                $this->setIsTableDataChanged('ROWS_REORDERED', $reorder);
-                $this->changeIds['reordered'] = true;
-            } else {
-                ;
-                /*Удаляем из реордера совпадающие по порядку id с начала*/
-                foreach ($old_order_arrays as $i => $orderRow) {
-                    if (!$orderRow['n']) {
-                        continue;
-                    }
-                    if ($orderRow['id'] === $reorder[0]) {
-                        array_splice($reorder, 0, 1);
-                        unset($old_order_arrays[$i]);
-                    } else {
-                        break;
-                    }
-                }
-                if ($reorder) {
-                    /*Удаляем из реордера совпадающие по порядку id с конца*/
-                    $old_order_arrays_rev = array_reverse($old_order_arrays);
-                    $reorder_rev = array_reverse($reorder);
-                    foreach ($old_order_arrays_rev as $i => $orderRow) {
+                    ;
+                    /*Удаляем из реордера совпадающие по порядку id с начала*/
+                    foreach ($old_order_arrays as $i => $orderRow) {
                         if (!$orderRow['n']) {
                             continue;
                         }
-                        if ($orderRow['id'] === $reorder_rev[0]) {
-                            array_splice($reorder_rev, 0, 1);
-                            unset($old_order_arrays_rev[$i]);
+                        if ($orderRow['id'] === $reorder[0]) {
+                            array_splice($reorder, 0, 1);
+                            unset($old_order_arrays[$i]);
                         } else {
                             break;
                         }
                     }
+                    if ($reorder) {
+                        /*Удаляем из реордера совпадающие по порядку id с конца*/
+                        $old_order_arrays_rev = array_reverse($old_order_arrays);
+                        $reorder_rev = array_reverse($reorder);
 
-                    $old_order_arrays = [];
-                    foreach (array_reverse($old_order_arrays_rev) as $oldOrdRow) {
-                        $old_order_arrays[] = $oldOrdRow['n'];
-                    }
 
-                    /*Обнуляем n у сортируемых*/
-                    $reorder = array_reverse($reorder_rev);
-                    $orderMinN = null;
-                    $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
-                    /*Проставляем n у сортируемых из старых N*/
-                    foreach ($reorder as $i => $rId) {
-                        $n = ($old_order_arrays[$i] ?? $this->getNextN());
-                        if (is_null($orderMinN) || $orderMinN > $n) {
-                            $orderMinN = $n;
+                        foreach ($old_order_arrays_rev as $i => $orderRow) {
+                            if (!$orderRow['n']) {
+                                continue;
+                            }
+                            if ($orderRow['id'] === $reorder_rev[0]) {
+                                array_splice($reorder_rev, 0, 1);
+                                unset($old_order_arrays_rev[$i]);
+                            } else {
+                                break;
+                            }
                         }
-                        $this->model->updatePrepared(true, ['n' => $n], ['id' => [$rId]]);
-                        $this->changeIds['reorderedIds'][$rId] = 1;
-                        $this->changeInOneRecalcIds['reorderedIds'][$rId] = 1;
+
+                        $old_order_arrays = [];
+                        foreach (array_reverse($old_order_arrays_rev) as $oldOrdRow) {
+                            $old_order_arrays[] = $oldOrdRow['n'];
+                        }
+
+                        /*Обнуляем n у сортируемых*/
+                        $reorder = array_reverse($reorder_rev);
+                        $orderMinN = null;
+                        $this->model->updatePrepared(true, ['n' => null], ['id' => $reorder]);
+                        /*Проставляем n у сортируемых из старых N*/
+                        foreach ($reorder as $i => $rId) {
+                            $n = ($old_order_arrays[$i] ?? $this->getNextN());
+                            if (is_null($orderMinN) || $orderMinN > $n) {
+                                $orderMinN = $n;
+                            }
+                            $this->model->updatePrepared(true, ['n' => $n], ['id' => [$rId]]);
+                            $this->changeIds['reorderedIds'][$rId] = 1;
+                            $this->changeInOneRecalcIds['reorderedIds'][$rId] = 1;
+                        }
+                        $this->tbl['rows'] = [];
+                        $this->setIsTableDataChanged('ROWS_REORDERED', $reorder);
+                        $this->changeIds['reordered'] = true;
                     }
-                    $this->tbl['rows'] = [];
-                    $this->setIsTableDataChanged('ROWS_REORDERED', $reorder);
-                    $this->changeIds['reordered'] = true;
                 }
             }
-
 
         }
 

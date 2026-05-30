@@ -87,7 +87,7 @@ trait ActionsTrait
         }
     }
 
-    public function actionReorder(array $ids, int $after = 0)
+    public function actionReorder(array $ids, int|null $after = 0)
     {
         if (!$this->tableRow['with_order_field']) {
             throw new errorException($this->translate('The table [[%s]] has no n-sorting.', $this->tableRow['name']));

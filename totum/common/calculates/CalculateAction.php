@@ -1203,6 +1203,10 @@ class CalculateAction extends Calculate
             $elseData['tabs'] = true;
         }
 
+        if(!empty($params['link']) && $params['link']!=='false'){
+            return $link;
+        }
+
         $this->Table->getTotum()->addToInterfaceLink(
             $link,
             $params['target'] ?? 'self',
@@ -1925,7 +1929,11 @@ class CalculateAction extends Calculate
                 if (!$table) {
                     return;
                 }
-                $table->actionReorder($params['ids'], (int)($params['after'] ?? null));
+                $after = ($params['after'] ?? null);
+                if(!is_null($after)){
+                    $after = (int)$after;
+                }
+                $table->actionReorder($params['ids'], $after);
             },
             true
         );
